@@ -4,7 +4,6 @@ import { useProductStore } from "../stores/useProductStore";
 
 const BRANDS = ["Rolex", "Casio", "Seiko", "Citizen", "Garmin", "Patek Philippe", "Audemars Piguet", "Hublot", "Omega", "Cartier", "Tag Heuer", "IWC"];
 const MACHINE_TYPES = ["Mechanical", "Quartz", "Automatic", "Digital", "Smartwatch"];
-const STRAP_MATERIALS = ["Dây kim loại", "Dây da cá sấu", "Dây cao su", "Dây vải NATO"];
 
 const FilterSidebar = () => {
     const { filters, setFilters, fetchFilteredProducts } = useProductStore();
@@ -64,7 +63,7 @@ const FilterSidebar = () => {
                     <h3 className="text-[10px] font-semibold tracking-widest text-gray-500 uppercase mb-3">
                         Thương hiệu
                     </h3>
-                    <div className="space-y-2">
+                    <div className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                         {BRANDS.map((brand) => (
                             <label key={brand} className="flex items-center gap-3 cursor-pointer group">
                                 <div
@@ -104,14 +103,15 @@ const FilterSidebar = () => {
                         step={5000000}
                         value={local.maxPrice}
                         onChange={(e) => setLocal({ ...local, maxPrice: Number(e.target.value) })}
-                        className="w-full accent-yellow-400"
+                        className="w-full"
+                        style={{ accentColor: '#D4AF37' }}
                     />
                     <div className="flex justify-between text-xs text-gray-500 mt-2">
                         <span>0đ</span>
-                        <span className="text-yellow-400">
+                        <span className="text-[#D4AF37]">
                             {local.maxPrice >= 1000000000
-                                ? `${(local.maxPrice / 1000000000).toFixed(1)}Tỷ`
-                                : `${(local.maxPrice / 1000000).toFixed(0)}Tr`}
+                                ? `${(local.maxPrice / 1000000000).toFixed(1)} Tỷ ${local.maxPrice === 1000000000 ? '+' : ''}`
+                                : `${(local.maxPrice / 1000000).toFixed(0)} Tr`}
                         </span>
                     </div>
                 </div>
@@ -137,49 +137,6 @@ const FilterSidebar = () => {
                     </div>
                 </div>
 
-                {/* CHẤT LIỆU DÂY */}
-                <div className="mb-8">
-                    <h3 className="text-[10px] font-semibold tracking-widest text-gray-500 uppercase mb-3">
-                        Chất liệu dây
-                    </h3>
-                    <div className="space-y-2">
-                        {STRAP_MATERIALS.map((mat) => (
-                            <label key={mat} className="flex items-center gap-3 cursor-pointer group">
-                                <div
-                                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition ${local.strapMaterial.includes(mat)
-                                        ? "border-yellow-400"
-                                        : "border-yellow-900 group-hover:border-yellow-400"
-                                        }`}
-                                    onClick={() =>
-                                        setLocal({
-                                            ...local,
-                                            strapMaterial: local.strapMaterial.includes(mat) ? [] : [mat],
-                                        })
-                                    }
-                                >
-                                    {local.strapMaterial.includes(mat) && (
-                                        <div className="w-2 h-2 rounded-full bg-yellow-400" />
-                                    )}
-                                </div>
-                                <span
-                                    className={`text-sm transition ${local.strapMaterial.includes(mat)
-                                        ? "text-yellow-400"
-                                        : "text-gray-400 group-hover:text-white"
-                                        }`}
-                                    onClick={() =>
-                                        setLocal({
-                                            ...local,
-                                            strapMaterial: local.strapMaterial.includes(mat) ? [] : [mat],
-                                        })
-                                    }
-                                >
-                                    {mat}
-                                </span>
-                            </label>
-                        ))}
-                    </div>
-                </div>
-
                 {/* Apply Button */}
                 <button
                     onClick={handleApply}
@@ -187,8 +144,8 @@ const FilterSidebar = () => {
                 >
                     Áp dụng bộ lọc
                 </button>
-            </div>
-        </aside>
+            </div >
+        </aside >
     );
 };
 

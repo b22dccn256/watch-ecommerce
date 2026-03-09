@@ -71,7 +71,21 @@ function App() {
 				</main>
 				<Footer />
 			</div>
-			<Toaster />
+			<Toaster
+				toastOptions={{
+					style: {
+						background: '#18181b',
+						color: '#fff',
+						border: '1px solid #D4AF37',
+					},
+					success: {
+						iconTheme: {
+							primary: '#D4AF37',
+							secondary: '#18181b',
+						},
+					},
+				}}
+			/>
 			<ChatBot />
 		</div>
 	);

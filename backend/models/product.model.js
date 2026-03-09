@@ -14,6 +14,7 @@ const productSchema = new mongoose.Schema(
 			type: Number,
 			min: 0,
 			required: true,
+			index: true,
 		},
 		image: {
 			type: String,
@@ -22,6 +23,7 @@ const productSchema = new mongoose.Schema(
 		category: {
 			type: String,
 			required: true,
+			index: true,
 		},
 		isFeatured: {
 			type: Boolean,
@@ -37,12 +39,32 @@ const productSchema = new mongoose.Schema(
 		brand: {
 			type: String,
 			required: true, // e.g., "Rolex", "Seiko"
+			index: true,
 		},
 		type: {
 			type: String,
 			enum: ["mechanical", "quartz", "automatic", "digital", "smartwatch"],
 			required: true,
+			index: true,
 		},
+		slug: {
+			type: String,
+			required: false,
+			unique: true,
+			default: function () {
+				if (this.name) {
+					const baseSlug = this.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+					const randomHash = Math.random().toString(36).substring(2, 7);
+					return `${baseSlug}-${randomHash}`;
+				}
+				return "";
+			}
+		},
+		specs: {
+			waterResistance: String,
+			glass: String,
+			caseMaterial: String,
+		}
 	},
 	{ timestamps: true }
 );

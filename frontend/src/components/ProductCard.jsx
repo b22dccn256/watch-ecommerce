@@ -18,10 +18,10 @@ const ProductCard = ({ product }) => {
 	};
 
 	return (
-		<div className='group relative flex w-full flex-col overflow-hidden rounded-lg border border-luxury-border bg-luxury-darker shadow-lg transition-all duration-300 hover:shadow-2xl hover:border-luxury-gold'>
+		<div className='group relative flex flex-col h-full w-full overflow-hidden rounded-lg border border-luxury-border bg-luxury-darker shadow-lg transition-all duration-300 hover:shadow-2xl hover:border-luxury-gold'>
 			{/* Product Image */}
-			<div className='relative flex h-80 w-full overflow-hidden rounded-t-lg'>
-				<img className='object-cover w-full h-full transition-transform duration-300 group-hover:scale-105' src={product.image} alt='product image' />
+			<div className='relative flex w-full aspect-square overflow-hidden rounded-t-lg bg-black'>
+				<img loading='lazy' className='object-cover w-full h-full transition-transform duration-300 group-hover:scale-105' src={product.image || "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=200&auto=format&fit=crop"} alt={product.name} />
 				<div className='absolute inset-0 bg-gradient-to-t from-luxury-dark/20 to-transparent' />
 
 				{/* Add to Cart Button */}
@@ -34,14 +34,14 @@ const ProductCard = ({ product }) => {
 			</div>
 
 			{/* Product Info */}
-			<div className='mt-4 px-5 pb-5'>
+			<div className='mt-4 px-5 pb-5 flex flex-col flex-grow'>
 				{/* Brand/Category */}
 				<p className='text-xs font-medium text-luxury-text-muted uppercase tracking-luxury mb-1'>
 					{product.category || 'Luxury Watch'}
 				</p>
 
 				{/* Product Name */}
-				<h5 className='text-xl font-semibold tracking-tight text-luxury-text-light mb-2 line-clamp-2'>
+				<h5 className='text-xl font-semibold tracking-tight text-luxury-text-light mb-2 line-clamp-2 overflow-hidden min-h-[3.5rem]'>
 					{product.name}
 				</h5>
 
@@ -59,7 +59,7 @@ const ProductCard = ({ product }) => {
 				</div>
 
 				{/* Price */}
-				<div className='flex items-center justify-between mb-4'>
+				<div className='flex items-center justify-between mb-4 mt-auto'>
 					<div className='flex flex-col'>
 						<span className='text-3xl font-bold text-luxury-gold'>
 							{product.price?.toLocaleString("vi-VN")} ₫

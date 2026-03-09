@@ -54,12 +54,12 @@ const Navbar = () => {
 							</span>
 
 							{/* Menu xổ xuống */}
-							<div className="absolute top-[80%] left-0 w-52 bg-luxury-dark border border-luxury-border rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 overflow-hidden transform translate-y-2 group-hover:translate-y-0">
+							<div className="absolute top-[80%] left-0 w-52 bg-luxury-dark/95 backdrop-blur-md border border-luxury-border rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 overflow-hidden transform translate-y-2 group-hover:translate-y-0">
 								<div className="flex flex-col py-2">
-									<Link to="/category/Automatic" className="px-5 py-2.5 hover:bg-luxury-gold hover:text-luxury-dark transition-all duration-300 text-luxury-text-light whitespace-nowrap font-medium">Cơ khí / Tự động</Link>
-									<Link to="/category/Quartz" className="px-5 py-2.5 hover:bg-luxury-gold hover:text-luxury-dark transition-all duration-300 text-luxury-text-light whitespace-nowrap font-medium">Đồng hồ Quartz</Link>
-									<Link to="/category/Eco-Drive" className="px-5 py-2.5 hover:bg-luxury-gold hover:text-luxury-dark transition-all duration-300 text-luxury-text-light whitespace-nowrap font-medium">Eco-Drive Năng lượng</Link>
-									<Link to="/category/Smartwatch" className="px-5 py-2.5 hover:bg-luxury-gold hover:text-luxury-dark transition-all duration-300 text-luxury-text-light whitespace-nowrap font-medium">Đồng hồ Thông minh</Link>
+									<Link to="/catalog?category=Automatic" className="px-5 py-2.5 hover:bg-luxury-gold hover:text-luxury-dark transition-all duration-300 text-luxury-text-light whitespace-nowrap font-medium">Cơ khí / Tự động</Link>
+									<Link to="/catalog?category=Quartz" className="px-5 py-2.5 hover:bg-luxury-gold hover:text-luxury-dark transition-all duration-300 text-luxury-text-light whitespace-nowrap font-medium">Đồng hồ Quartz</Link>
+									<Link to="/catalog?category=Digital" className="px-5 py-2.5 hover:bg-luxury-gold hover:text-luxury-dark transition-all duration-300 text-luxury-text-light whitespace-nowrap font-medium">Đồng hồ Điện tử</Link>
+									<Link to="/catalog?category=Smartwatch" className="px-5 py-2.5 hover:bg-luxury-gold hover:text-luxury-dark transition-all duration-300 text-luxury-text-light whitespace-nowrap font-medium">Đồng hồ Thông minh</Link>
 								</div>
 							</div>
 						</div>
