@@ -11,7 +11,7 @@ const CatalogPage = () => {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const {
 		products, loading, totalPages, currentPage,
-		fetchFilteredProducts, setPage, searchTerm, setSearchTerm
+		fetchFilteredProducts, setPage, searchTerm, setSearchTerm, setFilters
 	} = useProductStore();
 
 	// Đồng bộ URL params với store
@@ -19,11 +19,31 @@ const CatalogPage = () => {
 		const q = searchParams.get("q") || "";
 		setSearchTerm(q);
 
+		// Phân tích Param nâng cao (từ Mega Menu hoặc Deep Link)
+		const brandParam = searchParams.get("brand");
+		const machineTypeParam = searchParams.get("machineType");
+		const resetParam = searchParams.get("reset");
+
+		if (resetParam === "true") {
+			setFilters({ brands: [], machineType: [], minPrice: 0, maxPrice: 1000000000, strapMaterial: [] });
+			searchParams.delete("reset");
+			setSearchParams(searchParams, { replace: true });
+		} else {
+			const urlFilters = {};
+			if (brandParam) urlFilters.brands = brandParam.split(",");
+			if (machineTypeParam) urlFilters.machineType = machineTypeParam.split(",");
+
+			// Nếu có param URL, ưu tiên ghi đè vào Zustand
+			if (Object.keys(urlFilters).length > 0) {
+				setFilters(urlFilters);
+			}
+		}
+
 		fetchFilteredProducts({
 			category: category || searchParams.get("category") || undefined,
 			q
 		});
-	}, [searchParams, category, fetchFilteredProducts, setSearchTerm]);
+	}, [searchParams, category, fetchFilteredProducts, setSearchTerm, setFilters]);
 
 	// Format Pagination Window Helper
 	const getPaginationRange = (currentPage, totalPages) => {

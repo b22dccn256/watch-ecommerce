@@ -12,6 +12,7 @@ import ProfilePage from "./pages/ProfilePage";
 import CartPage from "./pages/CartPage";
 import PurchaseSuccessPage from "./pages/PurchaseSuccessPage";
 import PurchaseCancelPage from "./pages/PurchaseCancelPage";
+import AboutPage from "./pages/AboutPage";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -59,6 +60,7 @@ function App() {
 						/>
 						<Route path="/catalog" element={<CatalogPage />} />
 						<Route path='/category/:category' element={<CatalogPage />} />
+						<Route path="/about" element={<AboutPage />} />
 						<Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
 						<Route path='/profile' element={user ? <ProfilePage /> : <Navigate to='/login' />} />
 						<Route
