@@ -46,6 +46,11 @@ const orderSchema = new mongoose.Schema(
 			type: String,
 			unique: true,
 		},
+		currency: {
+			type: String,
+			default: "VND",
+			enum: ["USD", "VND"],
+		},
 	},
 	{ timestamps: true }
 );

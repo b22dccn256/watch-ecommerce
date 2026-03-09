@@ -23,8 +23,8 @@ const OrdersTab = () => {
     }, []);
 
     const stats = [
-        { label: "Total Volume", value: "$2,845,900", change: "+14.2%", icon: ShieldCheck },
-        { label: "Pending Review", value: "18", subValue: "Estimated value: $412k", action: "Action Required", icon: AlertCircle },
+        { label: "Total Volume", value: "71,147,500,000 ₫", change: "+14.2%", icon: ShieldCheck },
+        { label: "Pending Review", value: "18", subValue: "Estimated value: 10.3 Tỷ ₫", action: "Action Required", icon: AlertCircle },
         { label: "AI Trust Efficiency", value: "94.8%", subValue: "142 orders auto-confirmed today", icon: ShieldCheck },
     ];
 
@@ -120,7 +120,9 @@ const OrdersTab = () => {
                                         <div className='font-bold text-white'>{order.user?.name || "Unknown"}</div>
                                         <div className='text-[10px] text-luxury-gold mt-0.5'>{order.products.length} Items</div>
                                     </td>
-                                    <td className='px-6 py-6 font-bold text-white'>${order.totalAmount?.toLocaleString()}</td>
+                                    <td className='px-6 py-6 font-bold text-white'>
+                                        {order.currency === 'USD' ? '$' + order.totalAmount?.toLocaleString() : order.totalAmount?.toLocaleString('vi-VN') + ' ₫'}
+                                    </td>
                                     <td className='px-6 py-6'>
                                         <span className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wider ${order.status === 'pending' ? 'text-yellow-400 bg-yellow-400/10' : 'text-emerald-400 bg-emerald-400/10'}`}>
                                             {order.status.toUpperCase()}
@@ -208,7 +210,9 @@ const OrdersTab = () => {
                                 </div>
                                 <div>
                                     <p className="text-luxury-text-muted">Total Amount</p>
-                                    <p className="font-bold text-emerald-400">${selectedOrder.totalAmount?.toLocaleString()}</p>
+                                    <p className="font-bold text-emerald-400">
+                                        {selectedOrder.currency === 'USD' ? '$' + selectedOrder.totalAmount?.toLocaleString() : selectedOrder.totalAmount?.toLocaleString('vi-VN') + ' ₫'}
+                                    </p>
                                 </div>
                             </div>
 
@@ -221,7 +225,9 @@ const OrdersTab = () => {
                                                 <span className="font-bold text-white">{item.product?.name || "Unknown Product"}</span>
                                                 <span className="text-xs text-luxury-text-muted">Qty: {item.quantity}</span>
                                             </div>
-                                            <span className="font-bold text-luxury-gold">${item.product?.price?.toLocaleString()}</span>
+                                            <span className="font-bold text-luxury-gold">
+                                                {selectedOrder.currency === 'USD' ? '$' + item.product?.price?.toLocaleString() : item.product?.price?.toLocaleString('vi-VN') + ' ₫'}
+                                            </span>
                                         </div>
                                     ))}
                                 </div>

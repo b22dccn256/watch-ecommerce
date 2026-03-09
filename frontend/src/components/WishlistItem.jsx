@@ -13,7 +13,7 @@ const WishlistItem = ({ item }) => {
 
                 <div className='flex items-center justify-between md:order-3 md:justify-end'>
                     <div className='text-end md:w-32'>
-                        <p className='text-base font-bold text-emerald-400'>${item.price}</p>
+                        <p className='text-base font-bold text-emerald-400'>{item.price.toLocaleString("vi-VN")} ₫</p>
                     </div>
                 </div>
 

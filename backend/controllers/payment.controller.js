@@ -27,12 +27,12 @@ export const createCheckoutSession = async (req, res) => {
 		let totalAmount = 0;
 
 		const lineItems = products.map((product) => {
-			const amount = Math.round(product.price * 100); // stripe wants u to send in the format of cents
+			const amount = Math.round(product.price); // VND has no decimal cents
 			totalAmount += amount * product.quantity;
 
 			return {
 				price_data: {
-					currency: "usd",
+					currency: "vnd",
 					product_data: {
 						name: product.name,
 						images: [product.image],
@@ -49,6 +49,10 @@ export const createCheckoutSession = async (req, res) => {
 			if (coupon) {
 				totalAmount -= Math.round((totalAmount * coupon.discountPercentage) / 100);
 			}
+		}
+
+		if (totalAmount < 10000) {
+			return res.status(400).json({ error: "Giá trị đơn hàng tối thiểu qua Stripe là 10.000 VNĐ" });
 		}
 
 		const session = await stripe.checkout.sessions.create({
@@ -77,10 +81,10 @@ export const createCheckoutSession = async (req, res) => {
 			},
 		});
 
-		if (totalAmount >= 20000) {
+		if (totalAmount >= 5000000) {
 			await createNewCoupon(req.user._id);
 		}
-		res.status(200).json({ id: session.id, totalAmount: totalAmount / 100 });
+		res.status(200).json({ id: session.id, totalAmount: totalAmount });
 	} catch (error) {
 		console.error("Error processing checkout:", error);
 		res.status(500).json({ message: "Error processing checkout", error: error.message });
@@ -114,7 +118,7 @@ export const checkoutSuccess = async (req, res) => {
 					quantity: product.quantity,
 					price: product.price,
 				})),
-				totalAmount: session.amount_total / 100, // convert from cents to dollars,
+				totalAmount: session.amount_total,
 				stripeSessionId: sessionId,
 			});
 
