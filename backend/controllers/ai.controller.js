@@ -26,15 +26,17 @@ export const chatWithAI = async (req, res) => {
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemma-3-1b-it" });
 
         const result = await model.generateContent(`${systemPrompt}\n\nKhách hàng: ${message}\nTrợ lý:`);
         const responseText = result.response.text();
 
         res.json({ response: responseText });
     } catch (error) {
+        // Log lại mã lỗi để xem nguyên nhân chính xác với API Key mới
         console.error("AI Error:", error.message);
-        res.status(500).json({ message: "Lỗi kết nối AI" });
+        console.log("⚠️ CẢNH BÁO: Không thể kết nối tới Google Gemini bằng API Key hiện tại. Đang tự động chuyển sang Bot dự phòng Offline...");
+        return res.json({ response: getFallbackBotResponse(req.body?.message || "") });
     }
 };
 

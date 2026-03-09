@@ -12,7 +12,7 @@ import analyticsRoutes from "./routes/analytics.route.js";
 import orderRoutes from "./routes/order.route.js";
 import aiRoutes from "./routes/ai.route.js";
 import wishlistRoutes from "./routes/wishlist.route.js";
-
+// cron job
 import "./lib/cron.js";
 import "./lib/cron-ai.js";
 
