@@ -11,6 +11,7 @@ import paymentRoutes from "./routes/payment.route.js";
 import analyticsRoutes from "./routes/analytics.route.js";
 import orderRoutes from "./routes/order.route.js";
 import aiRoutes from "./routes/ai.route.js";
+import wishlistRoutes from "./routes/wishlist.route.js";
 
 import "./lib/cron.js";
 import "./lib/cron-ai.js";
@@ -36,6 +37,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/wishlist", wishlistRoutes);
 
 if (process.env.NODE_ENV === "production") {
 	app.use(express.static(path.join(__dirname, "/frontend/dist")));

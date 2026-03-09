@@ -3,12 +3,14 @@ import { useCartStore } from "../stores/useCartStore";
 import { motion } from "framer-motion";
 import { ShoppingCart } from "lucide-react";
 import CartItem from "../components/CartItem";
+import WishlistItem from "../components/WishlistItem";
 import PeopleAlsoBought from "../components/PeopleAlsoBought";
 import OrderSummary from "../components/OrderSummary";
 import GiftCouponCard from "../components/GiftCouponCard";
+import { Bookmark } from "lucide-react";
 
 const CartPage = () => {
-	const { cart } = useCartStore();
+	const { cart, wishlist } = useCartStore();
 
 	return (
 		<div className='py-8 md:py-16'>
@@ -26,6 +28,17 @@ const CartPage = () => {
 							<div className='space-y-6'>
 								{cart.map((item) => (
 									<CartItem key={item._id} item={item} />
+								))}
+							</div>
+						)}
+
+						{wishlist.length > 0 && (
+							<div className='mt-8 space-y-6'>
+								<h3 className='text-xl flex items-center gap-2 font-semibold text-white'>
+									<Bookmark className="w-5 h-5 text-blue-400" /> Save for later
+								</h3>
+								{wishlist.map((item) => (
+									<WishlistItem key={item._id} item={item} />
 								))}
 							</div>
 						)}

@@ -1,8 +1,8 @@
-import { Minus, Plus, Trash } from "lucide-react";
+import { Minus, Plus, Trash, Bookmark } from "lucide-react";
 import { useCartStore } from "../stores/useCartStore";
 
 const CartItem = ({ item }) => {
-	const { removeFromCart, updateQuantity } = useCartStore();
+	const { removeFromCart, updateQuantity, moveToWishlist } = useCartStore();
 
 	return (
 		<div className='rounded-lg border p-4 shadow-sm border-gray-700 bg-gray-800 md:p-6'>
@@ -49,8 +49,19 @@ const CartItem = ({ item }) => {
 							className='inline-flex items-center text-sm font-medium text-red-400
 							 hover:text-red-300 hover:underline'
 							onClick={() => removeFromCart(item._id)}
+							title='Xóa khỏi giỏ hàng'
 						>
-							<Trash />
+							<Trash className="w-4 h-4" />
+							<span className='ml-1'>Xóa</span>
+						</button>
+						<button
+							className='inline-flex items-center text-sm font-medium text-blue-400
+							 hover:text-blue-300 hover:underline'
+							onClick={() => moveToWishlist(item)}
+							title='Lưu lại mua sau'
+						>
+							<Bookmark className="w-4 h-4" />
+							<span className='ml-1'>Mua sau</span>
 						</button>
 					</div>
 				</div>

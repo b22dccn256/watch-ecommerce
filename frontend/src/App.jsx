@@ -23,7 +23,7 @@ import { useCartStore } from "./stores/useCartStore";
 
 function App() {
 	const { user, checkAuth, checkingAuth } = useUserStore();
-	const { getCartItems } = useCartStore();
+	const { getCartItems, getWishlistItems } = useCartStore();
 
 	useEffect(() => {
 		checkAuth();
@@ -32,7 +32,8 @@ function App() {
 	useEffect(() => {
 		if (!user) return;
 		getCartItems();
-	}, [getCartItems, user]);
+		getWishlistItems();
+	}, [getCartItems, getWishlistItems, user]);
 
 	if (checkingAuth) return <LoadingSpinner />;
 

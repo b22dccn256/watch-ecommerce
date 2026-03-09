@@ -68,21 +68,23 @@ export const removeAllFromCart = async (req, res) => {
 
 export const updateQuantity = async (req, res) => {
 	try {
-		const { productId } = req.body;
+		const productId = req.params.id;
+		const { quantity } = req.body;
 		const user = req.user;
+
 		const product = await Product.findById(productId);
 		if (!product) return res.status(404).json({ message: "Product not found" });
 
 		const existingItem = user.cartItems.find(item => item.product.toString() === productId);
 
-		const newQuantity = existingItem ? existingItem.quantity + 1 : 1;
-		if (product.stock < newQuantity) return res.status(400).json({ message: "Out of stock" });
+		if (!existingItem) return res.status(404).json({ message: "Item not in cart" });
 
-		if (existingItem) existingItem.quantity = newQuantity;
-		else user.cartItems.push({ product: productId, quantity: 1 });
+		if (product.stock < quantity) return res.status(400).json({ message: "Số lượng trong kho không đủ" });
+
+		existingItem.quantity = quantity;
 
 		await user.save();
-		res.status(200).json({ message: "Added to cart" });
+		res.status(200).json(user.cartItems);
 	} catch (error) {
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
