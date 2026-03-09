@@ -1,0 +1,72 @@
+[
+  {
+    "_id": { "$oid": "697c182519bab050c16eab01" },
+    "sku": "CAS-F91W-01",
+    "name": "Casio F-91W Huyền Thoại",
+    "brand": "Casio",
+    "category": "Digital",
+    "price": 350000,
+    "inventory": {
+      "total": 200,
+      "reserved": 5
+    },
+    "specs": { "diameter": 35, "waterResistant": "3ATM", "material": "Nhựa Resin" },
+    "isActive": true
+  },
+  {
+    "_id": { "$oid": "697c182519bab050c16eab02" },
+    "sku": "GS-GA2100-1A1",
+    "name": "Casio G-Shock GA-2100 (CasiOak)",
+    "brand": "Casio",
+    "category": "Quartz",
+    "price": 2800000,
+    "inventory": {
+      "total": 45,
+      "reserved": 2
+    },
+    "specs": { "diameter": 45, "waterResistant": "20ATM", "material": "Carbon Core Guard" },
+    "isActive": true
+  },
+  {
+    "_id": { "$oid": "697c182519bab050c16eab10" },
+    "sku": "SEI-SNK809",
+    "name": "Seiko 5 Quân Đội SNK809",
+    "brand": "Seiko",
+    "category": "Automatic",
+    "price": 2500000,
+    "inventory": {
+      "total": 50,
+      "reserved": 0
+    },
+    "specs": { "diameter": 37, "waterResistant": "3ATM", "material": "Thép nhám" },
+    "isActive": true
+  },
+  {
+    "_id": { "$oid": "697c182519bab050c16eab11" },
+    "sku": "CIT-AW1361",
+    "name": "Citizen Eco-Drive Aviator",
+    "brand": "Citizen",
+    "category": "Eco-Drive",
+    "price": 4200000,
+    "inventory": {
+      "total": 15,
+      "reserved": 1
+    },
+    "specs": { "diameter": 45, "waterResistant": "10ATM", "material": "Thép không gỉ" },
+    "isActive": true
+  },
+  {
+    "_id": { "$oid": "697c182519bab050c16eab12" },
+    "sku": "GAR-FNX7",
+    "name": "Garmin Fenix 7 Sapphire Solar",
+    "brand": "Garmin",
+    "category": "Smartwatch",
+    "price": 22500000,
+    "inventory": {
+      "total": 8,
+      "reserved": 0
+    },
+    "specs": { "diameter": 47, "waterResistant": "10ATM", "material": "Titanium" },
+    "isActive": true
+  }
+]

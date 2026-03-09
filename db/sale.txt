@@ -1,0 +1,58 @@
+[
+  {
+    "_id": { "$oid": "909c182519bab050c16eaa11" },
+    "name": "Siêu sale đồng hồ Thụy Sỹ",
+    "type": "banner_ads",
+    "discountPercentage": 10,
+    "targetCondition": {
+      "brands": ["Tissot", "Rolex", "Hublot"],
+      "categories": []
+    },
+    "bannerUrl": "/images/banners/swiss-sale.jpg",
+    "startDate": { "$date": "2026-02-01T00:00:00.000Z" },
+    "endDate": { "$date": "2026-03-31T23:59:59.000Z" },
+    "isActive": true
+  },
+  {
+    "_id": { "$oid": "909c182519bab050c16eac30" },
+    "name": "Back To School - Dành cho sinh viên",
+    "type": "flash_sale",
+    "discountPercentage": 15,
+    "targetCondition": {
+      "brands": ["Casio", "Daniel Wellington"],
+      "categories": ["Digital", "Quartz"]
+    },
+    "bannerUrl": "/images/banners/back-to-school.jpg",
+    "startDate": { "$date": "2026-08-15T00:00:00.000Z" },
+    "endDate": { "$date": "2026-09-15T23:59:59.000Z" },
+    "isActive": true
+  },
+  {
+    "_id": { "$oid": "909c182519bab050c16eac31" },
+    "name": "Clearance Sale - Xả kho Smartwatch",
+    "type": "flash_sale",
+    "discountPercentage": 20,
+    "targetCondition": {
+      "brands": [],
+      "categories": ["Smartwatch"]
+    },
+    "bannerUrl": "/images/banners/smartwatch-clearance.jpg",
+    "startDate": { "$date": "2026-03-10T00:00:00.000Z" },
+    "endDate": { "$date": "2026-03-20T23:59:59.000Z" },
+    "isActive": true
+  },
+  {
+    "_id": { "$oid": "909c182519bab050c16eac32" },
+    "name": "Tuần lễ tự động hóa (Automatic Week)",
+    "type": "banner_ads",
+    "discountPercentage": 5,
+    "targetCondition": {
+      "brands": ["Seiko", "Orient"],
+      "categories": ["Automatic"]
+    },
+    "bannerUrl": "/images/banners/auto-week.jpg",
+    "startDate": { "$date": "2026-04-01T00:00:00.000Z" },
+    "endDate": { "$date": "2026-04-07T23:59:59.000Z" },
+    "isActive": false
+  }
+]

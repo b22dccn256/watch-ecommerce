@@ -1,0 +1,86 @@
+[
+  {
+    "_id": { "$oid": "101c182519bab050c16ebb22" },
+    "userId": { "$oid": "697c182519bab050c16ea8b2" },
+    "status": "resolved",
+    "topic": "product_consultation",
+    "tags": ["rolex", "water_resistance", "sales"],
+    "messages": [
+      {
+        "sender": "user",
+        "content": "Mình muốn tìm đồng hồ Rolex nam chống nước",
+        "timestamp": { "$date": "2026-02-27T11:00:00.000Z" }
+      },
+      {
+        "sender": "bot",
+        "content": "Chào bạn, hiện tại cửa hàng đang có mẫu Rolex Submariner Date với độ chống nước 30ATM rất phù hợp. Bạn có muốn xem chi tiết không?",
+        "timestamp": { "$date": "2026-02-27T11:00:05.000Z" }
+      }
+    ],
+    "createdAt": { "$date": "2026-02-27T11:00:00.000Z" },
+    "updatedAt": { "$date": "2026-02-27T11:05:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "101c182519bab050c16ebb30" },
+    "userId": { "$oid": "697c182519bab050c16eac02" },
+    "status": "resolved",
+    "topic": "order_tracking",
+    "tags": ["order", "shipping", "automation"],
+    "messages": [
+      {
+        "sender": "user",
+        "content": "Bot ơi kiểm tra giúp mình đơn hàng Seiko 5 bao giờ giao tới nơi?",
+        "timestamp": { "$date": "2026-03-06T09:15:00.000Z" }
+      },
+      {
+        "sender": "bot",
+        "content": "Hệ thống ghi nhận đơn hàng mua Seiko 5 Quân Đội SNK809 của bạn đã được thanh toán qua VNPay. Đơn đang ở trạng thái 'Đang giao' (Shipping) và dự kiến sẽ đến nơi vào ngày mai (07-03). Bạn cần hỗ trợ gì thêm không?",
+        "timestamp": { "$date": "2026-03-06T09:15:03.000Z" }
+      }
+    ],
+    "createdAt": { "$date": "2026-03-06T09:15:00.000Z" },
+    "updatedAt": { "$date": "2026-03-06T09:16:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "101c182519bab050c16ebb31" },
+    "userId": { "$oid": "697c182519bab050c16eac03" },
+    "status": "active",
+    "topic": "budget_consultation",
+    "tags": ["recommendation", "under_5m", "sales"],
+    "messages": [
+      {
+        "sender": "user",
+        "content": "Tài chính 5 triệu đổ lại thì mua đồng hồ nam nào đi làm văn phòng hợp lý shop?",
+        "timestamp": { "$date": "2026-03-09T08:30:00.000Z" }
+      },
+      {
+        "sender": "bot",
+        "content": "Với ngân sách dưới 5 triệu và nhu cầu đi làm văn phòng, mình đề xuất 2 mẫu thanh lịch sau:\n1. Daniel Wellington Classic (3.500.000đ) - Dây da, mỏng nhẹ, đang giảm giá 15%.\n2. Citizen Eco-Drive Aviator (4.200.000đ) - Không lo hết pin, vỏ thép cứng cáp.\nBạn thích phong cách dây da hay dây thép kim loại hơn?",
+        "timestamp": { "$date": "2026-03-09T08:30:04.000Z" }
+      }
+    ],
+    "createdAt": { "$date": "2026-03-09T08:30:00.000Z" },
+    "updatedAt": { "$date": "2026-03-09T08:30:04.000Z" }
+  },
+  {
+    "_id": { "$oid": "101c182519bab050c16ebb32" },
+    "userId": null, 
+    "status": "escalated",
+    "topic": "complaint",
+    "tags": ["warranty", "defect", "human_agent_required"],
+    "messages": [
+      {
+        "sender": "user",
+        "content": "Đồng hồ G-shock mình mới nhận hôm qua sao bấm đèn không sáng? Đổi trả thế nào?",
+        "timestamp": { "$date": "2026-03-09T10:00:00.000Z" }
+      },
+      {
+        "sender": "bot",
+        "content": "Mình rất xin lỗi về sự cố bạn gặp phải. G-Shock được bảo hành 1 đổi 1 trong 7 ngày nếu lỗi từ NSX. Để xử lý nhanh nhất, mình đã chuyển cuộc trò chuyện này cho nhân viên CSKH thật. Bạn vui lòng đợi trong giây lát nhé!",
+        "timestamp": { "$date": "2026-03-09T10:00:03.000Z" }
+      }
+    ],
+    "createdAt": { "$date": "2026-03-09T10:00:00.000Z" },
+    "updatedAt": { "$date": "2026-03-09T10:00:03.000Z" }
+  }
+]

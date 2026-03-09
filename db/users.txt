@@ -1,0 +1,55 @@
+[
+  {
+    "_id": { "$oid": "697c182519bab050c16ea7a6" },
+    "name": "Admin User",
+    "email": "admin@watchstore.com",
+    "password": "$2b$10$hashed_password_here",
+    "role": "admin",
+    "phone": "0987654321",
+    "isVerified": true,
+    "aiFraudScore": 0.05,
+    "isActive": true,
+    "wishlist": [],
+    "createdAt": { "$date": "2026-01-30T02:32:05.888Z" }
+  },
+  {
+    "_id": { "$oid": "697c182519bab050c16ea8b2" },
+    "name": "Khách Hàng Vip",
+    "email": "khachvip123@gmail.com",
+    "role": "customer",
+    "aiFraudScore": 0.02,
+    "isActive": true,
+    "wishlist": [{ "$oid": "697c182519bab050c16eab03" }, { "$oid": "697c182519bab050c16eab07" }],
+    "createdAt": { "$date": "2026-02-15T08:10:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "697c182519bab050c16eac01" },
+    "name": "Sale Staff 01",
+    "email": "sale01@watchstore.com",
+    "role": "sale",
+    "aiFraudScore": 0.01,
+    "isActive": true,
+    "wishlist": [],
+    "createdAt": { "$date": "2026-03-01T09:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "697c182519bab050c16eac02" },
+    "name": "Trần Trọng Thái",
+    "email": "thai.tran@gmail.com",
+    "role": "customer",
+    "aiFraudScore": 0.10,
+    "isActive": true,
+    "wishlist": [{ "$oid": "697c182519bab050c16eab01" }],
+    "createdAt": { "$date": "2026-03-05T14:20:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "697c182519bab050c16eac03" },
+    "name": "Nguyễn Hồng Hải",
+    "email": "hai.nguyen@yahoo.com",
+    "role": "customer",
+    "aiFraudScore": 0.08,
+    "isActive": true,
+    "wishlist": [],
+    "createdAt": { "$date": "2026-03-08T10:15:00.000Z" }
+  }
+]

@@ -1,0 +1,82 @@
+[
+  {
+    "_id": { "$oid": "808c182519bab050c16ea9c2" },
+    "userId": { "$oid": "697c182519bab050c16ea7a6" },
+    "orderItems": [
+      {
+        "productId": { "$oid": "697c182519bab050c16ea7aa" },
+        "sku": "ROL-SUB-01",
+        "name": "Rolex Submariner Date",
+        "quantity": 1,
+        "priceAtPurchase": 9450,
+        "image": "/images/rolex-sub.jpg"
+      }
+    ],
+    "payment": {
+      "method": "SePay_VietQR",
+      "status": "paid",
+      "transactionId": "FT260228123456"
+    },
+    "orderStatus": "Processing",
+    "aiConfirmationStatus": "Auto-Confirmed",
+    "totalAmount": 9450,
+    "createdAt": { "$date": "2026-02-28T10:10:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "808c182519bab050c16eac20" },
+    "userId": { "$oid": "697c182519bab050c16ea8b2" },
+    "orderItems": [
+      {
+        "productId": { "$oid": "697c182519bab050c16eab02" },
+        "sku": "GS-GA2100-1A1",
+        "name": "Casio G-Shock GA-2100 (CasiOak)",
+        "quantity": 1,
+        "priceAtPurchase": 2520000, 
+        "image": "/images/gshock-ga2100.jpg"
+      }
+    ],
+    "payment": { "method": "COD", "status": "pending", "transactionId": null },
+    "orderStatus": "Pending",
+    "aiConfirmationStatus": "Pending",
+    "totalAmount": 2520000,
+    "createdAt": { "$date": "2026-03-08T14:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "808c182519bab050c16eac21" },
+    "userId": { "$oid": "697c182519bab050c16eac02" },
+    "orderItems": [
+      {
+        "productId": { "$oid": "697c182519bab050c16eab10" },
+        "sku": "SEI-SNK809",
+        "name": "Seiko 5 Quân Đội SNK809",
+        "quantity": 1,
+        "priceAtPurchase": 2500000,
+        "image": "/images/seiko-snk809.jpg"
+      }
+    ],
+    "payment": { "method": "VNPay", "status": "paid", "transactionId": "VNP99887766" },
+    "orderStatus": "Shipping",
+    "aiConfirmationStatus": "Auto-Confirmed",
+    "totalAmount": 2500000,
+    "createdAt": { "$date": "2026-03-05T08:35:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "808c182519bab050c16eac22" },
+    "userId": { "$oid": "697c182519bab050c16eac03" },
+    "orderItems": [
+      {
+        "productId": { "$oid": "697c182519bab050c16eab12" },
+        "sku": "GAR-FNX7",
+        "name": "Garmin Fenix 7 Sapphire Solar",
+        "quantity": 1,
+        "priceAtPurchase": 22500000,
+        "image": "/images/garmin-f7.jpg"
+      }
+    ],
+    "payment": { "method": "CreditCard", "status": "failed", "transactionId": "CC_ERR_001" },
+    "orderStatus": "Cancelled",
+    "aiConfirmationStatus": "Rejected",
+    "totalAmount": 22500000,
+    "createdAt": { "$date": "2026-03-06T11:20:00.000Z" }
+  }
+]
