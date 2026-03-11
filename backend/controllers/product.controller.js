@@ -1,6 +1,7 @@
 import { redis } from "../lib/redis.js";
 import cloudinary from "../lib/cloudinary.js";
 import Product from "../models/product.model.js";
+import CampaignService from "../services/campaign.service.js";
 import XLSX from "xlsx";
 import fs from "fs";
 
@@ -47,14 +48,18 @@ export const getAllProducts = async (req, res) => {
 
 			const products = await productsQuery;
 			const total = await Product.countDocuments(query);
+
+			const processedProducts = await CampaignService.applyCampaignToProducts(products);
+
 			return res.json({
-				products,
+				products: processedProducts,
 				totalPages: Math.ceil(total / limitNum),
 				currentPage: pageNum
 			});
 		} else {
 			const products = await productsQuery;
-			return res.json({ products });
+			const processedProducts = await CampaignService.applyCampaignToProducts(products);
+			return res.json({ products: processedProducts });
 		}
 
 	} catch (error) {
@@ -79,7 +84,9 @@ export const getProductById = async (req, res) => {
 	try {
 		const product = await Product.findById(req.params.id);
 		if (!product) return res.status(404).json({ message: "Product not found" });
-		res.json(product);
+
+		const processedProduct = await CampaignService.applyCampaignToProducts(product);
+		res.json(processedProduct);
 	} catch (error) {
 		console.log("Error in getProductById controller", error.message);
 		res.status(500).json({ message: "Server error", error: error.message });
@@ -118,7 +125,8 @@ export const getFeaturedProducts = async (req, res) => {
 			console.log("Failed to save to Redis in getFeaturedProducts:", redisError.message);
 		}
 
-		res.json(featuredProducts);
+		const processedFeatured = await CampaignService.applyCampaignToProducts(featuredProducts);
+		res.json(processedFeatured);
 	} catch (error) {
 		console.log("Error in getFeaturedProducts controller", error.message);
 		res.status(500).json({ message: "Server error", error: error.message });
@@ -209,7 +217,8 @@ export const getRecommendedProducts = async (req, res) => {
 			},
 		]);
 
-		res.json(products);
+		const processedProducts = await CampaignService.applyCampaignToProducts(products);
+		res.json(processedProducts);
 	} catch (error) {
 		console.log("Error in getRecommendedProducts controller", error.message);
 		res.status(500).json({ message: "Server error", error: error.message });
@@ -220,7 +229,8 @@ export const getProductsByCategory = async (req, res) => {
 	const { category } = req.params;
 	try {
 		const products = await Product.find({ category });
-		res.json({ products });
+		const processedProducts = await CampaignService.applyCampaignToProducts(products);
+		res.json({ products: processedProducts });
 	} catch (error) {
 		console.log("Error in getProductsByCategory controller", error.message);
 		res.status(500).json({ message: "Server error", error: error.message });

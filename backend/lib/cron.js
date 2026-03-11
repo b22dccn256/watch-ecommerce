@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import User from "../models/user.model.js";
 import Order from "../models/order.model.js";
+import Campaign from "../models/campaign.model.js";
 import OrderService from "../services/order.service.js";
 import { sendEmail } from "./email.js";
 
@@ -28,5 +29,29 @@ cron.schedule("0 * * * *", async () => {
         // Hoàn lại kho
         await OrderService.restoreStock(order.products);
         console.log(`[Cron] Cancelled abandoned Stripe order ${order._id} and restored stock.`);
+    }
+});
+
+// Chạy mỗi phút: Cập nhật trạng thái chiến dịch Marketing (Campaigns)
+cron.schedule("* * * * *", async () => {
+    try {
+        const now = new Date();
+
+        // 1. Scheduled -> Active (Đến giờ chạy)
+        const toActive = await Campaign.updateMany(
+            { isActive: true, status: "Scheduled", startDate: { $lte: now }, endDate: { $gt: now } },
+            { $set: { status: "Active" } }
+        );
+        if (toActive.modifiedCount > 0) console.log(`[Cron] Activated ${toActive.modifiedCount} scheduled campaigns.`);
+
+        // 2. Active -> Ended (Hết giờ)
+        const toEnded = await Campaign.updateMany(
+            { isActive: true, status: "Active", endDate: { $lte: now } },
+            { $set: { status: "Ended" } }
+        );
+        if (toEnded.modifiedCount > 0) console.log(`[Cron] Ended ${toEnded.modifiedCount} expired campaigns.`);
+
+    } catch (error) {
+        console.error("[Cron Error] Campaign status update failed:", error);
     }
 });

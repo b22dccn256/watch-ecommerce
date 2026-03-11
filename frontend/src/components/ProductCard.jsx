@@ -72,9 +72,9 @@ const ProductCard = ({ product }) => {
 					</div>
 
 					{/* Discount Badge */}
-					{product.discount && (
+					{(product.salePercentage || product.discount) && (
 						<span className='bg-luxury-accent text-white px-2 py-1 rounded text-xs font-semibold'>
-							-{product.discount}%
+							-{product.salePercentage || product.discount}%
 						</span>
 					)}
 				</div>
