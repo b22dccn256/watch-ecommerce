@@ -19,7 +19,8 @@ Báo cáo bài tập lớn về WEBSITE THMDT: 50 %
 * Cần đủ các nội dung đã học 
 
 **5đ**
-FE: Giao diện người dùng. Tối ưu hóa: giao diện thân thiện, dễ dùng ( không phải màu sắc) cả về mặt tìm kiếm cần tối ưu.
+FE: Giao diện người dùng. 
+Tối ưu hóa: giao diện thân thiện, dễ dùng ( không phải màu sắc) cả về mặt tìm kiếm cần tối ưu.
 Giỏ hàng: lưu sản phẩm chưa kịp mua, hoặc muốn mua trong tương lai, số lượng phải chuẩn xác, logic.
 BE:
 * Quản lý được số lượng, loại

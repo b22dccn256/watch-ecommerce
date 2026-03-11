@@ -17,6 +17,15 @@ export const useCampaignStore = create((set) => ({
         }
     },
 
+    fetchActiveCampaigns: async () => {
+        try {
+            const res = await axios.get("/campaigns/active");
+            set({ campaigns: res.data });
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách chiến dịch đang chạy:", error);
+        }
+    },
+
     createCampaign: async (campaignData) => {
         set({ loading: true });
         try {

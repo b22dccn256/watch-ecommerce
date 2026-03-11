@@ -65,6 +65,18 @@ export const getAllCampaigns = async (req, res) => {
     }
 };
 
+export const getActiveCampaigns = async (req, res) => {
+    try {
+        const campaigns = await Campaign.find({
+            status: "Active",
+            isActive: true
+        }).sort({ createdAt: -1 });
+        res.json(campaigns);
+    } catch (error) {
+        res.status(500).json({ message: "Lỗi máy chủ", error: error.message });
+    }
+};
+
 export const toggleCampaignStatus = async (req, res) => {
     try {
         const campaign = await Campaign.findById(req.params.id);

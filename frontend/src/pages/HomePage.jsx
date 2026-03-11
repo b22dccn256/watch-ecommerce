@@ -12,15 +12,15 @@ import ChatBot from "../components/ChatBot";
 const HomePage = () => {
 	const { fetchFeaturedProducts, products, loading } = useProductStore();
 	const { addToCart } = useCartStore();
-	const { campaigns, fetchCampaigns } = useCampaignStore();
+	const { campaigns, fetchActiveCampaigns } = useCampaignStore();
 
 	const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 	const [activeCampaign, setActiveCampaign] = useState(null);
 
 	useEffect(() => {
 		fetchFeaturedProducts();
-		fetchCampaigns();
-	}, [fetchFeaturedProducts, fetchCampaigns]);
+		fetchActiveCampaigns();
+	}, [fetchFeaturedProducts, fetchActiveCampaigns]);
 
 	useEffect(() => {
 		if (campaigns && campaigns.length > 0) {
