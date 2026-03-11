@@ -3,22 +3,30 @@ import Coupon from "../models/coupon.model.js";
 import Order from "../models/order.model.js";
 import { stripe } from "../lib/stripe.js";
 import OrderService from "../services/order.service.js";
+import mongoose from "mongoose";
 
 export const createCheckoutSession = async (req, res) => {
+	const sessionOpts = await mongoose.startSession();
+	sessionOpts.startTransaction();
+
 	try {
 		const { products, couponCode, shippingDetails } = req.body;
 
 		if (!products || !Array.isArray(products) || products.length === 0) {
+			await sessionOpts.abortTransaction();
+			sessionOpts.endSession();
 			return res.status(400).json({ error: "Invalid or empty products array" });
 		}
 		if (!shippingDetails) {
+			await sessionOpts.abortTransaction();
+			sessionOpts.endSession();
 			return res.status(400).json({ message: "Thiếu thông tin giao hàng." });
 		}
 
-		await OrderService.deductStock(products);
+		await OrderService.deductStock(products, sessionOpts);
 
-		const coupon = couponCode ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }) : null;
-		let dbTotalAmount = await OrderService.calculateTotalAmount(products, coupon);
+		const coupon = couponCode ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }).session(sessionOpts) : null;
+		let dbTotalAmount = await OrderService.calculateTotalAmount(products, coupon, sessionOpts);
 		const orderCode = OrderService.generateOrderCode();
 
 		let totalAmount = 0;
@@ -45,14 +53,17 @@ export const createCheckoutSession = async (req, res) => {
 		}
 
 		if (totalAmount < 10000) {
+			await sessionOpts.abortTransaction();
+			sessionOpts.endSession();
 			return res.status(400).json({ message: "Giá trị đơn hàng tối thiểu qua Stripe là 10.000 VNĐ" });
 		}
 
 		if (totalAmount > 99999999) {
+			await sessionOpts.abortTransaction();
+			sessionOpts.endSession();
 			return res.status(400).json({ message: "Tổng đơn hàng vượt quá giới hạn 99.999.999 VNĐ của cổng thanh toán Stripe. Vui lòng chọn chuyển khoản QR hoặc thanh toán COD." });
 		}
 
-		// Tạm tạo DB Order trước
 		const newOrder = new Order({
 			user: req.user._id,
 			products: products.map(p => ({
@@ -67,7 +78,7 @@ export const createCheckoutSession = async (req, res) => {
 			paymentStatus: "pending",
 			status: "pending"
 		});
-		await newOrder.save();
+		await newOrder.save({ session: sessionOpts });
 
 		const session = await stripe.checkout.sessions.create({
 			payment_method_types: ["card"],
@@ -92,13 +103,18 @@ export const createCheckoutSession = async (req, res) => {
 
 		// Lưu sessionId vào đơn hàng để tham chiếu nếu cần
 		newOrder.stripeSessionId = session.id;
-		await newOrder.save();
+		await newOrder.save({ session: sessionOpts });
+
+		await sessionOpts.commitTransaction();
+		sessionOpts.endSession();
 
 		if (totalAmount >= 5000000) {
 			await createNewCoupon(req.user._id);
 		}
 		res.status(200).json({ id: session.id, totalAmount: totalAmount });
 	} catch (error) {
+		await sessionOpts.abortTransaction();
+		sessionOpts.endSession();
 		console.error("Error processing checkout:", error);
 		try { fs.appendFileSync("stripe-error.log", new Date().toISOString() + " - " + (error.stack || error.message) + "\n"); } catch (e) { }
 		res.status(500).json({ message: "Error processing checkout", error: error.message });

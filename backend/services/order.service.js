@@ -1,15 +1,19 @@
 import Product from "../models/product.model.js";
 
 class OrderService {
-    // Kiểm tra và trừ tồn kho
-    static async deductStock(products) {
+    // Kiểm tra và trừ tồn kho (Có hỗ trợ Transaction Session)
+    static async deductStock(products, session = null) {
         for (const item of products) {
-            const product = await Product.findById(item._id || item.id);
+            const product = await Product.findById(item._id || item.id).session(session);
             if (!product || product.stock < item.quantity) {
                 throw new Error(`Sản phẩm "${product?.name || item._id}" chỉ còn ${product?.stock || 0} cái`);
             }
             product.stock -= item.quantity;
-            await product.save();
+
+            // Tăng biến salesCount khi mua hàng thành công
+            product.salesCount = (product.salesCount || 0) + item.quantity;
+
+            await product.save({ session });
         }
     }
 
@@ -25,10 +29,10 @@ class OrderService {
     }
 
     // Tính tổng tiền dựa trên giá gốc từ DB
-    static async calculateTotalAmount(products, coupon) {
+    static async calculateTotalAmount(products, coupon, session = null) {
         let totalAmount = 0;
         for (const item of products) {
-            const product = await Product.findById(item._id || item.id);
+            const product = await Product.findById(item._id || item.id).session(session);
             if (!product) {
                 throw new Error(`Sản phẩm không tồn tại`);
             }

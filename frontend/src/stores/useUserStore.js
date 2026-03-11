@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
+import { useCartStore } from "./useCartStore";
 
 export const useUserStore = create((set, get) => ({
 	user: null,
@@ -32,6 +33,12 @@ export const useUserStore = create((set, get) => ({
 
 			set({ user: res.data, loading: false });
 			toast.success("Logged in successfully!");
+
+			// Sync guest cart to server
+			await useCartStore.getState().syncLocalCartToServer();
+			// Fetch the updated cart
+			await useCartStore.getState().getCartItems();
+
 		} catch (error) {
 			set({ loading: false });
 			toast.error(error.response.data.message || "An error occurred");

@@ -3,6 +3,7 @@ import Order from "../models/order.model.js";
 import Product from "../models/product.model.js";
 import Coupon from "../models/coupon.model.js";
 import OrderService from "../services/order.service.js";
+import mongoose from "mongoose";
 
 export const getAllOrders = async (req, res) => {
     try {
@@ -71,23 +72,30 @@ export const getMyOrders = async (req, res) => {
 };
 
 export const createCODOrder = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
         const { products, couponCode, shippingDetails } = req.body;
 
         if (!products || !Array.isArray(products) || products.length === 0) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(400).json({
                 message: "Danh sách sản phẩm không được rỗng và phải là array"
             });
         }
 
         if (!shippingDetails) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(400).json({ message: "Thiếu thông tin giao hàng." });
         }
 
-        await OrderService.deductStock(products);
+        await OrderService.deductStock(products, session);
 
-        const coupon = couponCode ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }) : null;
-        let totalAmount = await OrderService.calculateTotalAmount(products, coupon);
+        const coupon = couponCode ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }).session(session) : null;
+        let totalAmount = await OrderService.calculateTotalAmount(products, coupon, session);
         const orderCode = OrderService.generateOrderCode();
 
         const newOrder = new Order({
@@ -95,7 +103,7 @@ export const createCODOrder = async (req, res) => {
             products: products.map(p => ({
                 product: p._id || p.id,
                 quantity: p.quantity,
-                price: p.price // Vẫn lưu giá trị ở thời điểm mua vào order
+                price: p.price
             })),
             totalAmount,
             orderCode,
@@ -105,12 +113,15 @@ export const createCODOrder = async (req, res) => {
             status: "pending"
         });
 
-        await newOrder.save();
+        await newOrder.save({ session });
 
         if (coupon) {
             coupon.isActive = false;
-            await coupon.save();
+            await coupon.save({ session });
         }
+
+        await session.commitTransaction();
+        session.endSession();
 
         res.status(201).json({
             success: true,
@@ -119,26 +130,35 @@ export const createCODOrder = async (req, res) => {
             orderCode
         });
     } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
         console.error("Error in createCODOrder:", error.message);
         res.status(400).json({ message: error.message });
     }
 };
 
 export const createQROrder = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
         const { products, couponCode, shippingDetails } = req.body;
 
         if (!products || !Array.isArray(products) || products.length === 0) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(400).json({ message: "Danh sách sản phẩm không được rỗng" });
         }
         if (!shippingDetails) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(400).json({ message: "Thiếu thông tin giao hàng." });
         }
 
-        await OrderService.deductStock(products);
+        await OrderService.deductStock(products, session);
 
-        const coupon = couponCode ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }) : null;
-        let totalAmount = await OrderService.calculateTotalAmount(products, coupon);
+        const coupon = couponCode ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }).session(session) : null;
+        let totalAmount = await OrderService.calculateTotalAmount(products, coupon, session);
         const orderCode = OrderService.generateOrderCode();
 
         const newOrder = new Order({
@@ -156,12 +176,15 @@ export const createQROrder = async (req, res) => {
             status: "pending"
         });
 
-        await newOrder.save();
+        await newOrder.save({ session });
 
         if (coupon) {
             coupon.isActive = false;
-            await coupon.save();
+            await coupon.save({ session });
         }
+
+        await session.commitTransaction();
+        session.endSession();
 
         res.status(201).json({
             success: true,
@@ -171,6 +194,8 @@ export const createQROrder = async (req, res) => {
             totalAmount
         });
     } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
         console.error("Error in createQROrder:", error.message);
         res.status(400).json({ message: error.message });
     }

@@ -9,12 +9,18 @@ export const getCartProducts = async (req, res) => {
 			select: "name price image category description",
 		});
 
-		const cartItems = user.cartItems
-			.filter((item) => item.product) // lọc sản phẩm bị xóa
-			.map((item) => ({
-				...item.product.toJSON(),
-				quantity: item.quantity,
-			}));
+		const validCartItems = user.cartItems.filter((item) => item.product);
+
+		// Auto-clean if any product was deleted from DB (item.product is null)
+		if (validCartItems.length !== user.cartItems.length) {
+			user.cartItems = validCartItems;
+			await user.save();
+		}
+
+		const cartItems = validCartItems.map((item) => ({
+			...item.product.toJSON(),
+			quantity: item.quantity,
+		}));
 
 		res.json(cartItems);
 	} catch (error) {
@@ -33,7 +39,9 @@ export const addToCart = async (req, res) => {
 		const existingItem = user.cartItems.find(item => item.product.toString() === productId);
 
 		const newQuantity = existingItem ? existingItem.quantity + 1 : 1;
-		if (product.stock < newQuantity) return res.status(400).json({ message: "Out of stock" });
+		if (product.stock < newQuantity) {
+			return res.status(400).json({ message: `Sản phẩm này chỉ còn ${product.stock} cái trong kho` });
+		}
 
 		if (existingItem) existingItem.quantity = newQuantity;
 		else user.cartItems.push({ product: productId, quantity: 1 });
@@ -79,7 +87,9 @@ export const updateQuantity = async (req, res) => {
 
 		if (!existingItem) return res.status(404).json({ message: "Item not in cart" });
 
-		if (product.stock < quantity) return res.status(400).json({ message: "Số lượng trong kho không đủ" });
+		if (product.stock < quantity) {
+			return res.status(400).json({ message: `Sản phẩm này chỉ còn ${product.stock} cái trong kho` });
+		}
 
 		existingItem.quantity = quantity;
 
@@ -100,5 +110,42 @@ export const updateProductStock = async (req, res) => {
 		res.json(product);
 	} catch (error) {
 		res.status(500).json({ message: "Server error" });
+	}
+};
+
+export const mergeCart = async (req, res) => {
+	try {
+		const { guestCartItems } = req.body;
+		const user = req.user;
+
+		if (!guestCartItems || guestCartItems.length === 0) {
+			return res.status(200).json({ message: "No items to merge", cartItems: user.cartItems });
+		}
+
+		for (const guestItem of guestCartItems) {
+			const product = await Product.findById(guestItem._id || guestItem.productId);
+			if (!product) continue; // Skip deleted products
+
+			const existingItem = user.cartItems.find(item => item.product.toString() === product._id.toString());
+
+			if (existingItem) {
+				// Sum the quantities but clamp to max stock
+				const mergedQuantity = existingItem.quantity + guestItem.quantity;
+				existingItem.quantity = Math.min(mergedQuantity, product.stock);
+			} else {
+				// Add new item if stock allows
+				const initialQuantity = Math.min(guestItem.quantity, product.stock);
+				if (initialQuantity > 0) {
+					user.cartItems.push({ product: product._id, quantity: initialQuantity });
+				}
+			}
+		}
+
+		await user.save();
+		res.status(200).json({ message: "Cart merged successfully" });
+
+	} catch (error) {
+		console.error("Error in mergeCart:", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
 	}
 };

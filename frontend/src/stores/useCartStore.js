@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
+import { useUserStore } from "./useUserStore";
 
 export const useCartStore = create((set, get) => ({
 	cart: [],
@@ -9,6 +10,19 @@ export const useCartStore = create((set, get) => ({
 	total: 0,
 	subtotal: 0,
 	isCouponApplied: false,
+
+	syncLocalCartToServer: async () => {
+		const localCart = JSON.parse(localStorage.getItem("watch_cart") || "[]");
+		if (localCart.length > 0) {
+			try {
+				await axios.post("/cart/merge", { guestCartItems: localCart });
+				localStorage.removeItem("watch_cart");
+				// The newly merged cart will be handled by getCartItems which is called after login
+			} catch (error) {
+				console.error("Failed to sync guest cart:", error);
+			}
+		}
+	},
 
 	getMyCoupon: async () => {
 		try {
@@ -35,22 +49,61 @@ export const useCartStore = create((set, get) => ({
 	},
 
 	getCartItems: async () => {
+		const { user } = useUserStore.getState();
+		if (!user) {
+			// Guest Flow
+			const localCart = JSON.parse(localStorage.getItem("watch_cart") || "[]");
+			set({ cart: localCart });
+			get().calculateTotals();
+			return;
+		}
+
 		try {
 			const res = await axios.get("/cart");
 			set({ cart: res.data });
 			get().calculateTotals();
 		} catch (error) {
 			set({ cart: [] });
-			toast.error(error.response.data.message || "An error occurred");
+			toast.error(error.response?.data?.message || "An error occurred fetching cart");
 		}
 	},
 	clearCart: async () => {
+		const { user } = useUserStore.getState();
+		if (!user) {
+			localStorage.removeItem("watch_cart");
+		} else {
+			// Optional: call clear server endpoint if you have one
+		}
 		set({ cart: [], coupon: null, total: 0, subtotal: 0 });
 	},
 	addToCart: async (product) => {
+		const { user } = useUserStore.getState();
+		const prevState = get();
+		const existingItem = prevState.cart.find((item) => item._id === product._id);
+		const newQuantity = existingItem ? existingItem.quantity + 1 : 1;
+
+		if (product.stock < newQuantity) {
+			return toast.error(`Sản phẩm này chỉ còn ${product.stock} cái trong kho`);
+		}
+
+		if (!user) {
+			// Guest Add
+			const newCart = existingItem
+				? prevState.cart.map((item) =>
+					item._id === product._id ? { ...item, quantity: item.quantity + 1 } : item
+				)
+				: [...prevState.cart, { ...product, quantity: 1 }];
+
+			localStorage.setItem("watch_cart", JSON.stringify(newCart));
+			set({ cart: newCart });
+			get().calculateTotals();
+			toast.success("Đã thêm vào giỏ hàng!");
+			return;
+		}
+
 		try {
 			await axios.post("/cart", { productId: product._id });
-			toast.success("Product added to cart");
+			toast.success("Đã thêm vào giỏ hàng!");
 
 			set((prevState) => {
 				const existingItem = prevState.cart.find((item) => item._id === product._id);
@@ -63,10 +116,20 @@ export const useCartStore = create((set, get) => ({
 			});
 			get().calculateTotals();
 		} catch (error) {
-			toast.error(error.response.data.message || "An error occurred");
+			toast.error(error.response?.data?.message || "An error occurred");
 		}
 	},
 	removeFromCart: async (productId) => {
+		const { user } = useUserStore.getState();
+
+		if (!user) {
+			const newCart = get().cart.filter((item) => item._id !== productId);
+			localStorage.setItem("watch_cart", JSON.stringify(newCart));
+			set({ cart: newCart });
+			get().calculateTotals();
+			return;
+		}
+
 		await axios.delete(`/cart`, { data: { productId } });
 		set((prevState) => ({ cart: prevState.cart.filter((item) => item._id !== productId) }));
 		get().calculateTotals();
@@ -110,17 +173,36 @@ export const useCartStore = create((set, get) => ({
 		await get().removeFromWishlist(product._id);
 		await get().addToCart(product);
 	},
-	updateQuantity: async (productId, quantity) => {
+	updateQuantity: async (productId, quantity, maxStock) => {
 		if (quantity === 0) {
 			get().removeFromCart(productId);
 			return;
 		}
 
-		await axios.put(`/cart/${productId}`, { quantity });
-		set((prevState) => ({
-			cart: prevState.cart.map((item) => (item._id === productId ? { ...item, quantity } : item)),
-		}));
-		get().calculateTotals();
+		if (maxStock !== undefined && quantity > maxStock) {
+			toast.error(`Sản phẩm này chỉ còn ${maxStock} cái trong kho`);
+			return;
+		}
+
+		const { user } = useUserStore.getState();
+
+		if (!user) {
+			const newCart = get().cart.map((item) => (item._id === productId ? { ...item, quantity } : item));
+			localStorage.setItem("watch_cart", JSON.stringify(newCart));
+			set({ cart: newCart });
+			get().calculateTotals();
+			return;
+		}
+
+		try {
+			await axios.put(`/cart/${productId}`, { quantity });
+			set((prevState) => ({
+				cart: prevState.cart.map((item) => (item._id === productId ? { ...item, quantity } : item)),
+			}));
+			get().calculateTotals();
+		} catch (error) {
+			toast.error(error.response?.data?.message || "An error occurred");
+		}
 	},
 	calculateTotals: () => {
 		const { cart, coupon } = get();
