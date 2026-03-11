@@ -44,12 +44,13 @@ export const getOrderById = async (req, res) => {
     try {
         const order = await Order.findById(req.params.id)
             .populate("user", "name email")
-            .populate("products.product", "name price");
+            .populate("products.product", "name price image");
 
         if (!order) return res.status(404).json({ message: "Order not found" });
 
         // Kiểm tra quyền: Chỉ user sở hữu hoặc admin mới xem
-        if (req.user.role !== "admin" && order.user.toString() !== req.user._id.toString()) {
+        const isOwner = order.user && req.user && order.user._id.toString() === req.user._id.toString();
+        if (req.user.role !== "admin" && !isOwner) {
             return res.status(403).json({ message: "Access denied" });
         }
 

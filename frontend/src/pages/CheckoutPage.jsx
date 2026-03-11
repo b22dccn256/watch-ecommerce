@@ -122,7 +122,7 @@ const CheckoutPage = () => {
             localStorage.removeItem("checkoutFormData");
             clearCart();
             toast.success("Đặt hàng COD thành công!");
-            navigate("/purchase-success");
+            navigate(`/purchase-success?order_id=${res.data.orderId}`);
         } catch (error) {
             toast.error(error.response?.data?.message || "Lỗi đặt hàng COD");
         } finally {
@@ -343,7 +343,7 @@ const CheckoutPage = () => {
                             className="bg-gray-800 border border-gray-700 rounded-2xl p-6 max-w-sm w-full relative shadow-2xl"
                         >
                             <button
-                                onClick={() => navigate('/purchase-success')}
+                                onClick={() => navigate(`/purchase-success?order_id=${qrData.orderId}`)}
                                 className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
                             >
                                 <X size={24} />
@@ -376,10 +376,10 @@ const CheckoutPage = () => {
                                 </div>
 
                                 <button
-                                    onClick={() => navigate('/purchase-success')}
+                                    onClick={() => navigate(`/purchase-success?order_id=${qrData.orderId}`)}
                                     className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-lg transition-colors"
                                 >
-                                    Đã thanh toán / Xong
+                                    Tôi đã chuyển khoản / Xong
                                 </button>
                             </div>
                         </motion.div>
