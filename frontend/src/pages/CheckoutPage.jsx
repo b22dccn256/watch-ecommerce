@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCartStore } from "../stores/useCartStore";
 import { useNavigate } from "react-router-dom";
@@ -27,6 +27,8 @@ const CheckoutPage = () => {
     const [errors, setErrors] = useState({});
     const [isProcessing, setIsProcessing] = useState(false);
     const [qrData, setQrData] = useState(null); // For QR modal
+    // useRef: update đồng bộ, không gây re-render — đảm bảo useEffect thấy giá trị mới ngay lập tức
+    const paymentDoneRef = useRef(false);
 
     // Load saved form data
     useEffect(() => {
@@ -42,7 +44,7 @@ const CheckoutPage = () => {
     }, [formData]);
 
     useEffect(() => {
-        if (cart.length === 0 && !qrData) {
+        if (cart.length === 0 && !qrData && !paymentDoneRef.current) {
             navigate("/cart");
         }
     }, [cart, navigate, qrData]);
@@ -113,13 +115,14 @@ const CheckoutPage = () => {
         setIsProcessing(true);
 
         try {
-            await axios.post("/orders/cod", {
+            const res = await axios.post("/orders/cod", {
                 products: cart,
                 couponCode: coupon ? coupon.code : null,
                 shippingDetails: formData
             });
 
             localStorage.removeItem("checkoutFormData");
+            paymentDoneRef.current = true; // đánh dấu đồng bộ TRƯỚC khi clearCart
             clearCart();
             toast.success("Đặt hàng COD thành công!");
             navigate(`/purchase-success?order_id=${res.data.orderId}`);
@@ -141,6 +144,7 @@ const CheckoutPage = () => {
                 shippingDetails: formData
             });
 
+            paymentDoneRef.current = true; // đánh dấu đồng bộ TRƯỚC khi clearCart
             setQrData(res.data);
             localStorage.removeItem("checkoutFormData");
             clearCart();

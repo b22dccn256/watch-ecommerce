@@ -20,6 +20,10 @@ import "./lib/cron-ai.js";
 
 import { connectDB } from "./lib/db.js";
 
+// Ensure Mongoose models are registered before any request handlers run
+import "./models/productAudit.model.js";
+
+
 dotenv.config({ path: "./backend/.env" });
 
 const app = express();

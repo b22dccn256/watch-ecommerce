@@ -49,7 +49,8 @@ const PurchaseSuccessPage = () => {
 		if (sessionId) {
 			handleCheckoutSuccess(sessionId);
 		} else if (orderIdParam) {
-			// It's COD or QR, already paid/created, cart cleared in checkout
+			// COD hoặc QR — clear cart và fetch chi tiết đơn hàng
+			clearCart();
 			fetchOrderDetails(orderIdParam);
 		} else {
 			setIsProcessing(false);
