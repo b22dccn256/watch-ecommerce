@@ -1,7 +1,9 @@
 import { redis } from "../lib/redis.js";
 import cloudinary from "../lib/cloudinary.js";
 import Product from "../models/product.model.js";
+import Category from "../models/category.model.js";
 import CampaignService from "../services/campaign.service.js";
+import mongoose from "mongoose";
 import XLSX from "xlsx";
 import fs from "fs";
 
@@ -9,13 +11,20 @@ export const getAllProducts = async (req, res) => {
 	try {
 		const { q, page, limit, sort, brands, minPrice, maxPrice, machineType, category, colors, sizes, minRating } = req.query;
 
-		let query = {};
+		let query = { deletedAt: null };
 
 		if (q) {
 			query.name = { $regex: q, $options: "i" };
 		}
 		if (category) {
-			query.category = category;
+			const catObj = await Category.findOne({ slug: category });
+			if (catObj) {
+				const descendantIds = await Category.distinct("_id", { ancestors: catObj._id });
+				query.categoryId = { $in: [catObj._id, ...descendantIds] };
+			} else if (mongoose.Types.ObjectId.isValid(category)) {
+				const descendantIds = await Category.distinct("_id", { ancestors: category });
+				query.categoryId = { $in: [category, ...descendantIds] };
+			}
 		}
 		if (brands) {
 			query.brand = { $in: brands.split(",") };
@@ -89,7 +98,7 @@ export const getSuggestions = async (req, res) => {
 	try {
 		const { q } = req.query;
 		if (!q) return res.json([]);
-		const suggestions = await Product.find({ name: { $regex: q, $options: "i" } }).select("name image price").limit(5);
+		const suggestions = await Product.find({ name: { $regex: q, $options: "i" }, deletedAt: null }).select("name image price").limit(5);
 		res.json(suggestions);
 	} catch (error) {
 		console.log("Error in getSuggestions controller", error.message);
@@ -99,7 +108,7 @@ export const getSuggestions = async (req, res) => {
 
 export const getProductById = async (req, res) => {
 	try {
-		const product = await Product.findById(req.params.id);
+		const product = await Product.findOne({ _id: req.params.id, deletedAt: null });
 		if (!product) return res.status(404).json({ message: "Product not found" });
 
 		const processedProduct = await CampaignService.applyCampaignToProducts(product);
@@ -129,10 +138,10 @@ export const getFeaturedProducts = async (req, res) => {
 		*/
 
 		// if not in redis or redis failed, fetch from mongodb
-		featuredProducts = await Product.find({ isFeatured: true }).lean();
+		featuredProducts = await Product.find({ isFeatured: true, deletedAt: null }).lean();
 
 		if (!featuredProducts || featuredProducts.length === 0) {
-			featuredProducts = await Product.find({}).limit(8).lean();
+			featuredProducts = await Product.find({ deletedAt: null }).limit(8).lean();
 		}
 
 		// store in redis for future quick access
@@ -152,7 +161,7 @@ export const getFeaturedProducts = async (req, res) => {
 
 export const createProduct = async (req, res) => {
 	try {
-		const { name, description, price, image, category, stock, brand, type } = req.body;
+		const { name, description, price, image, categoryId, stock, brand, type, customAttributes, lowStockThreshold, isActive, metaTitle, metaDescription } = req.body;
 
 		let cloudinaryResponse = null;
 
@@ -160,16 +169,24 @@ export const createProduct = async (req, res) => {
 			cloudinaryResponse = await cloudinary.uploader.upload(image, { folder: "products" });
 		}
 
-		const product = await Product.create({
+		const product = new Product({
 			name,
 			description,
 			price,
 			image: cloudinaryResponse?.secure_url ? cloudinaryResponse.secure_url : "",
-			category,
+			categoryId,
 			stock,
 			brand,
 			type,
+			customAttributes: customAttributes || [],
+			lowStockThreshold,
+			isActive,
+			metaTitle,
+			metaDescription
 		});
+
+		product.$locals = { userId: req.user._id };
+		await product.save();
 
 		res.status(201).json(product);
 	} catch (error) {
@@ -190,27 +207,66 @@ export const updateStock = async (products) => {
 	}
 };
 
-export const deleteProduct = async (req, res) => {
+export const updateProduct = async (req, res) => {
 	try {
 		const product = await Product.findById(req.params.id);
-
 		if (!product) {
 			return res.status(404).json({ message: "Product not found" });
 		}
 
-		if (product.image) {
-			const publicId = product.image.split("/").pop().split(".")[0];
-			try {
-				await cloudinary.uploader.destroy(`products/${publicId}`);
-				console.log("deleted image from cloduinary");
-			} catch (error) {
-				console.log("error deleting image from cloduinary", error);
+		const { name, description, price, image, categoryId, stock, brand, type, customAttributes, lowStockThreshold, isActive, metaTitle, metaDescription } = req.body;
+
+		if (name) product.name = name;
+		if (description) product.description = description;
+		if (price !== undefined) product.price = price;
+		if (categoryId !== undefined) product.categoryId = categoryId;
+		if (stock !== undefined) product.stock = stock;
+		if (brand) product.brand = brand;
+		if (type) product.type = type;
+		if (customAttributes) product.customAttributes = customAttributes;
+		if (lowStockThreshold !== undefined) product.lowStockThreshold = lowStockThreshold;
+		if (isActive !== undefined) product.isActive = isActive;
+		if (metaTitle !== undefined) product.metaTitle = metaTitle;
+		if (metaDescription !== undefined) product.metaDescription = metaDescription;
+
+		// Smart image handling: Delete old on Cloudinary if replaced
+		if (image && image !== product.image) {
+			if (product.image) {
+				const publicId = product.image.split("/").pop().split(".")[0];
+				try {
+					await cloudinary.uploader.destroy(`products/${publicId}`);
+				} catch (err) {
+					console.error("Failed to delete old image from Cloudinary (swallowed)", err.message);
+				}
 			}
+			const cloudinaryResponse = await cloudinary.uploader.upload(image, { folder: "products" });
+			product.image = cloudinaryResponse.secure_url;
 		}
 
-		await Product.findByIdAndDelete(req.params.id);
+		product.$locals = { userId: req.user._id };
+		const updatedProduct = await product.save();
 
-		res.json({ message: "Product deleted successfully" });
+		res.json(updatedProduct);
+	} catch (error) {
+		console.log("Error in updateProduct controller", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+export const deleteProduct = async (req, res) => {
+	try {
+		const product = await Product.findOne({ _id: req.params.id, deletedAt: null });
+
+		if (!product) {
+			return res.status(404).json({ message: "Product not found or already deleted" });
+		}
+
+		// Soft delete implementation
+		product.deletedAt = new Date();
+		product.$locals = { userId: req.user._id };
+		await product.save();
+
+		res.json({ message: "Product deleted successfully (Soft Delete)" });
 	} catch (error) {
 		console.log("Error in deleteProduct controller", error.message);
 		res.status(500).json({ message: "Server error", error: error.message });
@@ -245,7 +301,19 @@ export const getRecommendedProducts = async (req, res) => {
 export const getProductsByCategory = async (req, res) => {
 	const { category } = req.params;
 	try {
-		const products = await Product.find({ category });
+		let query = { deletedAt: null };
+		const catObj = await Category.findOne({ slug: category });
+		if (catObj) {
+			const descendantIds = await Category.distinct("_id", { ancestors: catObj._id });
+			query.categoryId = { $in: [catObj._id, ...descendantIds] };
+		} else if (mongoose.Types.ObjectId.isValid(category)) {
+			const descendantIds = await Category.distinct("_id", { ancestors: category });
+			query.categoryId = { $in: [category, ...descendantIds] };
+		} else {
+			return res.json({ products: [] });
+		}
+
+		const products = await Product.find(query);
 		const processedProducts = await CampaignService.applyCampaignToProducts(products);
 		res.json({ products: processedProducts });
 	} catch (error) {
@@ -277,22 +345,86 @@ export const importProducts = async (req, res) => {
 		const sheet = workbook.Sheets[workbook.SheetNames[0]];
 		const data = XLSX.utils.sheet_to_json(sheet);
 
-		for (const row of data) {
-			await Product.create({
-				name: row.name,
-				description: row.description,
-				price: row.price,
-				image: row.image, // URL hoặc upload sau
-				category: row.category,
-				brand: row.brand,
-				type: row.type,
-				stock: row.stock,
-			});
+		let successCount = 0;
+		let errorCount = 0;
+		const errors = [];
+
+		for (const [index, row] of data.entries()) {
+			try {
+				let categoryId = null;
+				if (row.category) {
+					let cat = await Category.findOne({ name: row.category });
+					if (!cat) {
+						cat = await Category.create({
+							name: row.category,
+							slug: row.category.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+						});
+					}
+					categoryId = cat._id;
+				}
+
+				const product = new Product({
+					name: row.name,
+					description: row.description || "",
+					price: row.price || 0,
+					image: row.image || "",
+					categoryId: categoryId,
+					brand: row.brand || "Khác",
+					type: row.type || "quartz",
+					stock: row.stock || 0,
+					isActive: true,
+				});
+				product.$locals = { userId: req.user._id };
+				await product.save();
+				successCount++;
+			} catch (err) {
+				errorCount++;
+				errors.push(`Row ${index + 2}: ${err.message}`);
+			}
 		}
 
-		fs.unlinkSync(req.file.path); // Xóa file tạm
-		res.json({ message: "Products imported successfully" });
+		try { fs.unlinkSync(req.file.path); } catch (e) { }
+
+		res.json({
+			message: "Import finished",
+			success: successCount,
+			failed: errorCount,
+			errors: errors
+		});
 	} catch (error) {
+		res.status(500).json({ message: "Server error during import", error: error.message });
+	}
+};
+
+export const getInventoryAlerts = async (req, res) => {
+	try {
+		const page = parseInt(req.query.page) || 1;
+		const limit = parseInt(req.query.limit) || 10;
+		const customThreshold = req.query.threshold ? parseInt(req.query.threshold) : null;
+
+		const matchQuery = { deletedAt: null };
+		if (customThreshold !== null) {
+			matchQuery.stock = { $lte: customThreshold };
+		} else {
+			matchQuery.$expr = { $lte: ["$stock", "$lowStockThreshold"] };
+		}
+
+		const total = await Product.countDocuments(matchQuery);
+		const products = await Product.find(matchQuery)
+			.select("name image stock lowStockThreshold price categoryId")
+			.populate("categoryId", "name")
+			.sort({ stock: 1 })
+			.skip((page - 1) * limit)
+			.limit(limit);
+
+		res.json({
+			products,
+			totalPages: Math.ceil(total / limit),
+			currentPage: page,
+			totalAlerts: total
+		});
+	} catch (error) {
+		console.error("Error in getInventoryAlerts:", error.message);
 		res.status(500).json({ message: "Server error" });
 	}
 };

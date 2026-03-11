@@ -10,6 +10,8 @@ import {
 	importProducts,
 	getSuggestions,
 	getProductById,
+	updateProduct,
+	getInventoryAlerts,
 } from "../controllers/product.controller.js";
 import { adminRoute, protectRoute } from "../middleware/auth.middleware.js";
 
@@ -22,10 +24,12 @@ router.post("/import", protectRoute, adminRoute, upload.single("file"), importPr
 router.get("/", getAllProducts);
 router.get("/featured", getFeaturedProducts);
 router.get("/suggestions", getSuggestions);
+router.get("/inventory/alerts", protectRoute, adminRoute, getInventoryAlerts);
 router.get("/category/:category", getProductsByCategory);
 router.get("/recommendations", getRecommendedProducts);
 router.get("/:id", getProductById);
 router.post("/", protectRoute, adminRoute, createProduct);
+router.put("/:id", protectRoute, adminRoute, updateProduct);
 router.patch("/:id", protectRoute, adminRoute, toggleFeaturedProduct);
 router.delete("/:id", protectRoute, adminRoute, deleteProduct);
 

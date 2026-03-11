@@ -2,6 +2,7 @@ import cron from "node-cron";
 import User from "../models/user.model.js";
 import Order from "../models/order.model.js";
 import Campaign from "../models/campaign.model.js";
+import Product from "../models/product.model.js";
 import OrderService from "../services/order.service.js";
 import { sendEmail } from "./email.js";
 
@@ -53,5 +54,32 @@ cron.schedule("* * * * *", async () => {
 
     } catch (error) {
         console.error("[Cron Error] Campaign status update failed:", error);
+    }
+});
+
+// Chạy mỗi ngày lúc 8h sáng: Báo cáo tồn kho thấp
+cron.schedule("0 8 * * *", async () => {
+    try {
+        const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com";
+        const products = await Product.find({
+            deletedAt: null,
+            $expr: { $lte: ["$stock", "$lowStockThreshold"] }
+        });
+
+        if (products.length > 0) {
+            let htmlContent = "<h3>Cảnh báo tồn kho thấp</h3>";
+            htmlContent += "<p>Các sản phẩm sau đây đang có số lượng tồn kho dưới mức an toàn. Vui lòng kiểm tra và nhập thêm hàng:</p>";
+            htmlContent += "<ul>";
+            products.forEach(p => {
+                htmlContent += `<li><strong>${p.name}</strong> - Còn lại: ${p.stock} (Ngưỡng: ${p.lowStockThreshold})</li>`;
+            });
+            htmlContent += "</ul>";
+            htmlContent += `<p><a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/secret-dashboard">Đến Dashboard xem chi tiết quản lý</a></p>`;
+
+            sendEmail(adminEmail, "[WatchStore] Cảnh báo tồn kho", htmlContent);
+            console.log(`[Cron] Sent low stock alert email to Admin for ${products.length} products.`);
+        }
+    } catch (error) {
+        console.error("[Cron Error] Low stock alert failed:", error);
     }
 });
