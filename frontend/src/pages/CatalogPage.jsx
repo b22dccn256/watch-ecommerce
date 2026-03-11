@@ -10,8 +10,8 @@ const CatalogPage = () => {
 	const { category } = useParams();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const {
-		products, loading, totalPages, currentPage,
-		fetchFilteredProducts, setPage, searchTerm, setSearchTerm, setFilters
+		products, loading, totalPages, currentPage, sort,
+		fetchFilteredProducts, setPage, searchTerm, setSearchTerm, setFilters, setSort
 	} = useProductStore();
 
 	// Đồng bộ URL params với store
@@ -32,18 +32,26 @@ const CatalogPage = () => {
 			const urlFilters = {};
 			if (brandParam) urlFilters.brands = brandParam.split(",");
 			if (machineTypeParam) urlFilters.machineType = machineTypeParam.split(",");
+			if (searchParams.get("colors")) urlFilters.colors = searchParams.get("colors").split(",");
+			if (searchParams.get("sizes")) urlFilters.sizes = searchParams.get("sizes").split(",");
+			if (searchParams.get("minRating")) urlFilters.minRating = Number(searchParams.get("minRating"));
+			if (searchParams.get("minPrice")) urlFilters.minPrice = Number(searchParams.get("minPrice"));
+			if (searchParams.get("maxPrice")) urlFilters.maxPrice = Number(searchParams.get("maxPrice"));
 
 			// Nếu có param URL, ưu tiên ghi đè vào Zustand
 			if (Object.keys(urlFilters).length > 0) {
 				setFilters(urlFilters);
 			}
+
+			const sortParam = searchParams.get("sort");
+			if (sortParam) setSort(sortParam);
 		}
 
 		fetchFilteredProducts({
 			category: category || searchParams.get("category") || undefined,
 			q
 		});
-	}, [searchParams, category, fetchFilteredProducts, setSearchTerm, setFilters]);
+	}, [searchParams, category, fetchFilteredProducts, setSearchTerm, setFilters, setSort]);
 
 	// Format Pagination Window Helper
 	const getPaginationRange = (currentPage, totalPages) => {
@@ -56,10 +64,12 @@ const CatalogPage = () => {
 	// Phân trang
 	const handlePageChange = (newPage) => {
 		setPage(newPage);
-		setSearchParams(prev => {
-			prev.set("page", newPage);
-			return prev;
-		});
+		fetchFilteredProducts();
+		window.scrollTo({ top: 300, behavior: 'smooth' }); // Scroll back up
+	};
+
+	const handleSortChange = (e) => {
+		setSort(e.target.value);
 		fetchFilteredProducts();
 	};
 
@@ -88,17 +98,29 @@ const CatalogPage = () => {
 							)}
 						</div>
 
-						<div className="flex justify-between items-center mb-8">
+						<div className="flex justify-between items-center mb-4">
 							<h1 className="text-4xl font-bold">
 								{category ? category.toUpperCase() : "Tất cả đồng hồ"}
 							</h1>
-							<select className="bg-zinc-900 border border-yellow-900 px-6 py-3 rounded-full text-sm">
-								<option>Phổ biến nhất</option>
-								<option>Giá thấp đến cao</option>
-								<option>Giá cao đến thấp</option>
-								<option>Mới nhất</option>
+							<select
+								value={sort}
+								onChange={handleSortChange}
+								className="bg-zinc-900 border border-yellow-900 px-6 py-3 rounded-full text-sm outline-none focus:border-[#D4AF37] transition"
+							>
+								<option value="newest">Mới nhất</option>
+								<option value="best_selling">Bán chạy nhất</option>
+								<option value="price_asc">Giá: Thấp đến Cao</option>
+								<option value="price_desc">Giá: Cao đến Thấp</option>
+								<option value="name_asc">Tên: A-Z</option>
+								<option value="name_desc">Tên: Z-A</option>
 							</select>
 						</div>
+
+						{!loading && (
+							<p className="text-sm text-gray-500 mb-8 border-b border-zinc-800 pb-4">
+								Tìm thấy <span className="text-[#D4AF37] font-bold">{products.length * totalPages}</span> sản phẩm phù hợp
+							</p>
+						)}
 
 						{loading ? (
 							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">

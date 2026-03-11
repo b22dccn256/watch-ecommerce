@@ -87,31 +87,42 @@ export const useProductStore = create((set, get) => ({
 		maxPrice: 1000000000,
 		machineType: [],
 		strapMaterial: [],
+		colors: [],
+		sizes: [],
+		minRating: 0,
 	},
+	sort: "newest",
 	currentPage: 1,
 	totalPages: 1,
 	suggestions: [],
 
 	setSearchTerm: (term) => set({ searchTerm: term }),
-	setFilters: (newFilters) => set((state) => ({ filters: { ...state.filters, ...newFilters } })),
+	setFilters: (newFilters) => set((state) => {
+		const updatedFilters = { ...state.filters, ...newFilters };
+		return { filters: updatedFilters, currentPage: 1 }; // Reset page when filters change
+	}),
+	setSort: (newSort) => set({ sort: newSort, currentPage: 1 }), // Reset page when sort changes
 	setPage: (page) => set({ currentPage: page }),
 
 	// Fetch sản phẩm có lọc + phân trang + sắp xếp
 	fetchFilteredProducts: async (extraParams = {}) => {
 		set({ loading: true });
-		const { searchTerm, filters, currentPage } = get();
+		const { searchTerm, filters, currentPage, sort } = get();
 
 		const queryParams = {
 			q: searchTerm || undefined,
 			page: currentPage,
 			limit: 12,
-			sort: "popular",
-			category: extraParams.category, // Cực kỳ quan trọng để backend Filter theo Category
+			sort: sort,
+			category: extraParams.category,
 			brands: filters.brands.join(","),
 			minPrice: filters.minPrice,
 			maxPrice: filters.maxPrice,
 			machineType: filters.machineType.join(","),
 			strapMaterial: filters.strapMaterial.join(","),
+			colors: filters.colors.join(","),
+			sizes: filters.sizes.join(","),
+			minRating: filters.minRating || undefined,
 		};
 
 		const queryString = new URLSearchParams(

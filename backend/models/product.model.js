@@ -36,6 +36,28 @@ const productSchema = new mongoose.Schema(
 			min: 0,
 			default: 0,
 		},
+		colors: {
+			type: [String],
+			default: [],
+		},
+		sizes: {
+			type: [String],
+			default: [],
+		},
+		averageRating: {
+			type: Number,
+			default: 0,
+			min: 0,
+			max: 5,
+		},
+		reviewsCount: {
+			type: Number,
+			default: 0,
+		},
+		salesCount: {
+			type: Number,
+			default: 0,
+		},
 		brand: {
 			type: String,
 			required: true, // e.g., "Rolex", "Seiko"

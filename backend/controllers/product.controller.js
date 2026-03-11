@@ -7,7 +7,7 @@ import fs from "fs";
 
 export const getAllProducts = async (req, res) => {
 	try {
-		const { q, page, limit, sort, brands, minPrice, maxPrice, machineType, category } = req.query;
+		const { q, page, limit, sort, brands, minPrice, maxPrice, machineType, category, colors, sizes, minRating } = req.query;
 
 		let query = {};
 
@@ -28,6 +28,15 @@ export const getAllProducts = async (req, res) => {
 			if (minPrice) query.price.$gte = Number(minPrice);
 			if (maxPrice) query.price.$lte = Number(maxPrice);
 		}
+		if (colors) {
+			query.colors = { $in: colors.split(",") };
+		}
+		if (sizes) {
+			query.sizes = { $in: sizes.split(",") };
+		}
+		if (minRating) {
+			query.averageRating = { $gte: Number(minRating) };
+		}
 
 		let productsQuery = Product.find(query);
 
@@ -37,6 +46,14 @@ export const getAllProducts = async (req, res) => {
 			productsQuery = productsQuery.sort({ price: 1 });
 		} else if (sort === "price_desc") {
 			productsQuery = productsQuery.sort({ price: -1 });
+		} else if (sort === "newest") {
+			productsQuery = productsQuery.sort({ createdAt: -1 });
+		} else if (sort === "best_selling") {
+			productsQuery = productsQuery.sort({ salesCount: -1, createdAt: -1 });
+		} else if (sort === "name_asc") {
+			productsQuery = productsQuery.sort({ name: 1 });
+		} else if (sort === "name_desc") {
+			productsQuery = productsQuery.sort({ name: -1 });
 		} else {
 			productsQuery = productsQuery.sort({ createdAt: -1 });
 		}
