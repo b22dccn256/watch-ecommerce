@@ -68,6 +68,11 @@ const orderSchema = new mongoose.Schema(
 			default: "VND",
 			enum: ["USD", "VND"],
 		},
+		// Thời điểm thanh toán thành công (đối soát, thống kê)
+		paidAt: {
+			type: Date,
+			default: null,
+		},
 	},
 	{ timestamps: true }
 );

@@ -7,7 +7,8 @@ import {
     getOrderById,
     getMyOrders,
     createCODOrder,
-    createQROrder
+    createQROrder,
+    confirmQRPayment
 } from "../controllers/order.controller.js"; // Import controller
 
 const router = express.Router();
@@ -29,5 +30,8 @@ router.post("/cod", protectRoute, createCODOrder);
 
 // QR Route
 router.post("/qr", protectRoute, createQROrder);
+
+// User tự xác nhận đã chuyển khoản QR
+router.post("/:id/confirm-qr-payment", protectRoute, confirmQRPayment);
 
 export default router;

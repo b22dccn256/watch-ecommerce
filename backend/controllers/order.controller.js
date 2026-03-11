@@ -200,3 +200,52 @@ export const createQROrder = async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 };
+
+// User tự xác nhận đã chuyển khoản QR
+export const confirmQRPayment = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Validate ObjectId hợp lệ
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "ID đơn hàng không hợp lệ" });
+        }
+
+        const order = await Order.findById(id);
+        if (!order) {
+            return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+        }
+
+        // Kiểm tra quyền sở hữu — chỉ user tạo đơn mới được xác nhận
+        if (order.user.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: "Bạn không có quyền thực hiện thao tác này" });
+        }
+
+        // Chỉ áp dụng cho đơn QR
+        if (order.paymentMethod !== "qr") {
+            return res.status(400).json({ message: "Chỉ áp dụng cho đơn hàng thanh toán QR" });
+        }
+
+        // Idempotency: tránh cập nhật nhiều lần
+        if (order.paymentStatus === "paid") {
+            return res.status(400).json({ message: "Đơn hàng này đã được thanh toán trước đó" });
+        }
+
+        // Cập nhật trạng thái thanh toán + ghi nhận thời gian
+        order.paymentStatus = "paid";
+        order.status = "confirmed";
+        order.paidAt = new Date();
+        await order.save();
+
+        console.log(`[QR Payment] Order ${order.orderCode} confirmed by user ${req.user._id} at ${order.paidAt}`);
+
+        res.json({
+            success: true,
+            message: "Xác nhận thanh toán thành công!",
+            orderId: order._id,
+        });
+    } catch (error) {
+        console.error("Error in confirmQRPayment:", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};

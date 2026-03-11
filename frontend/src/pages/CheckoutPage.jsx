@@ -26,6 +26,7 @@ const CheckoutPage = () => {
 
     const [errors, setErrors] = useState({});
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isConfirming, setIsConfirming] = useState(false); // Loading khi xác nhận QR
     const [qrData, setQrData] = useState(null); // For QR modal
     // useRef: update đồng bộ, không gây re-render — đảm bảo useEffect thấy giá trị mới ngay lập tức
     const paymentDoneRef = useRef(false);
@@ -153,6 +154,24 @@ const CheckoutPage = () => {
             toast.error(error.response?.data?.message || "Lỗi tạo đơn hàng QR");
         } finally {
             setIsProcessing(false);
+        }
+    };
+
+    // Xác nhận đã chuyển khoản QR — gọi API cập nhật paymentStatus = "paid"
+    const handleConfirmQRPayment = async () => {
+        if (isConfirming) return; // Chống spam click
+        setIsConfirming(true);
+        try {
+            await axios.post(`/orders/${qrData.orderId}/confirm-qr-payment`);
+            toast.success("Xác nhận thanh toán thành công!");
+            paymentDoneRef.current = true;
+            navigate(`/purchase-success?order_id=${qrData.orderId}`);
+        } catch (error) {
+            const msg = error.response?.data?.message || "Lỗi xác nhận, vui lòng thử lại hoặc liên hệ hỗ trợ.";
+            toast.error(msg);
+            // Không navigate — user ở lại modal để thử lại
+        } finally {
+            setIsConfirming(false);
         }
     };
 
@@ -338,7 +357,7 @@ const CheckoutPage = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
                     >
                         <motion.div
                             initial={{ scale: 0.95, y: 20 }}
@@ -346,9 +365,11 @@ const CheckoutPage = () => {
                             exit={{ scale: 0.95, y: 20 }}
                             className="bg-gray-800 border border-gray-700 rounded-2xl p-6 max-w-sm w-full relative shadow-2xl"
                         >
+                            {/* Nút đóng — cũng xác nhận thanh toán */}
                             <button
-                                onClick={() => navigate(`/purchase-success?order_id=${qrData.orderId}`)}
-                                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                                onClick={handleConfirmQRPayment}
+                                disabled={isConfirming}
+                                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
                             >
                                 <X size={24} />
                             </button>
@@ -357,8 +378,11 @@ const CheckoutPage = () => {
                                 <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
                                     <CheckCircle className="w-8 h-8 text-emerald-400" />
                                 </div>
-                                <h2 className="text-xl font-bold text-white">Chuyển khoản QR</h2>
-                                <p className="text-gray-400 text-sm">Vui lòng quét mã QR dưới đây để thanh toán. Đơn hàng sẽ được xử lý sau khi Admin xác nhận.</p>
+                                <h2 className="text-xl font-bold text-white">Chuyển khoản VietQR</h2>
+                                <p className="text-gray-400 text-sm">
+                                    Quét mã QR dưới đây để thanh toán. Sau khi chuyển khoản xong,
+                                    nhấn nút “Tôi đã chuyển khoản” để xác nhận đơn hàng.
+                                </p>
 
                                 <div className="bg-white p-3 rounded-xl inline-block">
                                     <img
@@ -380,10 +404,16 @@ const CheckoutPage = () => {
                                 </div>
 
                                 <button
-                                    onClick={() => navigate(`/purchase-success?order_id=${qrData.orderId}`)}
-                                    className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-lg transition-colors"
+                                    onClick={handleConfirmQRPayment}
+                                    disabled={isConfirming}
+                                    className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
                                 >
-                                    Tôi đã chuyển khoản / Xong
+                                    {isConfirming ? (
+                                        <>
+                                            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                            Đang xác nhận...
+                                        </>
+                                    ) : "Tôi đã chuyển khoản"}
                                 </button>
                             </div>
                         </motion.div>
