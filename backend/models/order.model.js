@@ -31,15 +31,32 @@ const orderSchema = new mongoose.Schema(
 			required: true,
 			min: 0,
 		},
-		// Thêm trường trạng thái đơn hàng
+		orderCode: {
+			type: String,
+			unique: true,
+		},
+		shippingDetails: {
+			fullName: { type: String, required: true },
+			phoneNumber: { type: String, required: true },
+			email: { type: String },
+			address: { type: String, required: true },
+			city: { type: String, required: true },
+			orderNotes: { type: String },
+		},
+		// Trạng thái đơn hàng tổng quát
 		status: {
 			type: String,
 			enum: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
 			default: "pending"
 		},
+		paymentStatus: {
+			type: String,
+			enum: ["pending", "paid", "failed", "refunded", "cancelled"],
+			default: "pending"
+		},
 		paymentMethod: {
 			type: String,
-			enum: ["stripe", "cod", "paypal"],
+			enum: ["stripe", "cod", "paypal", "qr"],
 			default: "stripe"
 		},
 		stripeSessionId: {

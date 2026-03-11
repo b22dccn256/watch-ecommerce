@@ -1,28 +1,25 @@
+import fs from "fs";
 import Coupon from "../models/coupon.model.js";
 import Order from "../models/order.model.js";
 import { stripe } from "../lib/stripe.js";
-// Sau save order
-import { updateStock } from "../controllers/product.controller.js";
-import Product from "../models/product.model.js";
-
-// Hàm kiểm tra stock chung (logic thống nhất)
-const validateStock = async (products) => {
-	for (const item of products) {
-		const product = await Product.findById(item._id || item.id);
-		if (!product || product.stock < item.quantity) {
-			throw new Error(`Sản phẩm ${product?.name || item._id} hết hàng`);
-		}
-	}
-};
+import OrderService from "../services/order.service.js";
 
 export const createCheckoutSession = async (req, res) => {
 	try {
-		await validateStock(req.body.products);
-		const { products, couponCode } = req.body;
+		const { products, couponCode, shippingDetails } = req.body;
 
-		if (!Array.isArray(products) || products.length === 0) {
+		if (!products || !Array.isArray(products) || products.length === 0) {
 			return res.status(400).json({ error: "Invalid or empty products array" });
 		}
+		if (!shippingDetails) {
+			return res.status(400).json({ message: "Thiếu thông tin giao hàng." });
+		}
+
+		await OrderService.deductStock(products);
+
+		const coupon = couponCode ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }) : null;
+		let dbTotalAmount = await OrderService.calculateTotalAmount(products, coupon);
+		const orderCode = OrderService.generateOrderCode();
 
 		let totalAmount = 0;
 
@@ -35,7 +32,7 @@ export const createCheckoutSession = async (req, res) => {
 					currency: "vnd",
 					product_data: {
 						name: product.name,
-						images: [product.image],
+						// images: [product.image], // Bỏ images để tránh lỗi URL relative (Stripe bắt buộc https)
 					},
 					unit_amount: amount,
 				},
@@ -43,17 +40,34 @@ export const createCheckoutSession = async (req, res) => {
 			};
 		});
 
-		let coupon = null;
-		if (couponCode) {
-			coupon = await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true });
-			if (coupon) {
-				totalAmount -= Math.round((totalAmount * coupon.discountPercentage) / 100);
-			}
+		if (coupon) {
+			totalAmount -= Math.round((totalAmount * coupon.discountPercentage) / 100);
 		}
 
 		if (totalAmount < 10000) {
-			return res.status(400).json({ error: "Giá trị đơn hàng tối thiểu qua Stripe là 10.000 VNĐ" });
+			return res.status(400).json({ message: "Giá trị đơn hàng tối thiểu qua Stripe là 10.000 VNĐ" });
 		}
+
+		if (totalAmount > 99999999) {
+			return res.status(400).json({ message: "Tổng đơn hàng vượt quá giới hạn 99.999.999 VNĐ của cổng thanh toán Stripe. Vui lòng chọn chuyển khoản QR hoặc thanh toán COD." });
+		}
+
+		// Tạm tạo DB Order trước
+		const newOrder = new Order({
+			user: req.user._id,
+			products: products.map(p => ({
+				product: p._id || p.id,
+				quantity: p.quantity,
+				price: p.price
+			})),
+			totalAmount: dbTotalAmount, // Lấy từ DB tính ở trên
+			orderCode,
+			shippingDetails,
+			paymentMethod: "stripe",
+			paymentStatus: "pending",
+			status: "pending"
+		});
+		await newOrder.save();
 
 		const session = await stripe.checkout.sessions.create({
 			payment_method_types: ["card"],
@@ -61,6 +75,7 @@ export const createCheckoutSession = async (req, res) => {
 			mode: "payment",
 			success_url: `${process.env.CLIENT_URL}/purchase-success?session_id={CHECKOUT_SESSION_ID}`,
 			cancel_url: `${process.env.CLIENT_URL}/purchase-cancel`,
+			expires_at: Math.floor(Date.now() / 1000) + (31 * 60), // Hết hạn sau 31 phút (Stripe yêu cầu > 30 phút, để 30 chẵn dễ bị lỗi lệch mili-giây)
 			discounts: coupon
 				? [
 					{
@@ -71,15 +86,13 @@ export const createCheckoutSession = async (req, res) => {
 			metadata: {
 				userId: req.user._id.toString(),
 				couponCode: couponCode || "",
-				products: JSON.stringify(
-					products.map((p) => ({
-						id: p._id,
-						quantity: p.quantity,
-						price: p.price,
-					}))
-				),
+				orderId: newOrder._id.toString(),
 			},
 		});
+
+		// Lưu sessionId vào đơn hàng để tham chiếu nếu cần
+		newOrder.stripeSessionId = session.id;
+		await newOrder.save();
 
 		if (totalAmount >= 5000000) {
 			await createNewCoupon(req.user._id);
@@ -87,6 +100,7 @@ export const createCheckoutSession = async (req, res) => {
 		res.status(200).json({ id: session.id, totalAmount: totalAmount });
 	} catch (error) {
 		console.error("Error processing checkout:", error);
+		try { fs.appendFileSync("stripe-error.log", new Date().toISOString() + " - " + (error.stack || error.message) + "\n"); } catch (e) { }
 		res.status(500).json({ message: "Error processing checkout", error: error.message });
 	}
 };
@@ -97,48 +111,87 @@ export const checkoutSuccess = async (req, res) => {
 		const session = await stripe.checkout.sessions.retrieve(sessionId);
 
 		if (session.payment_status === "paid") {
-			if (session.metadata.couponCode) {
-				await Coupon.findOneAndUpdate(
-					{
-						code: session.metadata.couponCode,
-						userId: session.metadata.userId,
-					},
-					{
-						isActive: false,
-					}
-				);
-			}
-
-			// create a new Order
-			const products = JSON.parse(session.metadata.products);
-			const newOrder = new Order({
-				user: session.metadata.userId,
-				products: products.map((product) => ({
-					product: product.id,
-					quantity: product.quantity,
-					price: product.price,
-				})),
-				totalAmount: session.amount_total,
-				stripeSessionId: sessionId,
-			});
-
-			await newOrder.save();
+			const orderId = session.metadata.orderId;
+			const order = await Order.findById(orderId);
+			if (!order) return res.status(404).json({ message: "Order not found" });
 
 			res.status(200).json({
 				success: true,
-				message: "Payment successful, order created, and coupon deactivated if used.",
-				orderId: newOrder._id,
+				message: "Trạng thái được tự động xử lý bởi webhook, chỉ trả về để frontend tiếp tục.",
+				orderId: order._id,
 			});
-
-			await updateStock(newOrder.products);
-			if (session.payment_status === "paid") newOrder.status = "paid";
-			await newOrder.save();
+		} else {
+			res.status(400).json({ success: false, message: "Payment not completed" });
 		}
 	} catch (error) {
 		console.error("Error processing successful checkout:", error);
 		res.status(500).json({ message: "Error processing successful checkout", error: error.message });
 	}
 };
+
+// --- STRIPE WEBHOOK ---
+export const stripeWebhook = async (req, res) => {
+	const sig = req.headers['stripe-signature'];
+	let event;
+
+	try {
+		event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+	} catch (err) {
+		console.error("⚠️ Webhook signature verification failed.", err.message);
+		return res.status(400).send(`Webhook Error: ${err.message}`);
+	}
+
+	try {
+		if (event.type === 'checkout.session.completed') {
+			const session = event.data.object;
+			await handlePaymentSuccess(session);
+		} else if (event.type === 'checkout.session.expired') {
+			const session = event.data.object;
+			await handlePaymentExpired(session);
+		}
+
+		res.status(200).end();
+	} catch (error) {
+		console.error("Error handling webhook event:", error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
+};
+
+const handlePaymentSuccess = async (session) => {
+	if (session.metadata.couponCode) {
+		await Coupon.findOneAndUpdate(
+			{
+				code: session.metadata.couponCode,
+				userId: session.metadata.userId,
+			},
+			{
+				isActive: false,
+			}
+		);
+	}
+
+	const orderId = session.metadata.orderId;
+	const order = await Order.findById(orderId);
+	if (order && order.paymentStatus === "pending") {
+		order.paymentStatus = "paid";
+		order.status = "confirmed";
+		await order.save();
+	}
+};
+
+const handlePaymentExpired = async (session) => {
+	const orderId = session.metadata.orderId;
+	const order = await Order.findById(orderId);
+	if (order && order.paymentStatus === "pending") {
+		order.paymentStatus = "cancelled";
+		order.status = "cancelled";
+		await order.save();
+
+		// Hoàn lại kho
+		await OrderService.restoreStock(order.products);
+	}
+};
+
 
 async function createStripeCoupon(discountPercentage) {
 	const coupon = await stripe.coupons.create({

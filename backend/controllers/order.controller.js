@@ -2,16 +2,7 @@
 import Order from "../models/order.model.js";
 import Product from "../models/product.model.js";
 import Coupon from "../models/coupon.model.js";
-
-// Hàm kiểm tra stock chung (dùng cho cả COD và sau này Stripe)
-const validateStock = async (products) => {
-    for (const item of products) {
-        const product = await Product.findById(item._id || item.id);
-        if (!product || product.stock < item.quantity) {
-            throw new Error(`Sản phẩm "${product?.name || item._id}" chỉ còn ${product?.stock || 0} cái`);
-        }
-    }
-};
+import OrderService from "../services/order.service.js";
 
 export const getAllOrders = async (req, res) => {
     try {
@@ -80,9 +71,7 @@ export const getMyOrders = async (req, res) => {
 
 export const createCODOrder = async (req, res) => {
     try {
-        console.log("📥 [COD] Request body:", req.body); // ← debug
-
-        const { products, couponCode } = req.body;
+        const { products, couponCode, shippingDetails } = req.body;
 
         if (!products || !Array.isArray(products) || products.length === 0) {
             return res.status(400).json({
@@ -90,21 +79,66 @@ export const createCODOrder = async (req, res) => {
             });
         }
 
-        await validateStock(products);   // ← kiểm tra tồn kho trước
-
-        let totalAmount = products.reduce((sum, p) => sum + p.price * p.quantity, 0);
-
-        // Xử lý coupon (nếu có)
-        if (couponCode) {
-            const coupon = await Coupon.findOne({
-                code: couponCode,
-                userId: req.user._id,
-                isActive: true
-            });
-            if (coupon) {
-                totalAmount -= Math.round(totalAmount * coupon.discountPercentage / 100);
-            }
+        if (!shippingDetails) {
+            return res.status(400).json({ message: "Thiếu thông tin giao hàng." });
         }
+
+        await OrderService.deductStock(products);
+
+        const coupon = couponCode ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }) : null;
+        let totalAmount = await OrderService.calculateTotalAmount(products, coupon);
+        const orderCode = OrderService.generateOrderCode();
+
+        const newOrder = new Order({
+            user: req.user._id,
+            products: products.map(p => ({
+                product: p._id || p.id,
+                quantity: p.quantity,
+                price: p.price // Vẫn lưu giá trị ở thời điểm mua vào order
+            })),
+            totalAmount,
+            orderCode,
+            shippingDetails,
+            paymentMethod: "cod",
+            paymentStatus: "pending",
+            status: "pending"
+        });
+
+        await newOrder.save();
+
+        if (coupon) {
+            coupon.isActive = false;
+            await coupon.save();
+        }
+
+        res.status(201).json({
+            success: true,
+            message: "Đơn hàng COD đã tạo thành công! Bạn sẽ thanh toán khi nhận hàng.",
+            orderId: newOrder._id,
+            orderCode
+        });
+    } catch (error) {
+        console.error("Error in createCODOrder:", error.message);
+        res.status(400).json({ message: error.message });
+    }
+};
+
+export const createQROrder = async (req, res) => {
+    try {
+        const { products, couponCode, shippingDetails } = req.body;
+
+        if (!products || !Array.isArray(products) || products.length === 0) {
+            return res.status(400).json({ message: "Danh sách sản phẩm không được rỗng" });
+        }
+        if (!shippingDetails) {
+            return res.status(400).json({ message: "Thiếu thông tin giao hàng." });
+        }
+
+        await OrderService.deductStock(products);
+
+        const coupon = couponCode ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }) : null;
+        let totalAmount = await OrderService.calculateTotalAmount(products, coupon);
+        const orderCode = OrderService.generateOrderCode();
 
         const newOrder = new Order({
             user: req.user._id,
@@ -114,33 +148,29 @@ export const createCODOrder = async (req, res) => {
                 price: p.price
             })),
             totalAmount,
-            paymentMethod: "cod",
+            orderCode,
+            shippingDetails,
+            paymentMethod: "qr",
+            paymentStatus: "pending",
             status: "pending"
         });
 
         await newOrder.save();
 
-        // Cập nhật stock
-        for (const item of newOrder.products) {
-            const product = await Product.findById(item.product);
-            if (product) {
-                product.stock -= item.quantity;
-                await product.save();
-            }
-        }
-
-        // Vô hiệu coupon nếu dùng
-        if (couponCode) {
-            await Coupon.findOneAndUpdate({ code: couponCode }, { isActive: false });
+        if (coupon) {
+            coupon.isActive = false;
+            await coupon.save();
         }
 
         res.status(201).json({
             success: true,
-            message: "Đơn hàng COD đã tạo thành công! Bạn sẽ thanh toán khi nhận hàng.",
-            orderId: newOrder._id
+            message: "Đơn hàng QR đã tạo thành công. Vui lòng chuyển khoản để xác nhận.",
+            orderId: newOrder._id,
+            orderCode,
+            totalAmount
         });
     } catch (error) {
-        console.error("Error in createCODOrder:", error.message);
+        console.error("Error in createQROrder:", error.message);
         res.status(400).json({ message: error.message });
     }
 };

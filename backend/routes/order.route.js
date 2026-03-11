@@ -6,7 +6,8 @@ import {
     updateOrderStatus,
     getOrderById,
     getMyOrders,
-    createCODOrder
+    createCODOrder,
+    createQROrder
 } from "../controllers/order.controller.js"; // Import controller
 
 const router = express.Router();
@@ -25,5 +26,8 @@ router.get("/my-orders", protectRoute, getMyOrders);
 
 // COD route
 router.post("/cod", protectRoute, createCODOrder);
+
+// QR Route
+router.post("/qr", protectRoute, createQROrder);
 
 export default router;
