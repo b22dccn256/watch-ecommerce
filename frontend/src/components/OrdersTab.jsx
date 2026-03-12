@@ -1,12 +1,25 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, MoreVertical, Eye, CheckCircle, XCircle, Clock, Truck, Download, Plus, ShieldCheck, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Eye, XCircle, Download, ShieldCheck, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import axios from "../lib/axios";
+import { toast } from "react-hot-toast";
+
+const STATUS_OPTIONS = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
+const STATUS_COLORS = {
+    pending: "text-yellow-400 bg-yellow-400/10",
+    confirmed: "text-blue-400 bg-blue-400/10",
+    shipped: "text-purple-400 bg-purple-400/10",
+    delivered: "text-emerald-400 bg-emerald-400/10",
+    cancelled: "text-red-400 bg-red-400/10",
+};
+const FILTER_TABS = ["All Orders", ...STATUS_OPTIONS];
 
 const OrdersTab = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
+    const [updatingStatus, setUpdatingStatus] = useState(false);
+    const [activeFilter, setActiveFilter] = useState("All Orders");
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -22,10 +35,56 @@ const OrdersTab = () => {
         fetchOrders();
     }, []);
 
+    const filteredOrders = activeFilter === "All Orders"
+        ? orders
+        : orders.filter(o => o.status === activeFilter);
+
+    const updateOrderStatus = async (orderId, newStatus) => {
+        setUpdatingStatus(true);
+        try {
+            await axios.patch(`/orders/${orderId}/status`, { status: newStatus });
+            setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
+            setSelectedOrder(prev => ({ ...prev, status: newStatus }));
+            toast.success(`Đã cập nhật trạng thái: ${newStatus}`);
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Lỗi cập nhật trạng thái");
+        } finally {
+            setUpdatingStatus(false);
+        }
+    };
+
+    const handleExportCSV = () => {
+        if (filteredOrders.length === 0) {
+            toast.error("Không có dữ liệu để xuất");
+            return;
+        }
+        const rows = filteredOrders.map(o => ({
+            "Mã đơn": o._id,
+            "Khách hàng": o.user?.name || "N/A",
+            "Email": o.user?.email || "N/A",
+            "Trạng thái": o.status,
+            "Thanh toán": o.paymentStatus,
+            "Phương thức": o.paymentMethod,
+            "Tổng tiền": o.totalAmount,
+            "Ngày tạo": new Date(o.createdAt).toLocaleString("vi-VN"),
+        }));
+        const headers = Object.keys(rows[0]).join(",");
+        const csvRows = rows.map(r => Object.values(r).map(v => `"${v}"`).join(","));
+        const csvContent = [headers, ...csvRows].join("\n");
+        const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `orders_${activeFilter}_${new Date().toISOString().split("T")[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success(`Đã xuất ${filteredOrders.length} đơn ra CSV`);
+    };
+
     const stats = [
-        { label: "Total Volume", value: "71,147,500,000 ₫", change: "+14.2%", icon: ShieldCheck },
-        { label: "Pending Review", value: "18", subValue: "Estimated value: 10.3 Tỷ ₫", action: "Action Required", icon: AlertCircle },
-        { label: "AI Trust Efficiency", value: "94.8%", subValue: "142 orders auto-confirmed today", icon: ShieldCheck },
+        { label: "Total Volume", value: orders.reduce((s, o) => s + (o.totalAmount || 0), 0).toLocaleString("vi-VN") + " ₫", icon: ShieldCheck },
+        { label: "Pending Review", value: orders.filter(o => o.status === "pending").length.toString(), action: "Action Required", icon: AlertCircle },
+        { label: "AI Trust Efficiency", value: "94.8%", subValue: "Auto-confirmed orders", icon: ShieldCheck },
     ];
 
     return (
@@ -39,11 +98,11 @@ const OrdersTab = () => {
                     </p>
                 </div>
                 <div className='flex gap-3'>
-                    <button className='flex items-center gap-2 px-4 py-2 bg-luxury-dark border border-luxury-border rounded-xl text-sm font-bold text-white hover:bg-white/5 transition'>
-                        <Download className='w-4 h-4' /> Export
-                    </button>
-                    <button className='flex items-center gap-2 px-6 py-2 bg-luxury-gold text-luxury-dark rounded-xl text-sm font-bold hover:bg-luxury-gold-light transition shadow-lg shadow-luxury-gold/20'>
-                        <Plus className='w-4 h-4' /> Create Order
+                    <button
+                        onClick={handleExportCSV}
+                        className='flex items-center gap-2 px-4 py-2 bg-luxury-dark border border-luxury-border rounded-xl text-sm font-bold text-white hover:bg-white/5 transition'
+                    >
+                        <Download className='w-4 h-4' /> Export CSV ({filteredOrders.length})
                     </button>
                 </div>
             </div>
@@ -58,7 +117,6 @@ const OrdersTab = () => {
                             </p>
                             <div className='space-y-1'>
                                 <h3 className='text-3xl font-bold text-white'>{stat.value}</h3>
-                                {stat.change && <p className='text-emerald-400 text-xs font-bold'>{stat.change} from last month</p>}
                                 {stat.subValue && <p className='text-luxury-text-muted text-[10px]'>{stat.subValue}</p>}
                             </div>
                             {stat.action && (
@@ -76,20 +134,19 @@ const OrdersTab = () => {
 
             {/* Filters & Table */}
             <div className='bg-luxury-dark border border-luxury-border rounded-3xl overflow-hidden shadow-2xl'>
-                <div className='p-6 border-b border-luxury-border/50 flex flex-wrap items-center justify-between gap-4'>
-                    <div className='flex items-center gap-2 p-1 bg-luxury-darker rounded-xl border border-luxury-border'>
-                        {["All Orders", "Pending", "Shipping", "Completed", "Cancelled"].map((tab) => (
-                            <button
-                                key={tab}
-                                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${tab === "All Orders" ? "bg-luxury-gold text-luxury-dark" : "text-luxury-text-muted hover:text-white"}`}
-                            >
-                                {tab}
-                            </button>
-                        ))}
-                    </div>
-                    <button className='flex items-center gap-2 px-4 py-2 bg-luxury-darker border border-luxury-border rounded-xl text-xs font-bold text-luxury-text-muted hover:text-white transition'>
-                        <Filter className='w-4 h-4' /> More Filters
-                    </button>
+                <div className='p-6 border-b border-luxury-border/50 flex flex-wrap items-center gap-2'>
+                    {FILTER_TABS.map((tab) => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveFilter(tab)}
+                            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all capitalize ${activeFilter === tab ? "bg-luxury-gold text-luxury-dark" : "text-luxury-text-muted hover:text-white"}`}
+                        >
+                            {tab === "All Orders"
+                                ? `Tất cả (${orders.length})`
+                                : `${tab} (${orders.filter(o => o.status === tab).length})`
+                            }
+                        </button>
+                    ))}
                 </div>
 
                 <div className='overflow-x-auto'>
@@ -98,10 +155,10 @@ const OrdersTab = () => {
                             <tr className='text-left bg-luxury-darker/30'>
                                 <th className='px-6 py-4 text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest'>Order ID</th>
                                 <th className='px-6 py-4 text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest'>Date</th>
-                                <th className='px-6 py-4 text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest'>Customer & Watch</th>
+                                <th className='px-6 py-4 text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest'>Customer</th>
                                 <th className='px-6 py-4 text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest'>Total</th>
                                 <th className='px-6 py-4 text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest'>Status</th>
-                                <th className='px-6 py-4 text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest'>AI Trust Score</th>
+                                <th className='px-6 py-4 text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest'>Payment</th>
                                 <th className='px-6 py-4 text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest text-right'>Actions</th>
                             </tr>
                         </thead>
@@ -110,47 +167,42 @@ const OrdersTab = () => {
                                 <tr>
                                     <td colSpan="7" className="text-center py-4 text-emerald-400">Loading orders...</td>
                                 </tr>
-                            ) : orders.map((order) => (
+                            ) : filteredOrders.length === 0 ? (
+                                <tr>
+                                    <td colSpan="7" className="text-center py-8 text-luxury-text-muted">Không có đơn hàng nào</td>
+                                </tr>
+                            ) : filteredOrders.map((order) => (
                                 <tr key={order._id} className='group hover:bg-white/5 transition-colors'>
                                     <td className='px-6 py-6 font-bold text-white'>#{order._id.substring(0, 8).toUpperCase()}</td>
                                     <td className='px-6 py-6 text-sm text-luxury-text-muted'>
-                                        {new Date(order.createdAt).toLocaleDateString()}
+                                        {new Date(order.createdAt).toLocaleDateString("vi-VN")}
                                     </td>
                                     <td className='px-6 py-6'>
                                         <div className='font-bold text-white'>{order.user?.name || "Unknown"}</div>
                                         <div className='text-[10px] text-luxury-gold mt-0.5'>{order.products.length} Items</div>
                                     </td>
                                     <td className='px-6 py-6 font-bold text-white'>
-                                        {order.currency === 'USD' ? '$' + order.totalAmount?.toLocaleString() : order.totalAmount?.toLocaleString('vi-VN') + ' ₫'}
+                                        {order.currency === "USD"
+                                            ? "$" + order.totalAmount?.toLocaleString()
+                                            : order.totalAmount?.toLocaleString("vi-VN") + " ₫"}
                                     </td>
                                     <td className='px-6 py-6'>
-                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wider ${order.status === 'pending' ? 'text-yellow-400 bg-yellow-400/10' : 'text-emerald-400 bg-emerald-400/10'}`}>
-                                            {order.status.toUpperCase()}
+                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wider ${STATUS_COLORS[order.status] || "text-gray-400 bg-gray-400/10"}`}>
+                                            {order.status?.toUpperCase()}
                                         </span>
                                     </td>
                                     <td className='px-6 py-6'>
-                                        <div className='w-24'>
-                                            <div className='flex items-center justify-between mb-1'>
-                                                <span className='text-[10px] font-bold text-white'>99%</span>
-                                                <span className={`text-[8px] font-bold text-emerald-400`}>AUTO</span>
-                                            </div>
-                                            <div className='h-1.5 w-full bg-luxury-darker rounded-full overflow-hidden'>
-                                                <div
-                                                    className={`h-full rounded-full bg-emerald-500`}
-                                                    style={{ width: '99%' }}
-                                                />
-                                            </div>
-                                        </div>
+                                        <span className={`px-2 py-1 rounded text-[9px] font-bold ${order.paymentStatus === "paid" ? "text-emerald-400 bg-emerald-400/10" : "text-yellow-400 bg-yellow-400/10"}`}>
+                                            {order.paymentStatus?.toUpperCase()}
+                                        </span>
                                     </td>
                                     <td className='px-6 py-6 text-right'>
-                                        <div className='flex items-center justify-end gap-2'>
-                                            <button
-                                                onClick={() => setSelectedOrder(order)}
-                                                className='p-2 bg-luxury-dark border border-luxury-border rounded-lg text-luxury-text-muted hover:text-luxury-gold transition-colors'
-                                            >
-                                                <Eye className='w-4 h-4' />
-                                            </button>
-                                        </div>
+                                        <button
+                                            onClick={() => setSelectedOrder(order)}
+                                            className='p-2 bg-luxury-dark border border-luxury-border rounded-lg text-luxury-text-muted hover:text-luxury-gold transition-colors'
+                                        >
+                                            <Eye className='w-4 h-4' />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
@@ -159,20 +211,9 @@ const OrdersTab = () => {
                 </div>
 
                 <div className='p-6 bg-luxury-darker/30 flex items-center justify-between'>
-                    <p className='text-[10px] text-luxury-text-muted italic'>Showing {orders.length} orders</p>
-                    <div className='flex items-center gap-2'>
-                        <button className='p-1.5 rounded-lg border border-luxury-border text-luxury-text-muted hover:text-white transition cursor-not-allowed opacity-50'>
-                            <ChevronLeft className='w-4 h-4' />
-                        </button>
-                        <div className='flex items-center gap-1'>
-                            <span className='w-8 h-8 flex items-center justify-center rounded-lg bg-luxury-gold text-luxury-dark text-xs font-bold'>1</span>
-                            <span className='w-8 h-8 flex items-center justify-center rounded-lg hover:bg-luxury-border text-luxury-text-muted text-xs font-medium cursor-pointer transition'>2</span>
-                            <span className='w-8 h-8 flex items-center justify-center rounded-lg hover:bg-luxury-border text-luxury-text-muted text-xs font-medium cursor-pointer transition'>3</span>
-                        </div>
-                        <button className='p-1.5 rounded-lg border border-luxury-border text-luxury-text-muted hover:text-white transition'>
-                            <ChevronRight className='w-4 h-4' />
-                        </button>
-                    </div>
+                    <p className='text-[10px] text-luxury-text-muted italic'>
+                        Hiển thị {filteredOrders.length} / {orders.length} đơn hàng
+                    </p>
                 </div>
             </div>
 
@@ -206,13 +247,25 @@ const OrdersTab = () => {
                                 </div>
                                 <div>
                                     <p className="text-luxury-text-muted">Date</p>
-                                    <p className="font-bold text-white">{new Date(selectedOrder.createdAt).toLocaleString()}</p>
+                                    <p className="font-bold text-white">{new Date(selectedOrder.createdAt).toLocaleString("vi-VN")}</p>
                                 </div>
                                 <div>
                                     <p className="text-luxury-text-muted">Total Amount</p>
                                     <p className="font-bold text-emerald-400">
-                                        {selectedOrder.currency === 'USD' ? '$' + selectedOrder.totalAmount?.toLocaleString() : selectedOrder.totalAmount?.toLocaleString('vi-VN') + ' ₫'}
+                                        {selectedOrder.currency === "USD"
+                                            ? "$" + selectedOrder.totalAmount?.toLocaleString()
+                                            : selectedOrder.totalAmount?.toLocaleString("vi-VN") + " ₫"}
                                     </p>
+                                </div>
+                                <div>
+                                    <p className="text-luxury-text-muted">Payment Method</p>
+                                    <p className="font-bold text-white uppercase">{selectedOrder.paymentMethod}</p>
+                                </div>
+                                <div>
+                                    <p className="text-luxury-text-muted">Payment Status</p>
+                                    <span className={`px-2 py-1 rounded text-[10px] font-bold ${selectedOrder.paymentStatus === "paid" ? "text-emerald-400 bg-emerald-400/10" : "text-yellow-400 bg-yellow-400/10"}`}>
+                                        {selectedOrder.paymentStatus?.toUpperCase()}
+                                    </span>
                                 </div>
                             </div>
 
@@ -226,10 +279,32 @@ const OrdersTab = () => {
                                                 <span className="text-xs text-luxury-text-muted">Qty: {item.quantity}</span>
                                             </div>
                                             <span className="font-bold text-luxury-gold">
-                                                {selectedOrder.currency === 'USD' ? '$' + item.product?.price?.toLocaleString() : item.product?.price?.toLocaleString('vi-VN') + ' ₫'}
+                                                {selectedOrder.currency === "USD"
+                                                    ? "$" + item.product?.price?.toLocaleString()
+                                                    : item.product?.price?.toLocaleString("vi-VN") + " ₫"}
                                             </span>
                                         </div>
                                     ))}
+                                </div>
+                            </div>
+
+                            {/* Cập nhật trạng thái đơn hàng */}
+                            <div className="pt-4 border-t border-luxury-border">
+                                <h3 className="font-bold text-white mb-3">Cập nhật trạng thái</h3>
+                                <div className="flex gap-3 items-center">
+                                    <select
+                                        defaultValue={selectedOrder.status}
+                                        onChange={(e) => updateOrderStatus(selectedOrder._id, e.target.value)}
+                                        disabled={updatingStatus}
+                                        className="flex-1 bg-luxury-darker border border-luxury-border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-luxury-gold transition disabled:opacity-50"
+                                    >
+                                        {STATUS_OPTIONS.map(s => (
+                                            <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                                        ))}
+                                    </select>
+                                    <span className={`px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider ${STATUS_COLORS[selectedOrder.status] || ""}`}>
+                                        {updatingStatus ? "Đang cập nhật..." : selectedOrder.status?.toUpperCase()}
+                                    </span>
                                 </div>
                             </div>
                         </div>

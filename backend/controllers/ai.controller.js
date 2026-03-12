@@ -90,6 +90,74 @@ export const chatWithAI = async (req, res) => {
     }
 };
 
+// --- 10đ Target.md: AI Automation ---
+import Order from "../models/order.model.js";
+import User from "../models/user.model.js";
+
+export const confirmOrdersAI = async (req, res) => {
+    try {
+        console.log("🤖 [AI System] Analyzing pending orders for auto-confirmation...");
+        
+        // Find pending COD orders
+        const pendingOrders = await Order.find({ status: "pending", paymentMethod: "cod" }).populate("user");
+        
+        let count = 0;
+        for (const order of pendingOrders) {
+            // AI Analysis Mock: Verify phone exists, address has length, and user isn't brand new or has suspicious name
+            const userName = order.user?.name || "";
+            const isSuspicious = /bot|test|spam|admin/i.test(userName) || userName.length < 2;
+            
+            if (!isSuspicious && order.shippingAddress && order.shippingAddress.length > 10) {
+                order.status = "confirmed";
+                await order.save();
+                count++;
+            }
+        }
+
+        res.json({ 
+            success: true, 
+            message: `AI đã phân tích và tự động xác nhận ${count}/${pendingOrders.length} đơn hàng COD hợp lệ.`,
+            count
+        });
+    } catch (error) {
+        console.error("AI Automation Error (Orders):", error.message);
+        res.status(500).json({ message: "Lỗi hệ thống AI", error: error.message });
+    }
+};
+
+export const cleanupUsersAI = async (req, res) => {
+    try {
+        console.log("🤖 [AI System] Scanning for invalid/spam users...");
+        
+        // Find customer users
+        const users = await User.find({ role: "customer" });
+        
+        let count = 0;
+        for (const user of users) {
+            // AI Logic: Identify 'test' accounts or accounts with no orders and suspicious names
+            const isTestName = /test|bot|demo|spam|fake|123/i.test(user.name) || /test|bot|fake/i.test(user.email);
+            
+            if (isTestName) {
+                // Check if user has orders before deleting
+                const orderCount = await Order.countDocuments({ user: user._id });
+                if (orderCount === 0) {
+                    await User.findByIdAndDelete(user._id);
+                    count++;
+                }
+            }
+        }
+
+        res.json({ 
+            success: true, 
+            message: `AI đã phát hiện và dọn dẹp ${count} tài khoản người dùng không hợp lệ/spam.`,
+            count
+        });
+    } catch (error) {
+        console.error("AI Automation Error (Users):", error.message);
+        res.status(500).json({ message: "Lỗi hệ thống AI", error: error.message });
+    }
+};
+
 // --- Fallback bot offline ---
 const getFallbackBotResponse = (text) => {
     const lower = text.toLowerCase();

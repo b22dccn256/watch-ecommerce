@@ -256,15 +256,16 @@ export const updateProduct = async (req, res) => {
 export const deleteProduct = async (req, res) => {
 	try {
 		const product = await Product.findOne({ _id: req.params.id, deletedAt: null });
-
 		if (!product) {
 			return res.status(404).json({ message: "Product not found or already deleted" });
 		}
 
-		// Soft delete implementation
-		product.deletedAt = new Date();
-		product.$locals = { userId: req.user._id };
-		await product.save();
+		// Soft delete — bypass full validation (legacy docs may lack required fields)
+		await Product.findByIdAndUpdate(
+			req.params.id,
+			{ $set: { deletedAt: new Date(), isActive: false } },
+			{ runValidators: false }
+		);
 
 		res.json({ message: "Product deleted successfully (Soft Delete)" });
 	} catch (error) {
@@ -325,14 +326,19 @@ export const getProductsByCategory = async (req, res) => {
 export const toggleFeaturedProduct = async (req, res) => {
 	try {
 		const product = await Product.findById(req.params.id);
-		if (product) {
-			product.isFeatured = !product.isFeatured;
-			const updatedProduct = await product.save();
-			await updateFeaturedProductsCache();
-			res.json(updatedProduct);
-		} else {
-			res.status(404).json({ message: "Product not found" });
+		if (!product) {
+			return res.status(404).json({ message: "Product not found" });
 		}
+
+		// Bypass full validation — legacy docs may lack required fields like type/description
+		const updatedProduct = await Product.findByIdAndUpdate(
+			req.params.id,
+			{ $set: { isFeatured: !product.isFeatured } },
+			{ new: true, runValidators: false }
+		);
+
+		await updateFeaturedProductsCache();
+		res.json(updatedProduct);
 	} catch (error) {
 		console.log("Error in toggleFeaturedProduct controller", error.message);
 		res.status(500).json({ message: "Server error", error: error.message });

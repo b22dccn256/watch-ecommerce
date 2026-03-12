@@ -9,7 +9,7 @@ export const getAnalyticsData = async () => {
 	const salesData = await Order.aggregate([
 		{
 			$group: {
-				_id: null, // it groups all documents together,
+				_id: null,
 				totalSales: { $sum: 1 },
 				totalRevenue: { $sum: "$totalAmount" },
 			},
@@ -18,90 +18,80 @@ export const getAnalyticsData = async () => {
 
 	const { totalSales, totalRevenue } = salesData[0] || { totalSales: 0, totalRevenue: 0 };
 
-	// Tính doanh thu theo từng thương hiệu
-	const revenueByBrand = await Order.aggregate([
-		{ $unwind: "$products" },
-		{
-			$lookup: {
-				from: "products",
-				localField: "products.product",
-				foreignField: "_id",
-				as: "productInfo",
-			},
-		},
-		{ $unwind: "$productInfo" },
-		{
-			$group: {
-				_id: "$productInfo.brand",
-				totalRevenue: { $sum: { $multiply: ["$products.quantity", "$products.price"] } },
-			},
-		},
-	]);
-
 	return {
 		users: totalUsers,
 		products: totalProducts,
 		totalSales,
 		totalRevenue,
-		revenueByBrand
 	};
 };
 
 export const getDailySalesData = async (startDate, endDate) => {
-	try {
-		const dailySalesData = await Order.aggregate([
-			{
-				$match: {
-					createdAt: {
-						$gte: startDate,
-						$lte: endDate,
-					},
+	const dailySalesData = await Order.aggregate([
+		{
+			$match: {
+				paymentStatus: "paid",
+				createdAt: {
+					$gte: startDate,
+					$lte: endDate,
 				},
 			},
-			{
-				$group: {
-					_id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-					sales: { $sum: 1 },
-					revenue: { $sum: "$totalAmount" },
-				},
+		},
+		{
+			$group: {
+				_id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: "Asia/Ho_Chi_Minh" } },
+				sales: { $sum: 1 },
+				revenue: { $sum: "$totalAmount" },
 			},
-			{ $sort: { _id: 1 } },
-		]);
+		},
+		{ $sort: { _id: 1 } },
+	]);
 
-		// example of dailySalesData
-		// [
-		// 	{
-		// 		_id: "2024-08-18",
-		// 		sales: 12,
-		// 		revenue: 1450.75
-		// 	},
-		// ]
+	const dateArray = getDatesInRange(startDate, endDate);
 
-		const dateArray = getDatesInRange(startDate, endDate);
-		// console.log(dateArray) // ['2024-08-18', '2024-08-19', ... ]
-
-		return dateArray.map((date) => {
-			const foundData = dailySalesData.find((item) => item._id === date);
-
-			return {
-				date,
-				sales: foundData?.sales || 0,
-				revenue: foundData?.revenue || 0,
-			};
-		});
-	} catch (error) {
-		throw error;
-	}
+	return dateArray.map((date) => {
+		const foundData = dailySalesData.find((item) => item._id === date);
+		return {
+			name: formatDateLabel(date),
+			date,
+			sales: foundData?.sales || 0,
+			revenue: foundData?.revenue || 0,
+		};
+	});
 };
 
 function getDatesInRange(startDate, endDate) {
 	const dates = [];
 	let currentDate = new Date(startDate);
-
 	while (currentDate <= endDate) {
 		dates.push(currentDate.toISOString().split("T")[0]);
 		currentDate.setDate(currentDate.getDate() + 1);
 	}
-
 	return dates;
 }
+
+function formatDateLabel(dateStr) {
+	const d = new Date(dateStr + "T00:00:00Z");
+	return d.toLocaleDateString("vi-VN", { month: "short", day: "numeric", timeZone: "UTC" });
+}
+
+export const getAnalytics = async (req, res) => {
+	try {
+		const days = parseInt(req.query.days) || 7;
+		const endDate = new Date();
+		const startDate = new Date();
+		startDate.setDate(endDate.getDate() - days + 1);
+		startDate.setHours(0, 0, 0, 0);
+
+		const analyticsData = await getAnalyticsData();
+		const dailySales = await getDailySalesData(startDate, endDate);
+
+		res.status(200).json({
+			...analyticsData,
+			dailySales,
+		});
+	} catch (error) {
+		console.error("Error fetching analytics data:", error);
+		res.status(500).json({ message: "Failed to fetch analytics data", error: error.message });
+	}
+};

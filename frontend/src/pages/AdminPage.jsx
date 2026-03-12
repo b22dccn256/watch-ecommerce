@@ -9,6 +9,7 @@ import OrdersTab from "../components/OrdersTab";
 import MarketingTab from "../components/MarketingTab";
 import EmailTab from "../components/EmailTab";
 import UsersTab from "../components/UsersTab";
+import AITab from "../components/AITab";
 import { useProductStore } from "../stores/useProductStore";
 
 const tabs = [
@@ -18,6 +19,7 @@ const tabs = [
 	{ id: "marketing", label: "Marketing", icon: Megaphone },
 	{ id: "email", label: "Email", icon: Mail },
 	{ id: "users", label: "Users", icon: Users },
+	{ id: "ai", label: "AI System", icon: ShieldCheck },
 ];
 
 const AdminPage = () => {
@@ -79,6 +81,7 @@ const AdminPage = () => {
 					{activeTab === "marketing" && <MarketingTab />}
 					{activeTab === "email" && <EmailTab />}
 					{activeTab === "users" && <UsersTab />}
+					{activeTab === "ai" && <AITab />}
 				</div>
 			</div>
 		</div>
