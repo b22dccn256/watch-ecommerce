@@ -1,11 +1,13 @@
 import express from "express";
-import { login, logout, signup, refreshToken, getProfile, getAllUsers, deleteUser, updateUserRole, updateProfile, changePassword } from "../controllers/auth.controller.js";
+import { login, logout, signup, refreshToken, getProfile, getAllUsers, deleteUser, updateUserRole, updateProfile, changePassword, verifyOTP, resendOTP } from "../controllers/auth.controller.js";
 import { protectRoute, adminRoute } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
 router.post("/signup", signup);
 router.post("/login", login);
+router.post("/verify-otp", verifyOTP);
+router.post("/resend-otp", resendOTP);
 router.post("/logout", logout);
 router.post("/refresh-token", refreshToken);
 router.get("/profile", protectRoute, getProfile);

@@ -31,8 +31,13 @@ export const useUserStore = create((set, get) => ({
 		try {
 			const res = await axios.post("/auth/login", { email, password });
 
+			if (res.data.message === "OTP_REQUIRED") {
+				set({ loading: false });
+				return "OTP_REQUIRED";
+			}
+
 			set({ user: res.data, loading: false });
-			toast.success("Logged in successfully!");
+			toast.success("Đăng nhập thành công!");
 
 			// Sync guest cart to server
 			await useCartStore.getState().syncLocalCartToServer();
@@ -41,7 +46,37 @@ export const useUserStore = create((set, get) => ({
 
 		} catch (error) {
 			set({ loading: false });
-			toast.error(error.response.data.message || "An error occurred");
+			toast.error(error.response?.data?.message || "Đã xảy ra lỗi");
+			throw error;
+		}
+	},
+
+	verifyOTP: async (email, otp) => {
+		set({ loading: true });
+		try {
+			const res = await axios.post("/auth/verify-otp", { email, otp });
+			set({ user: res.data, loading: false });
+			toast.success("Xác thực 2FA thành công!");
+
+			await useCartStore.getState().syncLocalCartToServer();
+			await useCartStore.getState().getCartItems();
+			return true;
+		} catch (error) {
+			set({ loading: false });
+			const message = error.response?.data?.message || "Mã OTP không chính xác";
+			toast.error(message);
+			throw error;
+		}
+	},
+
+	resendOTP: async (email) => {
+		try {
+			const res = await axios.post("/auth/resend-otp", { email });
+			toast.success(res.data.message || "Đã gửi lại mã OTP");
+			return true;
+		} catch (error) {
+			toast.error(error.response?.data?.message || "Không thể gửi lại mã OTP");
+			return false;
 		}
 	},
 
