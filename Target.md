@@ -36,5 +36,10 @@ BE:
 9.5d: Deploy
 10d: Nhúng các công nghệ AI ( tự động xác nhận đơn hàng, xóa người dùng không hợp lệ)
 
-
-
+USER:
+duyhacsd@gmail.com
+123456
+ADMIN:
+ha8893536@gmail.com
+admin123
+--> Kiểm tra terminal truy cập link để lấy mã OTP
