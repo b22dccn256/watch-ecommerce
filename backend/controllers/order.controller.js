@@ -124,6 +124,10 @@ export const createCODOrder = async (req, res) => {
             await coupon.save({ session });
         }
 
+        // Clear user cart
+        req.user.cartItems = [];
+        await req.user.save({ session });
+
         await session.commitTransaction();
         session.endSession();
 
@@ -186,6 +190,10 @@ export const createQROrder = async (req, res) => {
             coupon.isActive = false;
             await coupon.save({ session });
         }
+
+        // Clear user cart
+        req.user.cartItems = [];
+        await req.user.save({ session });
 
         await session.commitTransaction();
         session.endSession();

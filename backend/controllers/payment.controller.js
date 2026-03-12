@@ -4,6 +4,7 @@ import Order from "../models/order.model.js";
 import { stripe } from "../lib/stripe.js";
 import OrderService from "../services/order.service.js";
 import mongoose from "mongoose";
+import User from "../models/user.model.js";
 
 export const createCheckoutSession = async (req, res) => {
 	const sessionOpts = await mongoose.startSession();
@@ -105,6 +106,10 @@ export const createCheckoutSession = async (req, res) => {
 		newOrder.stripeSessionId = session.id;
 		await newOrder.save({ session: sessionOpts });
 
+		// Clear user cart
+		req.user.cartItems = [];
+		await req.user.save({ session: sessionOpts });
+
 		await sessionOpts.commitTransaction();
 		sessionOpts.endSession();
 
@@ -192,6 +197,9 @@ const handlePaymentSuccess = async (session) => {
 		order.paymentStatus = "paid";
 		order.status = "confirmed";
 		await order.save();
+
+		// Clear cart just in case (webhook safety)
+		await User.findByIdAndUpdate(session.metadata.userId, { cartItems: [] });
 	}
 };
 
