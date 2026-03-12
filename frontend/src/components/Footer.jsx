@@ -105,7 +105,7 @@ const Footer = () => {
                 <div className="border-t border-luxury-border pt-6">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                         <p className="text-luxury-text-muted text-sm">
-                            © 2024 Luxury Watch. Tất cả quyền được bảo lưu.
+                            © 2026 Luxury Watch. Tất cả quyền được bảo lưu.
                         </p>
                         <div className="flex gap-6 text-sm">
                             <Link to="/privacy" className="text-luxury-text-muted hover:text-luxury-gold transition duration-300">

@@ -17,7 +17,7 @@ const HeroBanner = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="text-luxury-gold text-sm tracking-wider-luxury mb-6 font-medium"
                 >
-                    NEW COLLECTION 2024
+                    NEW COLLECTION 2026
                 </motion.p>
 
                 <motion.h1

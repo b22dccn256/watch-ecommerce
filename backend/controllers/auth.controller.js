@@ -196,3 +196,71 @@ export const updateUserRole = async (req, res) => {
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
 };
+
+export const updateProfile = async (req, res) => {
+	try {
+		const { name, phone } = req.body;
+		const userId = req.user._id;
+
+		if (!name) {
+			return res.status(400).json({ message: "Tên không được để trống" });
+		}
+
+		// Regex VN: 0 + (3,5,7,8,9) + 8 digits
+		const phoneRegex = /^(0)[3|5|7|8|9]\d{8}$/;
+		if (phone && !phoneRegex.test(phone)) {
+			return res.status(400).json({ message: "Số điện thoại không hợp lệ (định dạng di động VN)" });
+		}
+
+		// Check unique phone (excluding current user)
+		if (phone) {
+			const existingPhone = await User.findOne({ phone, _id: { $ne: userId } });
+			if (existingPhone) {
+				return res.status(400).json({ message: "Số điện thoại này đã được sử dụng bởi tài khoản khác" });
+			}
+		}
+
+		const updatedUser = await User.findByIdAndUpdate(
+			userId,
+			{ name, phone },
+			{ new: true }
+		).select("-password");
+
+		res.json({ message: "Cập nhật thông tin thành công", user: updatedUser });
+	} catch (error) {
+		console.error("Error in updateProfile:", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+export const changePassword = async (req, res) => {
+	try {
+		const { oldPassword, newPassword, confirmPassword } = req.body;
+		const user = await User.findById(req.user._id);
+
+		if (!oldPassword || !newPassword || !confirmPassword) {
+			return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin" });
+		}
+
+		if (newPassword !== confirmPassword) {
+			return res.status(400).json({ message: "Mật khẩu mới và xác nhận mật khẩu không khớp" });
+		}
+
+		if (newPassword.length < 6) {
+			return res.status(400).json({ message: "Mật khẩu mới phải có ít nhất 6 ký tự" });
+		}
+
+		const isMatch = await user.comparePassword(oldPassword);
+		if (!isMatch) {
+			return res.status(400).json({ message: "Mật khẩu hiện tại không chính xác" });
+		}
+
+		user.password = newPassword;
+		await user.save();
+
+		res.json({ message: "Đổi mật khẩu thành công" });
+	} catch (error) {
+		console.error("Error in changePassword:", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
