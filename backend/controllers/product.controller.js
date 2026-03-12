@@ -98,7 +98,14 @@ export const getSuggestions = async (req, res) => {
 	try {
 		const { q } = req.query;
 		if (!q) return res.json([]);
-		const suggestions = await Product.find({ name: { $regex: q, $options: "i" }, deletedAt: null }).select("name image price").limit(5);
+		const suggestions = await Product.find({
+			deletedAt: null,
+			$or: [
+				{ name: { $regex: q, $options: "i" } },
+				{ brand: { $regex: q, $options: "i" } },
+				{ type: { $regex: q, $options: "i" } },
+			]
+		}).select("name image price brand").limit(5);
 		res.json(suggestions);
 	} catch (error) {
 		console.log("Error in getSuggestions controller", error.message);

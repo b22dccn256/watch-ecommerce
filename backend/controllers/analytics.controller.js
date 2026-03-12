@@ -1,6 +1,7 @@
 import Order from "../models/order.model.js";
 import Product from "../models/product.model.js";
 import User from "../models/user.model.js";
+import { sendEmail } from "../lib/email.js";
 
 export const getAnalyticsData = async () => {
 	const totalUsers = await User.countDocuments();
@@ -93,5 +94,39 @@ export const getAnalytics = async (req, res) => {
 	} catch (error) {
 		console.error("Error fetching analytics data:", error);
 		res.status(500).json({ message: "Failed to fetch analytics data", error: error.message });
+	}
+};
+
+export const sendTestEmail = async (req, res) => {
+	try {
+		const { type, automationId } = req.body;
+		const adminEmail = req.user.email;
+
+		let subject = "[WatchStore] Test Email";
+		let html = `<p>Đây là bản tin thử nghiệm cho loại <strong>${type}</strong> (ID: ${automationId})</p>`;
+
+		if (type === "Abandoned Cart 24h") {
+			subject = "[WatchStore] Don't forget your items!";
+			html = `
+				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+					<div style="background-color: #000; padding: 20px; text-align: center; color: #d4af37;">
+						<h1 style="margin: 0;">WATCH STORE</h1>
+					</div>
+					<div style="padding: 30px;">
+						<h2>Vẫn còn sản phẩm trong giỏ hàng của bạn!</h2>
+						<p>Chúng tôi nhận thấy bạn vẫn chưa hoàn thành đơn hàng. Những chiếc đồng hồ yêu thích đang chờ đón bạn.</p>
+						<div style="text-align: center; margin-top: 30px;">
+							<a href="${process.env.CLIENT_URL}/cart" style="background-color: #d4af37; color: #000; padding: 12px 30px; text-decoration: none; font-weight: bold; border-radius: 8px;">Quay lại giỏ hàng</a>
+						</div>
+					</div>
+				</div>
+			`;
+		}
+
+		await sendEmail(adminEmail, subject, html);
+		res.json({ message: "Email test đã được gửi tới " + adminEmail });
+	} catch (error) {
+		console.error("Error sending test email:", error);
+		res.status(500).json({ message: "Không thể gửi email test", error: error.message });
 	}
 };

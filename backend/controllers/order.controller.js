@@ -31,10 +31,17 @@ export const updateOrderStatus = async (req, res) => {
 
         if (!order) return res.status(404).json({ message: "Order not found" });
 
+        const oldStatus = order.status;
         order.status = status;
+        
+        // If changing to cancelled, restore stock
+        if (status === "cancelled" && oldStatus !== "cancelled") {
+            await OrderService.restoreStock(order.products);
+        }
+        
         await order.save();
 
-        res.json({ message: "Order status updated", order });
+        res.json({ message: `Order status updated to ${status}`, order });
     } catch (error) {
         console.error("Error in updateOrderStatus:", error.message);
         res.status(500).json({ message: "Server error" });

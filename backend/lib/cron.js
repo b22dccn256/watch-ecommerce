@@ -6,10 +6,34 @@ import Product from "../models/product.model.js";
 import OrderService from "../services/order.service.js";
 import { sendEmail } from "./email.js";
 
-cron.schedule("0 0 * * *", async () => { // Mỗi ngày
-    const users = await User.find({ cartItems: { $ne: [] } }); // Có cart nhưng chưa order
+cron.schedule("0 0 * * *", async () => { // Mỗi ngày lúc nửa đêm
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+
+    // Tìm user có giỏ hàng được cập nhật trong khoảng 24h-48h trước
+    const users = await User.find({
+        cartItems: { $ne: [] },
+        cartUpdatedAt: { $gte: fortyEightHoursAgo, $lte: twentyFourHoursAgo }
+    });
+
     for (const user of users) {
-        sendEmail(user.email, "Don't Forget Your Cart!", "<p>Complete your purchase!</p>");
+        const subject = "[WatchStore] Vẫn còn sản phẩm trong giỏ hàng của bạn!";
+        const html = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+                <div style="background-color: #000; padding: 20px; text-align: center; color: #d4af37;">
+                    <h1 style="margin: 0;">WATCH STORE</h1>
+                </div>
+                <div style="padding: 30px;">
+                    <h2>Bạn để quên thứ gì đó?</h2>
+                    <p>Chào ${user.name}, chúng tôi thấy bạn vẫn còn sản phẩm tuyệt vời trong giỏ hàng. Đừng bỏ lỡ!</p>
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="${process.env.CLIENT_URL}/cart" style="background-color: #d4af37; color: #000; padding: 12px 30px; text-decoration: none; font-weight: bold; border-radius: 8px;">Hoàn tất đơn hàng ngay</a>
+                    </div>
+                </div>
+            </div>
+        `;
+        sendEmail(user.email, subject, html);
+        console.log(`[Cron] Sent abandoned cart email to ${user.email}`);
     }
 });
 

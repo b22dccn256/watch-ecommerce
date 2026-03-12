@@ -46,6 +46,7 @@ export const addToCart = async (req, res) => {
 		if (existingItem) existingItem.quantity = newQuantity;
 		else user.cartItems.push({ product: productId, quantity: 1 });
 
+		user.cartUpdatedAt = Date.now();
 		await user.save();
 		res.status(200).json({ message: "Added to cart" });
 	} catch (error) {
@@ -66,6 +67,7 @@ export const removeAllFromCart = async (req, res) => {
 			);
 		}
 
+		user.cartUpdatedAt = Date.now();
 		await user.save();
 		res.status(200).json({ message: "Cart updated", cartItems: user.cartItems });
 	} catch (error) {
@@ -93,6 +95,7 @@ export const updateQuantity = async (req, res) => {
 
 		existingItem.quantity = quantity;
 
+		user.cartUpdatedAt = Date.now();
 		await user.save();
 		res.status(200).json(user.cartItems);
 	} catch (error) {
@@ -141,6 +144,7 @@ export const mergeCart = async (req, res) => {
 			}
 		}
 
+		user.cartUpdatedAt = Date.now();
 		await user.save();
 		res.status(200).json({ message: "Cart merged successfully" });
 

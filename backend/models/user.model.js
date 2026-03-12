@@ -46,6 +46,10 @@ const userSchema = new mongoose.Schema(
 			type: String,
 			default: "",
 		},
+		cartUpdatedAt: {
+			type: Date,
+			default: Date.now,
+		},
 	},
 	{
 		timestamps: true,
