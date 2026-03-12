@@ -118,7 +118,7 @@ export const useProductStore = create((set, get) => ({
 			brands: filters.brands.join(","),
 			minPrice: filters.minPrice,
 			maxPrice: filters.maxPrice,
-			machineType: filters.machineType.join(","),
+			machineType: filters.machineType.map(t => t.toLowerCase()).join(","),
 			strapMaterial: filters.strapMaterial.join(","),
 			colors: filters.colors.join(","),
 			sizes: filters.sizes.join(","),

@@ -49,6 +49,9 @@ const specsOptions = {
     caseMaterial: ["Stainless Steel", "Titanium", "Gold", "Ceramic", "Carbon Fiber", "Resin"]
 };
 
+const COLORS = ["Đen", "Bạc", "Vàng", "Xanh dương", "Trắng", "Nâu"];
+const SIZES = ["38mm", "40mm", "41mm", "42mm", "44mm", "45mm"];
+
 const generateProducts = () => {
     const types = ["mechanical", "quartz", "automatic", "digital", "smartwatch"];
     const products = [];
@@ -70,6 +73,8 @@ const generateProducts = () => {
                 type: type,
                 slug: slugifyText(baseName + "-" + Math.random().toString(36).substring(7)),
                 createdAt: randomDateWithinDays(30),
+                colors: [getRandom(COLORS), getRandom(COLORS)].filter((v, i, a) => a.indexOf(v) === i),
+                sizes: [getRandom(SIZES), getRandom(SIZES)].filter((v, i, a) => a.indexOf(v) === i),
                 specs: {
                     waterResistance: getRandom(specsOptions.waterResistance),
                     glass: getRandom(specsOptions.glass),

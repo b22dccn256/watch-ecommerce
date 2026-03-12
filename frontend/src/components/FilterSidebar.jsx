@@ -70,7 +70,7 @@ const FilterSidebar = () => {
                     <h3 className="text-[10px] font-semibold tracking-widest text-gray-500 uppercase mb-3">Thương hiệu</h3>
                     <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                         {BRANDS.map((brand) => (
-                            <label key={brand} className="flex items-center gap-3 cursor-pointer group">
+                            <label key={brand} className="flex items-center gap-3 cursor-pointer group" onClick={() => toggleArrayFilter("brands", brand)}>
                                 <div className={`w-4 h-4 rounded border flex items-center justify-center transition ${filters.brands?.includes(brand) ? "bg-[#D4AF37] border-[#D4AF37]" : "border-yellow-900 group-hover:border-[#D4AF37]"}`}>
                                     {filters.brands?.includes(brand) && <svg className="w-2.5 h-2.5 text-black" fill="currentColor" viewBox="0 0 12 12"><path d="M10 3L5 9L2 6" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" /></svg>}
                                 </div>
