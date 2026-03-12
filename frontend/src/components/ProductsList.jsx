@@ -74,7 +74,7 @@ const ProductsList = () => {
 						placeholder="Tìm theo tên, thương hiệu, danh mục..."
 						value={search}
 						onChange={handleSearch}
-						className="w-full bg-gray-700 border border-gray-600 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-luxury-gold transition"
+						className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg pl-10 pr-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-luxury-gold transition"
 					/>
 				</div>
 				<div className="flex items-center gap-3">
@@ -94,13 +94,13 @@ const ProductsList = () => {
 						onChange={handleFileImport}
 					/>
 
-					<span className="text-gray-400 text-sm whitespace-nowrap">
+					<span className="text-gray-500 dark:text-gray-400 text-sm whitespace-nowrap">
 						{filtered.length} / {products?.length || 0} sản phẩm
 					</span>
 					<select
 						value={sortBy}
 						onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
-						className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-luxury-gold transition"
+						className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold transition"
 					>
 						<option value="name">Sắp xếp: Tên A-Z</option>
 						<option value="price">Sắp xếp: Giá cao → thấp</option>
@@ -111,32 +111,32 @@ const ProductsList = () => {
 
 			{/* Table */}
 			<motion.div
-				className="bg-gray-800 shadow-lg rounded-lg overflow-hidden"
+				className="bg-white dark:bg-gray-800 shadow-xl dark:shadow-none rounded-lg overflow-hidden border border-gray-100 dark:border-transparent"
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.5 }}
 			>
-				<table className="min-w-full divide-y divide-gray-700">
-					<thead className="bg-gray-700">
+				<table className="min-w-full divide-y divide-gray-100 dark:divide-gray-700">
+					<thead className="bg-gray-50 dark:bg-gray-700">
 						<tr>
-							<th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Product</th>
-							<th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Brand</th>
-							<th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Price</th>
-							<th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Category</th>
-							<th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Featured</th>
-							<th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
+							<th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Product</th>
+							<th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Brand</th>
+							<th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Price</th>
+							<th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Category</th>
+							<th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Featured</th>
+							<th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Actions</th>
 						</tr>
 					</thead>
-					<tbody className="bg-gray-800 divide-y divide-gray-700">
+					<tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
 						{paginated.length === 0 ? (
 							<tr>
-								<td colSpan="6" className="text-center py-12 text-gray-500">
+								<td colSpan="6" className="text-center py-12 text-gray-400 dark:text-gray-500">
 									<Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
 									{search ? `Không tìm thấy sản phẩm nào với "${search}"` : "Chưa có sản phẩm"}
 								</td>
 							</tr>
 						) : paginated.map((product) => (
-							<tr key={product._id} className="hover:bg-gray-700 transition-colors">
+							<tr key={product._id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
 								<td className="px-6 py-4 whitespace-nowrap">
 									<div className="flex items-center gap-3">
 										<img
@@ -145,20 +145,20 @@ const ProductsList = () => {
 											alt={product.name}
 											onError={(e) => { e.target.onerror = null; e.target.style.display = "none"; }}
 										/>
-										<div className="text-sm font-medium text-white max-w-[200px] truncate">{product.name}</div>
+										<div className="text-sm font-medium text-gray-900 dark:text-white max-w-[200px] truncate">{product.name}</div>
 									</div>
 								</td>
-								<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{product.brand || "—"}</td>
-								<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+								<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">{product.brand || "—"}</td>
+								<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
 									{product.price?.toLocaleString("vi-VN")} ₫
 								</td>
 								<td className="px-6 py-4 whitespace-nowrap">
-									<span className="px-2 py-1 bg-gray-700 rounded text-xs text-gray-300">{product.category}</span>
+									<span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-600 dark:text-gray-300">{product.category}</span>
 								</td>
 								<td className="px-6 py-4 whitespace-nowrap">
 									<button
 										onClick={() => toggleFeaturedProduct(product._id)}
-										className={`p-1 rounded-full transition-colors duration-200 ${product.isFeatured ? "bg-yellow-400 text-gray-900" : "bg-gray-600 text-gray-300 hover:bg-yellow-500"}`}
+										className={`p-1 rounded-full transition-colors duration-200 ${product.isFeatured ? "bg-yellow-400 text-gray-900" : "bg-gray-100 dark:bg-gray-600 text-gray-400 dark:text-gray-300 hover:bg-yellow-500"}`}
 									>
 										<Star className="h-5 w-5" />
 									</button>
@@ -178,15 +178,15 @@ const ProductsList = () => {
 
 				{/* Pagination */}
 				{totalPages > 1 && (
-					<div className="px-6 py-4 bg-gray-700 flex items-center justify-between border-t border-gray-600">
-						<p className="text-sm text-gray-400">
+					<div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 flex items-center justify-between border-t border-gray-100 dark:border-gray-600">
+						<p className="text-sm text-gray-500 dark:text-gray-400">
 							Trang {currentPage} / {totalPages} • {filtered.length} sản phẩm
 						</p>
 						<div className="flex items-center gap-2">
 							<button
 								onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
 								disabled={currentPage === 1}
-								className="p-2 rounded-lg bg-gray-600 text-gray-300 hover:bg-gray-500 disabled:opacity-40 disabled:cursor-not-allowed transition"
+								className="p-2 rounded-lg bg-white dark:bg-gray-600 text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-transparent hover:bg-gray-50 dark:hover:bg-gray-500 disabled:opacity-40 disabled:cursor-not-allowed transition"
 							>
 								<ChevronLeft className="w-4 h-4" />
 							</button>
@@ -202,7 +202,7 @@ const ProductsList = () => {
 									<button
 										key={page}
 										onClick={() => setCurrentPage(page)}
-										className={`w-8 h-8 rounded-lg text-sm font-bold transition ${currentPage === page ? "bg-luxury-gold text-luxury-dark" : "text-gray-400 hover:bg-gray-600"}`}
+										className={`w-8 h-8 rounded-lg text-sm font-bold transition ${currentPage === page ? "bg-luxury-gold text-luxury-dark" : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600"}`}
 									>
 										{page}
 									</button>
@@ -211,7 +211,7 @@ const ProductsList = () => {
 							<button
 								onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
 								disabled={currentPage === totalPages}
-								className="p-2 rounded-lg bg-gray-600 text-gray-300 hover:bg-gray-500 disabled:opacity-40 disabled:cursor-not-allowed transition"
+								className="p-2 rounded-lg bg-white dark:bg-gray-600 text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-transparent hover:bg-gray-50 dark:hover:bg-gray-500 disabled:opacity-40 disabled:cursor-not-allowed transition"
 							>
 								<ChevronRight className="w-4 h-4" />
 							</button>

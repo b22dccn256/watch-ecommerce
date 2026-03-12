@@ -18,7 +18,7 @@ const ProductCard = ({ product }) => {
 	};
 
 	return (
-		<div className='group relative flex flex-col h-full w-full overflow-hidden rounded-lg border border-luxury-border bg-luxury-darker shadow-lg transition-all duration-300 hover:shadow-2xl hover:border-luxury-gold'>
+		<div className='group relative flex flex-col h-full w-full overflow-hidden rounded-lg border border-gray-200 dark:border-luxury-border bg-white dark:bg-luxury-darker shadow-lg transition-all duration-300 hover:shadow-2xl hover:border-luxury-gold'>
 			{/* Product Image */}
 			<div className='relative flex w-full aspect-square overflow-hidden rounded-t-lg bg-black'>
 				<img loading='lazy' className='object-cover w-full h-full transition-transform duration-300 group-hover:scale-105' src={product.image || "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=200&auto=format&fit=crop"} alt={product.name} />
@@ -36,12 +36,12 @@ const ProductCard = ({ product }) => {
 			{/* Product Info */}
 			<div className='mt-4 px-5 pb-5 flex flex-col flex-grow'>
 				{/* Brand/Category */}
-				<p className='text-xs font-medium text-luxury-text-muted uppercase tracking-luxury mb-1'>
+				<p className='text-xs font-medium text-gray-500 dark:text-luxury-text-muted uppercase tracking-luxury mb-1'>
 					{product.category || 'Luxury Watch'}
 				</p>
 
 				{/* Product Name */}
-				<h5 className='text-xl font-semibold tracking-tight text-luxury-text-light mb-2 line-clamp-2 overflow-hidden min-h-[3.5rem]'>
+				<h5 className='text-xl font-semibold tracking-tight text-gray-900 dark:text-luxury-text-light mb-2 line-clamp-2 overflow-hidden min-h-[3.5rem]'>
 					{product.name}
 				</h5>
 
@@ -50,10 +50,10 @@ const ProductCard = ({ product }) => {
 					{[...Array(5)].map((_, i) => (
 						<Star
 							key={i}
-							className={`w-4 h-4 ${i < (product.rating || 4) ? 'text-luxury-gold fill-luxury-gold' : 'text-luxury-text-muted'}`}
+							className={`w-4 h-4 ${i < (product.rating || 4) ? 'text-luxury-gold fill-luxury-gold' : 'text-gray-400 dark:text-luxury-text-muted'}`}
 						/>
 					))}
-					<span className='text-sm text-luxury-text-muted ml-2'>
+					<span className='text-sm text-gray-500 dark:text-luxury-text-muted ml-2'>
 						({product.reviews || 0})
 					</span>
 				</div>
@@ -65,7 +65,7 @@ const ProductCard = ({ product }) => {
 							{product.price?.toLocaleString("vi-VN")} ₫
 						</span>
 						{product.originalPrice && (
-							<span className='text-sm text-luxury-text-muted line-through'>
+							<span className='text-sm text-gray-400 dark:text-luxury-text-muted line-through'>
 								{product.originalPrice?.toLocaleString("vi-VN")} ₫
 							</span>
 						)}
@@ -82,7 +82,7 @@ const ProductCard = ({ product }) => {
 				{/* View Details Link */}
 				<Link
 					to={`/product/${product._id}`}
-					className="block text-center bg-luxury-darker hover:bg-luxury-gold border border-luxury-border hover:border-luxury-gold text-luxury-text-light hover:text-luxury-dark px-4 py-2 rounded-full text-sm font-medium transition-all duration-300"
+					className="block text-center bg-gray-100 dark:bg-luxury-darker hover:bg-luxury-gold border border-gray-200 dark:border-luxury-border hover:border-luxury-gold text-gray-900 dark:text-luxury-text-light hover:text-luxury-dark px-4 py-2 rounded-full text-sm font-medium transition-all duration-300"
 				>
 					Xem chi tiết
 				</Link>

@@ -118,15 +118,15 @@ const MarketingTab = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-2">
-                    <h1 className="text-4xl font-bold text-white tracking-tight">Marketing & Chiến Dịch</h1>
-                    <p className="text-luxury-text-muted max-w-2xl">
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight">Marketing & Chiến Dịch</h1>
+                    <p className="text-gray-500 dark:text-luxury-text-muted max-w-2xl">
                         Thiết lập và tự động hoá các chương trình khuyến mãi cho hệ thống toàn cầu.
                     </p>
                 </div>
                 <div className="flex gap-4">
-                    <div className="bg-luxury-dark border border-luxury-border p-4 rounded-2xl min-w-[140px]">
-                        <p className="text-xs font-semibold text-luxury-text-muted uppercase tracking-widest mb-1">Đang hoạt động</p>
-                        <span className="text-3xl font-bold text-white">{campaigns?.filter(c => c.status === "Active").length || 0}</span>
+                    <div className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border p-4 rounded-2xl min-w-[140px] shadow-xl dark:shadow-none">
+                        <p className="text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest mb-1">Đang hoạt động</p>
+                        <span className="text-3xl font-bold text-gray-900 dark:text-white">{campaigns?.filter(c => c.status === "Active").length || 0}</span>
                     </div>
                 </div>
             </div>
@@ -134,7 +134,7 @@ const MarketingTab = () => {
             {/* ═══ BANNER MANAGEMENT ═══ */}
             <section className="space-y-6">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
                         <ImageIcon className="w-5 h-5 text-luxury-gold" /> Quản lý Banner Trang chủ
                     </h2>
                     <button
@@ -150,17 +150,17 @@ const MarketingTab = () => {
                     {/* Upload placeholder */}
                     <div
                         onClick={() => bannerInputRef.current?.click()}
-                        className="relative group h-48 rounded-2xl overflow-hidden border-2 border-dashed border-luxury-border hover:border-luxury-gold transition-colors cursor-pointer flex flex-col items-center justify-center gap-3"
+                        className="relative group h-48 rounded-2xl overflow-hidden border-2 border-dashed border-gray-200 dark:border-luxury-border hover:border-luxury-gold bg-gray-50 dark:bg-transparent transition-colors cursor-pointer flex flex-col items-center justify-center gap-3"
                     >
-                        <ImageIcon className="w-10 h-10 text-luxury-text-muted group-hover:text-luxury-gold transition-colors" />
-                        <p className="text-sm text-luxury-text-muted group-hover:text-white transition-colors font-medium">Click để tải banner mới</p>
-                        <p className="text-[10px] text-luxury-text-muted">JPG, PNG, WEBP — tối đa 5MB</p>
+                        <ImageIcon className="w-10 h-10 text-gray-400 dark:text-luxury-text-muted group-hover:text-luxury-gold transition-colors" />
+                        <p className="text-sm text-gray-500 dark:text-luxury-text-muted group-hover:text-gray-900 dark:group-hover:text-white transition-colors font-medium">Click để tải banner mới</p>
+                        <p className="text-[10px] text-gray-400 dark:text-luxury-text-muted">JPG, PNG, WEBP — tối đa 5MB</p>
                     </div>
 
                     {bannersLoading ? (
-                        <div className="col-span-full py-12 text-center text-luxury-text-muted">Đang tải danh sách banner...</div>
+                        <div className="col-span-full py-12 text-center text-gray-500 dark:text-luxury-text-muted">Đang tải danh sách banner...</div>
                     ) : banners.map((banner) => (
-                        <div key={banner._id} className="relative group h-48 rounded-2xl overflow-hidden border border-luxury-border">
+                        <div key={banner._id} className="relative group h-48 rounded-2xl overflow-hidden border border-gray-100 dark:border-luxury-border shadow-lg dark:shadow-none bg-white dark:bg-luxury-dark">
                             {banner.imageUrl ? (
                                 <img src={banner.imageUrl} alt={banner.title} className="w-full h-full object-cover" />
                             ) : (
@@ -176,7 +176,7 @@ const MarketingTab = () => {
                             </div>
                             <div className="absolute bottom-3 left-3 right-3">
                                 <h3 className="text-white font-bold text-sm truncate">{banner.title}</h3>
-                                <p className="text-luxury-text-muted text-[10px]">{formatDate(banner.uploadedAt)}</p>
+                                <p className="text-gray-300 dark:text-luxury-text-muted text-[10px]">{formatDate(banner.uploadedAt)}</p>
                             </div>
                             {/* Hover actions */}
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
@@ -203,26 +203,26 @@ const MarketingTab = () => {
             {/* ═══ CAMPAIGN CREATION ═══ */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Form tạo chiến dịch */}
-                <div className="lg:col-span-1 bg-luxury-dark border border-luxury-border rounded-3xl p-8 space-y-6 h-fit">
-                    <h2 className="text-xl font-bold text-white">Tạo chiến dịch mới</h2>
+                <div className="lg:col-span-1 bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border shadow-xl dark:shadow-none rounded-3xl p-8 space-y-6 h-fit">
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-white">Tạo chiến dịch mới</h2>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest">Tên chiến dịch</label>
+                        <label className="text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Tên chiến dịch</label>
                         <input
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             type="text"
                             placeholder="VD: Flash Sale 8/3"
-                            className="w-full bg-luxury-darker border border-luxury-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-luxury-gold transition"
+                            className="w-full bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold transition"
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest">Nhóm áp dụng</label>
+                        <label className="text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Nhóm áp dụng</label>
                         <select
                             value={formData.group}
                             onChange={(e) => setFormData({ ...formData, group: e.target.value })}
-                            className="w-full bg-luxury-darker border border-luxury-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-luxury-gold transition"
+                            className="w-full bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold transition"
                         >
                             <option value="Entire Catalog">Toàn bộ danh mục</option>
                             <option value="Đồng hồ Nam">Đồng hồ Nam</option>
@@ -231,7 +231,7 @@ const MarketingTab = () => {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest">Phần trăm giảm (%)</label>
+                        <label className="text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Phần trăm giảm (%)</label>
                         <div className="relative">
                             <input
                                 value={formData.discountPercentage}
@@ -239,7 +239,7 @@ const MarketingTab = () => {
                                 type="number"
                                 min="1" max="100"
                                 placeholder="15"
-                                className="w-full bg-luxury-darker border border-luxury-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-luxury-gold transition"
+                                className="w-full bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold transition"
                             />
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-luxury-gold font-bold text-lg">%</span>
                         </div>
@@ -247,15 +247,15 @@ const MarketingTab = () => {
 
                     {/* Preview discount */}
                     {previewProduct && formData.discountPercentage && (
-                        <div className="bg-emerald-900/20 border border-emerald-500/30 p-4 rounded-xl space-y-2">
-                            <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Mô phỏng giá trị</p>
+                        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-500/30 p-4 rounded-xl space-y-2 shadow-sm">
+                            <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">Mô phỏng giá trị</p>
                             <div className="flex items-center gap-3">
                                 <img src={previewProduct.image} className="w-12 h-12 rounded-lg object-cover" alt="" />
                                 <div>
-                                    <p className="text-xs text-white font-medium line-clamp-1">{previewProduct.name}</p>
+                                    <p className="text-xs text-gray-900 dark:text-white font-medium line-clamp-1">{previewProduct.name}</p>
                                     <div className="flex gap-2 items-center">
-                                        <span className="line-through text-xs text-luxury-text-muted">{previewProduct.price.toLocaleString("vi-VN")}₫</span>
-                                        <span className="font-bold text-emerald-400 text-sm">
+                                        <span className="line-through text-xs text-gray-400 dark:text-luxury-text-muted">{previewProduct.price.toLocaleString("vi-VN")}₫</span>
+                                        <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">
                                             {(previewProduct.price * (1 - formData.discountPercentage / 100)).toLocaleString("vi-VN")}₫
                                         </span>
                                     </div>
@@ -266,21 +266,21 @@ const MarketingTab = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest">Bắt đầu</label>
+                            <label className="text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Bắt đầu</label>
                             <input
                                 value={formData.startDate}
                                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                                 type="datetime-local"
-                                className="w-full bg-luxury-darker border border-luxury-border rounded-xl px-2 py-3 text-sm text-white focus:outline-none focus:border-luxury-gold transition"
+                                className="w-full bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border rounded-xl px-2 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold transition"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest">Kết thúc</label>
+                            <label className="text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Kết thúc</label>
                             <input
                                 value={formData.endDate}
                                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                                 type="datetime-local"
-                                className="w-full bg-luxury-darker border border-luxury-border rounded-xl px-2 py-3 text-sm text-white focus:outline-none focus:border-luxury-gold transition"
+                                className="w-full bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border rounded-xl px-2 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold transition"
                             />
                         </div>
                     </div>
@@ -295,39 +295,39 @@ const MarketingTab = () => {
                 </div>
 
                 {/* Campaign list */}
-                <div className="lg:col-span-2 bg-luxury-dark border border-luxury-border rounded-3xl p-8 space-y-6">
+                <div className="lg:col-span-2 bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border shadow-xl dark:shadow-none rounded-3xl p-8 space-y-6">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-white">Danh sách chiến dịch</h2>
+                        <h2 className="text-xl font-bold text-gray-800 dark:text-white">Danh sách chiến dịch</h2>
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="text-left border-b border-luxury-border/50">
-                                    <th className="pb-4 text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest">Chiến dịch</th>
-                                    <th className="pb-4 text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest">Nhóm</th>
-                                    <th className="pb-4 text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest">Discount</th>
-                                    <th className="pb-4 text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest">Thời gian</th>
-                                    <th className="pb-4 text-[10px] font-bold text-luxury-text-muted uppercase tracking-widest">Status</th>
+                                <tr className="text-left border-b border-gray-100 dark:border-luxury-border/50">
+                                    <th className="pb-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Chiến dịch</th>
+                                    <th className="pb-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Nhóm</th>
+                                    <th className="pb-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Discount</th>
+                                    <th className="pb-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Thời gian</th>
+                                    <th className="pb-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Status</th>
                                     <th className="pb-4"></th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-luxury-border/30">
+                            <tbody className="divide-y divide-gray-100 dark:divide-luxury-border/30">
                                 {(!campaigns || campaigns.length === 0) && (
                                     <tr>
-                                        <td colSpan="6" className="py-8 text-center text-luxury-text-muted">Chưa có chiến dịch nào</td>
+                                        <td colSpan="6" className="py-8 text-center text-gray-400 dark:text-luxury-text-muted">Chưa có chiến dịch nào</td>
                                     </tr>
                                 )}
                                 {campaigns?.map((camp) => (
-                                    <tr key={camp._id} className={`group hover:bg-white/5 transition-colors ${!camp.isActive ? "opacity-50" : ""}`}>
+                                    <tr key={camp._id} className={`group hover:bg-gray-50 dark:hover:bg-white/5 transition-colors ${!camp.isActive ? "opacity-50" : ""}`}>
                                         <td className="py-5">
-                                            <div className="font-bold text-white">{camp.name}</div>
-                                            <div className="text-[10px] text-luxury-text-muted mt-0.5">ID: {camp._id.substring(0, 8)}...</div>
+                                            <div className="font-bold text-gray-900 dark:text-white">{camp.name}</div>
+                                            <div className="text-[10px] text-gray-500 dark:text-luxury-text-muted mt-0.5">ID: {camp._id.substring(0, 8)}...</div>
                                         </td>
-                                        <td className="py-5 text-sm text-luxury-text-muted">{camp.isGlobal ? "Toàn bộ" : camp.group}</td>
+                                        <td className="py-5 text-sm text-gray-600 dark:text-luxury-text-muted">{camp.isGlobal ? "Toàn bộ" : camp.group}</td>
                                         <td className="py-5 font-bold text-luxury-gold">{camp.discountPercentage}%</td>
-                                        <td className="py-5 text-[10px] text-luxury-text-muted">
-                                            {formatDate(camp.startDate)} <br /><span className="text-gray-500">tới</span> {formatDate(camp.endDate)}
+                                        <td className="py-5 text-[10px] text-gray-500 dark:text-luxury-text-muted">
+                                            {formatDate(camp.startDate)} <br /><span className="text-gray-400 dark:text-gray-500">tới</span> {formatDate(camp.endDate)}
                                         </td>
                                         <td className="py-5">
                                             <div className="flex items-center gap-2">
@@ -338,10 +338,10 @@ const MarketingTab = () => {
                                             </div>
                                         </td>
                                         <td className="py-5 text-right">
-                                            <button onClick={() => toggleCampaignStatus(camp._id)} className="p-2 text-luxury-text-muted hover:text-luxury-gold transition-colors mr-2" title="Bật/Tắt">
+                                            <button onClick={() => toggleCampaignStatus(camp._id)} className="p-2 text-gray-400 dark:text-luxury-text-muted hover:text-luxury-gold transition-colors mr-2" title="Bật/Tắt">
                                                 <Power className="w-4 h-4" />
                                             </button>
-                                            <button onClick={() => deleteCampaign(camp._id)} className="p-2 text-luxury-text-muted hover:text-red-400 transition-colors" title="Xoá">
+                                            <button onClick={() => deleteCampaign(camp._id)} className="p-2 text-gray-400 dark:text-luxury-text-muted hover:text-red-400 transition-colors" title="Xoá">
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                         </td>

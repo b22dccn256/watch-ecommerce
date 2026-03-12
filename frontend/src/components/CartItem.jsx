@@ -13,7 +13,7 @@ const CartItem = ({ item }) => {
 
 
 	return (
-		<div className='rounded-lg border p-4 shadow-sm border-gray-700 bg-gray-800 md:p-6'>
+		<div className='rounded-lg border p-4 shadow-sm border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 md:p-6'>
 			<div className='space-y-4 md:flex md:items-center md:justify-between md:gap-6 md:space-y-0'>
 				<div className='shrink-0 md:order-1'>
 					<img className='h-20 md:h-32 rounded object-cover' src={item.image} />
@@ -24,7 +24,7 @@ const CartItem = ({ item }) => {
 					<div className='flex items-center gap-2'>
 						<button
 							className='inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border
-							 border-yellow-900 bg-zinc-900 hover:bg-yellow-900 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] transition disabled:opacity-50 disabled:cursor-not-allowed'
+							 border-gray-200 dark:border-yellow-900 bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-yellow-900 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] transition disabled:opacity-50 disabled:cursor-not-allowed'
 							onClick={() => {
 								const newQ = localQuantity - 1;
 								setLocalQuantity(newQ);
@@ -32,12 +32,12 @@ const CartItem = ({ item }) => {
 							}}
 							disabled={localQuantity <= 1}
 						>
-							<Minus className='text-gray-300 w-4 h-4' />
+							<Minus className='text-gray-600 dark:text-gray-300 w-4 h-4' />
 						</button>
-						<p className="w-6 text-center text-sm font-semibold">{localQuantity}</p>
+						<p className="w-6 text-center text-sm font-semibold text-gray-900 dark:text-white">{localQuantity}</p>
 						<button
 							className='inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border
-							 border-yellow-900 bg-zinc-900 hover:bg-yellow-900 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] transition disabled:opacity-50 disabled:cursor-not-allowed'
+							 border-gray-200 dark:border-yellow-900 bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-yellow-900 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] transition disabled:opacity-50 disabled:cursor-not-allowed'
 							onClick={() => {
 								const newQ = localQuantity + 1;
 								setLocalQuantity(newQ);
@@ -45,19 +45,19 @@ const CartItem = ({ item }) => {
 							}}
 							disabled={localQuantity >= item.stock}
 						>
-							<Plus className='text-gray-300 w-4 h-4' />
+							<Plus className='text-gray-600 dark:text-gray-300 w-4 h-4' />
 						</button>
 					</div>
 
 					<div className='text-end md:order-4 min-w-[120px]'>
-						<p className='text-lg font-bold text-[#D4AF37]'>
+						<p className='text-lg font-bold text-emerald-600 dark:text-[#D4AF37]'>
 							{(item.price * localQuantity).toLocaleString("vi-VN")} ₫
 						</p>
 					</div>
 				</div>
 
 				<div className='w-full min-w-0 flex-1 space-y-3 md:order-2 md:max-w-md'>
-					<p className='text-base font-semibold text-white hover:text-[#D4AF37] transition cursor-pointer line-clamp-2'>
+					<p className='text-base font-semibold text-gray-900 dark:text-white hover:text-[#D4AF37] transition cursor-pointer line-clamp-2'>
 						{item.name}
 					</p>
 

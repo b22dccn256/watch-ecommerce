@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Bot, Sparkles } from "lucide-react";
+import { MessageCircle, X, Send, Bot, Sparkles, Sun, Moon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "../lib/axios";
+import { useThemeStore } from "../stores/useThemeStore";
 
 const QUICK_QUESTIONS = [
     "Rolex Submariner giá bao nhiêu?",
@@ -28,6 +29,7 @@ const getBotResponse = (text) => {
 };
 
 const ChatBot = () => {
+    const { theme, toggleTheme } = useThemeStore();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
         {
@@ -184,7 +186,20 @@ const ChatBot = () => {
                 )}
             </AnimatePresence>
 
-            {/* Toggle button */}
+            {/* Theme Toggle Button */}
+            <motion.button
+                onClick={toggleTheme}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                className={`p-4 rounded-full shadow-2xl transition-all border ${theme === 'dark' 
+                    ? 'bg-white text-black border-gray-200' 
+                    : 'bg-luxury-dark text-white border-luxury-border'}`}
+            >
+                {theme === "dark" ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
+            </motion.button>
+
+            {/* Chat toggle button */}
             <motion.button
                 onClick={() => setIsOpen(!isOpen)}
                 whileHover={{ scale: 1.05 }}

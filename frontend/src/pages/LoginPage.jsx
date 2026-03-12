@@ -99,11 +99,11 @@ const LoginPage = () => {
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.8, delay: 0.2 }}
 			>
-				<div className='bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10'>
+				<div className='bg-white dark:bg-gray-800 py-8 px-4 shadow-xl border border-gray-100 dark:border-transparent sm:rounded-lg sm:px-10'>
 					{step === "login" ? (
 						<form onSubmit={handleLoginSubmit} className='space-y-6'>
 							<div>
-								<label htmlFor='email' className='block text-sm font-medium text-gray-300'>
+								<label htmlFor='email' className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
 									Địa chỉ Email
 								</label>
 								<div className='mt-1 relative rounded-md shadow-sm'>
@@ -116,8 +116,8 @@ const LoginPage = () => {
 										required
 										value={email}
 										onChange={(e) => setEmail(e.target.value)}
-										className=' block w-full px-3 py-2 pl-10 bg-gray-700 border border-gray-600 
-									rounded-md shadow-sm
+										className=' block w-full px-3 py-2 pl-10 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 
+									rounded-md shadow-sm text-gray-900 dark:text-white
 									 placeholder-gray-400 focus:outline-none focus:ring-emerald-500 
 									 focus:border-emerald-500 sm:text-sm'
 										placeholder='you@example.com'
@@ -126,7 +126,7 @@ const LoginPage = () => {
 							</div>
 
 							<div>
-								<label htmlFor='password' className='block text-sm font-medium text-gray-300'>
+								<label htmlFor='password' className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
 									Mật khẩu
 								</label>
 								<div className='mt-1 relative rounded-md shadow-sm'>
@@ -139,8 +139,8 @@ const LoginPage = () => {
 										required
 										value={password}
 										onChange={(e) => setPassword(e.target.value)}
-										className=' block w-full px-3 py-2 pl-10 bg-gray-700 border border-gray-600 
-									rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm'
+										className=' block w-full px-3 py-2 pl-10 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 
+									rounded-md shadow-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm'
 										placeholder='••••••••'
 									/>
 								</div>
@@ -170,7 +170,7 @@ const LoginPage = () => {
 					) : (
 						<form onSubmit={handleVerifySubmit} className='space-y-6'>
 							<div>
-								<label htmlFor='otp' className='block text-sm font-medium text-gray-300'>
+								<label htmlFor='otp' className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
 									Nhập mã xác thực (OTP)
 								</label>
 								<div className='mt-1 relative rounded-md shadow-sm'>
@@ -184,8 +184,8 @@ const LoginPage = () => {
 										maxLength={6}
 										value={otp}
 										onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-										className=' block w-full px-3 py-2 pl-10 bg-gray-700 border border-gray-600 
-									rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm'
+										className=' block w-full px-3 py-2 pl-10 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 
+									rounded-md shadow-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm'
 										placeholder='123456'
 									/>
 								</div>

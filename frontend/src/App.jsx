@@ -22,14 +22,24 @@ import ChatBot from "./components/ChatBot";
 
 import { useUserStore } from "./stores/useUserStore";
 import { useCartStore } from "./stores/useCartStore";
+import { useThemeStore } from "./stores/useThemeStore";
 
 function App() {
 	const { user, checkAuth, checkingAuth } = useUserStore();
 	const { getCartItems, getWishlistItems } = useCartStore();
+	const { theme } = useThemeStore();
 
 	useEffect(() => {
 		checkAuth();
 	}, [checkAuth]);
+
+	useEffect(() => {
+		if (theme === "dark") {
+			document.documentElement.classList.add("dark");
+		} else {
+			document.documentElement.classList.remove("dark");
+		}
+	}, [theme]);
 
 	useEffect(() => {
 		if (!user) return;
@@ -40,11 +50,15 @@ function App() {
 	if (checkingAuth) return <LoadingSpinner />;
 
 	return (
-		<div className='min-h-screen bg-luxury-dark text-white relative overflow-hidden'>
+		<div className={`min-h-screen relative theme-transition ${theme === 'dark' ? 'bg-luxury-dark text-white' : 'bg-white text-black'}`}>
 			{/* Background gradient */}
-			<div className='absolute inset-0 overflow-hidden'>
+			<div className='absolute inset-0 overflow-hidden pointer-events-none'>
 				<div className='absolute inset-0'>
-					<div className='absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.1)_0%,rgba(46,95,74,0.05)_45%,rgba(15,15,15,0.8)_100%)]' />
+					<div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-full ${
+						theme === 'dark' 
+						? 'bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.15)_0%,rgba(46,95,74,0.05)_45%,rgba(15,15,15,0.9)_100%)]'
+						: 'bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.1)_0%,rgba(240,240,240,0.4)_45%,rgba(255,255,255,1)_100%)]'
+					}`} />
 				</div>
 			</div>
 

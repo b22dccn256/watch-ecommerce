@@ -49,7 +49,7 @@ const AdminPage = () => {
 							onClick={() => setActiveTab(tab.id)}
 							className={`flex items-center px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${activeTab === tab.id
 								? "bg-luxury-gold text-luxury-dark shadow-lg shadow-luxury-gold/20"
-								: "bg-luxury-darker text-luxury-text-muted hover:bg-luxury-border/50 border border-luxury-border"
+								: "bg-white dark:bg-luxury-darker text-gray-500 dark:text-luxury-text-muted hover:bg-gray-50 dark:hover:bg-luxury-border/50 border border-gray-100 dark:border-luxury-border shadow-md dark:shadow-none"
 								}`}
 						>
 							<tab.icon className='mr-2 h-5 w-5' />
@@ -58,21 +58,21 @@ const AdminPage = () => {
 					))}
 				</div>
 
-				<div className="bg-luxury-darker/50 backdrop-blur-md rounded-2xl border border-luxury-border p-8 min-h-[600px]">
+				<div className="bg-white dark:bg-luxury-darker/50 backdrop-blur-md rounded-2xl border border-gray-100 dark:border-luxury-border shadow-xl dark:shadow-none p-8 min-h-[600px]">
 					{activeTab === "analytics" && <AnalyticsTab />}
 					{activeTab === "orders" && <OrdersTab />}
 					{activeTab === "products" && (
 						<div className="space-y-12">
 							<section>
-								<h2 className="text-2xl font-bold text-luxury-gold mb-6 flex items-center gap-2">
-									<PlusCircle className="w-6 h-6" /> Add New Watch
+								<h2 className="text-2xl font-bold text-gray-900 dark:text-luxury-gold mb-6 flex items-center gap-2">
+									<PlusCircle className="w-6 h-6 text-luxury-gold" /> Add New Watch
 								</h2>
 								<CreateProductForm />
 							</section>
-							<div className="border-t border-luxury-border pt-12" />
+							<div className="border-t border-gray-100 dark:border-luxury-border pt-12" />
 							<section>
-								<h2 className="text-2xl font-bold text-luxury-gold mb-6 flex items-center gap-2">
-									<ShoppingBasket className="w-6 h-6" /> Product Inventory
+								<h2 className="text-2xl font-bold text-gray-900 dark:text-luxury-gold mb-6 flex items-center gap-2">
+									<ShoppingBasket className="w-6 h-6 text-luxury-gold" /> Product Inventory
 								</h2>
 								<ProductsList />
 							</section>

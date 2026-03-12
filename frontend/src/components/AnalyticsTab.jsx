@@ -21,8 +21,8 @@ const formatVND = (value) => {
 const CustomTooltip = ({ active, payload, label }) => {
 	if (active && payload && payload.length) {
 		return (
-			<div className="bg-gray-900 border border-gray-700 p-3 rounded-lg shadow-xl text-xs">
-				<p className="font-bold text-white mb-2">{label}</p>
+			<div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-3 rounded-lg shadow-xl text-xs">
+				<p className="font-bold text-gray-900 dark:text-white mb-2">{label}</p>
 				{payload.map((entry) => (
 					<p key={entry.name} style={{ color: entry.color }}>
 						{entry.name === "revenue"
@@ -104,15 +104,15 @@ const AnalyticsTab = () => {
 
 			{/* Chart Section */}
 			<motion.div
-				className="bg-gray-800/60 rounded-xl p-6 shadow-lg"
+				className="bg-white dark:bg-gray-800/60 rounded-xl p-6 shadow-xl dark:shadow-lg border border-gray-100 dark:border-transparent"
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.5 }}
 			>
 				<div className="flex items-center justify-between mb-6">
 					<div className="flex items-center gap-2">
-						<TrendingUp className="w-5 h-5 text-emerald-400" />
-						<h2 className="text-lg font-bold text-white">Doanh thu &amp; Đơn hàng</h2>
+						<TrendingUp className="w-5 h-5 text-emerald-500" />
+						<h2 className="text-lg font-bold text-gray-900 dark:text-white">Doanh thu &amp; Đơn hàng</h2>
 					</div>
 					<div className="flex gap-2">
 						{DAYS_OPTIONS.map((opt) => (
@@ -122,7 +122,7 @@ const AnalyticsTab = () => {
 								className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
 									days === opt.value
 										? "bg-emerald-500 text-white"
-										: "bg-gray-700 text-gray-300 hover:bg-gray-600"
+										: "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
 								}`}
 							>
 								{opt.label}
@@ -185,15 +185,15 @@ export default AnalyticsTab;
 
 const AnalyticsCard = ({ title, value, icon: Icon, color }) => (
 	<motion.div
-		className={`bg-gray-800 rounded-xl p-6 shadow-lg overflow-hidden relative`}
+		className={`bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl dark:shadow-lg overflow-hidden relative border border-gray-100 dark:border-transparent`}
 		initial={{ opacity: 0, y: 20 }}
 		animate={{ opacity: 1, y: 0 }}
 		transition={{ duration: 0.5 }}
 	>
 		<div className="flex justify-between items-center">
 			<div className="z-10 relative">
-				<p className="text-emerald-300 text-sm mb-1 font-semibold">{title}</p>
-				<h3 className="text-white text-2xl font-bold">{value}</h3>
+				<p className="text-emerald-600 dark:text-emerald-300 text-sm mb-1 font-semibold">{title}</p>
+				<h3 className="text-gray-900 dark:text-white text-2xl font-bold">{value}</h3>
 			</div>
 		</div>
 		<div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-20`} />

@@ -188,91 +188,91 @@ const CheckoutPage = () => {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                            <h2 className="text-2xl font-semibold text-emerald-400 mb-6 flex items-center gap-2">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <h2 className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400 mb-6 flex items-center gap-2">
                                 <ShoppingBag className="w-6 h-6" /> Thông tin giao hàng
                             </h2>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-300">Họ và tên <span className="text-red-500">*</span></label>
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Họ và tên <span className="text-red-500">*</span></label>
                                     <input
                                         type="text"
                                         name="fullName"
                                         value={formData.fullName}
                                         onChange={handleChange}
                                         disabled={isProcessing}
-                                        className={`w-full bg-gray-700 border ${errors.fullName ? 'border-red-500' : 'border-gray-600'} rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500 outline-none transition`}
+                                        className={`w-full bg-gray-50 dark:bg-gray-700 border ${errors.fullName ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'} rounded-lg px-4 py-2.5 text-black dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition placeholder-gray-400 dark:placeholder-gray-500`}
                                         placeholder="Nguyễn Văn A"
                                     />
                                     {errors.fullName && <p className="text-red-500 text-xs mt-1 flex items-center"><AlertCircle className="w-3 h-3 mr-1" />{errors.fullName}</p>}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-300">Số điện thoại <span className="text-red-500">*</span></label>
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Số điện thoại <span className="text-red-500">*</span></label>
                                     <input
                                         type="tel"
                                         name="phoneNumber"
                                         value={formData.phoneNumber}
                                         onChange={handleChange}
                                         disabled={isProcessing}
-                                        className={`w-full bg-gray-700 border ${errors.phoneNumber ? 'border-red-500' : 'border-gray-600'} rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500 outline-none transition`}
+                                        className={`w-full bg-gray-50 dark:bg-gray-700 border ${errors.phoneNumber ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'} rounded-lg px-4 py-2.5 text-black dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition placeholder-gray-400 dark:placeholder-gray-500`}
                                         placeholder="0912345678"
                                     />
                                     {errors.phoneNumber && <p className="text-red-500 text-xs mt-1 flex items-center"><AlertCircle className="w-3 h-3 mr-1" />{errors.phoneNumber}</p>}
                                 </div>
 
                                 <div className="space-y-2 md:col-span-2">
-                                    <label className="text-sm font-medium text-gray-300">Email (Không bắt buộc)</label>
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Email (Không bắt buộc)</label>
                                     <input
                                         type="email"
                                         name="email"
                                         value={formData.email}
                                         onChange={handleChange}
                                         disabled={isProcessing}
-                                        className={`w-full bg-gray-700 border ${errors.email ? 'border-red-500' : 'border-gray-600'} rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500 outline-none transition`}
+                                        className={`w-full bg-gray-50 dark:bg-gray-700 border ${errors.email ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'} rounded-lg px-4 py-2.5 text-black dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition placeholder-gray-400 dark:placeholder-gray-500`}
                                         placeholder="nva@example.com"
                                     />
                                     {errors.email && <p className="text-red-500 text-xs mt-1 flex items-center"><AlertCircle className="w-3 h-3 mr-1" />{errors.email}</p>}
                                 </div>
 
                                 <div className="space-y-2 md:col-span-2">
-                                    <label className="text-sm font-medium text-gray-300">Địa chỉ cụ thể <span className="text-red-500">*</span></label>
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Địa chỉ cụ thể <span className="text-red-500">*</span></label>
                                     <input
                                         type="text"
                                         name="address"
                                         value={formData.address}
                                         onChange={handleChange}
                                         disabled={isProcessing}
-                                        className={`w-full bg-gray-700 border ${errors.address ? 'border-red-500' : 'border-gray-600'} rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500 outline-none transition`}
+                                        className={`w-full bg-gray-50 dark:bg-gray-700 border ${errors.address ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'} rounded-lg px-4 py-2.5 text-black dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition placeholder-gray-400 dark:placeholder-gray-500`}
                                         placeholder="Số nhà, Tên đường, Phường/Xã..."
                                     />
                                     {errors.address && <p className="text-red-500 text-xs mt-1 flex items-center"><AlertCircle className="w-3 h-3 mr-1" />{errors.address}</p>}
                                 </div>
 
                                 <div className="space-y-2 md:col-span-2">
-                                    <label className="text-sm font-medium text-gray-300">Tỉnh / Thành phố <span className="text-red-500">*</span></label>
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Tỉnh / Thành phố <span className="text-red-500">*</span></label>
                                     <input
                                         type="text"
                                         name="city"
                                         value={formData.city}
                                         onChange={handleChange}
                                         disabled={isProcessing}
-                                        className={`w-full bg-gray-700 border ${errors.city ? 'border-red-500' : 'border-gray-600'} rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500 outline-none transition`}
+                                        className={`w-full bg-gray-50 dark:bg-gray-700 border ${errors.city ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'} rounded-lg px-4 py-2.5 text-black dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition placeholder-gray-400 dark:placeholder-gray-500`}
                                         placeholder="Hà Nội"
                                     />
                                     {errors.city && <p className="text-red-500 text-xs mt-1 flex items-center"><AlertCircle className="w-3 h-3 mr-1" />{errors.city}</p>}
                                 </div>
 
                                 <div className="space-y-2 md:col-span-2">
-                                    <label className="text-sm font-medium text-gray-300">Ghi chú đơn hàng (Không bắt buộc)</label>
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Ghi chú đơn hàng (Không bắt buộc)</label>
                                     <textarea
                                         name="orderNotes"
                                         value={formData.orderNotes}
                                         onChange={handleChange}
                                         disabled={isProcessing}
                                         rows="3"
-                                        className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500 outline-none transition resize-none"
+                                        className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-2.5 text-black dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition resize-none placeholder-gray-400 dark:placeholder-gray-500"
                                         placeholder="Lưu ý khi giao hàng..."
                                     ></textarea>
                                 </div>
@@ -287,40 +287,40 @@ const CheckoutPage = () => {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
                     >
-                        <div className='bg-gray-800 rounded-lg p-6 border border-gray-700'>
-                            <h3 className='text-lg font-semibold text-emerald-400 mb-4'>Đơn hàng của bạn</h3>
+                        <div className='bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 shadow-sm'>
+                            <h3 className='text-lg font-semibold text-emerald-600 dark:text-emerald-400 mb-4'>Đơn hàng của bạn</h3>
                             <div className="space-y-3 mb-6 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                                 {cart.map(item => (
                                     <div key={item._id} className="flex justify-between items-center text-sm">
                                         <div className="flex items-center gap-3 overflow-hidden">
-                                            <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded bg-gray-700" />
-                                            <span className="text-gray-300 truncate max-w-[120px]" title={item.name}>{item.name} <span className="text-gray-500">x{item.quantity}</span></span>
+                                            <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded bg-gray-100 dark:bg-gray-700" />
+                                            <span className="text-gray-600 dark:text-gray-300 truncate max-w-[120px]" title={item.name}>{item.name} <span className="text-gray-400 dark:text-gray-500">x{item.quantity}</span></span>
                                         </div>
-                                        <span className="font-medium">{formatPrice(item.price * item.quantity)} ₫</span>
+                                        <span className="font-medium text-gray-900 dark:text-white">{formatPrice(item.price * item.quantity)} ₫</span>
                                     </div>
                                 ))}
                             </div>
 
-                            <div className='space-y-3 border-t border-gray-700 pt-4'>
-                                <div className='flex justify-between text-gray-400'>
+                            <div className='space-y-3 border-t border-gray-100 dark:border-gray-700 pt-4'>
+                                <div className='flex justify-between text-gray-500 dark:text-gray-400'>
                                     <span>Tạm tính</span>
                                     <span>{formatPrice(subtotal)} ₫</span>
                                 </div>
                                 {coupon && isCouponApplied && (
-                                    <div className='flex justify-between text-emerald-400'>
+                                    <div className='flex justify-between text-emerald-600 dark:text-emerald-400'>
                                         <span>Giảm giá ({coupon.code})</span>
                                         <span>-{coupon.discountPercentage}%</span>
                                     </div>
                                 )}
-                                <div className='flex justify-between font-bold text-lg pt-2 border-t border-gray-700'>
-                                    <span>Tổng cộng</span>
-                                    <span className="text-emerald-400">{formatPrice(total)} ₫</span>
+                                <div className='flex justify-between font-bold text-lg pt-2 border-t border-gray-100 dark:border-gray-700'>
+                                    <span className="text-gray-900 dark:text-white">Tổng cộng</span>
+                                    <span className="text-emerald-600 dark:text-emerald-400">{formatPrice(total)} ₫</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className='bg-gray-800 rounded-lg p-6 border border-gray-700 space-y-4'>
-                            <h3 className='text-lg font-semibold text-white mb-2'>Phương thức thanh toán</h3>
+                        <div className='bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 space-y-4 shadow-sm'>
+                            <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-2'>Phương thức thanh toán</h3>
 
                             <button
                                 className='flex w-full items-center justify-center rounded-lg bg-[#635BFF] px-5 py-3 text-sm font-medium text-white hover:bg-[#524ac9] transition-colors shadow-lg shadow-[#635BFF]/20 disabled:opacity-50 disabled:cursor-not-allowed'
@@ -339,7 +339,7 @@ const CheckoutPage = () => {
                             </button>
 
                             <button
-                                className='flex w-full items-center justify-center rounded-lg bg-gray-700 px-5 py-3 text-sm font-medium text-emerald-400 border border-gray-600 hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                                className='flex w-full items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 px-5 py-3 text-sm font-medium text-emerald-600 dark:text-emerald-400 border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
                                 onClick={handlePaymentCOD}
                                 disabled={isProcessing || cart.length === 0}
                             >
@@ -363,28 +363,28 @@ const CheckoutPage = () => {
                             initial={{ scale: 0.95, y: 20 }}
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.95, y: 20 }}
-                            className="bg-gray-800 border border-gray-700 rounded-2xl p-6 max-w-sm w-full relative shadow-2xl"
+                            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 max-w-sm w-full relative shadow-2xl"
                         >
                             {/* Nút đóng — cũng xác nhận thanh toán */}
                             <button
                                 onClick={handleConfirmQRPayment}
                                 disabled={isConfirming}
-                                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+                                className="absolute top-4 right-4 text-gray-400 hover:text-black dark:hover:text-white transition-colors disabled:opacity-50"
                             >
                                 <X size={24} />
                             </button>
 
                             <div className="text-center space-y-4">
                                 <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
-                                    <CheckCircle className="w-8 h-8 text-emerald-400" />
+                                    <CheckCircle className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
                                 </div>
-                                <h2 className="text-xl font-bold text-white">Chuyển khoản VietQR</h2>
-                                <p className="text-gray-400 text-sm">
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Chuyển khoản VietQR</h2>
+                                <p className="text-gray-600 dark:text-gray-400 text-sm">
                                     Quét mã QR dưới đây để thanh toán. Sau khi chuyển khoản xong,
                                     nhấn nút “Tôi đã chuyển khoản” để xác nhận đơn hàng.
                                 </p>
 
-                                <div className="bg-white p-3 rounded-xl inline-block">
+                                <div className="bg-white p-3 rounded-xl inline-block shadow-lg border border-gray-100">
                                     <img
                                         src={`https://img.vietqr.io/image/970422-0393043834-compact.png?amount=${qrData.totalAmount}&addInfo=THANHTOAN%20${qrData.orderCode}&accountName=NGUYEN%20VAN%20A`}
                                         alt="VietQR"
@@ -392,21 +392,21 @@ const CheckoutPage = () => {
                                     />
                                 </div>
 
-                                <div className="bg-gray-700/50 rounded-lg p-3 text-left space-y-2 mt-4 text-sm">
-                                    <div className="flex justify-between items-center text-gray-300">
-                                        <span className="text-gray-400">Số tiền:</span>
-                                        <span className="font-bold text-emerald-400">{formatPrice(qrData.totalAmount)} ₫</span>
+                                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-left space-y-2 mt-4 text-sm border border-gray-100 dark:border-transparent">
+                                    <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
+                                        <span className="text-gray-500 dark:text-gray-400">Số tiền:</span>
+                                        <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(qrData.totalAmount)} ₫</span>
                                     </div>
-                                    <div className="flex justify-between items-center text-gray-300">
-                                        <span className="text-gray-400">Nội dung CK:</span>
-                                        <span className="font-bold font-mono bg-gray-900 px-2 py-1 rounded">THANHTOAN {qrData.orderCode}</span>
+                                    <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
+                                        <span className="text-gray-500 dark:text-gray-400">Nội dung CK:</span>
+                                        <span className="font-bold font-mono bg-white dark:bg-gray-900 border border-gray-100 dark:border-transparent px-2 py-1 rounded">THANHTOAN {qrData.orderCode}</span>
                                     </div>
                                 </div>
 
                                 <button
                                     onClick={handleConfirmQRPayment}
                                     disabled={isConfirming}
-                                    className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                    className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20"
                                 >
                                     {isConfirming ? (
                                         <>
@@ -426,8 +426,11 @@ const CheckoutPage = () => {
 					width: 4px;
 				}
 				.custom-scrollbar::-webkit-scrollbar-track {
-					background: rgba(31, 41, 55, 0.5); 
+					background: rgba(0, 0, 0, 0.05); 
 					border-radius: 4px;
+				}
+				.dark .custom-scrollbar::-webkit-scrollbar-track {
+					background: rgba(31, 41, 55, 0.5); 
 				}
 				.custom-scrollbar::-webkit-scrollbar-thumb {
 					background: rgba(16, 185, 129, 0.5); 

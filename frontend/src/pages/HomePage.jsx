@@ -63,7 +63,7 @@ const HomePage = () => {
 	}, [activeCampaign]);
 
 	return (
-		<div className="min-h-screen bg-[#1a120b] text-white overflow-hidden">
+		<div className="min-h-screen bg-white dark:bg-[#1a120b] text-gray-900 dark:text-white transition-colors duration-500 overflow-hidden">
 			{/* HERO BANNER */}
 			<HeroBanner />
 

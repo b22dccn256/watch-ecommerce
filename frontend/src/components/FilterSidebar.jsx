@@ -58,7 +58,7 @@ const FilterSidebar = () => {
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
                         <SlidersHorizontal className="text-[#D4AF37] w-5 h-5" />
-                        <h2 className="text-base font-semibold text-white">Bộ lọc</h2>
+                        <h2 className="text-base font-semibold text-gray-900 dark:text-white">Bộ lọc</h2>
                     </div>
                     <button onClick={handleReset} className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#D4AF37] transition">
                         <RotateCcw className="w-3 h-3" /> Đặt lại
@@ -71,10 +71,10 @@ const FilterSidebar = () => {
                     <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                         {BRANDS.map((brand) => (
                             <label key={brand} className="flex items-center gap-3 cursor-pointer group" onClick={() => toggleArrayFilter("brands", brand)}>
-                                <div className={`w-4 h-4 rounded border flex items-center justify-center transition ${filters.brands?.includes(brand) ? "bg-[#D4AF37] border-[#D4AF37]" : "border-yellow-900 group-hover:border-[#D4AF37]"}`}>
+                                <div className={`w-4 h-4 rounded border flex items-center justify-center transition ${filters.brands?.includes(brand) ? "bg-[#D4AF37] border-[#D4AF37]" : "border-gray-300 dark:border-yellow-900 group-hover:border-[#D4AF37]"}`}>
                                     {filters.brands?.includes(brand) && <svg className="w-2.5 h-2.5 text-black" fill="currentColor" viewBox="0 0 12 12"><path d="M10 3L5 9L2 6" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" /></svg>}
                                 </div>
-                                <span className={`text-sm transition ${filters.brands?.includes(brand) ? "text-[#D4AF37]" : "text-gray-400 group-hover:text-white"}`}>{brand}</span>
+                                <span className={`text-sm transition ${filters.brands?.includes(brand) ? "text-[#D4AF37]" : "text-gray-500 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white"}`}>{brand}</span>
                             </label>
                         ))}
                     </div>
@@ -97,7 +97,7 @@ const FilterSidebar = () => {
                     <h3 className="text-[10px] font-semibold tracking-widest text-gray-500 uppercase mb-3">Bộ máy</h3>
                     <div className="flex flex-wrap gap-2">
                         {MACHINE_TYPES.map((type) => (
-                            <button key={type} onClick={() => toggleArrayFilter('machineType', type)} className={`px-3 py-1.5 rounded-full text-xs border transition ${filters.machineType?.includes(type) ? "bg-[#D4AF37] border-[#D4AF37] text-black font-semibold" : "border-yellow-900/50 text-gray-400 hover:border-[#D4AF37] hover:text-white"}`}>
+                            <button key={type} onClick={() => toggleArrayFilter('machineType', type)} className={`px-3 py-1.5 rounded-full text-xs border transition ${filters.machineType?.includes(type) ? "bg-[#D4AF37] border-[#D4AF37] text-black font-semibold" : "border-gray-200 dark:border-yellow-900/50 text-gray-500 dark:text-gray-400 hover:border-[#D4AF37] hover:text-black dark:hover:text-white"}`}>
                                 {type}
                             </button>
                         ))}
@@ -120,7 +120,7 @@ const FilterSidebar = () => {
                     <h3 className="text-[10px] font-semibold tracking-widest text-gray-500 uppercase mb-3">Kích thước</h3>
                     <div className="grid grid-cols-3 gap-2">
                         {SIZES.map((size) => (
-                            <button key={size} onClick={() => toggleArrayFilter('sizes', size)} className={`py-2 rounded text-xs border transition ${filters.sizes?.includes(size) ? "bg-[#D4AF37] border-[#D4AF37] text-black font-semibold" : "bg-zinc-900 border-zinc-800 text-gray-400 hover:border-[#D4AF37] hover:text-white"}`}>
+                            <button key={size} onClick={() => toggleArrayFilter('sizes', size)} className={`py-2 rounded text-xs border transition ${filters.sizes?.includes(size) ? "bg-[#D4AF37] border-[#D4AF37] text-black font-semibold" : "bg-gray-100 dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-500 dark:text-gray-400 hover:border-[#D4AF37] hover:text-black dark:hover:text-white"}`}>
                                 {size}
                             </button>
                         ))}
@@ -133,14 +133,14 @@ const FilterSidebar = () => {
                     <div className="space-y-2">
                         {RATINGS.map((rating) => (
                             <label key={rating} className="flex items-center gap-3 cursor-pointer group" onClick={(e) => { e.preventDefault(); applyLiveFilters({ minRating: rating === filters.minRating ? 0 : rating }); }}>
-                                <div className={`w-4 h-4 rounded border flex items-center justify-center transition ${filters.minRating === rating ? "bg-[#D4AF37] border-[#D4AF37]" : "border-zinc-700 group-hover:border-[#D4AF37]"}`}>
+                                <div className={`w-4 h-4 rounded border flex items-center justify-center transition ${filters.minRating === rating ? "bg-[#D4AF37] border-[#D4AF37]" : "border-gray-300 dark:border-zinc-700 group-hover:border-[#D4AF37]"}`}>
                                     {filters.minRating === rating && <svg className="w-2.5 h-2.5 text-black" fill="currentColor" viewBox="0 0 12 12"><path d="M10 3L5 9L2 6" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" /></svg>}
                                 </div>
                                 <div className="flex items-center gap-1">
                                     {[...Array(5)].map((_, i) => (
-                                        <Star key={i} className={`w-4 h-4 ${i < rating ? "text-[#D4AF37] fill-[#D4AF37]" : "text-zinc-700"}`} />
+                                        <Star key={i} className={`w-4 h-4 ${i < rating ? "text-[#D4AF37] fill-[#D4AF37]" : "text-gray-300 dark:text-zinc-700"}`} />
                                     ))}
-                                    <span className={`text-xs ml-1 transition ${filters.minRating === rating ? "text-[#D4AF37]" : "text-gray-400 group-hover:text-white"}`}>{rating} sao {rating < 5 ? "trở lên" : ""}</span>
+                                    <span className={`text-xs ml-1 transition ${filters.minRating === rating ? "text-[#D4AF37]" : "text-gray-500 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white"}`}>{rating} sao {rating < 5 ? "trở lên" : ""}</span>
                                 </div>
                             </label>
                         ))}

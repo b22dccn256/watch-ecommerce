@@ -74,7 +74,7 @@ const CatalogPage = () => {
 	};
 
 	return (
-		<div className="min-h-screen bg-[#0f0c08] text-white pt-20">
+		<div className="min-h-screen bg-white dark:bg-[#0f0c08] text-gray-900 dark:text-white pt-20 transition-colors duration-500">
 			<div className="max-w-screen-2xl mx-auto px-6 py-10">
 				{/* Thanh tìm kiếm lớn + gợi ý */}
 				<SearchBarWithSuggestions />
@@ -105,7 +105,7 @@ const CatalogPage = () => {
 							<select
 								value={sort}
 								onChange={handleSortChange}
-								className="bg-zinc-900 border border-yellow-900 px-6 py-3 rounded-full text-sm outline-none focus:border-[#D4AF37] transition"
+								className="bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-yellow-900 text-gray-900 dark:text-white px-6 py-3 rounded-full text-sm outline-none focus:border-[#D4AF37] transition"
 							>
 								<option value="newest">Mới nhất</option>
 								<option value="best_selling">Bán chạy nhất</option>
@@ -161,7 +161,7 @@ const CatalogPage = () => {
 											onClick={() => handlePageChange(page)}
 											className={`w-10 h-10 rounded-full font-medium transition ${currentPage === page
 												? "bg-[#D4AF37] text-black shadow-[0_0_10px_rgba(212,175,55,0.3)]"
-												: "bg-zinc-900 border border-zinc-800 text-gray-300 hover:bg-zinc-800 hover:text-white"
+												: "bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-800 hover:text-black dark:hover:text-white"
 												}`}
 										>
 											{page}

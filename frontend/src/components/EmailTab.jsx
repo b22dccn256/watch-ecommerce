@@ -56,8 +56,8 @@ const EmailTab = () => {
             {/* Header */}
             <div className='flex flex-col md:flex-row md:items-center justify-between gap-6'>
                 <div className='space-y-1'>
-                    <h1 className='text-3xl font-bold text-white'>Email Automation</h1>
-                    <p className='text-luxury-text-muted text-sm'>Quản lý email tự động cho khách hàng. Số liệu mang tính tham khảo (demo data).</p>
+                    <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>Email Automation</h1>
+                    <p className='text-gray-500 dark:text-luxury-text-muted text-sm'>Quản lý email tự động cho khách hàng. Số liệu mang tính tham khảo (demo data).</p>
                 </div>
                 <button className='flex items-center gap-2 px-6 py-3 bg-luxury-gold text-luxury-dark rounded-xl text-sm font-bold hover:bg-luxury-gold-light transition shadow-lg shadow-luxury-gold/20'>
                     <Plus className='w-4 h-4' /> Create New Automation
@@ -67,16 +67,16 @@ const EmailTab = () => {
             {/* Stats Grid */}
             <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
                 {stats.map((stat, idx) => (
-                    <div key={idx} className='bg-luxury-dark border border-luxury-border p-6 rounded-2xl'>
+                    <div key={idx} className='bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border p-6 rounded-2xl shadow-xl dark:shadow-none'>
                         <div className='flex items-center justify-between mb-4'>
-                            <span className='text-xs font-bold text-luxury-text-muted uppercase tracking-widest'>{stat.label}</span>
+                            <span className='text-xs font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest'>{stat.label}</span>
                             <stat.icon className='w-5 h-5 text-luxury-gold' />
                         </div>
                         <div className='flex items-end gap-3'>
-                            <span className='text-3xl font-bold text-white'>{stat.value}</span>
-                            <span className={`${stat.change.startsWith("+") ? "text-emerald-400" : "text-red-400"} text-xs font-bold mb-1`}>{stat.change}</span>
+                            <span className='text-3xl font-bold text-gray-900 dark:text-white'>{stat.value}</span>
+                            <span className={`${stat.change.startsWith("+") ? "text-emerald-500" : "text-red-500"} text-xs font-bold mb-1`}>{stat.change}</span>
                         </div>
-                        <div className='mt-3 text-[10px] text-luxury-text-muted italic'>* Demo data</div>
+                        <div className='mt-3 text-[10px] text-gray-400 dark:text-luxury-text-muted italic'>* Demo data</div>
                     </div>
                 ))}
             </div>
@@ -84,36 +84,36 @@ const EmailTab = () => {
             {/* Active Automations */}
             <section className='space-y-6'>
                 <div className='flex items-center justify-between'>
-                    <h2 className='text-xl font-bold text-white'>Active Automations</h2>
+                    <h2 className='text-xl font-bold text-gray-800 dark:text-white'>Active Automations</h2>
                 </div>
 
                 <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
                     {automations.map((auto) => (
-                        <div key={auto.id} className={`bg-luxury-dark border rounded-2xl p-6 space-y-5 transition-colors ${auto.status === "ACTIVE" ? "border-luxury-gold/30" : "border-luxury-border"}`}>
+                        <div key={auto.id} className={`bg-white dark:bg-luxury-dark border rounded-2xl p-6 space-y-5 transition-colors shadow-lg dark:shadow-none ${auto.status === "ACTIVE" ? "border-luxury-gold/30" : "border-gray-100 dark:border-luxury-border"}`}>
                             <div className='flex items-start justify-between'>
                                 <div className='space-y-1'>
                                     <div className='flex items-center gap-3'>
-                                        <h3 className='font-bold text-white'>{auto.name}</h3>
-                                        <span className={`px-2 py-0.5 rounded text-[8px] font-bold ${auto.status === "ACTIVE" ? "bg-emerald-500/10 text-emerald-400" : "bg-gray-500/10 text-gray-400"}`}>
+                                        <h3 className='font-bold text-gray-900 dark:text-white'>{auto.name}</h3>
+                                        <span className={`px-2 py-0.5 rounded text-[8px] font-bold ${auto.status === "ACTIVE" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-gray-500/10 text-gray-600 dark:text-gray-400"}`}>
                                             {auto.status}
                                         </span>
                                     </div>
-                                    <p className='text-[9px] font-bold text-luxury-text-muted uppercase tracking-wider'>TRIGGER: {auto.trigger}</p>
+                                    <p className='text-[9px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>TRIGGER: {auto.trigger}</p>
                                 </div>
                             </div>
 
-                            <div className='grid grid-cols-3 gap-4 border-t border-luxury-border/50 pt-4'>
+                            <div className='grid grid-cols-3 gap-4 border-t border-gray-100 dark:border-luxury-border/50 pt-4'>
                                 <div className='text-center'>
-                                    <p className='text-[8px] font-bold text-luxury-text-muted uppercase mb-1'>Sent</p>
-                                    <p className='text-sm font-bold text-white'>{auto.sent}</p>
+                                    <p className='text-[8px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase mb-1'>Sent</p>
+                                    <p className='text-sm font-bold text-gray-900 dark:text-white'>{auto.sent}</p>
                                 </div>
                                 <div className='text-center'>
-                                    <p className='text-[8px] font-bold text-luxury-text-muted uppercase mb-1'>Open</p>
-                                    <p className='text-sm font-bold text-white'>{auto.open}</p>
+                                    <p className='text-[8px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase mb-1'>Open</p>
+                                    <p className='text-sm font-bold text-gray-900 dark:text-white'>{auto.open}</p>
                                 </div>
                                 <div className='text-center'>
-                                    <p className='text-[8px] font-bold text-luxury-text-muted uppercase mb-1'>Conv.</p>
-                                    <p className='text-sm font-bold text-white'>{auto.conv}</p>
+                                    <p className='text-[8px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase mb-1'>Conv.</p>
+                                    <p className='text-sm font-bold text-gray-900 dark:text-white'>{auto.conv}</p>
                                 </div>
                             </div>
 
@@ -132,7 +132,7 @@ const EmailTab = () => {
                                 <button
                                     onClick={() => sendTestEmail(auto)}
                                     disabled={sendingTest === auto.id}
-                                    className='flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold bg-luxury-darker border border-luxury-border text-white hover:bg-white/10 transition-colors disabled:opacity-50'
+                                    className='flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors disabled:opacity-50'
                                 >
                                     <Send className='w-3 h-3' />
                                     {sendingTest === auto.id ? "Đang gửi..." : "Test gửi"}
@@ -146,16 +146,16 @@ const EmailTab = () => {
             {/* Email Preview */}
             <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
                 <section className='space-y-4'>
-                    <h2 className='text-xl font-bold text-white'>Email Builder Preview</h2>
-                    <div className='bg-white rounded-3xl overflow-hidden shadow-2xl border-[8px] border-luxury-dark'>
-                        <div className='p-8 space-y-6 text-center bg-luxury-dark'>
+                    <h2 className='text-xl font-bold text-gray-800 dark:text-white'>Email Builder Preview</h2>
+                    <div className='bg-white rounded-3xl overflow-hidden shadow-2xl border-[8px] border-gray-50 dark:border-luxury-dark'>
+                        <div className='p-8 space-y-6 text-center bg-gray-50 dark:bg-luxury-dark'>
                             <span className='text-xl font-bold text-luxury-gold tracking-widest'>LVX WATCHES</span>
                             <div className='aspect-video rounded-2xl overflow-hidden'>
                                 <img src="https://images.unsplash.com/photo-1547996160-81dfa63595dd?auto=format&fit=crop&q=80&w=600" alt="Promo" className='w-full h-full object-cover' />
                             </div>
                             <div className='space-y-3'>
-                                <h3 className='text-2xl font-bold text-white'>The Gold Standard</h3>
-                                <p className='text-luxury-text-muted text-sm leading-relaxed'>
+                                <h3 className='text-2xl font-bold text-gray-900 dark:text-white'>The Gold Standard</h3>
+                                <p className='text-gray-500 dark:text-luxury-text-muted text-sm leading-relaxed'>
                                     Your cart is waiting. Experience the precision of the new Chrono-Gold series with an exclusive 10% offer.
                                 </p>
                             </div>
@@ -167,12 +167,12 @@ const EmailTab = () => {
                 </section>
 
                 <section className='space-y-4'>
-                    <h2 className='text-xl font-bold text-white'>Quick Actions</h2>
+                    <h2 className='text-xl font-bold text-gray-800 dark:text-white'>Quick Actions</h2>
                     <div className='space-y-3'>
-                        <div className='bg-luxury-dark border border-luxury-border p-4 rounded-2xl flex items-center justify-between'>
+                        <div className='bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border p-4 rounded-2xl flex items-center justify-between shadow-md dark:shadow-none'>
                             <div>
-                                <p className='font-bold text-white text-sm'>Send All Active Automations</p>
-                                <p className='text-luxury-text-muted text-xs'>Gửi ngay tất cả automation đang ACTIVE</p>
+                                <p className='font-bold text-gray-900 dark:text-white text-sm'>Send All Active Automations</p>
+                                <p className='text-gray-500 dark:text-luxury-text-muted text-xs'>Gửi ngay tất cả automation đang ACTIVE</p>
                             </div>
                             <button
                                 onClick={() => {
@@ -183,16 +183,16 @@ const EmailTab = () => {
                                 <Send className='w-4 h-4 inline mr-1' /> Send All
                             </button>
                         </div>
-                        <div className='bg-luxury-dark border border-luxury-border p-4 rounded-2xl'>
-                            <p className='font-bold text-white text-sm mb-2'>Thống kê (Demo)</p>
+                        <div className='bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border p-4 rounded-2xl shadow-md dark:shadow-none'>
+                            <p className='font-bold text-gray-800 dark:text-white text-sm mb-2'>Thống kê (Demo)</p>
                             <div className='grid grid-cols-2 gap-3 text-center'>
-                                <div className='bg-luxury-darker rounded-xl p-3'>
+                                <div className='bg-gray-50 dark:bg-luxury-darker border border-gray-100 dark:border-transparent rounded-xl p-3'>
                                     <p className='text-2xl font-bold text-luxury-gold'>{automations.filter(a => a.status === "ACTIVE").length}</p>
-                                    <p className='text-[10px] text-luxury-text-muted'>Automation ACTIVE</p>
+                                    <p className='text-[10px] text-gray-500 dark:text-luxury-text-muted'>Automation ACTIVE</p>
                                 </div>
-                                <div className='bg-luxury-darker rounded-xl p-3'>
-                                    <p className='text-2xl font-bold text-white'>1,656</p>
-                                    <p className='text-[10px] text-luxury-text-muted'>Tổng email đã gửi</p>
+                                <div className='bg-gray-50 dark:bg-luxury-darker border border-gray-100 dark:border-transparent rounded-xl p-3'>
+                                    <p className='text-2xl font-bold text-gray-900 dark:text-white'>1,656</p>
+                                    <p className='text-[10px] text-gray-500 dark:text-luxury-text-muted'>Tổng email đã gửi</p>
                                 </div>
                             </div>
                         </div>

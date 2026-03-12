@@ -44,24 +44,24 @@ const SearchBarWithSuggestions = () => {
                     onKeyDown={handleKeyDown}
                     onFocus={() => setShowSuggestions(true)}
                     placeholder="Tìm kiếm đồng hồ... (ví dụ: Rolex Daytona)"
-                    className="w-full bg-zinc-900 border border-yellow-900 focus:border-yellow-400 text-white pl-6 pr-12 py-5 rounded-2xl text-lg placeholder-gray-400"
+                    className="w-full bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-yellow-900 focus:border-yellow-400 text-gray-900 dark:text-white pl-6 pr-12 py-5 rounded-2xl text-lg placeholder-gray-400"
                 />
                 <button onClick={handleSearchClick} className="absolute right-6 top-1/2 -translate-y-1/2 text-yellow-400">🔎</button>
             </div>
 
             {/* Dropdown gợi ý */}
             {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-zinc-900 border border-yellow-900 rounded-2xl overflow-hidden shadow-2xl z-50">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-yellow-900 rounded-2xl overflow-hidden shadow-2xl z-50">
                     {suggestions.slice(0, 5).map((item) => (
                         <div
                             key={item._id}
                             onClick={() => handleSelect(item)}
-                            className="flex items-center gap-4 px-6 py-4 hover:bg-zinc-800 cursor-pointer border-b border-zinc-800 last:border-none"
+                            className="flex items-center gap-4 px-6 py-4 hover:bg-gray-100 dark:hover:bg-zinc-800 cursor-pointer border-b border-gray-100 dark:border-zinc-800 last:border-none"
                         >
                             <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded" />
                             <div className="flex-1">
-                                <div className="font-medium">{item.name}</div>
-                                <div className="text-xs text-gray-400">{item.brand}</div>
+                                <div className="font-medium text-gray-900 dark:text-white">{item.name}</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">{item.brand}</div>
                             </div>
                             <div className="text-yellow-400 font-semibold">
                                 {item.price.toLocaleString("vi-VN")}đ
