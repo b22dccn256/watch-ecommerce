@@ -16,6 +16,13 @@ import AboutPage from "./pages/AboutPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrderTrackingPage from "./pages/OrderTrackingPage";
 import WishlistPage from "./pages/WishlistPage";
+import DeliveryPolicyPage from "./pages/DeliveryPolicyPage";
+import WarrantyPage from "./pages/WarrantyPage";
+import SizeGuidePage from "./pages/SizeGuidePage";
+import ContactPage from "./pages/ContactPage";
+import OrderLookupPage from "./pages/OrderLookupPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsOfServicePage from "./pages/TermsOfServicePage";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -98,6 +105,15 @@ function App() {
 						<Route path='/checkout' element={user ? <CheckoutPage /> : <Navigate to='/login' />} />
 						<Route path='/profile' element={user ? <ProfilePage /> : <Navigate to='/login' />} />
 						<Route path='/wishlist' element={user ? <WishlistPage /> : <Navigate to='/login' />} />
+						
+						{/* Public Policy & Support Routes */}
+						<Route path='/delivery-policy' element={<DeliveryPolicyPage />} />
+						<Route path='/warranty' element={<WarrantyPage />} />
+						<Route path='/size-guide' element={<SizeGuidePage />} />
+						<Route path='/contact' element={<ContactPage />} />
+						<Route path='/order-lookup' element={<OrderLookupPage />} />
+						<Route path='/privacy-policy' element={<PrivacyPolicyPage />} />
+						<Route path='/terms' element={<TermsOfServicePage />} />
 						<Route
 							path='/purchase-success'
 							element={user ? <PurchaseSuccessPage /> : <Navigate to='/login' />}

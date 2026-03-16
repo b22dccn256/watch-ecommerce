@@ -52,6 +52,27 @@ const getTransporter = async () => {
     return transporter;
 };
 
+export const sendContactEmail = async ({ name, email, phone, subject, message }) => {
+	const html = `
+		<div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee;">
+			<h2 style="color: #D4AF37; text-align: center; border-bottom: 2px solid #D4AF37; padding-bottom: 10px;">Tin nhắn liên hệ mới</h2>
+			<p><strong>Khách hàng:</strong> ${name}</p>
+			<p><strong>Email:</strong> ${email}</p>
+			<p><strong>Số điện thoại:</strong> ${phone || "N/A"}</p>
+			<p><strong>Chủ đề:</strong> ${subject || "N/A"}</p>
+			<div style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-left: 4px solid #D4AF37;">
+				<p><strong>Lời nhắn:</strong></p>
+				<p>${message}</p>
+			</div>
+			<p style="font-size: 12px; color: #777; margin-top: 30px; text-align: center; border-top: 1px solid #eee; padding-top: 10px;">
+				Gửi từ form liên hệ Luxury Watch Store
+			</p>
+		</div>
+	`;
+
+	await sendEmail(process.env.EMAIL_USER || "admin@watchstore.com", `[Contact Form] ${subject || "Yêu cầu hỗ trợ mới"}`, html);
+};
+
 export const sendEmail = async (to, subject, html) => {
     try {
         const transport = await getTransporter();

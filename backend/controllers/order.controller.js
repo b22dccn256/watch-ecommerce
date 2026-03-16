@@ -321,3 +321,36 @@ export const getOrderTracking = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 };
+
+// Tra c?u mã don hàng d? l?y trackingToken
+export const lookupOrder = async (req, res) => {
+	try {
+		const { orderNumber, email } = req.body;
+
+		if (!orderNumber || !email) {
+			return res.status(400).json({ message: "Vui lòng nh?p mã don hàng và email." });
+		}
+
+		// Tìm don hàng kh?p mã và email (t? shippingDetails ho?c user)
+		const order = await Order.findOne({ 
+			orderCode: orderNumber.toUpperCase() 
+		}).populate("user", "email");
+
+		if (!order) {
+			return res.status(404).json({ message: "Không tìm th?y don hàng kh?p v?i mã cung c?p." });
+		}
+
+		const isEmailMatch = 
+			(order.shippingDetails?.email === email) || 
+			(order.user?.email === email);
+
+		if (!isEmailMatch) {
+			return res.status(404).json({ message: "Thông tin email ho?c mã don hàng chua chính xác." });
+		}
+
+		res.json({ trackingToken: order.trackingToken });
+	} catch (error) {
+		console.error("Error in lookupOrder:", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};

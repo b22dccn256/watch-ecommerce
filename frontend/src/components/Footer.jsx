@@ -148,10 +148,10 @@ const Footer = () => {
 					<FooterColumn title="Hỗ trợ khách hàng">
 						<ul className="flex flex-col gap-3">
 							<FooterLink to="/about">Về chúng tôi</FooterLink>
-							<FooterLink to="/shipping">Chính sách giao hàng</FooterLink>
-							<FooterLink to="/returns">Đổi trả & Bảo hành</FooterLink>
+							<FooterLink to="/delivery-policy">Chính sách giao hàng</FooterLink>
+							<FooterLink to="/warranty">Đổi trả & Bảo hành</FooterLink>
 							<FooterLink to="/size-guide">Hướng dẫn chọn size</FooterLink>
-							<FooterLink to="/order-tracking/search">Tra cứu đơn hàng</FooterLink>
+							<FooterLink to="/order-lookup">Tra cứu đơn hàng</FooterLink>
 							<FooterLink to="/contact">Liên hệ</FooterLink>
 						</ul>
 					</FooterColumn>
@@ -222,7 +222,7 @@ const Footer = () => {
 							© 2026 <span className="text-luxury-gold font-semibold">Luxury Watch</span>. Tất cả quyền được bảo lưu.
 						</p>
 						<div className="flex gap-4 text-[12px] md:text-xs">
-							<Link to="/privacy" className="text-gray-400 hover:text-luxury-gold transition-colors">Chính sách bảo mật</Link>
+							<Link to="/privacy-policy" className="text-gray-400 hover:text-luxury-gold transition-colors">Chính sách bảo mật</Link>
 							<span className="text-gray-300 dark:text-luxury-border">|</span>
 							<Link to="/terms" className="text-gray-400 hover:text-luxury-gold transition-colors">Điều khoản sử dụng</Link>
 						</div>

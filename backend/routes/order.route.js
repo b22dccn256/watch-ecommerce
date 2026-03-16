@@ -9,13 +9,15 @@ import {
     createCODOrder,
     createQROrder,
     confirmQRPayment,
-    getOrderTracking
+    getOrderTracking,
+    lookupOrder
 } from "../controllers/order.controller.js"; // Import controller
 
 const router = express.Router();
 
-// Route công khai: Tra cứu đơn hàng qua trackingToken (không cần login)
+// Route công khai: Tra cứu đơn hàng
 router.get("/track/:trackingToken", getOrderTracking);
+router.post("/lookup", lookupOrder);
 
 // Route cho admin: Lấy tất cả đơn hàng (thống kê doanh thu, lọc theo status)
 router.get("/", protectRoute, adminRoute, getAllOrders);
