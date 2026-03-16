@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 async function test() {
-    await mongoose.connect('mongodb+srv://danganh05122003:6p816oR1cTzO6nK9@mern-ecomere.4gjtocf.mongodb.net/ecommerce?retryWrites=true&w=majority');
+    await mongoose.connect(MONGO_URI);
 
     const Product = mongoose.model('Product', new mongoose.Schema({
         category: String,

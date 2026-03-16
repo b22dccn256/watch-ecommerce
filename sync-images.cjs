@@ -12,7 +12,7 @@ const imageMappings = [
 async function updateImages() {
     try {
         // Kết nối đến MongoDB
-        await mongoose.connect('mongodb+srv://dev_hai:b22dccn268@cluster0.4gjtocf.mongodb.net/watchstore_db');
+        await mongoose.connect(MONGO_URI);
         console.log("Connected to MongoDB.");
 
         const productSchema = new mongoose.Schema({
