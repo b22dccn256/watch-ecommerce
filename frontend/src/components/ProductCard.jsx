@@ -1,12 +1,17 @@
 import toast from "react-hot-toast";
-import { ShoppingCart, Star } from "lucide-react";
+import { ShoppingCart, Star, Heart } from "lucide-react";
 import { useUserStore } from "../stores/useUserStore";
 import { useCartStore } from "../stores/useCartStore";
+import { useWishlistStore } from "../stores/useWishlistStore";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
 const ProductCard = ({ product }) => {
 	const { user } = useUserStore();
 	const { addToCart } = useCartStore();
+	const { wishlist, toggleWishlist } = useWishlistStore();
+
+	const isFavorite = wishlist.some((item) => item._id === product._id);
 
 	const handleAddToCart = () => {
 		if (!user) {
@@ -23,6 +28,21 @@ const ProductCard = ({ product }) => {
 			<div className='relative flex w-full aspect-square overflow-hidden rounded-t-lg bg-black'>
 				<img loading='lazy' className='object-cover w-full h-full transition-transform duration-300 group-hover:scale-105' src={product.image || "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=200&auto=format&fit=crop"} alt={product.name} />
 				<div className='absolute inset-0 bg-gradient-to-t from-luxury-dark/20 to-transparent' />
+
+				{/* Wishlist Button */}
+				<button
+					onClick={() => toggleWishlist(product, !!user)}
+					className='absolute top-4 right-4 z-10 p-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:text-red-500 transition-all duration-300'
+				>
+					<motion.div
+						whileTap={{ scale: 1.5 }}
+						transition={{ type: "spring", stiffness: 400, damping: 10 }}
+					>
+						<Heart
+							className={`w-5 h-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-white"}`}
+						/>
+					</motion.div>
+				</button>
 
 				{/* Add to Cart Button */}
 				<button

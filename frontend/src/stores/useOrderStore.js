@@ -5,6 +5,8 @@ import { toast } from "react-hot-toast";
 export const useOrderStore = create((set) => ({
 	orders: [],
 	loading: false,
+	currentOrder: null,
+	error: null,
 
 	fetchMyOrders: async () => {
 		set({ loading: true });
@@ -14,6 +16,19 @@ export const useOrderStore = create((set) => ({
 		} catch (error) {
 			set({ loading: false });
 			toast.error(error.response?.data?.message || "Lỗi khi tải đơn hàng");
+		}
+	},
+
+	fetchOrderTracking: async (trackingToken) => {
+		set({ loading: true, error: null });
+		try {
+			const res = await axios.get(`/orders/track/${trackingToken}`);
+			set({ currentOrder: res.data, loading: false });
+		} catch (error) {
+			set({ 
+				loading: false, 
+				error: error.response?.data?.message || "Không tìm thấy thông tin đơn hàng" 
+			});
 		}
 	},
 }));

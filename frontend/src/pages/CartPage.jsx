@@ -3,7 +3,6 @@ import { useCartStore } from "../stores/useCartStore";
 import { motion } from "framer-motion";
 import { ShoppingCart } from "lucide-react";
 import CartItem from "../components/CartItem";
-import WishlistItem from "../components/WishlistItem";
 import PeopleAlsoBought from "../components/PeopleAlsoBought";
 import OrderSummary from "../components/OrderSummary";
 import GiftCouponCard from "../components/GiftCouponCard";
@@ -32,16 +31,6 @@ const CartPage = () => {
 							</div>
 						)}
 
-						{wishlist.length > 0 && (
-							<div className='mt-8 space-y-6'>
-								<h3 className='text-xl flex items-center gap-2 font-semibold text-gray-900 dark:text-white'>
-									<Bookmark className="w-5 h-5 text-blue-400" /> Save for later
-								</h3>
-								{wishlist.map((item) => (
-									<WishlistItem key={item._id} item={item} />
-								))}
-							</div>
-						)}
 						{cart.length > 0 && <PeopleAlsoBought />}
 					</motion.div>
 

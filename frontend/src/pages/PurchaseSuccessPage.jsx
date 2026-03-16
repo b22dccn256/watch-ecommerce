@@ -1,4 +1,5 @@
-import { ArrowRight, CheckCircle, HandHeart, MapPin, Package, CreditCard, Wallet, QrCode } from "lucide-react";
+import { ArrowRight, CheckCircle, HandHeart, MapPin, Package, CreditCard, Wallet, QrCode, Copy } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useCartStore } from "../stores/useCartStore";
@@ -107,8 +108,20 @@ const PurchaseSuccessPage = () => {
 					<h1 className='text-3xl sm:text-4xl font-extrabold text-white mb-2'>
 						Cảm ơn bạn đã đặt hàng!
 					</h1>
-					<p className='text-gray-400 text-lg'>
+					<p className='text-gray-400 text-lg flex items-center justify-center gap-2'>
 						Mã đơn hàng: <span className='font-bold text-emerald-400 tracking-wider'>{order.orderCode}</span>
+						{order.trackingToken && (
+							<button 
+								onClick={() => {
+									navigator.clipboard.writeText(order.trackingToken);
+									toast.success("Đã sao chép mã theo dõi!");
+								}}
+								className="p-1.5 hover:bg-gray-700 rounded-lg text-gray-500 hover:text-emerald-400 transition-colors"
+								title="Sao chép mã theo dõi"
+							>
+								<Copy size={16} />
+							</button>
+						)}
 					</p>
 				</div>
 
@@ -204,9 +217,12 @@ const PurchaseSuccessPage = () => {
 						<ArrowRight size={18} className="mr-2 rotate-180 text-gray-400 group-hover:-translate-x-1 transition-transform" />
 						Tiếp tục mua sắm
 					</Link>
-					<button className='flex-1 flex justify-center items-center gap-2 px-6 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] group'>
+					<Link 
+						to={order.trackingToken ? `/order-tracking/${order.trackingToken}` : "/profile"} 
+						className='flex-1 flex justify-center items-center gap-2 px-6 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] group'
+					>
 						Theo dõi đơn hàng <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-					</button>
+					</Link>
 				</div>
 			</div>
 		</div>

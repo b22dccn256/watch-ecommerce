@@ -158,7 +158,6 @@ export const useProductStore = create((set, get) => ({
 
 	// Chi tiết sản phẩm
 	currentProduct: null,
-	wishlist: [],
 
 	fetchProductById: async (id) => {
 		set({ loading: true });
@@ -169,22 +168,5 @@ export const useProductStore = create((set, get) => ({
 			toast.error("Không tìm thấy sản phẩm");
 			set({ loading: false });
 		}
-	},
-
-	toggleWishlist: (product) => {
-		const { wishlist } = get();
-		const exists = wishlist.some((item) => item._id === product._id);
-		const newWishlist = exists
-			? wishlist.filter((item) => item._id !== product._id)
-			: [...wishlist, product];
-		set({ wishlist: newWishlist });
-		localStorage.setItem("wishlist", JSON.stringify(newWishlist));
-		toast.success(exists ? "Đã xóa khỏi yêu thích" : "Đã thêm vào yêu thích");
-	},
-
-	// Load wishlist từ localStorage khi app khởi động
-	initWishlist: () => {
-		const saved = localStorage.getItem("wishlist");
-		if (saved) set({ wishlist: JSON.parse(saved) });
 	},
 }));

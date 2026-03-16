@@ -14,6 +14,8 @@ import PurchaseSuccessPage from "./pages/PurchaseSuccessPage";
 import PurchaseCancelPage from "./pages/PurchaseCancelPage";
 import AboutPage from "./pages/AboutPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import OrderTrackingPage from "./pages/OrderTrackingPage";
+import WishlistPage from "./pages/WishlistPage";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -23,10 +25,12 @@ import ChatBot from "./components/ChatBot";
 import { useUserStore } from "./stores/useUserStore";
 import { useCartStore } from "./stores/useCartStore";
 import { useThemeStore } from "./stores/useThemeStore";
+import { useWishlistStore } from "./stores/useWishlistStore";
 
 function App() {
 	const { user, checkAuth, checkingAuth } = useUserStore();
-	const { getCartItems, getWishlistItems } = useCartStore();
+	const { getCartItems } = useCartStore();
+	const { wishlist, fetchWishlist, mergeWishlist, syncFromLocalStorage } = useWishlistStore();
 	const { theme } = useThemeStore();
 
 	useEffect(() => {
@@ -41,11 +45,25 @@ function App() {
 		}
 	}, [theme]);
 
+	// Initialize Wishlist and handle Multi-tab Sync
+	useEffect(() => {
+		fetchWishlist(!!user);
+
+		const handleStorageChange = (e) => {
+			if (e.key === "wishlist") {
+				syncFromLocalStorage();
+			}
+		};
+
+		window.addEventListener("storage", handleStorageChange);
+		return () => window.removeEventListener("storage", handleStorageChange);
+	}, [fetchWishlist, user, syncFromLocalStorage]);
+
 	useEffect(() => {
 		if (!user) return;
 		getCartItems();
-		getWishlistItems();
-	}, [getCartItems, getWishlistItems, user]);
+		mergeWishlist();
+	}, [getCartItems, mergeWishlist, user]);
 
 	if (checkingAuth) return <LoadingSpinner />;
 
@@ -79,12 +97,14 @@ function App() {
 						<Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
 						<Route path='/checkout' element={user ? <CheckoutPage /> : <Navigate to='/login' />} />
 						<Route path='/profile' element={user ? <ProfilePage /> : <Navigate to='/login' />} />
+						<Route path='/wishlist' element={user ? <WishlistPage /> : <Navigate to='/login' />} />
 						<Route
 							path='/purchase-success'
 							element={user ? <PurchaseSuccessPage /> : <Navigate to='/login' />}
 						/>
 						<Route path='/purchase-cancel' element={user ? <PurchaseCancelPage /> : <Navigate to='/login' />} />
 						<Route path="/product/:id" element={<ProductDetailPage />} />
+						<Route path="/order-tracking/:trackingToken?" element={<OrderTrackingPage />} />
 					</Routes>
 				</main>
 				<Footer />

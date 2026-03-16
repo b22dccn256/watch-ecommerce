@@ -5,7 +5,6 @@ import { useUserStore } from "./useUserStore";
 
 export const useCartStore = create((set, get) => ({
 	cart: [],
-	wishlist: [],
 	coupon: null,
 	total: 0,
 	subtotal: 0,
@@ -133,45 +132,6 @@ export const useCartStore = create((set, get) => ({
 		await axios.delete(`/cart`, { data: { productId } });
 		set((prevState) => ({ cart: prevState.cart.filter((item) => item._id !== productId) }));
 		get().calculateTotals();
-	},
-	getWishlistItems: async () => {
-		try {
-			const res = await axios.get("/wishlist");
-			set({ wishlist: res.data });
-		} catch (error) {
-			set({ wishlist: [] });
-			toast.error(error.response?.data?.message || "Failed to fetch wishlist");
-		}
-	},
-	addToWishlist: async (product) => {
-		try {
-			await axios.post("/wishlist", { productId: product._id });
-			toast.success("Added to wishlist");
-			set((prevState) => ({
-				wishlist: prevState.wishlist.some(item => item._id === product._id)
-					? prevState.wishlist
-					: [...prevState.wishlist, product]
-			}));
-		} catch (error) {
-			toast.error(error.response?.data?.message || "An error occurred");
-		}
-	},
-	removeFromWishlist: async (productId) => {
-		try {
-			await axios.delete(`/wishlist/${productId}`);
-			set((prevState) => ({ wishlist: prevState.wishlist.filter((item) => item._id !== productId) }));
-			toast.success("Removed from wishlist");
-		} catch (error) {
-			toast.error(error.response?.data?.message || "An error occurred");
-		}
-	},
-	moveToWishlist: async (product) => {
-		await get().removeFromCart(product._id);
-		await get().addToWishlist(product);
-	},
-	moveToCartFromWishlist: async (product) => {
-		await get().removeFromWishlist(product._id);
-		await get().addToCart(product);
 	},
 	updateQuantity: async (productId, quantity, maxStock) => {
 		if (quantity === 0) {

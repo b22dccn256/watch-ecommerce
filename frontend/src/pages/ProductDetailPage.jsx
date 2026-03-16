@@ -3,13 +3,18 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useProductStore } from "../stores/useProductStore";
 import { useCartStore } from "../stores/useCartStore";
+import { useWishlistStore } from "../stores/useWishlistStore";
+import { useUserStore } from "../stores/useUserStore";
+import { Heart, ShoppingCart, Star, Clock, ShieldCheck, Truck, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 import ProductCard from "../components/ProductCard";
 
 const ProductDetailPage = () => {
     const { id } = useParams();
-    const { currentProduct, fetchProductById, toggleWishlist, wishlist } = useProductStore();
+    const { currentProduct, fetchProductById } = useProductStore();
     const { addToCart } = useCartStore();
+    const { wishlist, toggleWishlist } = useWishlistStore();
+    const { user } = useUserStore();
     const [selectedImage, setSelectedImage] = useState(0);
     const [isInWishlist, setIsInWishlist] = useState(false);
 
@@ -125,11 +130,13 @@ const ProductDetailPage = () => {
                             >
                                 🛒 THÊM VÀO GIỎ HÀNG
                             </button>
-                            <button
-                                onClick={() => toggleWishlist(currentProduct)}
-                                className={`w-16 h-16 rounded-2xl border flex items-center justify-center transition ${isInWishlist ? "border-red-500 text-red-500" : "border-white/30 hover:border-yellow-400"}`}
+                             <button
+                                onClick={() => toggleWishlist(currentProduct, !!user)}
+                                className={`w-16 h-16 rounded-2xl border flex items-center justify-center transition ${isInWishlist ? "border-red-500 text-red-500 bg-red-500/10" : "border-white/30 hover:border-yellow-400"}`}
                             >
-                                ❤️
+                                <motion.div whileTap={{ scale: 1.4 }}>
+                                    <Heart className={`w-7 h-7 ${isInWishlist ? "fill-red-500" : ""}`} />
+                                </motion.div>
                             </button>
                         </div>
 

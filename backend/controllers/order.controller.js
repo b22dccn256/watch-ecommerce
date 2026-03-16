@@ -4,6 +4,7 @@ import Product from "../models/product.model.js";
 import Coupon from "../models/coupon.model.js";
 import OrderService from "../services/order.service.js";
 import mongoose from "mongoose";
+import crypto from "crypto";
 
 export const getAllOrders = async (req, res) => {
     try {
@@ -34,6 +35,13 @@ export const updateOrderStatus = async (req, res) => {
         const oldStatus = order.status;
         order.status = status;
         
+        // Ghi lại lịch sử tracking
+        order.trackingEvents.push({
+            status,
+            message: `Trạng thái đơn hàng đã được cập nhật thành: ${status}`,
+            timestamp: new Date()
+        });
+
         // If changing to cancelled, restore stock
         if (status === "cancelled" && oldStatus !== "cancelled") {
             await OrderService.restoreStock(order.products);
@@ -108,6 +116,7 @@ export const createCODOrder = async (req, res) => {
         const coupon = couponCode ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }).session(session) : null;
         let totalAmount = await OrderService.calculateTotalAmount(products, coupon, session);
         const orderCode = OrderService.generateOrderCode();
+        const trackingToken = crypto.randomUUID();
 
         const newOrder = new Order({
             user: req.user._id,
@@ -118,10 +127,16 @@ export const createCODOrder = async (req, res) => {
             })),
             totalAmount,
             orderCode,
+            trackingToken,
             shippingDetails,
             paymentMethod: "cod",
             paymentStatus: "pending",
-            status: "pending"
+            status: "pending",
+            trackingEvents: [{
+                status: "pending",
+                message: "Đơn hàng đã được khởi tạo.",
+                timestamp: new Date()
+            }]
         });
 
         await newOrder.save({ session });
@@ -175,6 +190,7 @@ export const createQROrder = async (req, res) => {
         const coupon = couponCode ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }).session(session) : null;
         let totalAmount = await OrderService.calculateTotalAmount(products, coupon, session);
         const orderCode = OrderService.generateOrderCode();
+        const trackingToken = crypto.randomUUID();
 
         const newOrder = new Order({
             user: req.user._id,
@@ -185,10 +201,16 @@ export const createQROrder = async (req, res) => {
             })),
             totalAmount,
             orderCode,
+            trackingToken,
             shippingDetails,
             paymentMethod: "qr",
             paymentStatus: "pending",
-            status: "pending"
+            status: "pending",
+            trackingEvents: [{
+                status: "pending",
+                message: "Đơn hàng đã được khởi tạo (Thanh toán QR).",
+                timestamp: new Date()
+            }]
         });
 
         await newOrder.save({ session });
@@ -267,4 +289,35 @@ export const confirmQRPayment = async (req, res) => {
         console.error("Error in confirmQRPayment:", error.message);
         res.status(500).json({ message: "Server error", error: error.message });
     }
-};
+};
+
+// Tra cứu công khai qua trackingToken
+export const getOrderTracking = async (req, res) => {
+    try {
+        const { trackingToken } = req.params;
+        const order = await Order.findOne({ trackingToken })
+            .select("orderCode status estimatedDelivery carrier carrierTrackingNumber trackingEvents shippingDetails products createdAt")
+            .populate("products.product", "name image price");
+
+        if (!order) {
+            return res.status(404).json({ message: "Không tìm thấy thông tin đơn hàng" });
+        }
+
+        // Ẩn thông tin nhạy cảm của khách hàng trong shippingDetails
+        const safeOrder = order.toObject();
+        if (safeOrder.shippingDetails) {
+            if (safeOrder.shippingDetails.email) {
+                const parts = safeOrder.shippingDetails.email.split("@");
+                safeOrder.shippingDetails.email = `${parts[0].substring(0, 2)}***@${parts[1]}`;
+            }
+            if (safeOrder.shippingDetails.phoneNumber) {
+                safeOrder.shippingDetails.phoneNumber = `${safeOrder.shippingDetails.phoneNumber.substring(0, 3)}****${safeOrder.shippingDetails.phoneNumber.slice(-3)}`;
+            }
+        }
+
+        res.json(safeOrder);
+    } catch (error) {
+        console.error("Error in getOrderTracking:", error.message);
+        res.status(500).json({ message: "Server error" });
+    }
+};

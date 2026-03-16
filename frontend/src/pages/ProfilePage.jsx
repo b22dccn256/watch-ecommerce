@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User as UserIcon, ShoppingBag, Lock, LogOut, ChevronRight, Eye, Package, ExternalLink } from "lucide-react";
+import { User as UserIcon, ShoppingBag, Lock, LogOut, ChevronRight, Eye, Package, ExternalLink, Truck, Copy } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { useUserStore } from "../stores/useUserStore";
 import { useOrderStore } from "../stores/useOrderStore";
 import { Link } from "react-router-dom";
@@ -243,12 +244,24 @@ const ProfilePage = () => {
 																	</span>
 																</td>
 																<td className='py-6 text-right'>
-																	<button
-																		onClick={() => setSelectedOrder(order)}
-																		className='p-2 hover:bg-luxury-gold/10 rounded-full transition-colors group-hover:text-luxury-gold text-gray-400 dark:text-gray-400'
-																	>
-																		<Eye className='w-5 h-5' />
-																	</button>
+																	<div className='flex items-center gap-2 justify-end'>
+																		<button
+																			onClick={() => setSelectedOrder(order)}
+																			className='p-2 hover:bg-luxury-gold/10 rounded-full transition-colors group-hover:text-luxury-gold text-gray-400 dark:text-gray-400'
+																			title="Xem chi tiết"
+																		>
+																			<Eye className='w-5 h-5' />
+																		</button>
+																		{order.trackingToken && (
+																			<Link
+																				to={`/order-tracking/${order.trackingToken}`}
+																				className='p-2 hover:bg-emerald-500/10 rounded-full transition-colors text-gray-400 hover:text-emerald-500'
+																				title="Theo dõi vận chuyển"
+																			>
+																				<ExternalLink className='w-5 h-5' />
+																			</Link>
+																		)}
+																	</div>
 																</td>
 															</tr>
 														))}
@@ -346,8 +359,20 @@ const ProfilePage = () => {
 										<h2 className='text-2xl font-bold text-gray-900 dark:text-white mb-2'>
 											Chi tiết đơn hàng #{selectedOrder.orderCode || selectedOrder._id.slice(-6).toUpperCase()}
 										</h2>
-										<p className='text-gray-500 dark:text-luxury-text-muted text-sm'>
+										<p className='text-gray-500 dark:text-luxury-text-muted text-sm flex items-center gap-2'>
 											Ngày đặt: {new Date(selectedOrder.createdAt).toLocaleString("vi-VN")}
+											{selectedOrder.trackingToken && (
+												<button 
+													onClick={() => {
+														navigator.clipboard.writeText(selectedOrder.trackingToken);
+														toast.success("Đã sao chép mã theo dõi!");
+													}}
+													className="ml-2 p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded text-gray-400 hover:text-luxury-gold transition-colors"
+													title="Sao chép mã theo dõi"
+												>
+													<Copy size={14} />
+												</button>
+											)}
 										</p>
 									</div>
 									<button
@@ -356,6 +381,25 @@ const ProfilePage = () => {
 									>
 										<ChevronRight className='w-6 h-6 rotate-180' />
 									</button>
+								</div>
+
+								{/* Order Status Timeline with Tracking Link */}
+								<div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl">
+									<div className="flex items-center gap-3">
+										<div className="w-10 h-10 bg-emerald-500/10 rounded-full flex items-center justify-center">
+											<Truck className="w-5 h-5 text-emerald-500" />
+										</div>
+										<div>
+											<p className="text-sm font-bold text-white uppercase tracking-tight">Trạng thái: {getStatusText(selectedOrder.status)}</p>
+											<p className="text-[10px] text-emerald-500 font-medium">Cập nhật lúc: {new Date(selectedOrder.updatedAt).toLocaleTimeString("vi-VN")}</p>
+										</div>
+									</div>
+									<Link 
+										to={`/order-tracking/${selectedOrder.trackingToken}`}
+										className="flex items-center gap-2 px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20"
+									>
+										Theo dõi hành trình <ExternalLink className="w-4 h-4" />
+									</Link>
 								</div>
 
 								<div className='grid grid-cols-1 md:grid-cols-2 gap-8 mb-8'>

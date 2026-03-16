@@ -1,14 +1,18 @@
-import { ShoppingCart, User, LogOut, Lock, Search } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useUserStore } from "../stores/useUserStore";
 import { useCartStore } from "../stores/useCartStore";
+import { useWishlistStore } from "../stores/useWishlistStore";
 import { useProductStore } from "../stores/useProductStore";
+import { useThemeStore } from "../stores/useThemeStore";
 import { useState } from "react";
+import { ShoppingCart, User, LogOut, Lock, Search, Heart } from "lucide-react";
 
 const Navbar = () => {
 	const { user, logout } = useUserStore();
 	const { cart } = useCartStore();
+	const { wishlist } = useWishlistStore();
 	const { searchProducts } = useProductStore(); // sẽ dùng sau
+	const { theme, toggleTheme } = useThemeStore();
 
 	const [searchTerm, setSearchTerm] = useState("");
 	const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -130,17 +134,34 @@ const Navbar = () => {
 								</button>
 							</div>
 
-							{/* Giỏ hàng */}
-							{user && (
-								<Link to="/cart" className="relative group">
-									<ShoppingCart className="w-6 h-6 text-gray-400 dark:text-luxury-text-muted group-hover:text-luxury-gold transition duration-300" />
-									{cart.length > 0 && (
-										<span className="absolute -top-1 -right-1 bg-luxury-gold text-luxury-dark text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
-											{cart.length}
+							{/* Actions (Wishlist/Cart) */}
+							<div className="flex items-center gap-2">
+								<Link
+									to={"/wishlist"}
+									className='relative group p-2 text-gray-700 dark:text-luxury-text-light hover:text-luxury-gold transition-colors'
+								>
+									<Heart className='w-5 h-5 group-hover:scale-110 transition-transform' />
+									{wishlist.length > 0 && (
+										<span className='absolute -top-1 -right-1 bg-luxury-gold text-luxury-dark text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center border-2 border-white dark:border-luxury-dark'>
+											{wishlist.length}
 										</span>
 									)}
 								</Link>
-							)}
+
+								{user && (
+									<Link
+										to={"/cart"}
+										className='relative group p-2 text-gray-700 dark:text-luxury-text-light hover:text-luxury-gold transition-colors'
+									>
+										<ShoppingCart className='w-5 h-5 group-hover:scale-110 transition-transform' />
+										{cart.length > 0 && (
+											<span className='absolute -top-1 -right-1 bg-luxury-gold text-luxury-dark text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center border-2 border-white dark:border-luxury-dark'>
+												{cart.length}
+											</span>
+										)}
+									</Link>
+								)}
+							</div>
 
 							{/* Tài khoản */}
 							{user ? (

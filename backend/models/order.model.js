@@ -73,6 +73,28 @@ const orderSchema = new mongoose.Schema(
 			type: Date,
 			default: null,
 		},
+		trackingToken: {
+			type: String,
+			unique: true,
+		},
+		estimatedDelivery: {
+			type: Date,
+		},
+		carrier: {
+			type: String,
+			default: "DHL Express",
+		},
+		carrierTrackingNumber: {
+			type: String,
+		},
+		trackingEvents: [
+			{
+				status: { type: String, required: true },
+				message: { type: String },
+				location: { type: String },
+				timestamp: { type: Date, default: Date.now },
+			},
+		],
 	},
 	{ timestamps: true }
 );

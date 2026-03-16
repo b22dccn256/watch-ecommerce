@@ -1,9 +1,13 @@
 import { Minus, Plus, Trash, Bookmark, AlertTriangle } from "lucide-react";
 import { useCartStore } from "../stores/useCartStore";
+import { useWishlistStore } from "../stores/useWishlistStore";
+import { useUserStore } from "../stores/useUserStore";
 import { useState, useEffect } from "react";
 
 const CartItem = ({ item }) => {
-	const { removeFromCart, updateQuantity, moveToWishlist } = useCartStore();
+	const { removeFromCart, updateQuantity } = useCartStore();
+	const { toggleWishlist } = useWishlistStore();
+	const { user } = useUserStore();
 	const [localQuantity, setLocalQuantity] = useState(item.quantity);
 
 	// Sync local quantity with remote prop changes
@@ -84,7 +88,10 @@ const CartItem = ({ item }) => {
 						</button>
 						<button
 							className='inline-flex items-center text-sm font-medium text-blue-400 hover:text-blue-300 transition hover:bg-blue-400/10 px-2 py-1 rounded'
-							onClick={() => moveToWishlist(item)}
+							onClick={() => {
+								toggleWishlist(item, !!user);
+								removeFromCart(item._id);
+							}}
 							title='Lưu lại mua sau'
 						>
 							<Bookmark className="w-4 h-4" />

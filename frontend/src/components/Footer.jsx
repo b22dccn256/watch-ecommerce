@@ -151,6 +151,7 @@ const Footer = () => {
 							<FooterLink to="/shipping">Chính sách giao hàng</FooterLink>
 							<FooterLink to="/returns">Đổi trả & Bảo hành</FooterLink>
 							<FooterLink to="/size-guide">Hướng dẫn chọn size</FooterLink>
+							<FooterLink to="/order-tracking/search">Tra cứu đơn hàng</FooterLink>
 							<FooterLink to="/contact">Liên hệ</FooterLink>
 						</ul>
 					</FooterColumn>
