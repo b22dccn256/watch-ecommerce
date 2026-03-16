@@ -1,4 +1,6 @@
-import { sendContactEmail } from "../lib/email.js";
+﻿import { sendContactEmail } from "../lib/email.js";
+import Contact from "../models/contact.model.js";
+import { emailQueue } from "./mail.controller.js";
 
 export const handleContactForm = async (req, res) => {
 	try {
@@ -15,16 +17,22 @@ export const handleContactForm = async (req, res) => {
 			return res.status(400).json({ message: "Vui lòng điền đầy đủ các trường bắt buộc (Tên, Email, Lời nhắn)." });
 		}
 
-		// 3. Send Email (to Admin)
-		await sendContactEmail({
-			name,
-			email,
-			phone,
-			subject,
-			message
+		// 3. Save to Database
+		const newContact = await Contact.create({
+			name, email, phone, subject, message
 		});
 
-		res.status(200).json({ message: "Cảm ơn bạn đã liên hệ. Chúng tôi đã nhận được thông tin và sẽ phản hồi sớm nhất qua email của bạn." });
+		// 4. Queue Email (to Admin)
+		await emailQueue.add("admin-notification", {
+			type: "contact_form",
+			contact: { name, email, phone, subject, message },
+			subject: "Tin nhắn mới từ " + name + ": " + (subject || "Không có chủ đề")
+		});
+
+		res.status(200).json({ 
+			message: "Cảm ơn bạn đã liên hệ. Đội ngũ của chúng tôi sẽ phản hồi sớm nhất qua email.",
+			contactId: newContact._id
+		});
 	} catch (error) {
 		console.error("Error in handleContactForm:", error.message);
 		res.status(500).json({ message: "Server error", error: error.message });

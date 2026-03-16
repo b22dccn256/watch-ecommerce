@@ -3,6 +3,7 @@ import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../lib/email.js";
 import bcrypt from "bcryptjs";
+import { emailQueue } from "./mail.controller.js";
 
 const generateTokens = (userId) => {
 	const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
@@ -44,6 +45,14 @@ export const signup = async (req, res) => {
 			return res.status(400).json({ message: "User already exists" });
 		}
 		const user = await User.create({ name, email, password });
+
+		// --- QUEUE WELCOME EMAIL ---
+		await emailQueue.add("welcome-email", {
+			fullName: name,
+			email: email,
+			shopUrl: process.env.CLIENT_URL || "http://localhost:5173",
+			unsubscribeLink: (process.env.BACKEND_URL || "http://localhost:5000") + "/api/mail/unsubscribe/" + email
+		});
 
 		// authenticate
 		const { accessToken, refreshToken } = generateTokens(user._id);

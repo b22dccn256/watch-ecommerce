@@ -5,6 +5,7 @@ import { stripe } from "../lib/stripe.js";
 import OrderService from "../services/order.service.js";
 import mongoose from "mongoose";
 import User from "../models/user.model.js";
+import { emailQueue } from "./mail.controller.js";
 
 export const createCheckoutSession = async (req, res) => {
 	const sessionOpts = await mongoose.startSession();
@@ -197,6 +198,21 @@ const handlePaymentSuccess = async (session) => {
 		order.paymentStatus = "paid";
 		order.status = "confirmed";
 		await order.save();
+
+		// Queue Order Confirmation Email
+		const user = await User.findById(order.user);
+		if (user) {
+			await emailQueue.add("order-confirmation", {
+				email: user.email,
+				subject: `Xác nhận đơn hàng #${order.orderCode} - Luxury Watch`,
+				order: {
+					orderCode: order.orderCode,
+					totalAmount: order.totalAmount,
+					shippingDetails: order.shippingDetails,
+					paymentMethod: order.paymentMethod
+				}
+			});
+		}
 
 		// Clear cart just in case (webhook safety)
 		await User.findByIdAndUpdate(session.metadata.userId, { cartItems: [] });

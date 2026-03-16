@@ -67,12 +67,11 @@ const Footer = () => {
 
 		setIsLoading(true);
 		try {
-			// Mock API call
-			await new Promise(resolve => setTimeout(resolve, 1500));
-			toast.success("Đăng ký thành công! Vui lòng kiểm tra email.");
+			const res = await axios.post("/mail/subscribe", { email });
+			toast.success(res.data.message);
 			setEmail("");
 		} catch (error) {
-			toast.error("Có lỗi xảy ra. Vui lòng thử lại sau.");
+			toast.error(error.response?.data?.message || "Có lỗi xảy ra. Vui lòng thử lại sau.");
 		} finally {
 			setIsLoading(false);
 		}
