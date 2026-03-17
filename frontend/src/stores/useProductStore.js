@@ -94,6 +94,7 @@ export const useProductStore = create((set, get) => ({
 	sort: "newest",
 	currentPage: 1,
 	totalPages: 1,
+	totalCount: 0,
 	suggestions: [],
 
 	setSearchTerm: (term) => set({ searchTerm: term }),
@@ -134,6 +135,7 @@ export const useProductStore = create((set, get) => ({
 			set({
 				products: res.data.products,
 				totalPages: res.data.totalPages || 1,
+				totalCount: res.data.totalCount ?? res.data.total ?? (res.data.products?.length || 0),
 				loading: false,
 			});
 		} catch (error) {

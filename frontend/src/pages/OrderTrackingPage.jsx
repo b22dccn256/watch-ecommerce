@@ -1,13 +1,13 @@
 import React, { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useOrderStore } from "../stores/useOrderStore";
-import { 
-    Package, 
-    ClipboardCheck, 
-    Truck, 
-    MapPin, 
-    CheckCircle2, 
-    Printer, 
+import {
+    Package,
+    ClipboardCheck,
+    Truck,
+    MapPin,
+    CheckCircle2,
+    Printer,
     Calendar,
     Clock,
     ChevronRight,
@@ -23,6 +23,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 
 const OrderTrackingPage = () => {
     const { trackingToken } = useParams();
+    const navigate = useNavigate();
     const { fetchOrderTracking, currentOrder, loading, error } = useOrderStore();
 
     useEffect(() => {
@@ -32,11 +33,11 @@ const OrderTrackingPage = () => {
     }, [trackingToken, fetchOrderTracking]);
 
     const steps = [
-        { status: "pending", label: "Ordered", icon: Package },
-        { status: "confirmed", label: "Confirmed", icon: ClipboardCheck },
-        { status: "shipped", label: "Shipped", icon: Truck },
-        { status: "out_for_delivery", label: "Out for Delivery", icon: MapPin },
-        { status: "delivered", label: "Delivered", icon: CheckCircle2 },
+        { status: "pending", label: "Đã đặt hàng", icon: Package },
+        { status: "confirmed", label: "Đã xác nhận", icon: ClipboardCheck },
+        { status: "shipped", label: "Đang vận chuyển", icon: Truck },
+        { status: "out_for_delivery", label: "Đang giao hàng", icon: MapPin },
+        { status: "delivered", label: "Đã giao hàng", icon: CheckCircle2 },
     ];
 
     const getStatusIndex = (status) => {
@@ -51,10 +52,10 @@ const OrderTrackingPage = () => {
     };
 
     if (loading) return <div className="h-screen flex items-center justify-center bg-[#0d0d0d]"><LoadingSpinner /></div>;
-    
+
     if (error) return (
         <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-gray-900/50 border border-red-500/30 p-8 rounded-2xl max-w-md w-full text-center"
@@ -62,13 +63,13 @@ const OrderTrackingPage = () => {
                 <div className="bg-red-500/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
                     <AlertCircle className="text-red-500 w-8 h-8" />
                 </div>
-                <h1 className="text-2xl font-bold text-white mb-4">Tracking Error</h1>
+                <h1 className="text-2xl font-bold text-white mb-4">Không tìm thấy đơn hàng</h1>
                 <p className="text-gray-400 mb-8">{error}</p>
-                <button 
-                    onClick={() => window.location.href = "/"}
+                <button
+                    onClick={() => navigate("/")}
                     className="w-full py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors"
                 >
-                    Back to Home
+                    Về trang chủ
                 </button>
             </motion.div>
         </div>
@@ -76,7 +77,7 @@ const OrderTrackingPage = () => {
 
     if (!currentOrder || trackingToken === "search") return (
         <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="bg-gray-900/40 border border-gray-800 p-10 rounded-3xl max-w-2xl w-full text-center"
@@ -84,44 +85,43 @@ const OrderTrackingPage = () => {
                 <div className="bg-emerald-500/10 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg shadow-emerald-500/10">
                     <Search className="text-emerald-500 w-10 h-10" />
                 </div>
-                <h1 className="text-3xl font-bold text-white mb-4 tracking-tight">Track Your Timepiece</h1>
+                <h1 className="text-3xl font-bold text-white mb-4 tracking-tight">Theo Dõi Đơn Hàng</h1>
                 <p className="text-gray-400 mb-10 leading-relaxed">
-                    Experience the journey of your luxury watch. <br className="hidden md:block" />
-                    Enter your unique tracking token to see real-time status updates.
+                    Nhập mã theo dõi của bạn để xem trạng thái đơn hàng theo thời gian thực.
                 </p>
-                <form 
+                <form
                     onSubmit={(e) => {
                         e.preventDefault();
                         const token = e.target.token.value;
-                        if (token) window.location.href = `/order-tracking/${token}`;
+                        if (token) navigate(`/order-tracking/${token}`);
                     }}
                     className="space-y-4"
                 >
-                    <input 
+                    <input
                         name="token"
-                        type="text" 
+                        type="text"
                         required
-                        placeholder="Paste your tracking token here..." 
+                        placeholder="Dán mã theo dõi vào đây..."
                         className="w-full bg-gray-900 border border-gray-800 text-white px-8 py-5 rounded-2xl focus:outline-none focus:border-emerald-500 transition-all text-center font-mono text-sm placeholder:font-sans"
                     />
-                    <button 
+                    <button
                         type="submit"
                         className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold px-8 py-5 rounded-2xl transition-all shadow-xl shadow-emerald-500/20 active:scale-95"
                     >
-                        TRACK JOURNEY
+                        THEO DÕI ĐƠN HÀNG
                     </button>
-                    <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold pt-4">Your token can be found in your order confirmation email</p>
+                    <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold pt-4">Mã theo dõi được gửi qua email xác nhận đơn hàng, hoặc xem trong <a href="/profile" className="text-emerald-500 hover:underline">Hồ sơ của tôi</a></p>
                 </form>
             </motion.div>
         </div>
     );
 
     return (
-        <div className="min-h-screen bg-[#0d0d0d] text-gray-100 pt-24 pb-16 px-4 md:px-8">
+        <div className="min-h-screen bg-white dark:bg-[#0d0d0d] text-gray-900 dark:text-gray-100 pt-24 pb-16 px-4 md:px-8 transition-colors duration-300">
             {/* Header section */}
             <div className="max-w-7xl mx-auto space-y-12">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         className="space-y-2"
@@ -138,7 +138,7 @@ const OrderTrackingPage = () => {
                     </motion.div>
 
                     {currentOrder.estimatedDelivery && (
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             className="bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-2xl relative overflow-hidden group"
@@ -154,7 +154,7 @@ const OrderTrackingPage = () => {
                 </div>
 
                 {/* Status Stepper */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-gray-900/40 border border-gray-800 p-8 rounded-3xl"
@@ -162,7 +162,7 @@ const OrderTrackingPage = () => {
                     <div className="relative flex flex-col md:flex-row justify-between items-center gap-8 px-4">
                         {/* Connecting Line (Desktop) */}
                         <div className="hidden md:block absolute top-[2.25rem] left-10 right-10 h-[2px] bg-gray-800 z-0">
-                            <motion.div 
+                            <motion.div
                                 initial={{ width: 0 }}
                                 animate={{ width: `${(currentStepIndex / (steps.length - 1)) * 100}%` }}
                                 transition={{ duration: 1.5, ease: "circOut" }}
@@ -177,12 +177,11 @@ const OrderTrackingPage = () => {
 
                             return (
                                 <div key={step.status} className="relative z-10 flex flex-col items-center group">
-                                    <div 
-                                        className={`w-18 h-18 rounded-2xl flex items-center justify-center transition-all duration-500 ${
-                                            isActive 
-                                            ? "bg-emerald-500 text-black shadow-[0_10px_30px_rgba(16,185,129,0.3)]" 
+                                    <div
+                                        className={`w-18 h-18 rounded-2xl flex items-center justify-center transition-all duration-500 ${isActive
+                                            ? "bg-emerald-500 text-black shadow-[0_10px_30px_rgba(16,185,129,0.3)]"
                                             : "bg-gray-800 text-gray-500 border border-gray-700"
-                                        } ${isCurrent ? "scale-110 ring-4 ring-emerald-500/20" : ""}`}
+                                            } ${isCurrent ? "scale-110 ring-4 ring-emerald-500/20" : ""}`}
                                     >
                                         <Icon className={`w-8 h-8 ${isActive ? 'animate-pulse' : ''}`} />
                                     </div>
@@ -211,13 +210,13 @@ const OrderTrackingPage = () => {
                             <Search className="text-emerald-500 w-5 h-5" />
                             <h3 className="text-xl font-bold">Status Updates</h3>
                         </div>
-                        
+
                         <div className="space-y-6 relative ml-4">
                             {/* Vertical Line */}
                             <div className="absolute top-0 bottom-0 left-[21px] w-[2px] bg-gradient-to-b from-emerald-500/50 via-gray-800 to-transparent z-0" />
-                            
+
                             {currentOrder.trackingEvents?.map((event, index) => (
-                                <motion.div 
+                                <motion.div
                                     key={index}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
@@ -225,19 +224,17 @@ const OrderTrackingPage = () => {
                                     className="relative z-10 pl-16 group"
                                 >
                                     {/* Icon Background */}
-                                    <div className={`absolute top-0 left-0 w-11 h-11 rounded-xl flex items-center justify-center border-2 transition-all duration-300 ${
-                                        index === 0 
-                                        ? "bg-emerald-500 border-emerald-400 text-black shadow-[0_0_15px_rgba(16,185,129,0.3)]" 
+                                    <div className={`absolute top-0 left-0 w-11 h-11 rounded-xl flex items-center justify-center border-2 transition-all duration-300 ${index === 0
+                                        ? "bg-emerald-500 border-emerald-400 text-black shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                                         : "bg-gray-900 border-gray-800 text-gray-500 group-hover:border-emerald-500/50"
-                                    }`}>
+                                        }`}>
                                         {index === 0 ? <Clock className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
                                     </div>
-                                    
-                                    <div className={`p-6 rounded-2xl border transition-all duration-300 ${
-                                        index === 0 
-                                        ? "bg-gray-900/60 border-emerald-500/30 ring-1 ring-emerald-500/10" 
+
+                                    <div className={`p-6 rounded-2xl border transition-all duration-300 ${index === 0
+                                        ? "bg-gray-900/60 border-emerald-500/30 ring-1 ring-emerald-500/10"
                                         : "bg-gray-900/30 border-gray-800 hover:border-gray-700"
-                                    }`}>
+                                        }`}>
                                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-3">
                                             <h4 className={`font-bold text-lg ${index === 0 ? "text-emerald-400" : "text-white"}`}>
                                                 {event.message}
@@ -261,7 +258,7 @@ const OrderTrackingPage = () => {
                     {/* Right Column: Order Info */}
                     <div className="space-y-8">
                         {/* Product Summary */}
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: 1, scale: 1 }}
                             className="bg-gray-900/40 border border-gray-800 rounded-3xl overflow-hidden shadow-2xl"
@@ -275,8 +272,8 @@ const OrderTrackingPage = () => {
                                 {currentOrder.products.map((item, idx) => (
                                     <div key={idx} className="flex gap-4 group">
                                         <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-800 border border-gray-700 group-hover:border-emerald-500/50 transition-colors">
-                                            <img 
-                                                src={item.product?.image || "/placeholder.png"} 
+                                            <img
+                                                src={item.product?.image || "/placeholder.png"}
                                                 alt={item.product?.name}
                                                 className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500"
                                             />
@@ -295,7 +292,7 @@ const OrderTrackingPage = () => {
                         </motion.div>
 
                         {/* Shipping Info */}
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.1 }}
@@ -333,7 +330,7 @@ const OrderTrackingPage = () => {
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div className="pt-4 border-t border-gray-800">
                                     <p className="text-emerald-500/70 text-xs font-bold uppercase tracking-widest mb-2">Carrier Details</p>
                                     <div className="bg-gray-800/40 p-3 rounded-xl border border-gray-700 flex items-center justify-between">
@@ -349,13 +346,13 @@ const OrderTrackingPage = () => {
 
                         {/* Actions */}
                         <div className="grid grid-cols-2 gap-4">
-                            <button 
+                            <button
                                 onClick={() => window.location.href = `mailto:support@watchstore.com?subject=Inquiry for Order ${currentOrder.orderCode}`}
                                 className="flex items-center justify-center gap-2 py-4 bg-emerald-500 hover:bg-emerald-600 text-black font-bold rounded-2xl transition-all shadow-[0_10px_30px_rgba(16,185,129,0.2)] active:scale-95"
                             >
                                 <Mail className="w-5 h-5" /> Contact
                             </button>
-                            <button 
+                            <button
                                 onClick={handlePrint}
                                 className="flex items-center justify-center gap-2 py-4 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-2xl transition-all border border-gray-700 active:scale-95"
                             >
@@ -366,40 +363,41 @@ const OrderTrackingPage = () => {
                 </div>
 
                 {/* Tracking Search Footer */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
                     className="mt-20 pt-16 border-t border-gray-800/50 text-center max-w-2xl mx-auto"
                 >
-                    <h4 className="text-white font-bold mb-4">Track another order?</h4>
-                    <p className="text-gray-500 text-sm mb-8">Enter your tracking token provided in your confirmation email.</p>
-                    <form 
+                    <h4 className="text-white font-bold mb-4">Theo dõi đơn hàng khác?</h4>
+                    <p className="text-gray-500 text-sm mb-8">Nhập mã theo dõi trong email xác nhận đơn hàng của bạn.</p>
+                    <form
                         onSubmit={(e) => {
                             e.preventDefault();
                             const token = e.target.token.value;
-                            if (token) window.location.href = `/order-tracking/${token}`;
+                            if (token) navigate(`/order-tracking/${token}`);
                         }}
                         className="flex gap-2"
                     >
-                        <input 
+                        <input
                             name="token"
-                            type="text" 
-                            placeholder="Paste your tracking token here..." 
+                            type="text"
+                            placeholder="Dán mã theo dõi vào đây..."
                             className="flex-1 bg-gray-900 border border-gray-800 text-white px-6 py-4 rounded-2xl focus:outline-none focus:border-emerald-500 transition-colors"
                         />
-                        <button 
+                        <button
                             type="submit"
                             className="bg-emerald-500 hover:bg-emerald-600 text-black font-bold px-8 py-4 rounded-2xl transition-all"
                         >
-                            Track
+                            Tìm kiếm
                         </button>
                     </form>
                 </motion.div>
             </div>
 
             {/* Print-only CSS */}
-            <style dangerouslySetInnerHTML={{ __html: `
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 @media print {
                     body * { visibility: hidden; }
                     .max-w-7xl, .max-w-7xl * { visibility: visible; }

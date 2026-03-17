@@ -35,7 +35,7 @@ export const updateOrderStatus = async (req, res) => {
 
         const oldStatus = order.status;
         order.status = status;
-        
+
         order.trackingEvents.push({
             status,
             message: "Trạng thái đơn hàng đã được cập nhật thành: " + status,
@@ -45,7 +45,7 @@ export const updateOrderStatus = async (req, res) => {
         if (status === "cancelled" && oldStatus !== "cancelled") {
             await OrderService.restoreStock(order.products);
         }
-        
+
         await order.save();
 
         res.json({ message: "Order status updated to " + status, order });
@@ -330,32 +330,32 @@ export const getOrderTracking = async (req, res) => {
 };
 
 export const lookupOrder = async (req, res) => {
-	try {
-		const { orderNumber, email } = req.body;
+    try {
+        const { orderNumber, email } = req.body;
 
-		if (!orderNumber || !email) {
-			return res.status(400).json({ message: "Vui lòng nhập mã đơn hàng và email." });
-		}
+        if (!orderNumber || !email) {
+            return res.status(400).json({ message: "Vui lòng nhập mã đơn hàng và email." });
+        }
 
-		const order = await Order.findOne({ 
-			orderCode: orderNumber.toUpperCase() 
-		}).populate("user", "email");
+        const order = await Order.findOne({
+            orderCode: orderNumber.toUpperCase()
+        }).populate("user", "email");
 
-		if (!order) {
-			return res.status(404).json({ message: "Không tìm thấy đơn hàng khớp với mã cung cấp." });
-		}
+        if (!order) {
+            return res.status(404).json({ message: "Không tìm thấy đơn hàng khớp với mã cung cấp." });
+        }
 
-		const isEmailMatch = 
-			(order.shippingDetails?.email === email) || 
-			(order.user?.email === email);
+        const isEmailMatch =
+            (order.shippingDetails?.email === email) ||
+            (order.user?.email === email);
 
-		if (!isEmailMatch) {
-			return res.status(404).json({ message: "Thông tin email hoặc mã đơn hàng chưa chính xác." });
-		}
+        if (!isEmailMatch) {
+            return res.status(404).json({ message: "Thông tin email hoặc mã đơn hàng chưa chính xác." });
+        }
 
-		res.json({ trackingToken: order.trackingToken });
-	} catch (error) {
-		console.error("Error in lookupOrder:", error.message);
-		res.status(500).json({ message: "Server error", error: error.message });
-	}
+        res.json({ trackingToken: order.trackingToken });
+    } catch (error) {
+        console.error("Error in lookupOrder:", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
 };

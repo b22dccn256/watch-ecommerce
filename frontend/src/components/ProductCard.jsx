@@ -12,6 +12,7 @@ const ProductCard = ({ product }) => {
 	const { wishlist, toggleWishlist } = useWishlistStore();
 
 	const isFavorite = wishlist.some((item) => item._id === product._id);
+	const isOutOfStock = product.stock !== undefined && product.stock <= 0;
 
 	const handleAddToCart = () => {
 		if (!user) {
@@ -44,13 +45,25 @@ const ProductCard = ({ product }) => {
 					</motion.div>
 				</button>
 
-				{/* Add to Cart Button */}
-				<button
-					onClick={handleAddToCart}
-					className='absolute bottom-4 right-4 bg-luxury-gold hover:bg-luxury-gold-light text-luxury-dark p-3 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0'
-				>
-					<ShoppingCart className="w-5 h-5" />
-				</button>
+				{/* Out of Stock Overlay */}
+				{isOutOfStock && (
+					<div className='absolute inset-0 bg-black/60 flex items-center justify-center z-10'>
+						<span className='bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider'>
+							Hết hàng
+						</span>
+					</div>
+				)}
+
+				{/* Add to Cart Button – chỉ hiện khi còn hàng */}
+				{!isOutOfStock && (
+					<button
+						onClick={handleAddToCart}
+						className='absolute bottom-4 right-4 bg-luxury-gold hover:bg-luxury-gold-light text-luxury-dark p-3 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-10'
+						title="Thêm vào giỏ hàng"
+					>
+						<ShoppingCart className="w-5 h-5" />
+					</button>
+				)}
 			</div>
 
 			{/* Product Info */}

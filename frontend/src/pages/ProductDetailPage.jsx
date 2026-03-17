@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useProductStore } from "../stores/useProductStore";
 import { useCartStore } from "../stores/useCartStore";
@@ -11,12 +11,14 @@ import ProductCard from "../components/ProductCard";
 
 const ProductDetailPage = () => {
     const { id } = useParams();
-    const { currentProduct, fetchProductById } = useProductStore();
+    const navigate = useNavigate();
+    const { currentProduct, fetchProductById, fetchFilteredProducts, products } = useProductStore();
     const { addToCart } = useCartStore();
     const { wishlist, toggleWishlist } = useWishlistStore();
     const { user } = useUserStore();
     const [selectedImage, setSelectedImage] = useState(0);
     const [isInWishlist, setIsInWishlist] = useState(false);
+    const [relatedProducts, setRelatedProducts] = useState([]);
 
     const images = currentProduct?.images || [currentProduct?.image]; // fallback
 
@@ -28,6 +30,16 @@ const ProductDetailPage = () => {
         if (currentProduct) {
             const inWish = wishlist.some((item) => item._id === currentProduct._id);
             setIsInWishlist(inWish);
+
+            // Fetch SP tương tự cùng category
+            import('../lib/axios').then(({ default: axios }) => {
+                axios.get(`/products?category=${encodeURIComponent(currentProduct.category || '')}&limit=5`)
+                    .then(res => {
+                        const filtered = (res.data.products || []).filter(p => p._id !== currentProduct._id).slice(0, 4);
+                        setRelatedProducts(filtered);
+                    })
+                    .catch(() => { });
+            });
         }
     }, [currentProduct, wishlist]);
 
@@ -47,7 +59,7 @@ const ProductDetailPage = () => {
         : 0;
 
     return (
-        <div className="min-h-screen bg-[#0f0c08] text-white pt-20 pb-16">
+        <div className="min-h-screen bg-white dark:bg-[#0f0c08] text-gray-900 dark:text-white pt-20 pb-16 transition-colors duration-300">
             <div className="max-w-screen-2xl mx-auto px-6">
                 {/* Breadcrumb */}
                 <div className="text-sm text-gray-400 mb-8">
@@ -91,14 +103,23 @@ const ProductDetailPage = () => {
                     {/* ==================== THÔNG TIN SẢN PHẨM ==================== */}
                     <div>
                         <div className="flex items-center gap-3">
-                            <span className="text-emerald-400 font-bold">ROLEX</span>
-                            <div className="flex text-yellow-400">★★★★☆ <span className="text-white/70 ml-2">(12 đánh giá)</span></div>
+                            <span className="font-bold text-emerald-400">{currentProduct.brand || 'Luxury Watch'}</span>
+                            <div className="flex text-yellow-400">
+                                {'★'.repeat(Math.round(currentProduct.rating || 0))}
+                                {'☆'.repeat(5 - Math.round(currentProduct.rating || 0))}
+                                <span className="text-white/70 ml-2">({currentProduct.numReviews || 0} đánh giá)</span>
+                            </div>
                         </div>
 
                         <h1 className="text-5xl font-bold mt-2 leading-tight">{currentProduct.name}</h1>
 
-                        <div className="mt-4 flex items-center gap-3">
-                            <span className="bg-emerald-500 text-black text-xs px-4 py-1 rounded-full font-medium">Còn hàng</span>
+                        <div className="flex items-center gap-3">
+                            <span className={`text-sm font-bold px-3 py-1 rounded-full ${currentProduct.stock > 0
+                                ? 'bg-emerald-500/20 text-emerald-400'
+                                : 'bg-red-500/20 text-red-400'
+                                }`}>
+                                {currentProduct.stock > 0 ? `Còn hàng (${currentProduct.stock} cái)` : 'Hết hàng'}
+                            </span>
                             <span className="text-sm text-gray-400">Mã: {currentProduct._id.slice(-6)}</span>
                         </div>
 
@@ -130,7 +151,7 @@ const ProductDetailPage = () => {
                             >
                                 🛒 THÊM VÀO GIỎ HÀNG
                             </button>
-                             <button
+                            <button
                                 onClick={() => toggleWishlist(currentProduct, !!user)}
                                 className={`w-16 h-16 rounded-2xl border flex items-center justify-center transition ${isInWishlist ? "border-red-500 text-red-500 bg-red-500/10" : "border-white/30 hover:border-yellow-400"}`}
                             >
@@ -160,10 +181,28 @@ const ProductDetailPage = () => {
                         <h2 className="text-3xl font-bold">Sản phẩm tương tự</h2>
                         <Link to="/catalog" className="text-yellow-400 hover:underline">Xem tất cả →</Link>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                        {/* Dùng 4 sản phẩm bất kỳ từ store */}
-                        {/* Ở đây bạn có thể map từ useProductStore.products */}
-                    </div>
+                    {relatedProducts.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+                            {relatedProducts.map(p => (
+                                <div
+                                    key={p._id}
+                                    onClick={() => navigate(`/product/${p._id}`)}
+                                    className="cursor-pointer group bg-black/40 border border-white/10 rounded-2xl overflow-hidden hover:border-yellow-400/50 transition-all duration-300"
+                                >
+                                    <div className="aspect-square overflow-hidden">
+                                        <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                    </div>
+                                    <div className="p-4">
+                                        <p className="text-xs text-emerald-400 font-semibold mb-1">{p.brand || p.category}</p>
+                                        <h4 className="text-sm font-bold text-white line-clamp-2 mb-2">{p.name}</h4>
+                                        <p className="text-yellow-400 font-bold">{p.price?.toLocaleString('vi-VN')}đ</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-gray-500 text-center py-8">Không có sản phẩm tương tự.</p>
+                    )}
                 </div>
             </div>
         </div>

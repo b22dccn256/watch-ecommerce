@@ -17,7 +17,7 @@ import categoryRoutes from "./routes/category.route.js";
 import bannerRoutes from "./routes/banner.route.js";
 import contactRoutes from "./routes/contact.route.js";
 import mailRoutes from "./routes/mail.route.js";
-import "./services/mailWorker.js"; 
+import "./services/mailWorker.js";
 // cron job
 import "./lib/cron.js";
 import "./lib/cron-ai.js";

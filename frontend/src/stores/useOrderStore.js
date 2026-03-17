@@ -25,10 +25,26 @@ export const useOrderStore = create((set) => ({
 			const res = await axios.get(`/orders/track/${trackingToken}`);
 			set({ currentOrder: res.data, loading: false });
 		} catch (error) {
-			set({ 
-				loading: false, 
-				error: error.response?.data?.message || "Không tìm thấy thông tin đơn hàng" 
+			set({
+				loading: false,
+				error: error.response?.data?.message || "Không tìm thấy thông tin đơn hàng"
 			});
+		}
+	},
+
+	cancelOrder: async (orderId) => {
+		try {
+			await axios.patch(`/orders/${orderId}/cancel`);
+			set(state => ({
+				orders: state.orders.map(o =>
+					o._id === orderId ? { ...o, status: 'cancelled' } : o
+				)
+			}));
+			toast.success("Đã hủy đơn hàng thành công!");
+			return true;
+		} catch (error) {
+			toast.error(error.response?.data?.message || "Không thể hủy đơn hàng này");
+			return false;
 		}
 	},
 }));

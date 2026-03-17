@@ -10,7 +10,7 @@ const CatalogPage = () => {
 	const { category } = useParams();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const {
-		products, loading, totalPages, currentPage, sort,
+		products, loading, totalPages, currentPage, sort, totalCount,
 		fetchFilteredProducts, setPage, searchTerm, setSearchTerm, setFilters, setSort
 	} = useProductStore();
 
@@ -118,7 +118,7 @@ const CatalogPage = () => {
 
 						{!loading && (
 							<p className="text-sm text-gray-500 mb-8 border-b border-zinc-800 pb-4">
-								Tìm thấy <span className="text-[#D4AF37] font-bold">{products.length * totalPages}</span> sản phẩm phù hợp
+								Tìm thấy <span className="text-[#D4AF37] font-bold">{totalCount ?? products.length}</span> sản phẩm phù hợp
 							</p>
 						)}
 

@@ -5,7 +5,7 @@ import { useWishlistStore } from "../stores/useWishlistStore";
 import { useProductStore } from "../stores/useProductStore";
 import { useThemeStore } from "../stores/useThemeStore";
 import { useState } from "react";
-import { ShoppingCart, User, LogOut, Lock, Search, Heart } from "lucide-react";
+import { ShoppingCart, User, LogOut, Lock, Search, Heart, Menu, X as CloseIcon } from "lucide-react";
 
 const Navbar = () => {
 	const { user, logout } = useUserStore();
@@ -16,6 +16,7 @@ const Navbar = () => {
 
 	const [searchTerm, setSearchTerm] = useState("");
 	const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 	const isAdmin = user?.role === "admin";
 
@@ -34,8 +35,11 @@ const Navbar = () => {
 	const executeSearch = () => {
 		if (searchTerm.trim()) {
 			navigate(`/catalog?q=${encodeURIComponent(searchTerm.trim())}`);
+			setIsMobileMenuOpen(false);
 		}
 	};
+
+	const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
 	return (
 		<>
@@ -105,7 +109,7 @@ const Navbar = () => {
 									`transition duration-300 ${isActive ? 'text-luxury-gold' : 'text-gray-500 dark:text-luxury-text-muted hover:text-luxury-gold'}`
 								}
 							>
-								About Us
+								Giới Thiệu
 							</NavLink>
 
 							<button
@@ -196,10 +200,105 @@ const Navbar = () => {
 									Dashboard
 								</Link>
 							)}
+
+							{/* Hamburger Button (mobile only) */}
+							<button
+								className="md:hidden p-2 text-gray-700 dark:text-luxury-text-light hover:text-luxury-gold transition-colors"
+								onClick={() => setIsMobileMenuOpen(o => !o)}
+								aria-label="Toggle menu"
+							>
+								{isMobileMenuOpen ? <CloseIcon className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+							</button>
 						</div>
 					</div>
 				</div>
 			</header>
+
+			{/* Mobile Menu Drawer */}
+			{isMobileMenuOpen && (
+				<div className="fixed inset-0 z-40 md:hidden" onClick={closeMobileMenu}>
+					<div
+						className="absolute top-[73px] left-0 right-0 bg-white dark:bg-luxury-dark border-b border-gray-200 dark:border-luxury-border shadow-2xl px-6 py-6 space-y-5"
+						onClick={e => e.stopPropagation()}
+					>
+						{/* Search */}
+						<div className="relative">
+							<input
+								type="text"
+								value={searchTerm}
+								onChange={handleSearch}
+								onKeyDown={handleKeyDown}
+								placeholder="Tìm kiếm đồng hồ..."
+								className="w-full bg-gray-100 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border focus:border-luxury-gold text-black dark:text-white pl-4 pr-12 py-3 rounded-full text-sm placeholder-gray-400 dark:placeholder-luxury-text-muted focus:outline-none transition duration-300"
+							/>
+							<button onClick={executeSearch} className="absolute right-4 top-1/2 -translate-y-1/2 text-luxury-gold">
+								<Search className="w-5 h-5" />
+							</button>
+						</div>
+
+						{/* Nav Links */}
+						<nav className="space-y-1">
+							{[
+								{ to: "/", label: "Trang Chủ" },
+								{ to: "/catalog?reset=true", label: "Đồng Hồ" },
+								{ to: "/about", label: "Giới Thiệu" },
+								{ to: "/contact", label: "Liên Hệ" },
+								{ to: "/order-lookup", label: "Tra Cứu Đơn Hàng" },
+							].map(item => (
+								<NavLink
+									key={item.to}
+									to={item.to}
+									onClick={closeMobileMenu}
+									className={({ isActive }) =>
+										`block px-4 py-3 rounded-xl text-sm font-medium transition-colors ${isActive
+											? 'bg-luxury-gold/10 text-luxury-gold'
+											: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-luxury-gold'
+										}`
+									}
+								>
+									{item.label}
+								</NavLink>
+							))}
+						</nav>
+
+						{/* Divider */}
+						<div className="border-t border-gray-100 dark:border-luxury-border" />
+
+						{/* Actions */}
+						<div className="flex items-center gap-3 flex-wrap">
+							<Link to="/wishlist" onClick={closeMobileMenu} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-luxury-gold transition-colors relative">
+								<Heart className="w-5 h-5" />
+								Yêu thích
+								{wishlist.length > 0 && <span className="ml-auto bg-luxury-gold text-luxury-dark text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{wishlist.length}</span>}
+							</Link>
+							{user && (
+								<Link to="/cart" onClick={closeMobileMenu} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-luxury-gold transition-colors">
+									<ShoppingCart className="w-5 h-5" />
+									Giỏ hàng
+									{cart.length > 0 && <span className="ml-auto bg-luxury-gold text-luxury-dark text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{cart.length}</span>}
+								</Link>
+							)}
+						</div>
+
+						{/* Auth */}
+						{user ? (
+							<div className="flex items-center gap-3 border-t border-gray-100 dark:border-luxury-border pt-4">
+								<Link to="/profile" onClick={closeMobileMenu} className="flex-1 flex items-center gap-2 px-4 py-3 bg-gray-50 dark:bg-white/5 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-luxury-gold transition-colors">
+									<User className="w-5 h-5" />
+									{user.name || "Hồ sơ"}
+								</Link>
+								<button onClick={() => { logout(); closeMobileMenu(); }} className="px-4 py-3 bg-red-50 dark:bg-red-500/10 rounded-xl text-sm font-medium text-red-500 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors">
+									<LogOut className="w-5 h-5" />
+								</button>
+							</div>
+						) : (
+							<Link to="/login" onClick={closeMobileMenu} className="block w-full text-center bg-luxury-gold hover:bg-luxury-gold-light text-luxury-dark px-4 py-3 rounded-xl text-sm font-bold transition duration-300">
+								Đăng nhập / Đăng ký
+							</Link>
+						)}
+					</div>
+				</div>
+			)}
 
 			{/* Contact Modal */}
 			{isContactModalOpen && (

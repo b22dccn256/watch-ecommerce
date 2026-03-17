@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User as UserIcon, ShoppingBag, Lock, LogOut, ChevronRight, Eye, Package, ExternalLink, Truck, Copy } from "lucide-react";
+import { User as UserIcon, ShoppingBag, Lock, LogOut, ChevronRight, Eye, EyeOff, Package, ExternalLink, Truck, Copy, XCircle } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useUserStore } from "../stores/useUserStore";
 import { useOrderStore } from "../stores/useOrderStore";
@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 
 const ProfilePage = () => {
 	const { user, logout, updateProfile, changePassword, loading: userLoading } = useUserStore();
-	const { orders, fetchMyOrders, loading: ordersLoading } = useOrderStore();
+	const { orders, fetchMyOrders, loading: ordersLoading, cancelOrder } = useOrderStore();
 	const [activeTab, setActiveTab] = useState("info");
 	const [selectedOrder, setSelectedOrder] = useState(null);
 
@@ -23,6 +23,11 @@ const ProfilePage = () => {
 		oldPassword: "",
 		newPassword: "",
 		confirmPassword: "",
+	});
+	const [showPasswords, setShowPasswords] = useState({
+		old: false,
+		newPwd: false,
+		confirm: false,
 	});
 
 	useEffect(() => {
@@ -113,8 +118,8 @@ const ProfilePage = () => {
 									key={item.id}
 									onClick={() => setActiveTab(item.id)}
 									className={`w-full flex items-center justify-between px-6 py-4 text-sm font-medium transition-colors border-b border-gray-100 dark:border-luxury-border last:border-0 ${activeTab === item.id
-											? "bg-luxury-gold/10 text-luxury-gold"
-											: "text-gray-500 dark:text-luxury-text-muted hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"
+										? "bg-luxury-gold/10 text-luxury-gold"
+										: "text-gray-500 dark:text-luxury-text-muted hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"
 										}`}
 								>
 									<div className='flex items-center gap-3'>
@@ -261,6 +266,19 @@ const ProfilePage = () => {
 																				<ExternalLink className='w-5 h-5' />
 																			</Link>
 																		)}
+																		{order.status === 'pending' && (
+																			<button
+																				onClick={async () => {
+																					if (window.confirm(`Hủy đơn hàng #${order.orderCode}? Hành động này không thể hoàn tác.`)) {
+																						await cancelOrder(order._id);
+																					}
+																				}}
+																				className='p-2 hover:bg-red-500/10 rounded-full transition-colors text-gray-400 hover:text-red-500'
+																				title="Hủy đơn hàng"
+																			>
+																				<XCircle className='w-5 h-5' />
+																			</button>
+																		)}
 																	</div>
 																</td>
 															</tr>
@@ -291,33 +309,48 @@ const ProfilePage = () => {
 										<div className='max-w-md space-y-6'>
 											<div className='space-y-2'>
 												<label className='text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>Mật khẩu hiện tại</label>
-												<input
-													type="password"
-													value={pwdData.oldPassword}
-													onChange={(e) => setPwdData({ ...pwdData, oldPassword: e.target.value })}
-													className='w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border focus:border-luxury-gold text-gray-900 dark:text-white px-5 py-3 rounded-xl focus:outline-none transition'
-													required
-												/>
+												<div className='relative'>
+													<input
+														type={showPasswords.old ? "text" : "password"}
+														value={pwdData.oldPassword}
+														onChange={(e) => setPwdData({ ...pwdData, oldPassword: e.target.value })}
+														className='w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border focus:border-luxury-gold text-gray-900 dark:text-white px-5 py-3 pr-12 rounded-xl focus:outline-none transition'
+														required
+													/>
+													<button type='button' onClick={() => setShowPasswords(p => ({ ...p, old: !p.old }))} className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition'>
+														{showPasswords.old ? <EyeOff className='w-5 h-5' /> : <Eye className='w-5 h-5' />}
+													</button>
+												</div>
 											</div>
 											<div className='space-y-2'>
 												<label className='text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>Mật khẩu mới</label>
-												<input
-													type="password"
-													value={pwdData.newPassword}
-													onChange={(e) => setPwdData({ ...pwdData, newPassword: e.target.value })}
-													className='w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border focus:border-luxury-gold text-gray-900 dark:text-white px-5 py-3 rounded-xl focus:outline-none transition'
-													required
-												/>
+												<div className='relative'>
+													<input
+														type={showPasswords.newPwd ? "text" : "password"}
+														value={pwdData.newPassword}
+														onChange={(e) => setPwdData({ ...pwdData, newPassword: e.target.value })}
+														className='w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border focus:border-luxury-gold text-gray-900 dark:text-white px-5 py-3 pr-12 rounded-xl focus:outline-none transition'
+														required
+													/>
+													<button type='button' onClick={() => setShowPasswords(p => ({ ...p, newPwd: !p.newPwd }))} className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition'>
+														{showPasswords.newPwd ? <EyeOff className='w-5 h-5' /> : <Eye className='w-5 h-5' />}
+													</button>
+												</div>
 											</div>
 											<div className='space-y-2'>
 												<label className='text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>Xác nhận mật khẩu mới</label>
-												<input
-													type="password"
-													value={pwdData.confirmPassword}
-													onChange={(e) => setPwdData({ ...pwdData, confirmPassword: e.target.value })}
-													className='w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border focus:border-luxury-gold text-gray-900 dark:text-white px-5 py-3 rounded-xl focus:outline-none transition'
-													required
-												/>
+												<div className='relative'>
+													<input
+														type={showPasswords.confirm ? "text" : "password"}
+														value={pwdData.confirmPassword}
+														onChange={(e) => setPwdData({ ...pwdData, confirmPassword: e.target.value })}
+														className='w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border focus:border-luxury-gold text-gray-900 dark:text-white px-5 py-3 pr-12 rounded-xl focus:outline-none transition'
+														required
+													/>
+													<button type='button' onClick={() => setShowPasswords(p => ({ ...p, confirm: !p.confirm }))} className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition'>
+														{showPasswords.confirm ? <EyeOff className='w-5 h-5' /> : <Eye className='w-5 h-5' />}
+													</button>
+												</div>
 											</div>
 											<button
 												type='submit'
@@ -362,7 +395,7 @@ const ProfilePage = () => {
 										<p className='text-gray-500 dark:text-luxury-text-muted text-sm flex items-center gap-2'>
 											Ngày đặt: {new Date(selectedOrder.createdAt).toLocaleString("vi-VN")}
 											{selectedOrder.trackingToken && (
-												<button 
+												<button
 													onClick={() => {
 														navigator.clipboard.writeText(selectedOrder.trackingToken);
 														toast.success("Đã sao chép mã theo dõi!");
@@ -394,7 +427,7 @@ const ProfilePage = () => {
 											<p className="text-[10px] text-emerald-500 font-medium">Cập nhật lúc: {new Date(selectedOrder.updatedAt).toLocaleTimeString("vi-VN")}</p>
 										</div>
 									</div>
-									<Link 
+									<Link
 										to={`/order-tracking/${selectedOrder.trackingToken}`}
 										className="flex items-center gap-2 px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20"
 									>

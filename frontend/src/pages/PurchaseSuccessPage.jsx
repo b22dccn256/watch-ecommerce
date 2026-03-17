@@ -108,21 +108,27 @@ const PurchaseSuccessPage = () => {
 					<h1 className='text-3xl sm:text-4xl font-extrabold text-white mb-2'>
 						Cảm ơn bạn đã đặt hàng!
 					</h1>
-					<p className='text-gray-400 text-lg flex items-center justify-center gap-2'>
+					<p className='text-gray-400 text-lg'>
 						Mã đơn hàng: <span className='font-bold text-emerald-400 tracking-wider'>{order.orderCode}</span>
-						{order.trackingToken && (
-							<button 
-								onClick={() => {
-									navigator.clipboard.writeText(order.trackingToken);
-									toast.success("Đã sao chép mã theo dõi!");
-								}}
-								className="p-1.5 hover:bg-gray-700 rounded-lg text-gray-500 hover:text-emerald-400 transition-colors"
-								title="Sao chép mã theo dõi"
-							>
-								<Copy size={16} />
-							</button>
-						)}
 					</p>
+					{order.trackingToken && (
+						<div className='mt-4 bg-emerald-500/10 border-2 border-emerald-500/40 rounded-xl p-4 flex flex-col items-center gap-2'>
+							<p className='text-xs text-emerald-400 font-bold uppercase tracking-widest'>⚠️ Hãy lưu lại mã theo dõi đơn hàng!</p>
+							<div className='flex items-center gap-2'>
+								<code className='text-emerald-300 font-mono text-sm bg-gray-900 px-3 py-1.5 rounded-lg border border-emerald-500/30 break-all'>{order.trackingToken}</code>
+								<button
+									onClick={() => {
+										navigator.clipboard.writeText(order.trackingToken);
+										toast.success("Đã sao chép mã theo dõi!");
+									}}
+									className='flex-shrink-0 bg-emerald-500 hover:bg-emerald-600 text-black px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1'
+								>
+									<Copy size={14} /> Sao chép
+								</button>
+							</div>
+							<p className='text-xs text-gray-500'>Dùng mã này để theo dõi đơn hàng của bạn</p>
+						</div>
+					)}
 				</div>
 
 				{/* Status Card */}
@@ -217,8 +223,8 @@ const PurchaseSuccessPage = () => {
 						<ArrowRight size={18} className="mr-2 rotate-180 text-gray-400 group-hover:-translate-x-1 transition-transform" />
 						Tiếp tục mua sắm
 					</Link>
-					<Link 
-						to={order.trackingToken ? `/order-tracking/${order.trackingToken}` : "/profile"} 
+					<Link
+						to={order.trackingToken ? `/order-tracking/${order.trackingToken}` : "/profile"}
 						className='flex-1 flex justify-center items-center gap-2 px-6 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] group'
 					>
 						Theo dõi đơn hàng <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />

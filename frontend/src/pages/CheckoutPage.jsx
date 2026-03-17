@@ -1,19 +1,23 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCartStore } from "../stores/useCartStore";
+import { useUserStore } from "../stores/useUserStore";
 import { useNavigate } from "react-router-dom";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { loadStripe } from "@stripe/stripe-js";
-import { CheckCircle, AlertCircle, ShoppingBag, X } from "lucide-react";
+import { CheckCircle, AlertCircle, ShoppingBag, X, ChevronRight, ChevronLeft, Truck } from "lucide-react";
 
 const stripePromise = loadStripe(
-    "pk_test_51T7jJrRr2qVoAZRfvl75MAV9R1hKff83NvtcBLRVZn2nYSUvYD7dvIGVJyghmAIHME3kUAZKYOp7WGDcTsBJxQyq0089sLHUG2"
+    import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_51T7jJrRr2qVoAZRfvl75MAV9R1hKff83NvtcBLRVZn2nYSUvYD7dvIGVJyghmAIHME3kUAZKYOp7WGDcTsBJxQyq0089sLHUG2"
 );
 
 const CheckoutPage = () => {
     const { cart, total, subtotal, coupon, isCouponApplied, clearCart } = useCartStore();
+    const { user } = useUserStore();
     const navigate = useNavigate();
+
+    const [reviewStep, setReviewStep] = useState(false); // false = form, true = review
 
     const [formData, setFormData] = useState({
         fullName: "",
@@ -28,15 +32,23 @@ const CheckoutPage = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false); // Loading khi xác nhận QR
     const [qrData, setQrData] = useState(null); // For QR modal
-    // useRef: update đồng bộ, không gây re-render — đảm bảo useEffect thấy giá trị mới ngay lập tức
     const paymentDoneRef = useRef(false);
 
-    // Load saved form data
+    // Load saved form data + auto-fill từ user nếu chưa có dữ liệu
     useEffect(() => {
         const savedData = localStorage.getItem("checkoutFormData");
         if (savedData) {
             setFormData(JSON.parse(savedData));
+        } else if (user) {
+            // Auto-fill từ thông tin tài khoản
+            setFormData(prev => ({
+                ...prev,
+                fullName: user.name || "",
+                email: user.email || "",
+                phoneNumber: user.phone || "",
+            }));
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Save form data on change
@@ -69,7 +81,10 @@ const CheckoutPage = () => {
             newErrors.phoneNumber = "Số điện thoại không hợp lệ";
         }
 
-        if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        // Email bắt buộc (cần để gửi email xác nhận đơn hàng)
+        if (!formData.email.trim()) {
+            newErrors.email = "Email là bắt buộc (để nhận xác nhận đơn hàng)";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
             newErrors.email = "Email không hợp lệ";
         }
 
@@ -78,6 +93,12 @@ const CheckoutPage = () => {
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
+    };
+
+    // Bước 1: Validate form → chuyển sang review
+    const handleProceedToReview = () => {
+        if (validateForm()) setReviewStep(true);
+        else window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handlePaymentStripe = async () => {
@@ -223,7 +244,7 @@ const CheckoutPage = () => {
                                 </div>
 
                                 <div className="space-y-2 md:col-span-2">
-                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Email (Không bắt buộc)</label>
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Email <span className="text-red-500">*</span></label>
                                     <input
                                         type="email"
                                         name="email"
@@ -312,6 +333,10 @@ const CheckoutPage = () => {
                                         <span>-{coupon.discountPercentage}%</span>
                                     </div>
                                 )}
+                                <div className='flex justify-between text-gray-500 dark:text-gray-400 items-center'>
+                                    <span className='flex items-center gap-1.5'><Truck className='w-4 h-4 text-emerald-500' /> Phí vận chuyển</span>
+                                    <span className='text-emerald-600 dark:text-emerald-400 font-medium'>Miễn phí</span>
+                                </div>
                                 <div className='flex justify-between font-bold text-lg pt-2 border-t border-gray-100 dark:border-gray-700'>
                                     <span className="text-gray-900 dark:text-white">Tổng cộng</span>
                                     <span className="text-emerald-600 dark:text-emerald-400">{formatPrice(total)} ₫</span>
@@ -319,39 +344,63 @@ const CheckoutPage = () => {
                             </div>
                         </div>
 
-                        <div className='bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 space-y-4 shadow-sm'>
-                            <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-2'>Phương thức thanh toán</h3>
-
+                        {!reviewStep ? (
+                            /* Bước 1: Nút chuyển sang review */
                             <button
-                                className='flex w-full items-center justify-center rounded-lg bg-[#635BFF] px-5 py-3 text-sm font-medium text-white hover:bg-[#524ac9] transition-colors shadow-lg shadow-[#635BFF]/20 disabled:opacity-50 disabled:cursor-not-allowed'
-                                onClick={handlePaymentStripe}
-                                disabled={isProcessing || cart.length === 0}
+                                onClick={handleProceedToReview}
+                                disabled={cart.length === 0}
+                                className='flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 px-5 py-4 text-base font-bold text-white transition-colors shadow-lg shadow-emerald-600/20 disabled:opacity-50'
                             >
-                                {isProcessing ? "Đang xử lý..." : "Thanh toán qua Stripe"}
+                                Tiếp tục → Xem lại đơn hàng <ChevronRight className='w-5 h-5' />
                             </button>
-
-                            <button
-                                className='flex w-full items-center justify-center rounded-lg bg-emerald-600 px-5 py-3 text-sm font-medium text-white hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed'
-                                onClick={handlePaymentQR}
-                                disabled={isProcessing || cart.length === 0}
-                            >
-                                {isProcessing ? "Đang xử lý..." : "Chuyển khoản VietQR"}
-                            </button>
-
-                            <button
-                                className='flex w-full items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 px-5 py-3 text-sm font-medium text-emerald-600 dark:text-emerald-400 border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-                                onClick={handlePaymentCOD}
-                                disabled={isProcessing || cart.length === 0}
-                            >
-                                {isProcessing ? "Đang xử lý..." : "Thanh toán khi nhận hàng (COD)"}
-                            </button>
-                        </div>
+                        ) : (
+                            /* Bước 2: Xác nhận + Chọn thanh toán */
+                            <div className='space-y-4'>
+                                {/* Tóm tắt thông tin giao hàng */}
+                                <div className='bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-sm space-y-1.5 border border-gray-200 dark:border-gray-600'>
+                                    <p className='font-semibold text-gray-900 dark:text-white mb-2'>✅ Thông tin giao hàng</p>
+                                    <p className='text-gray-600 dark:text-gray-300'><span className='text-gray-400'>Người nhận:</span> {formData.fullName}</p>
+                                    <p className='text-gray-600 dark:text-gray-300'><span className='text-gray-400'>SĐT:</span> {formData.phoneNumber}</p>
+                                    <p className='text-gray-600 dark:text-gray-300'><span className='text-gray-400'>Email:</span> {formData.email}</p>
+                                    <p className='text-gray-600 dark:text-gray-300'><span className='text-gray-400'>Địa chỉ:</span> {formData.address}, {formData.city}</p>
+                                    {formData.orderNotes && <p className='text-amber-600 dark:text-amber-400'><span className='text-gray-400'>Ghi chú:</span> {formData.orderNotes}</p>}
+                                </div>
+                                <button
+                                    onClick={() => setReviewStep(false)}
+                                    className='flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
+                                >
+                                    <ChevronLeft className='w-4 h-4' /> Sửa thông tin giao hàng
+                                </button>
+                                <p className='text-xs text-gray-400 text-center'>Chọn phương thức thanh toán</p>
+                                <button
+                                    className='flex w-full items-center justify-center rounded-lg bg-[#635BFF] px-5 py-3 text-sm font-medium text-white hover:bg-[#524ac9] transition-colors shadow-lg shadow-[#635BFF]/20 disabled:opacity-50 disabled:cursor-not-allowed'
+                                    onClick={handlePaymentStripe}
+                                    disabled={isProcessing || cart.length === 0}
+                                >
+                                    {isProcessing ? "Đang xử lý..." : "Thanh toán qua Stripe"}
+                                </button>
+                                <button
+                                    className='flex w-full items-center justify-center rounded-lg bg-emerald-600 px-5 py-3 text-sm font-medium text-white hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed'
+                                    onClick={handlePaymentQR}
+                                    disabled={isProcessing || cart.length === 0}
+                                >
+                                    {isProcessing ? "Đang xử lý..." : "Chuyển khoản VietQR"}
+                                </button>
+                                <button
+                                    className='flex w-full items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 px-5 py-3 text-sm font-medium text-emerald-600 dark:text-emerald-400 border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                                    onClick={handlePaymentCOD}
+                                    disabled={isProcessing || cart.length === 0}
+                                >
+                                    {isProcessing ? "Đang xử lý..." : "Thanh toán khi nhận hàng (COD)"}
+                                </button>
+                            </div>
+                        )}
                     </motion.div>
                 </div>
             </div>
 
             {/* QR Modal */}
-            <AnimatePresence>
+            < AnimatePresence >
                 {qrData && (
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -365,11 +414,11 @@ const CheckoutPage = () => {
                             exit={{ scale: 0.95, y: 20 }}
                             className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 max-w-sm w-full relative shadow-2xl"
                         >
-                            {/* Nút đóng — cũng xác nhận thanh toán */}
+                            {/* Nút đóng — CHỈ đóng modal, không xác nhận thanh toán */}
                             <button
-                                onClick={handleConfirmQRPayment}
-                                disabled={isConfirming}
-                                className="absolute top-4 right-4 text-gray-400 hover:text-black dark:hover:text-white transition-colors disabled:opacity-50"
+                                onClick={() => setQrData(null)}
+                                className="absolute top-4 right-4 text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+                                title="Đóng (đơn hàng vẫn được giữ lại)"
                             >
                                 <X size={24} />
                             </button>
@@ -419,7 +468,7 @@ const CheckoutPage = () => {
                         </motion.div>
                     </motion.div>
                 )}
-            </AnimatePresence>
+            </AnimatePresence >
 
             <style jsx="true">{`
 				.custom-scrollbar::-webkit-scrollbar {
@@ -440,7 +489,7 @@ const CheckoutPage = () => {
 					background: rgba(16, 185, 129, 0.8); 
 				}
 			`}</style>
-        </div>
+        </div >
     );
 };
 

@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
@@ -33,6 +33,15 @@ import { useUserStore } from "./stores/useUserStore";
 import { useCartStore } from "./stores/useCartStore";
 import { useThemeStore } from "./stores/useThemeStore";
 import { useWishlistStore } from "./stores/useWishlistStore";
+
+// Scroll to top khi navigate
+const ScrollToTop = () => {
+	const { pathname } = useLocation();
+	useEffect(() => {
+		window.scrollTo({ top: 0, behavior: 'instant' });
+	}, [pathname]);
+	return null;
+};
 
 function App() {
 	const { user, checkAuth, checkingAuth } = useUserStore();
@@ -76,14 +85,13 @@ function App() {
 
 	return (
 		<div className={`min-h-screen relative theme-transition ${theme === 'dark' ? 'bg-luxury-dark text-white' : 'bg-white text-black'}`}>
-			{/* Background gradient */}
+			<ScrollToTop />
 			<div className='absolute inset-0 overflow-hidden pointer-events-none'>
 				<div className='absolute inset-0'>
-					<div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-full ${
-						theme === 'dark' 
-						? 'bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.15)_0%,rgba(46,95,74,0.05)_45%,rgba(15,15,15,0.9)_100%)]'
-						: 'bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.1)_0%,rgba(240,240,240,0.4)_45%,rgba(255,255,255,1)_100%)]'
-					}`} />
+					<div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-full ${theme === 'dark'
+							? 'bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.15)_0%,rgba(46,95,74,0.05)_45%,rgba(15,15,15,0.9)_100%)]'
+							: 'bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.1)_0%,rgba(240,240,240,0.4)_45%,rgba(255,255,255,1)_100%)]'
+						}`} />
 				</div>
 			</div>
 
@@ -105,7 +113,7 @@ function App() {
 						<Route path='/checkout' element={user ? <CheckoutPage /> : <Navigate to='/login' />} />
 						<Route path='/profile' element={user ? <ProfilePage /> : <Navigate to='/login' />} />
 						<Route path='/wishlist' element={user ? <WishlistPage /> : <Navigate to='/login' />} />
-						
+
 						{/* Public Policy & Support Routes */}
 						<Route path='/delivery-policy' element={<DeliveryPolicyPage />} />
 						<Route path='/warranty' element={<WarrantyPage />} />
