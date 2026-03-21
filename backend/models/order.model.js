@@ -46,7 +46,7 @@ const orderSchema = new mongoose.Schema(
 		// Trạng thái đơn hàng tổng quát
 		status: {
 			type: String,
-			enum: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
+			enum: ["pending", "awaiting_verification", "confirmed", "shipped", "delivered", "cancelled"],
 			default: "pending"
 		},
 		paymentStatus: {
@@ -62,6 +62,7 @@ const orderSchema = new mongoose.Schema(
 		stripeSessionId: {
 			type: String,
 			unique: true,
+			sparse: true, // Cho phép nhiều document có stripeSessionId = null (COD, QR orders)
 		},
 		currency: {
 			type: String,
@@ -98,6 +99,14 @@ const orderSchema = new mongoose.Schema(
 	},
 	{ timestamps: true }
 );
+
+// ── Performance Indexes ───────────────────────────────────────────────────────
+// Tăng tốc getMyOrders (sort mới nhất trước)
+orderSchema.index({ user: 1, createdAt: -1 });
+// Tăng tốc lọc admin theo status + thời gian
+orderSchema.index({ status: 1, createdAt: -1 });
+// Tăng tốc tra cứu đơn hàng theo orderCode
+orderSchema.index({ orderCode: 1 });
 
 const Order = mongoose.model("Order", orderSchema);
 

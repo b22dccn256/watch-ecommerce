@@ -78,10 +78,8 @@ export const login = async (req, res) => {
 		const user = await User.findOne({ email });
 
 		if (user && (await user.comparePassword(password))) {
-			console.log("Login: User found and password matches. Role:", user.role);
 			// Check if user is admin
 			if (user.role === "admin") {
-				console.log("Login: Admin detected, triggering OTP flow");
 				// Check for account lockout
 				const lockUntil = await redis.get(`lockUntil:${email}`);
 				if (lockUntil && lockUntil > Date.now()) {
@@ -256,13 +254,16 @@ export const resendOTP = async (req, res) => {
 
 		// Store in Redis (refresh TTL)
 		await redis.set(`otp:${email}`, hashedOtp, "EX", 5 * 60);
-		// Reset attempts on manual resend (30 mins to match design)
-		await redis.set(`attempts:${email}`, 0, "EX", 30 * 60);
+		// KHÔNG reset attempts — giữ nguyên để lockout vẫn hoạt động
+		// (nếu đã sai 4 lần, resend không cho thêm lượt thử mới)
 		// Set cooldown
 		await redis.set(`cooldown:${email}`, "locked", "EX", 60);
 
 		// Send email (Resilient flow)
 		try {
+			// Extract device info for the email
+			const userAgent = req.headers["user-agent"] || "Không xác định thiết bị";
+			const ip = req.ip || req.connection?.remoteAddress || "Không xác định IP";
 			await sendEmail(
 				email,
 				"Mã xác thực 2FA mới của bạn",
@@ -416,8 +417,8 @@ export const updateProfile = async (req, res) => {
 			return res.status(400).json({ message: "Tên không được để trống" });
 		}
 
-		// Regex VN: 0 + (3,5,7,8,9) + 8 digits
-		const phoneRegex = /^(0)[3|5|7|8|9]\d{8}$/;
+		// Regex chuẩn VN: hỗ trợ Viettel/Mobifone/Vinaphone/Gmobile/Reddi
+		const phoneRegex = /^(0|\+84)(3[2-9]|5[25689]|7[06-9]|8[0-9]|9[0-9])\d{7}$/;
 		if (phone && !phoneRegex.test(phone)) {
 			return res.status(400).json({ message: "Số điện thoại không hợp lệ (định dạng di động VN)" });
 		}

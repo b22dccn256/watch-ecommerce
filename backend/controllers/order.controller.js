@@ -1,4 +1,4 @@
-﻿// controllers/order.controller.js
+// controllers/order.controller.js
 import Order from "../models/order.model.js";
 import Product from "../models/product.model.js";
 import Coupon from "../models/coupon.model.js";
@@ -88,30 +88,42 @@ export const getMyOrders = async (req, res) => {
     }
 };
 
-export const createCODOrder = async (req, res) => {
+// ── Hàm lõi chung cho COD và QR (tránh duplicate ~80 dòng code) ──────────────
+const createNonStripeOrder = async (req, res, paymentMethod) => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
         const { products, couponCode, shippingDetails } = req.body;
 
+        // ── Validation body ────────────────────────────────────────────────────
         if (!products || !Array.isArray(products) || products.length === 0) {
-            await session.abortTransaction();
-            session.endSession();
+            await session.abortTransaction(); session.endSession();
             return res.status(400).json({ message: "Danh sách sản phẩm không được rỗng" });
         }
-        if (!shippingDetails) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(400).json({ message: "Thiếu thông tin giao hàng." });
+        for (const p of products) {
+            if (!Number.isInteger(p.quantity) || p.quantity < 1) {
+                await session.abortTransaction(); session.endSession();
+                return res.status(400).json({ message: `Số lượng sản phẩm không hợp lệ: ${p.quantity}` });
+            }
+        }
+        if (!shippingDetails?.fullName?.trim() || !shippingDetails?.address?.trim() ||
+            !shippingDetails?.city?.trim() || !shippingDetails?.phoneNumber?.trim()) {
+            await session.abortTransaction(); session.endSession();
+            return res.status(400).json({ message: "Thiếu thông tin giao hàng bắt buộc." });
         }
 
+        // ── Core logic ────────────────────────────────────────────────────────
         await OrderService.deductStock(products, session);
 
-        const coupon = couponCode ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }).session(session) : null;
-        let totalAmount = await OrderService.calculateTotalAmount(products, coupon, session);
+        const coupon = couponCode
+            ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }).session(session)
+            : null;
+        const totalAmount = await OrderService.calculateTotalAmount(products, coupon, session);
         const orderCode = OrderService.generateOrderCode();
         const trackingToken = crypto.randomUUID();
+
+        const label = paymentMethod === "cod" ? "Thanh toán COD" : "Thanh toán QR";
 
         const newOrder = new Order({
             user: req.user._id,
@@ -124,12 +136,12 @@ export const createCODOrder = async (req, res) => {
             orderCode,
             trackingToken,
             shippingDetails,
-            paymentMethod: "cod",
+            paymentMethod,
             paymentStatus: "pending",
             status: "pending",
             trackingEvents: [{
                 status: "pending",
-                message: "Đơn hàng đã được khởi tạo (Thanh toán COD).",
+                message: `Đơn hàng đã được khởi tạo (${label}).`,
                 timestamp: new Date()
             }]
         });
@@ -147,117 +159,36 @@ export const createCODOrder = async (req, res) => {
         await session.commitTransaction();
         session.endSession();
 
-        // Queue Order Confirmation Email
+        // Queue email xác nhận (ngoài transaction — không critical nếu fail)
         await emailQueue.add("order-confirmation", {
             email: req.user.email,
-            subject: "Xác nhận đơn hàng #" + orderCode + " - Luxury Watch",
-            order: {
-                orderCode,
-                totalAmount,
-                shippingDetails,
-                paymentMethod: "cod"
-            }
+            subject: `Xác nhận đơn hàng #${orderCode} - Luxury Watch`,
+            order: { orderCode, totalAmount, shippingDetails, paymentMethod }
         });
 
-        res.status(201).json({
+        const message = paymentMethod === "cod"
+            ? "Đơn hàng COD đã tạo thành công! Bạn sẽ thanh toán khi nhận hàng."
+            : "Đơn hàng QR đã tạo thành công. Vui lòng chuyển khoản để xác nhận.";
+
+        return res.status(201).json({
             success: true,
-            message: "Đơn hàng COD đã tạo thành công! Bạn sẽ thanh toán khi nhận hàng.",
+            message,
             orderId: newOrder._id,
-            orderCode
+            orderCode,
+            ...(paymentMethod === "qr" && { totalAmount })
         });
     } catch (error) {
         await session.abortTransaction();
         session.endSession();
-        console.error("Error in createCODOrder:", error.message);
-        res.status(400).json({ message: error.message });
+        console.error(`Error in create${paymentMethod.toUpperCase()}Order:`, error.message);
+        return res.status(400).json({ message: error.message });
     }
 };
 
-export const createQROrder = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+// ── Exported route handlers (thin wrappers) ───────────────────────────────────
+export const createCODOrder = (req, res) => createNonStripeOrder(req, res, "cod");
+export const createQROrder  = (req, res) => createNonStripeOrder(req, res, "qr");
 
-    try {
-        const { products, couponCode, shippingDetails } = req.body;
-
-        if (!products || !Array.isArray(products) || products.length === 0) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(400).json({ message: "Danh sách sản phẩm không được rỗng" });
-        }
-        if (!shippingDetails) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(400).json({ message: "Thiếu thông tin giao hàng." });
-        }
-
-        await OrderService.deductStock(products, session);
-
-        const coupon = couponCode ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }).session(session) : null;
-        let totalAmount = await OrderService.calculateTotalAmount(products, coupon, session);
-        const orderCode = OrderService.generateOrderCode();
-        const trackingToken = crypto.randomUUID();
-
-        const newOrder = new Order({
-            user: req.user._id,
-            products: products.map(p => ({
-                product: p._id || p.id,
-                quantity: p.quantity,
-                price: p.price
-            })),
-            totalAmount,
-            orderCode,
-            trackingToken,
-            shippingDetails,
-            paymentMethod: "qr",
-            paymentStatus: "pending",
-            status: "pending",
-            trackingEvents: [{
-                status: "pending",
-                message: "Đơn hàng đã được khởi tạo (Thanh toán QR).",
-                timestamp: new Date()
-            }]
-        });
-
-        await newOrder.save({ session });
-
-        if (coupon) {
-            coupon.isActive = false;
-            await coupon.save({ session });
-        }
-
-        req.user.cartItems = [];
-        await req.user.save({ session });
-
-        await session.commitTransaction();
-        session.endSession();
-
-        // Queue Order Confirmation Email
-        await emailQueue.add("order-confirmation", {
-            email: req.user.email,
-            subject: "Xác nhận đơn hàng #" + orderCode + " - Luxury Watch",
-            order: {
-                orderCode,
-                totalAmount,
-                shippingDetails,
-                paymentMethod: "qr"
-            }
-        });
-
-        res.status(201).json({
-            success: true,
-            message: "Đơn hàng QR đã tạo thành công. Vui lòng chuyển khoản để xác nhận.",
-            orderId: newOrder._id,
-            orderCode,
-            totalAmount
-        });
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        console.error("Error in createQROrder:", error.message);
-        res.status(400).json({ message: error.message });
-    }
-};
 
 export const confirmQRPayment = async (req, res) => {
     try {
@@ -284,14 +215,22 @@ export const confirmQRPayment = async (req, res) => {
             return res.status(400).json({ message: "Đơn hàng này đã được thanh toán trước đó" });
         }
 
-        order.paymentStatus = "paid";
-        order.status = "confirmed";
-        order.paidAt = new Date();
+        if (order.status === "awaiting_verification") {
+            return res.status(400).json({ message: "Đơn hàng đã được gửi xác nhận, vui lòng đợi admin kiểm tra" });
+        }
+
+        // Chỉ chuyển sang chờ xác minh — admin sẽ xác nhận thủ công
+        order.status = "awaiting_verification";
+        order.trackingEvents.push({
+            status: "awaiting_verification",
+            message: "Khách hàng xác nhận đã chuyển khoản. Đang chờ nhân viên kiểm tra.",
+            timestamp: new Date()
+        });
         await order.save();
 
         res.json({
             success: true,
-            message: "Xác nhận thanh toán thành công!",
+            message: "Xác nhận thành công! Đơn hàng đang chờ kiểm tra thanh toán từ phía chúng tôi.",
             orderId: order._id,
         });
     } catch (error) {

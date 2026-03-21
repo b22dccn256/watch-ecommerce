@@ -45,6 +45,8 @@ const userSchema = new mongoose.Schema(
 		phone: {
 			type: String,
 			default: "",
+			index: true,
+			sparse: true, // Cho phép nhiều user chưa có SĐT (empty string / null)
 		},
 		cartUpdatedAt: {
 			type: Date,

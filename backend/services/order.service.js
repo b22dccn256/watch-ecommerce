@@ -4,6 +4,11 @@ class OrderService {
     // Kiểm tra và trừ tồn kho (Có hỗ trợ Transaction Session)
     static async deductStock(products, session = null) {
         for (const item of products) {
+            // Validate quantity: phải là số nguyên dương — tránh âm kho hoặc float bypass
+            if (!Number.isInteger(item.quantity) || item.quantity < 1) {
+                throw new Error(`Số lượng sản phẩm không hợp lệ: ${item.quantity}`);
+            }
+
             const product = await Product.findById(item._id || item.id).session(session);
             if (!product || product.stock < item.quantity) {
                 throw new Error(`Sản phẩm "${product?.name || item._id}" chỉ còn ${product?.stock || 0} cái`);
@@ -46,9 +51,11 @@ class OrderService {
         return totalAmount;
     }
 
-    // Tạo mã đơn hàng tự động
+    // Tạo mã đơn hàng: DH + timestamp(base36) + random suffix → độ unique cao hơn
     static generateOrderCode() {
-        return "DH" + Math.random().toString(36).substring(2, 8).toUpperCase();
+        const ts = Date.now().toString(36).toUpperCase().slice(-4); // 4 ký tự cuối của timestamp
+        const rand = Math.random().toString(36).substring(2, 6).toUpperCase(); // 4 ký tự random
+        return "DH" + ts + rand;
     }
 }
 

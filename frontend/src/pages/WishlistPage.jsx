@@ -12,13 +12,21 @@ const WishlistPage = () => {
 	const { addToCart } = useCartStore();
 	const { user } = useUserStore();
 
-	const handleAddAll = () => {
+	const handleAddAll = async () => {
 		if (!user) {
 			toast.error("Vui lòng đăng nhập để thêm vào giỏ hàng");
 			return;
 		}
-		wishlist.forEach(p => addToCart(p));
-		toast.success(`Đã thêm ${wishlist.length} sản phẩm vào giỏ hàng!`);
+		const results = await Promise.allSettled(wishlist.map(p => addToCart(p)));
+		const failed = results.filter(r => r.status === "rejected").length;
+		const succeeded = results.length - failed;
+		if (failed > 0 && succeeded > 0) {
+			toast.error(`${failed} sản phẩm không thể thêm (có thể đã hết hàng)`);
+		} else if (failed === results.length) {
+			toast.error("Không thể thêm sản phẩm nào vào giỏ hàng");
+		} else {
+			toast.success(`Đã thêm ${succeeded} sản phẩm vào giỏ hàng!`);
+		}
 	};
 
 	if (loading) {

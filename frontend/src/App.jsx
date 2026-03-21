@@ -33,6 +33,7 @@ import { useUserStore } from "./stores/useUserStore";
 import { useCartStore } from "./stores/useCartStore";
 import { useThemeStore } from "./stores/useThemeStore";
 import { useWishlistStore } from "./stores/useWishlistStore";
+import { ShimmerStyle } from "./components/SkeletonLoaders";
 
 // Scroll to top khi navigate
 const ScrollToTop = () => {
@@ -85,6 +86,7 @@ function App() {
 
 	return (
 		<div className={`min-h-screen relative theme-transition ${theme === 'dark' ? 'bg-luxury-dark text-white' : 'bg-white text-black'}`}>
+			<ShimmerStyle />
 			<ScrollToTop />
 			<div className='absolute inset-0 overflow-hidden pointer-events-none'>
 				<div className='absolute inset-0'>

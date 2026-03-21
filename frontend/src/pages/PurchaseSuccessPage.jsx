@@ -173,8 +173,8 @@ const PurchaseSuccessPage = () => {
 						<div className="space-y-2">
 							<p className="flex justify-between"><span className='text-gray-400'>Thành phố:</span> <span className="font-medium text-white">{order.shippingDetails?.city}</span></p>
 							<p className="flex justify-between items-start gap-4"><span className='text-gray-400 flex-shrink-0'>Địa chỉ:</span> <span className="font-medium text-white text-right line-clamp-2" title={order.shippingDetails?.address}>{order.shippingDetails?.address}</span></p>
-							{order.shippingDetails?.notes && (
-								<p className="flex justify-between border-t border-gray-600 pt-2 mt-2"><span className='text-gray-400'>Ghi chú:</span> <span className="font-medium text-amber-300 text-right line-clamp-2" title={order.shippingDetails?.notes}>{order.shippingDetails?.notes}</span></p>
+							{order.shippingDetails?.orderNotes && (
+								<p className="flex justify-between border-t border-gray-600 pt-2 mt-2"><span className='text-gray-400'>Ghi chú:</span> <span className="font-medium text-amber-300 text-right line-clamp-2" title={order.shippingDetails?.orderNotes}>{order.shippingDetails?.orderNotes}</span></p>
 							)}
 						</div>
 					</div>

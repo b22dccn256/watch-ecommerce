@@ -158,9 +158,9 @@ const Navbar = () => {
 										className='relative group p-2 text-gray-700 dark:text-luxury-text-light hover:text-luxury-gold transition-colors'
 									>
 										<ShoppingCart className='w-5 h-5 group-hover:scale-110 transition-transform' />
-										{cart.length > 0 && (
+										{cart.reduce((sum, i) => sum + i.quantity, 0) > 0 && (
 											<span className='absolute -top-1 -right-1 bg-luxury-gold text-luxury-dark text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center border-2 border-white dark:border-luxury-dark'>
-												{cart.length}
+												{cart.reduce((sum, i) => sum + i.quantity, 0)}
 											</span>
 										)}
 									</Link>
@@ -275,7 +275,7 @@ const Navbar = () => {
 								<Link to="/cart" onClick={closeMobileMenu} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-luxury-gold transition-colors">
 									<ShoppingCart className="w-5 h-5" />
 									Giỏ hàng
-									{cart.length > 0 && <span className="ml-auto bg-luxury-gold text-luxury-dark text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{cart.length}</span>}
+									{cart.reduce((sum, i) => sum + i.quantity, 0) > 0 && <span className="ml-auto bg-luxury-gold text-luxury-dark text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{cart.reduce((sum, i) => sum + i.quantity, 0)}</span>}
 								</Link>
 							)}
 						</div>

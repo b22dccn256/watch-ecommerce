@@ -71,7 +71,12 @@ export const useCartStore = create((set, get) => ({
 		if (!user) {
 			localStorage.removeItem("watch_cart");
 		} else {
-			// Optional: call clear server endpoint if you have one
+			try {
+				// Xóa giỏ hàng trên server (không cần productId = xóa toàn bộ)
+				await axios.delete("/cart", { data: {} });
+			} catch (error) {
+				console.error("clearCart server error:", error.message);
+			}
 		}
 		set({ cart: [], coupon: null, total: 0, subtotal: 0 });
 	},
@@ -129,9 +134,13 @@ export const useCartStore = create((set, get) => ({
 			return;
 		}
 
-		await axios.delete(`/cart`, { data: { productId } });
-		set((prevState) => ({ cart: prevState.cart.filter((item) => item._id !== productId) }));
-		get().calculateTotals();
+		try {
+			await axios.delete(`/cart`, { data: { productId } });
+			set((prevState) => ({ cart: prevState.cart.filter((item) => item._id !== productId) }));
+			get().calculateTotals();
+		} catch (error) {
+			toast.error(error.response?.data?.message || "Không thể xóa sản phẩm khỏi giỏ hàng");
+		}
 	},
 	updateQuantity: async (productId, quantity, maxStock) => {
 		if (quantity === 0) {

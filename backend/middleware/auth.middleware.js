@@ -6,10 +6,7 @@ export const protectRoute = async (req, res, next) => {
 	try {
 		const accessToken = req.cookies.accessToken;
 
-		console.log("🔍 [protectRoute] AccessToken tồn tại:", !!accessToken); // Debug
-
 		if (!accessToken) {
-			console.log("❌ [protectRoute] Không có access token");
 			return res.status(401).json({
 				message: "Unauthorized - No access token provided",
 				needLogin: true
@@ -21,17 +18,13 @@ export const protectRoute = async (req, res, next) => {
 			const user = await User.findById(decoded.userId).select("-password");
 
 			if (!user) {
-				console.log("❌ [protectRoute] User không tồn tại");
 				return res.status(401).json({ message: "User not found" });
 			}
 
 			req.user = user;
-			console.log("✅ [protectRoute] Auth thành công cho user:", user._id);
 			next();
 
 		} catch (error) {
-			console.log("⚠️ [protectRoute] Token error:", error.name);
-
 			if (error.name === "TokenExpiredError") {
 				return res.status(401).json({
 					message: "Unauthorized - Access token expired",

@@ -8,9 +8,7 @@ import { toast } from "react-hot-toast";
 import { loadStripe } from "@stripe/stripe-js";
 import { CheckCircle, AlertCircle, ShoppingBag, X, ChevronRight, ChevronLeft, Truck } from "lucide-react";
 
-const stripePromise = loadStripe(
-    import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_51T7jJrRr2qVoAZRfvl75MAV9R1hKff83NvtcBLRVZn2nYSUvYD7dvIGVJyghmAIHME3kUAZKYOp7WGDcTsBJxQyq0089sLHUG2"
-);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 const CheckoutPage = () => {
     const { cart, total, subtotal, coupon, isCouponApplied, clearCart } = useCartStore();
@@ -74,10 +72,11 @@ const CheckoutPage = () => {
         const newErrors = {};
         if (!formData.fullName.trim()) newErrors.fullName = "Họ và tên là bắt buộc";
 
-        const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
+        // Regex chuẩn Việt Nam: hỗ trợ đầy đủ đầu số Viettel/Mobifone/Vinaphone/Gmobile/Reddi
+        const phoneRegex = /^(0|\+84)(3[2-9]|5[25689]|7[06-9]|8[0-9]|9[0-9])\d{7}$/;
         if (!formData.phoneNumber.trim()) {
             newErrors.phoneNumber = "Số điện thoại là bắt buộc";
-        } else if (!phoneRegex.test(formData.phoneNumber)) {
+        } else if (!phoneRegex.test(formData.phoneNumber.replace(/\s/g, ""))) {
             newErrors.phoneNumber = "Số điện thoại không hợp lệ";
         }
 
@@ -178,13 +177,13 @@ const CheckoutPage = () => {
         }
     };
 
-    // Xác nhận đã chuyển khoản QR — gọi API cập nhật paymentStatus = "paid"
+    // Xác nhận đã chuyển khoản QR — đơn chuyển sang awaiting_verification, chờ admin kiểm tra
     const handleConfirmQRPayment = async () => {
         if (isConfirming) return; // Chống spam click
         setIsConfirming(true);
         try {
             await axios.post(`/orders/${qrData.orderId}/confirm-qr-payment`);
-            toast.success("Xác nhận thanh toán thành công!");
+            toast.success("Đã nhận thông tin! Chúng tôi đang kiểm tra thanh toán của bạn.");
             paymentDoneRef.current = true;
             navigate(`/purchase-success?order_id=${qrData.orderId}`);
         } catch (error) {
@@ -460,9 +459,9 @@ const CheckoutPage = () => {
                                     {isConfirming ? (
                                         <>
                                             <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                            Đang xác nhận...
+                                            Đang gởi xác nhận...
                                         </>
-                                    ) : "Tôi đã chuyển khoản"}
+                                    ) : "Đã chuyển khoản — Thông báo chúng tôi"}
                                 </button>
                             </div>
                         </motion.div>

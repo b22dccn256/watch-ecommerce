@@ -7,9 +7,10 @@ import PeopleAlsoBought from "../components/PeopleAlsoBought";
 import OrderSummary from "../components/OrderSummary";
 import GiftCouponCard from "../components/GiftCouponCard";
 import { Bookmark } from "lucide-react";
+import { SkeletonCartItem, SkeletonOrderSummary } from "../components/SkeletonLoaders";
 
 const CartPage = () => {
-	const { cart, wishlist } = useCartStore();
+	const { cart, loading } = useCartStore();
 
 	return (
 		<div className='py-8 md:py-16'>
