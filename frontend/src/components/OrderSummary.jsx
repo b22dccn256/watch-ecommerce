@@ -19,30 +19,30 @@ const OrderSummary = () => {
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.5 }}
 		>
-			<p className='text-xl font-semibold text-emerald-600 dark:text-emerald-400'>Order summary</p>
+			<p className='text-xl font-semibold text-emerald-600 dark:text-emerald-400'>Tóm tắt đơn hàng</p>
 
 			<div className='space-y-4'>
 				<div className='space-y-2'>
 					<dl className='flex items-center justify-between gap-4'>
-						<dt className='text-base font-normal text-gray-600 dark:text-gray-300'>Original price</dt>
+						<dt className='text-base font-normal text-gray-600 dark:text-gray-300'>Tạm tính</dt>
 						<dd className='text-base font-medium text-gray-900 dark:text-white'>{formattedSubtotal} ₫</dd>
 					</dl>
 
 					{savings > 0 && (
 						<dl className='flex items-center justify-between gap-4'>
-							<dt className='text-base font-normal text-gray-600 dark:text-gray-300'>Savings</dt>
+							<dt className='text-base font-normal text-gray-600 dark:text-gray-300'>Tiết kiệm</dt>
 							<dd className='text-base font-medium text-emerald-400'>-{formattedSavings} ₫</dd>
 						</dl>
 					)}
 
 					{coupon && isCouponApplied && (
 						<dl className='flex items-center justify-between gap-4'>
-							<dt className='text-base font-normal text-gray-600 dark:text-gray-300'>Coupon ({coupon.code})</dt>
+							<dt className='text-base font-normal text-gray-600 dark:text-gray-300'>Mã giảm giá ({coupon.code})</dt>
 							<dd className='text-base font-medium text-emerald-400'>-{coupon.discountPercentage}%</dd>
 						</dl>
 					)}
 					<dl className='flex items-center justify-between gap-4 border-t border-gray-200 dark:border-gray-600 pt-2'>
-						<dt className='text-base font-bold text-gray-900 dark:text-white'>Total</dt>
+						<dt className='text-base font-bold text-gray-900 dark:text-white'>Tổng cộng</dt>
 						<dd className='text-base font-bold text-emerald-400'>{formattedTotal} ₫</dd>
 					</dl>
 				</div>
@@ -58,12 +58,12 @@ const OrderSummary = () => {
 				</motion.button>
 
 				<div className='flex items-center justify-center gap-2'>
-					<span className='text-sm font-normal text-gray-400'>or</span>
+					<span className='text-sm font-normal text-gray-400'>hoặc</span>
 					<Link
 						to='/'
 						className='inline-flex items-center gap-2 text-sm font-medium text-emerald-400 underline hover:text-emerald-300 hover:no-underline'
 					>
-						Continue Shopping
+						Tiếp tục mua sắm
 						<MoveRight size={16} />
 					</Link>
 				</div>

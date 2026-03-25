@@ -6,7 +6,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { loadStripe } from "@stripe/stripe-js";
-import { CheckCircle, AlertCircle, ShoppingBag, X, ChevronRight, ChevronLeft, Truck } from "lucide-react";
+import { CheckCircle, AlertCircle, ShoppingBag, X, ChevronRight, ChevronLeft, Truck, ArrowLeft } from "lucide-react";
+import CheckoutStepper from "../components/CheckoutStepper";
 
 const stripePromise = loadStripe(
     import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_51T7jJrRr2qVoAZRfvl75MAV9R1hKff83NvtcBLRVZn2nYSUvYD7dvIGVJyghmAIHME3kUAZKYOp7WGDcTsBJxQyq0089sLHUG2"
@@ -201,7 +202,9 @@ const CheckoutPage = () => {
     const formatPrice = (price) => price.toLocaleString("vi-VN");
 
     return (
-        <div className="py-8 md:py-16">
+        <div className="bg-white dark:bg-[#0f0c08] min-h-screen text-gray-900 dark:text-white transition-colors duration-300 pb-16">
+            <CheckoutStepper currentStep={2} />
+            
             <div className="mx-auto max-w-screen-xl px-4 2xl:px-0">
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Left Col: Form */}
@@ -397,6 +400,16 @@ const CheckoutPage = () => {
                                 </button>
                             </div>
                         )}
+                        
+                        {/* Always show a back to cart option below the main action */}
+                        <div className="mt-6 text-center">
+                            <button 
+                                onClick={() => navigate('/cart')}
+                                className="inline-flex items-center justify-center gap-2 text-sm font-medium text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
+                            >
+                                <ArrowLeft className="w-4 h-4" /> Quay lại giỏ hàng
+                            </button>
+                        </div>
                     </motion.div>
                 </div>
             </div>

@@ -144,9 +144,9 @@ const productSchema = new mongoose.Schema(
 );
 
 // --- AUDIT MIDDLEWARE ---
-productSchema.pre("save", async function (next) {
+productSchema.pre("save", async function () {
 	// Skip if nothing changed
-	if (!this.isModified()) return next();
+	if (!this.isModified()) return;
 
 	const action = this.isNew ? "Created" : (this.isModified("deletedAt") && this.deletedAt !== null ? "Deleted" : "Updated");
 	const userId = this.$locals && this.$locals.userId ? this.$locals.userId : null;
@@ -171,8 +171,6 @@ productSchema.pre("save", async function (next) {
 	} catch (err) {
 		console.error("Failed to write Product Audit Log:", err.message);
 	}
-
-	next();
 });
 
 const Product = mongoose.model("Product", productSchema);
