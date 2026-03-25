@@ -4,7 +4,17 @@ import axios from "../lib/axios";
 
 export const useProductStore = create((set, get) => ({
 	products: [],
+	brands: [],
 	loading: false,
+
+	fetchBrands: async () => {
+		try {
+			const res = await axios.get("/brands");
+			set({ brands: res.data });
+		} catch (error) {
+			console.log("Error fetching brands", error);
+		}
+	},
 
 	setProducts: (products) => set({ products }),
 	createProduct: async (productData) => {

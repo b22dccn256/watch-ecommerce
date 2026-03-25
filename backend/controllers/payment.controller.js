@@ -25,11 +25,13 @@ export const createCheckoutSession = async (req, res) => {
 			return res.status(400).json({ message: "Thiếu thông tin giao hàng." });
 		}
 
-		await OrderService.deductStock(products, sessionOpts);
+		const orderCode = OrderService.generateOrderCode();
+		const newOrderId = new mongoose.Types.ObjectId();
+
+		await OrderService.deductStock(products, sessionOpts, newOrderId, req.user._id, "Thanh toán Stripe");
 
 		const coupon = couponCode ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }).session(sessionOpts) : null;
 		let dbTotalAmount = await OrderService.calculateTotalAmount(products, coupon, sessionOpts);
-		const orderCode = OrderService.generateOrderCode();
 
 		let totalAmount = 0;
 
@@ -67,6 +69,7 @@ export const createCheckoutSession = async (req, res) => {
 		}
 
 		const newOrder = new Order({
+			_id: newOrderId,
 			user: req.user._id,
 			products: products.map(p => ({
 				product: p._id || p.id,
@@ -238,7 +241,7 @@ const handlePaymentExpired = async (session) => {
 		await order.save();
 
 		// Hoàn lại kho
-		await OrderService.restoreStock(order.products);
+		await OrderService.restoreStock(order.products, null, orderId, "Stripe Checkout hết hạn");
 	}
 };
 

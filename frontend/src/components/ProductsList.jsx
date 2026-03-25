@@ -1,11 +1,12 @@
 import { useState, useMemo, useRef } from "react";
-import { motion } from "framer-motion";
-import { Trash, Star, Search, ChevronLeft, ChevronRight, Package, FileSpreadsheet } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Trash, Star, Search, ChevronLeft, ChevronRight, Package, FileSpreadsheet, PlusCircle, X } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
+import CreateProductForm from "./CreateProductForm";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 7;
 
 const ProductsList = () => {
 	const { deleteProduct, toggleFeaturedProduct, products, fetchAllProducts } = useProductStore();
@@ -13,6 +14,7 @@ const ProductsList = () => {
 	const [search, setSearch] = useState("");
 	const [currentPage, setCurrentPage] = useState(1);
 	const [sortBy, setSortBy] = useState("name"); // name | price | createdAt
+	const [showCreateModal, setShowCreateModal] = useState(false);
 
 	// Search + sort
 	const filtered = useMemo(() => {
@@ -63,11 +65,39 @@ const ProductsList = () => {
 		e.target.value = ""; // reset
 	};
 
+	const handleFileExport = async () => {
+		const toastId = toast.loading("Đang xuất dữ liệu ra Excel...");
+		try {
+			const res = await axios.get("/products/export", { responseType: 'blob' });
+			const url = window.URL.createObjectURL(new Blob([res.data]));
+			const link = document.createElement('a');
+			link.href = url;
+			link.setAttribute('download', 'products.xlsx');
+			document.body.appendChild(link);
+			link.click();
+			link.parentNode.removeChild(link);
+			toast.success("Xuất file thành công", { id: toastId });
+		} catch {
+			toast.error("Lỗi khi xuất file Excel", { id: toastId });
+		}
+	};
+
 	return (
 		<div className="space-y-4">
 			{/* Toolbar: search + sort */}
-			<div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-				<div className="relative flex-1 max-w-md">
+			<div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-2">
+				<div className="flex items-center gap-4 w-full sm:w-auto">
+					<h2 className="text-2xl font-bold text-gray-900 dark:text-luxury-gold flex items-center gap-2 whitespace-nowrap hidden md:flex">
+						<Package className="w-6 h-6 text-luxury-gold" /> Sản Phẩm
+					</h2>
+					<button
+						onClick={() => setShowCreateModal(true)}
+						className="flex items-center gap-2 px-4 py-2 bg-luxury-gold text-luxury-dark rounded-lg text-sm font-bold shadow hover:bg-yellow-500 transition whitespace-nowrap flex-shrink-0"
+					>
+						<PlusCircle className="w-5 h-5" /> Thêm mới
+					</button>
+				</div>
+				<div className="relative flex-1 max-w-md w-full">
 					<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
 					<input
 						type="text"
@@ -78,6 +108,14 @@ const ProductsList = () => {
 					/>
 				</div>
 				<div className="flex items-center gap-3">
+					<button
+						onClick={handleFileExport}
+						className="flex items-center gap-2 px-3 py-2 bg-blue-600/20 border border-blue-500/50 text-blue-500 rounded-lg text-sm font-bold hover:bg-blue-600 hover:text-white transition"
+						title="Xuất danh sách sản phẩm ra tệp Excel (.xlsx)"
+					>
+						<FileSpreadsheet className="w-4 h-4" /> 
+						<span className="hidden md:inline">Xuất Excel</span>
+					</button>
 					<button
 						onClick={() => importInputRef.current?.click()}
 						className="flex items-center gap-2 px-3 py-2 bg-emerald-600/20 border border-emerald-500/50 text-emerald-400 rounded-lg text-sm font-bold hover:bg-emerald-600 hover:text-white transition"
@@ -109,25 +147,26 @@ const ProductsList = () => {
 				</div>
 			</div>
 
-			{/* Table */}
+			{/* Table Container - Scrollable */}
 			<motion.div
-				className="bg-white dark:bg-gray-800 shadow-xl dark:shadow-none rounded-lg overflow-hidden border border-gray-100 dark:border-transparent"
+				className="bg-white dark:bg-gray-800 shadow-xl dark:shadow-none rounded-lg overflow-hidden border border-gray-100 dark:border-transparent flex flex-col"
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.5 }}
 			>
-				<table className="min-w-full divide-y divide-gray-100 dark:divide-gray-700">
-					<thead className="bg-gray-50 dark:bg-gray-700">
-						<tr>
-							<th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Product</th>
-							<th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Brand</th>
-							<th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Price</th>
-							<th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Category</th>
-							<th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Featured</th>
-							<th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-						</tr>
-					</thead>
-					<tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
+				<div className="overflow-x-auto overflow-y-auto max-h-[55vh] custom-scrollbar">
+					<table className="min-w-full divide-y divide-gray-100 dark:divide-gray-700 relative">
+						<thead className="bg-gray-50/95 dark:bg-gray-700/95 backdrop-blur-sm sticky top-0 z-10 shadow-sm">
+							<tr>
+								<th className="px-5 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Product</th>
+								<th className="px-5 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Brand</th>
+								<th className="px-5 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Price</th>
+								<th className="px-5 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Category</th>
+								<th className="px-5 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Featured</th>
+								<th className="px-5 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+							</tr>
+						</thead>
+						<tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
 						{paginated.length === 0 ? (
 							<tr>
 								<td colSpan="6" className="text-center py-12 text-gray-400 dark:text-gray-500">
@@ -137,44 +176,45 @@ const ProductsList = () => {
 							</tr>
 						) : paginated.map((product) => (
 							<tr key={product._id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-								<td className="px-6 py-4 whitespace-nowrap">
+								<td className="px-5 py-3 whitespace-nowrap">
 									<div className="flex items-center gap-3">
 										<img
-											className="h-10 w-10 rounded-full object-cover flex-shrink-0"
+											className="h-10 w-10 rounded-lg object-cover flex-shrink-0 border border-gray-200 dark:border-gray-600"
 											src={product.image}
 											alt={product.name}
 											onError={(e) => { e.target.onerror = null; e.target.style.display = "none"; }}
 										/>
-										<div className="text-sm font-medium text-gray-900 dark:text-white max-w-[200px] truncate">{product.name}</div>
+										<div className="text-sm font-medium text-gray-900 dark:text-white max-w-[180px] truncate" title={product.name}>{product.name}</div>
 									</div>
 								</td>
-								<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">{product.brand || "—"}</td>
-								<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+								<td className="px-5 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">{product.brand || "—"}</td>
+								<td className="px-5 py-3 whitespace-nowrap text-sm font-semibold text-emerald-600 dark:text-luxury-gold">
 									{product.price?.toLocaleString("vi-VN")} ₫
 								</td>
-								<td className="px-6 py-4 whitespace-nowrap">
-									<span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-600 dark:text-gray-300">{product.category}</span>
+								<td className="px-5 py-3 whitespace-nowrap">
+									<span className="px-2.5 py-1 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md text-xs font-medium text-gray-600 dark:text-gray-300">{product.category}</span>
 								</td>
-								<td className="px-6 py-4 whitespace-nowrap">
+								<td className="px-5 py-3 whitespace-nowrap">
 									<button
 										onClick={() => toggleFeaturedProduct(product._id)}
-										className={`p-1 rounded-full transition-colors duration-200 ${product.isFeatured ? "bg-yellow-400 text-gray-900" : "bg-gray-100 dark:bg-gray-600 text-gray-400 dark:text-gray-300 hover:bg-yellow-500"}`}
+										className={`p-1.5 rounded-lg transition-colors duration-200 ${product.isFeatured ? "bg-yellow-400 text-gray-900 shadow-sm" : "bg-gray-100 dark:bg-gray-600 text-gray-400 dark:text-gray-300 hover:bg-yellow-500 hover:text-white"}`}
 									>
-										<Star className="h-5 w-5" />
+										<Star className="h-4 w-4" />
 									</button>
 								</td>
-								<td className="px-6 py-4 whitespace-nowrap">
+								<td className="px-5 py-3 whitespace-nowrap">
 									<button
 										onClick={() => deleteProduct(product._id)}
-										className="text-red-400 hover:text-red-300 transition-colors"
+										className="p-1.5 text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors"
 									>
-										<Trash className="h-5 w-5" />
+										<Trash className="h-4 w-4" />
 									</button>
 								</td>
 							</tr>
 						))}
 					</tbody>
 				</table>
+				</div>
 
 				{/* Pagination */}
 				{totalPages > 1 && (
@@ -219,6 +259,38 @@ const ProductsList = () => {
 					</div>
 				)}
 			</motion.div>
+
+			{/* Create Product Modal */}
+			<AnimatePresence>
+				{showCreateModal && (
+					<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+						<motion.div
+							initial={{ opacity: 0, scale: 0.95, y: 20 }}
+							animate={{ opacity: 1, scale: 1, y: 0 }}
+							exit={{ opacity: 0, scale: 0.95, y: 20 }}
+							className="relative bg-white dark:bg-luxury-darker border border-gray-100 dark:border-luxury-border shadow-2xl rounded-2xl w-full max-w-4xl my-8 flex flex-col"
+						>
+							<div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-luxury-border">
+								<h2 className="text-2xl font-bold text-gray-900 dark:text-luxury-gold flex items-center gap-2">
+									<PlusCircle className="w-6 h-6" /> Thêm Sản Phẩm Mới
+								</h2>
+								<button 
+									onClick={() => setShowCreateModal(false)}
+									className="p-2 bg-gray-100 dark:bg-luxury-border text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white rounded-full transition"
+								>
+									<X className="w-5 h-5" />
+								</button>
+							</div>
+							<div className="p-6 overflow-y-auto max-h-[70vh]">
+								<CreateProductForm onSuccess={() => {
+									setShowCreateModal(false);
+									fetchAllProducts();
+								}} />
+							</div>
+						</motion.div>
+					</div>
+				)}
+			</AnimatePresence>
 		</div>
 	);
 };

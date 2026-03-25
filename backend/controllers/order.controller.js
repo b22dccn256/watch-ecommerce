@@ -43,7 +43,7 @@ export const updateOrderStatus = async (req, res) => {
         });
 
         if (status === "cancelled" && oldStatus !== "cancelled") {
-            await OrderService.restoreStock(order.products);
+            await OrderService.restoreStock(order.products, null, order._id, "Hủy đơn hàng");
         }
 
         await order.save();
@@ -106,7 +106,8 @@ export const createCODOrder = async (req, res) => {
             return res.status(400).json({ message: "Thiếu thông tin giao hàng." });
         }
 
-        await OrderService.deductStock(products, session);
+        const newOrderId = new mongoose.Types.ObjectId();
+        await OrderService.deductStock(products, session, newOrderId, req.user._id, "Đặt hàng COD");
 
         const coupon = couponCode ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }).session(session) : null;
         let totalAmount = await OrderService.calculateTotalAmount(products, coupon, session);
@@ -114,6 +115,7 @@ export const createCODOrder = async (req, res) => {
         const trackingToken = crypto.randomUUID();
 
         const newOrder = new Order({
+            _id: newOrderId,
             user: req.user._id,
             products: products.map(p => ({
                 product: p._id || p.id,
@@ -194,7 +196,8 @@ export const createQROrder = async (req, res) => {
             return res.status(400).json({ message: "Thiếu thông tin giao hàng." });
         }
 
-        await OrderService.deductStock(products, session);
+        const newOrderId = new mongoose.Types.ObjectId();
+        await OrderService.deductStock(products, session, newOrderId, req.user._id, "Đặt hàng VietQR");
 
         const coupon = couponCode ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }).session(session) : null;
         let totalAmount = await OrderService.calculateTotalAmount(products, coupon, session);
@@ -202,6 +205,7 @@ export const createQROrder = async (req, res) => {
         const trackingToken = crypto.randomUUID();
 
         const newOrder = new Order({
+            _id: newOrderId,
             user: req.user._id,
             products: products.map(p => ({
                 product: p._id || p.id,

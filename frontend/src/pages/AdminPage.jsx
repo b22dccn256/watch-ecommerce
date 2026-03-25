@@ -1,21 +1,22 @@
-import { BarChart, PlusCircle, ShoppingBasket, LayoutDashboard, Users, Mail, Megaphone, Settings, ShieldCheck } from "lucide-react";
+import { PlusCircle, ShoppingBasket, LayoutDashboard, Users, Mail, Megaphone, ShieldCheck, Archive } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 import AnalyticsTab from "../components/AnalyticsTab";
-import CreateProductForm from "../components/CreateProductForm";
 import ProductsList from "../components/ProductsList";
 import OrdersTab from "../components/OrdersTab";
 import MarketingTab from "../components/MarketingTab";
 import EmailTab from "../components/EmailTab";
 import UsersTab from "../components/UsersTab";
 import AITab from "../components/AITab";
+import InventoryTab from "../components/InventoryTab";
 import { useProductStore } from "../stores/useProductStore";
 
 const tabs = [
 	{ id: "analytics", label: "Dashboard", icon: LayoutDashboard },
 	{ id: "orders", label: "Orders", icon: ShoppingBasket },
-	{ id: "products", label: "Inventory", icon: PlusCircle },
+	{ id: "products", label: "Products", icon: PlusCircle },
+	{ id: "inventory", label: "Inventory", icon: Archive },
 	{ id: "marketing", label: "Marketing", icon: Megaphone },
 	{ id: "email", label: "Email", icon: Mail },
 	{ id: "users", label: "Users", icon: Users },
@@ -62,22 +63,11 @@ const AdminPage = () => {
 					{activeTab === "analytics" && <AnalyticsTab />}
 					{activeTab === "orders" && <OrdersTab />}
 					{activeTab === "products" && (
-						<div className="space-y-12">
-							<section>
-								<h2 className="text-2xl font-bold text-gray-900 dark:text-luxury-gold mb-6 flex items-center gap-2">
-									<PlusCircle className="w-6 h-6 text-luxury-gold" /> Add New Watch
-								</h2>
-								<CreateProductForm />
-							</section>
-							<div className="border-t border-gray-100 dark:border-luxury-border pt-12" />
-							<section>
-								<h2 className="text-2xl font-bold text-gray-900 dark:text-luxury-gold mb-6 flex items-center gap-2">
-									<ShoppingBasket className="w-6 h-6 text-luxury-gold" /> Product Inventory
-								</h2>
-								<ProductsList />
-							</section>
+						<div className="space-y-6">
+							<ProductsList />
 						</div>
 					)}
+					{activeTab === "inventory" && <InventoryTab />}
 					{activeTab === "marketing" && <MarketingTab />}
 					{activeTab === "email" && <EmailTab />}
 					{activeTab === "users" && <UsersTab />}

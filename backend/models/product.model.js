@@ -16,6 +16,11 @@ const productSchema = new mongoose.Schema(
 			required: true,
 			index: true,
 		},
+		costPrice: {
+			type: Number,
+			min: 0,
+			default: 0,
+		},
 		image: {
 			type: String, // Thumbnail / Main image
 			required: [true, "Image is required"],
@@ -96,13 +101,19 @@ const productSchema = new mongoose.Schema(
 			default: 0,
 		},
 		brand: {
-			type: String,
-			required: true, // e.g., "Rolex", "Seiko"
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Brand",
+			required: false, // tạm thời đổi thành false cho an toàn lúc chạy script migration
 			index: true,
+		},
+		collectionName: {
+			type: String,
+			default: "",
 		},
 		type: {
 			type: String,
 			enum: ["mechanical", "quartz", "automatic", "digital", "smartwatch"],
+			lowercase: true,
 			required: true,
 			index: true,
 		},
