@@ -101,6 +101,12 @@ const CartItem = ({ item }) => {
 						{item.name}
 					</p>
 
+					{item.wristSize && (
+						<p className="text-sm text-gray-500 dark:text-gray-400">
+							Yêu cầu cắt dây: <span className="font-medium text-gray-800 dark:text-gray-200">{item.wristSize} mm</span>
+						</p>
+					)}
+
 					{item.stock <= 5 && item.stock > 0 && (
 						<p className="text-xs text-orange-400 flex items-center gap-1 font-medium bg-orange-400/10 w-fit px-2 py-1 rounded">
 							<AlertTriangle className="w-3 h-3" />

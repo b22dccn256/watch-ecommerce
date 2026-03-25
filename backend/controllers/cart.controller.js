@@ -20,6 +20,7 @@ export const getCartProducts = async (req, res) => {
 		const cartItems = validCartItems.map((item) => ({
 			...item.product.toJSON(),
 			quantity: item.quantity,
+			wristSize: item.wristSize || null,
 		}));
 
 		res.json(cartItems);
@@ -31,7 +32,7 @@ export const getCartProducts = async (req, res) => {
 
 export const addToCart = async (req, res) => {
 	try {
-		const { productId } = req.body;
+		const { productId, wristSize } = req.body;
 		const user = req.user;
 		const product = await Product.findById(productId);
 		if (!product) return res.status(404).json({ message: "Product not found" });
@@ -43,8 +44,11 @@ export const addToCart = async (req, res) => {
 			return res.status(400).json({ message: `Sản phẩm này chỉ còn ${product.stock} cái trong kho` });
 		}
 
-		if (existingItem) existingItem.quantity = newQuantity;
-		else user.cartItems.push({ product: productId, quantity: 1 });
+		if (existingItem) {
+			existingItem.quantity = newQuantity;
+			if (wristSize) existingItem.wristSize = wristSize;
+		}
+		else user.cartItems.push({ product: productId, quantity: 1, wristSize: wristSize || null });
 
 		user.cartUpdatedAt = Date.now();
 		await user.save();

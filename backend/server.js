@@ -17,6 +17,8 @@ import categoryRoutes from "./routes/category.route.js";
 import bannerRoutes from "./routes/banner.route.js";
 import contactRoutes from "./routes/contact.route.js";
 import mailRoutes from "./routes/mail.route.js";
+import reviewRoutes from "./routes/review.route.js";
+import questionRoutes from "./routes/question.route.js";
 import "./services/mailWorker.js";
 // cron job
 import "./lib/cron.js";
@@ -53,6 +55,8 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/banners", bannerRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/mail", mailRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/questions", questionRoutes);
 
 if (process.env.NODE_ENV === "production") {
 	app.use(express.static(path.join(__dirname, "/frontend/dist")));

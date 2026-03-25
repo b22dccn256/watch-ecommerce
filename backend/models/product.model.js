@@ -17,8 +17,20 @@ const productSchema = new mongoose.Schema(
 			index: true,
 		},
 		image: {
-			type: String,
+			type: String, // Thumbnail / Main image
 			required: [true, "Image is required"],
+		},
+		images: {
+			type: [String],
+			default: [],
+		},
+		videoUrl: {
+			type: String,
+			default: null,
+		},
+		video360Url: {
+			type: String,
+			default: null,
 		},
 		categoryId: {
 			type: mongoose.Schema.Types.ObjectId,
@@ -108,9 +120,24 @@ const productSchema = new mongoose.Schema(
 			}
 		},
 		specs: {
-			waterResistance: String,
-			glass: String,
-			caseMaterial: String,
+			movement: {
+				type: { type: String, default: "Automatic" },
+				caliber: { type: String, default: "" },
+				powerReserve: { type: String, default: "" }
+			},
+			case: {
+				diameter: { type: String, default: "40 mm" },
+				thickness: { type: String, default: "" },
+				lugToLug: { type: String, default: "" },
+				material: { type: String, default: "Stainless steel" }
+			},
+			strap: {
+				material: { type: String, default: "Steel" },
+				claspType: { type: String, default: "Folding clasp" }
+			},
+			waterResistance: { type: String, default: "100 m" },
+			weight: { type: String, default: "" },
+			glass: { type: String, default: "Sapphire" }
 		}
 	},
 	{ timestamps: true }

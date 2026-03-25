@@ -29,6 +29,10 @@ const userSchema = new mongoose.Schema(
 					type: mongoose.Schema.Types.ObjectId,
 					ref: "Product",
 				},
+				wristSize: {
+					type: Number,
+					default: null, // e.g., 160 mm
+				},
 			},
 		],
 		wishlist: [
