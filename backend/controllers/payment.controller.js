@@ -108,7 +108,10 @@ export const createCheckoutSession = async (req, res) => {
 		await newOrder.save({ session: sessionOpts });
 
 		// Clear user cart
-		req.user.cartItems = [];
+		const orderedProductIds = products.map(p => (p._id || p.id).toString());
+		req.user.cartItems = req.user.cartItems.filter(item =>
+			item.product && !orderedProductIds.includes(item.product.toString())
+		);
 		await req.user.save({ session: sessionOpts });
 
 		await sessionOpts.commitTransaction();
@@ -215,7 +218,14 @@ const handlePaymentSuccess = async (session) => {
 		}
 
 		// Clear cart just in case (webhook safety)
-		await User.findByIdAndUpdate(session.metadata.userId, { cartItems: [] });
+		const userToClear = await User.findById(session.metadata.userId);
+		if (userToClear) {
+			const orderedProductIds = order.products.map(p => p.product.toString());
+			userToClear.cartItems = userToClear.cartItems.filter(item =>
+				item.product && !orderedProductIds.includes(item.product.toString())
+			);
+			await userToClear.save();
+		}
 	}
 };
 

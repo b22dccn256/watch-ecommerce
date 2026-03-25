@@ -1,4 +1,4 @@
-﻿// controllers/order.controller.js
+// controllers/order.controller.js
 import Order from "../models/order.model.js";
 import Product from "../models/product.model.js";
 import Coupon from "../models/coupon.model.js";
@@ -141,7 +141,10 @@ export const createCODOrder = async (req, res) => {
             await coupon.save({ session });
         }
 
-        req.user.cartItems = [];
+        const orderedProductIds = products.map(p => (p._id || p.id).toString());
+        req.user.cartItems = req.user.cartItems.filter(item => 
+            item.product && !orderedProductIds.includes(item.product.toString())
+        );
         await req.user.save({ session });
 
         await session.commitTransaction();
@@ -226,7 +229,10 @@ export const createQROrder = async (req, res) => {
             await coupon.save({ session });
         }
 
-        req.user.cartItems = [];
+        const orderedProductIds = products.map(p => (p._id || p.id).toString());
+        req.user.cartItems = req.user.cartItems.filter(item => 
+            item.product && !orderedProductIds.includes(item.product.toString())
+        );
         await req.user.save({ session });
 
         await session.commitTransaction();

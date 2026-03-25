@@ -9,7 +9,12 @@ import GiftCouponCard from "../components/GiftCouponCard";
 import { Bookmark } from "lucide-react";
 
 const CartPage = () => {
-	const { cart, wishlist } = useCartStore();
+	const { cart, wishlist, selectedItems, selectAllItems } = useCartStore();
+
+	const isAllSelected = cart.length > 0 && selectedItems.length === cart.length;
+	const handleSelectAll = (e) => {
+		selectAllItems(e.target.checked, cart.map(item => item._id));
+	};
 
 	return (
 		<div className='py-8 md:py-16'>
@@ -24,7 +29,19 @@ const CartPage = () => {
 						{cart.length === 0 ? (
 							<EmptyCartUI />
 						) : (
-							<div className='space-y-6'>
+							<div className='space-y-4'>
+								<div className="flex items-center gap-3 bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+									<input 
+										type="checkbox" 
+										checked={isAllSelected}
+										onChange={handleSelectAll}
+										className="w-5 h-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer" 
+										id="selectAll"
+									/>
+									<label htmlFor="selectAll" className="font-semibold text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+										Chọn tất cả ({cart.length} sản phẩm)
+									</label>
+								</div>
 								{cart.map((item) => (
 									<CartItem key={item._id} item={item} />
 								))}

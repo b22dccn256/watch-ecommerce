@@ -3,23 +3,50 @@ import { useCartStore } from "../stores/useCartStore";
 import { useWishlistStore } from "../stores/useWishlistStore";
 import { useUserStore } from "../stores/useUserStore";
 import { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 
 const CartItem = ({ item }) => {
-	const { removeFromCart, updateQuantity } = useCartStore();
+	const { removeFromCart, updateQuantity, selectedItems, toggleSelectItem } = useCartStore();
 	const { toggleWishlist } = useWishlistStore();
 	const { user } = useUserStore();
 	const [localQuantity, setLocalQuantity] = useState(item.quantity);
+
+	const isSelected = selectedItems.includes(item._id);
 
 	// Sync local quantity with remote prop changes
 	useEffect(() => {
 		setLocalQuantity(item.quantity);
 	}, [item.quantity]);
 
+	const handleQuantityBlur = () => {
+		let val = parseInt(localQuantity);
+		if (isNaN(val) || val < 1) val = 1;
+		if (val > item.stock) {
+			val = item.stock;
+			toast.error(`Sản phẩm này chỉ còn ${item.stock} cái trong kho`);
+		}
+		setLocalQuantity(val);
+		if (val !== item.quantity) {
+			updateQuantity(item._id, val, item.stock);
+		}
+	};
+
+	const handleQuantityKeyDown = (e) => {
+		if (e.key === 'Enter') {
+			e.target.blur();
+		}
+	};
 
 	return (
 		<div className='rounded-lg border p-4 shadow-sm border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 md:p-6'>
 			<div className='space-y-4 md:flex md:items-center md:justify-between md:gap-6 md:space-y-0'>
-				<div className='shrink-0 md:order-1'>
+				<div className='flex items-center gap-4 shrink-0 md:order-1'>
+					<input 
+						type="checkbox"
+						checked={isSelected}
+						onChange={() => toggleSelectItem(item._id)}
+						className="w-5 h-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer shrink-0"
+					/>
 					<img className='h-20 md:h-32 rounded object-cover' src={item.image} />
 				</div>
 				<label className='sr-only'>Choose quantity:</label>
@@ -38,7 +65,16 @@ const CartItem = ({ item }) => {
 						>
 							<Minus className='text-gray-600 dark:text-gray-300 w-4 h-4' />
 						</button>
-						<p className="w-6 text-center text-sm font-semibold text-gray-900 dark:text-white">{localQuantity}</p>
+						<input
+							type="number"
+							value={localQuantity}
+							onChange={(e) => setLocalQuantity(e.target.value)}
+							onBlur={handleQuantityBlur}
+							onKeyDown={handleQuantityKeyDown}
+							min="1"
+							max={item.stock}
+							className="w-12 text-center text-sm font-semibold text-gray-900 dark:text-white bg-transparent border-none focus:ring-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+						/>
 						<button
 							className='inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border
 							 border-gray-200 dark:border-yellow-900 bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-yellow-900 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] transition disabled:opacity-50 disabled:cursor-not-allowed'
