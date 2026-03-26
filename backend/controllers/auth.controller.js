@@ -533,8 +533,8 @@ export const updateUserRole = async (req, res) => {
 		const { id } = req.params;
 		const { role } = req.body;
 
-		if (!["customer", "admin"].includes(role)) {
-			return res.status(400).json({ message: "Role không hợp lệ. Phải là customer hoặc admin" });
+		if (!["customer", "admin", "staff"].includes(role)) {
+			return res.status(400).json({ message: "Role không hợp lệ. Phải là customer, admin hoặc staff" });
 		}
 
 		if (id === req.user._id.toString()) {
