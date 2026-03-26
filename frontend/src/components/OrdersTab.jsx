@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Eye, XCircle, Download, ShieldCheck, AlertCircle, Search, Printer, Save, DollarSign, PenTool, StickyNote, ChevronLeft, ChevronRight } from "lucide-react";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
+import { useUserStore } from "../stores/useUserStore";
 
 const STATUS_OPTIONS = ["pending", "confirmed", "processing", "shipped", "delivered", "returned", "cancelled"];
 const STATUS_COLORS = {
@@ -28,6 +29,7 @@ const STATUS_LABELS = {
 const FILTER_TABS = ["Tất cả", ...STATUS_OPTIONS];
 
 const OrdersTab = () => {
+    const { user } = useUserStore();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
@@ -435,7 +437,7 @@ const OrdersTab = () => {
                             <div className="space-y-6">
                                 <div>
                                     <h3 className="text-sm font-bold text-blue-500 uppercase tracking-wider mb-4 border-b border-gray-100 dark:border-luxury-border/50 pb-2 flex items-center gap-2">
-                                        <PenTool className="w-4 h-4" /> Vận Hành (Admin Only)
+                                        <PenTool className="w-4 h-4" /> Vận Hành Hệ Thống
                                     </h3>
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-2 gap-4">
@@ -568,7 +570,7 @@ const OrdersTab = () => {
 
             {/* Hidden Print Wrapper */}
             {selectedOrder && (
-                <div id="order-invoice-print-area" className="hidden print:block text-black p-8 font-serif" style={{ backgroundColor: "white", width: "100%", height: "100%" }}>
+                <div id="order-invoice-print-area" className="hidden print:block text-black p-8 font-sans" style={{ backgroundColor: "white", width: "100%", height: "100%" }}>
                     <div className="text-center mb-8">
                         <h1 className="text-3xl font-bold uppercase tracking-widest">Luxury Watch Store</h1>
                         <p className="text-sm">Hóa đơn Bán lẻ / Phiếu giao hàng</p>

@@ -4,6 +4,11 @@ import jwt from "jsonwebtoken";
 import { sendEmail } from "../lib/email.js";
 import bcrypt from "bcryptjs";
 import { emailQueue } from "./mail.controller.js";
+import Order from "../models/order.model.js";
+import AuditLog from "../models/auditLog.model.js";
+import { logAction } from "../middleware/permission.middleware.js";
+
+// ... (existing code omitted for brevity but I will include it)
 
 const generateTokens = (userId) => {
 	const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
@@ -153,6 +158,9 @@ export const login = async (req, res) => {
 			await storeRefreshToken(user._id, refreshToken);
 			setCookies(res, accessToken, refreshToken);
 
+			// Log LOGIN
+			await logAction({ req, action: "LOGIN", details: "Customer logged in" });
+
 			res.json({
 				_id: user._id,
 				name: user.name,
@@ -204,6 +212,9 @@ export const verifyOTP = async (req, res) => {
 			await redis.del(`attempts:${email}`);
 			await redis.del(`lockUntil:${email}`);
 			await redis.del(`cooldown:${email}`);
+
+			// Log LOGIN
+			await logAction({ req, action: "LOGIN", details: "Admin logged in with 2FA" });
 
 			// Generate tokens
 			const { accessToken, refreshToken } = generateTokens(user._id);
@@ -355,9 +366,142 @@ export const getProfile = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
 	try {
-		const users = await User.find({}).select("-password").sort({ createdAt: -1 });
-		res.json(users);
+		const page = parseInt(req.query.page) || 1;
+		const limit = parseInt(req.query.limit) || 10;
+		const skip = (page - 1) * limit;
+		const search = req.query.search || "";
+		const roleFilter = req.query.role || "";
+
+		// Build filter
+		const matchQuery = {};
+		if (search) {
+			matchQuery.$or = [
+				{ name: { $regex: search, $options: "i" } },
+				{ email: { $regex: search, $options: "i" } },
+				{ phone: { $regex: search, $options: "i" } },
+			];
+		}
+		if (roleFilter) {
+			matchQuery.role = roleFilter;
+		}
+
+		// Aggregation pipeline
+		const users = await User.aggregate([
+			{ $match: matchQuery },
+			{
+				$lookup: {
+					from: "orders",
+					localField: "_id",
+					foreignField: "user",
+					as: "orders",
+				},
+			},
+			{
+				$addFields: {
+					totalSpend: {
+						$sum: {
+							$map: {
+								input: {
+									$filter: {
+										input: "$orders",
+										as: "order",
+										cond: { $eq: ["$$order.paymentStatus", "paid"] },
+									},
+								},
+								as: "paidOrder",
+								in: "$$paidOrder.totalAmount",
+							},
+						},
+					},
+					orderCount: {
+						$size: {
+							$filter: {
+								input: "$orders",
+								as: "order",
+								cond: { $eq: ["$$order.status", "delivered"] },
+							},
+						},
+					},
+				},
+			},
+			{
+				$addFields: {
+					segment: {
+						$cond: {
+							if: {
+								$or: [
+									{ $gte: ["$totalSpend", 50000000] },
+									{ $gt: ["$orderCount", 5] },
+								],
+							},
+							then: "VIP",
+							else: {
+								$cond: {
+									if: { $gte: ["$totalSpend", 10000000] },
+									then: "Potential",
+									else: "New",
+								},
+							},
+						},
+					},
+				},
+			},
+			{ $project: { password: 0, orders: 0 } },
+			{ $sort: { createdAt: -1 } },
+			{ $skip: skip },
+			{ $limit: limit },
+		]);
+
+		const totalUsers = await User.countDocuments(matchQuery);
+
+		res.json({
+			users,
+			pagination: {
+				totalUsers,
+				totalPages: Math.ceil(totalUsers / limit),
+				currentPage: page,
+			},
+		});
 	} catch (error) {
+		console.error("Error in getAllUsers:", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+export const getAuditLogs = async (req, res) => {
+	try {
+		const page = parseInt(req.query.page) || 1;
+		const limit = parseInt(req.query.limit) || 20;
+		const skip = (page - 1) * limit;
+		const { action, userId, startDate, endDate } = req.query;
+
+		const query = {};
+		if (action) query.action = action;
+		if (userId) query.userId = userId;
+		if (startDate || endDate) {
+			query.createdAt = {};
+			if (startDate) query.createdAt.$gte = new Date(startDate);
+			if (endDate) query.createdAt.$lte = new Date(endDate);
+		}
+
+		const logs = await AuditLog.find(query)
+			.populate("userId", "name email role")
+			.sort({ createdAt: -1 })
+			.skip(skip)
+			.limit(limit);
+
+		const totalLogs = await AuditLog.countDocuments(query);
+
+		res.json({
+			logs,
+			pagination: {
+				totalLogs,
+				totalPages: Math.ceil(totalLogs / limit),
+				currentPage: page,
+			},
+		});
+	} catch (error) {
+		console.error("Error in getAuditLogs:", error.message);
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
 };

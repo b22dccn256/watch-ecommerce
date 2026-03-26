@@ -29,7 +29,7 @@ const HeroBanner = () => {
 				alt="Luxury Watch"
 				className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${isDark ? 'brightness-75' : 'brightness-100'}`}
 			/>
-			
+
 			{/* Adaptive Overlay */}
 			<div className={`absolute inset-0 transition-all duration-500 ${overlayClass}`} />
 
@@ -38,7 +38,7 @@ const HeroBanner = () => {
 				<motion.p
 					initial={{ opacity: 0, y: 30 }}
 					animate={{ opacity: 1, y: 0 }}
-					className="text-luxury-gold text-sm md:text-base tracking-wider-luxury mb-6 font-semibold"
+					className="text-luxury-gold text-sm md:text-base tracking-wider mb-6 font-semibold"
 				>
 					NEW COLLECTION 2026
 				</motion.p>
@@ -47,9 +47,9 @@ const HeroBanner = () => {
 					initial={{ opacity: 0, y: 50 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ delay: 0.2 }}
-					className={`text-4xl md:text-display font-luxury leading-tight mb-8 transition-all duration-500 ${titleClass}`}
+					className={`text-4xl md:text-display font-sans leading-tight mb-8 transition-all duration-500 ${titleClass}`}
 				>
-					Tuyệt tác thời<br />gian tuyệt đỉnh
+					Tuyệt tác thời gian<br /> tuyệt đỉnh công nghệ
 				</motion.h1>
 
 				<motion.p
@@ -105,4 +105,4 @@ const HeroBanner = () => {
 	);
 };
 
-export default HeroBanner;
+export default HeroBanner;

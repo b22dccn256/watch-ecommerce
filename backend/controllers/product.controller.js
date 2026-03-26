@@ -7,11 +7,11 @@ import CampaignService from "../services/campaign.service.js";
 import mongoose from "mongoose";
 import XLSX from "xlsx";
 import fs from "fs";
+import { logAction } from "../middleware/permission.middleware.js";
 
 export const getAllProducts = async (req, res) => {
 	try {
 		const { q, page, limit, sort, brands, minPrice, maxPrice, machineType, category, colors, sizes, minRating } = req.query;
-
 		let query = { deletedAt: null };
 
 		if (q) {
@@ -28,7 +28,17 @@ export const getAllProducts = async (req, res) => {
 			}
 		}
 		if (brands) {
-			query.brand = { $in: brands.split(",") };
+			const brandArray = brands.split(",");
+			const validObjectIds = brandArray.filter(id => mongoose.Types.ObjectId.isValid(id));
+			const brandNames = brandArray.filter(id => !mongoose.Types.ObjectId.isValid(id));
+
+			if (brandNames.length > 0) {
+				const matchingBrands = await Brand.find({ name: { $in: brandNames } }).select("_id");
+				const matchingIds = matchingBrands.map(b => b._id.toString());
+				query.brand = { $in: [...validObjectIds, ...matchingIds] };
+			} else {
+				query.brand = { $in: validObjectIds };
+			}
 		}
 		if (machineType) {
 			query.type = { $in: machineType.split(",") };
@@ -48,7 +58,7 @@ export const getAllProducts = async (req, res) => {
 			query.averageRating = { $gte: Number(minRating) };
 		}
 
-		let productsQuery = Product.find(query);
+		let productsQuery = Product.find(query).populate("brand", "name");
 
 		if (sort === "popular") {
 			productsQuery = productsQuery.sort({ createdAt: -1 });
@@ -99,14 +109,18 @@ export const getSuggestions = async (req, res) => {
 	try {
 		const { q } = req.query;
 		if (!q) return res.json([]);
+		// Find brands matching the query first
+		const matchingBrands = await Brand.find({ name: { $regex: q, $options: "i" } }).select("_id");
+		const matchingBrandIds = matchingBrands.map(b => b._id);
+
 		const suggestions = await Product.find({
 			deletedAt: null,
 			$or: [
 				{ name: { $regex: q, $options: "i" } },
-				{ brand: { $regex: q, $options: "i" } },
+				{ brand: { $in: matchingBrandIds } },
 				{ type: { $regex: q, $options: "i" } },
 			]
-		}).select("name image price brand").limit(5);
+		}).select("name image price brand").populate("brand", "name").limit(5);
 		res.json(suggestions);
 	} catch (error) {
 		console.log("Error in getSuggestions controller", error.message);
@@ -116,7 +130,7 @@ export const getSuggestions = async (req, res) => {
 
 export const getProductById = async (req, res) => {
 	try {
-		const product = await Product.findOne({ _id: req.params.id, deletedAt: null });
+		const product = await Product.findOne({ _id: req.params.id, deletedAt: null }).populate("brand", "name");
 		if (!product) return res.status(404).json({ message: "Product not found" });
 
 		const processedProduct = await CampaignService.applyCampaignToProducts(product);
@@ -196,6 +210,15 @@ export const createProduct = async (req, res) => {
 		product.$locals = { userId: req.user._id };
 		await product.save();
 
+		// Log CREATE_PRODUCT
+		await logAction({
+			req,
+			action: "CREATE_PRODUCT",
+			targetId: product._id,
+			targetModel: "Product",
+			details: `Created product: ${product.name}`,
+		});
+
 		res.status(201).json(product);
 	} catch (error) {
 		console.log("Error in createProduct controller", error.message);
@@ -222,7 +245,11 @@ export const updateProduct = async (req, res) => {
 			return res.status(404).json({ message: "Product not found" });
 		}
 
-		const { name, description, price, image, categoryId, stock, brand, type, customAttributes, lowStockThreshold, isActive, metaTitle, metaDescription } = req.body;
+		const changes = [];
+		if (name && name !== product.name) changes.push({ field: "name", old: product.name, new: name });
+		if (price !== undefined && price !== product.price) changes.push({ field: "price", old: product.price, new: price });
+		if (stock !== undefined && stock !== product.stock) changes.push({ field: "stock", old: product.stock, new: stock });
+		if (isActive !== undefined && isActive !== product.isActive) changes.push({ field: "isActive", old: product.isActive, new: isActive });
 
 		if (name) product.name = name;
 		if (description) product.description = description;
@@ -249,10 +276,23 @@ export const updateProduct = async (req, res) => {
 			}
 			const cloudinaryResponse = await cloudinary.uploader.upload(image, { folder: "products" });
 			product.image = cloudinaryResponse.secure_url;
+			changes.push({ field: "image", old: "old_image", new: "new_image" });
 		}
 
 		product.$locals = { userId: req.user._id };
 		const updatedProduct = await product.save();
+
+		// Log UPDATE_PRODUCT
+		if (changes.length > 0) {
+			await logAction({
+				req,
+				action: "UPDATE_PRODUCT",
+				targetId: product._id,
+				targetModel: "Product",
+				changes,
+				details: `Updated product: ${product.name}`,
+			});
+		}
 
 		res.json(updatedProduct);
 	} catch (error) {
@@ -274,6 +314,15 @@ export const deleteProduct = async (req, res) => {
 			{ $set: { deletedAt: new Date(), isActive: false } },
 			{ runValidators: false }
 		);
+
+		// Log DELETE_PRODUCT
+		await logAction({
+			req,
+			action: "DELETE_PRODUCT",
+			targetId: product._id,
+			targetModel: "Product",
+			details: `Deleted product: ${product.name}`,
+		});
 
 		res.json({ message: "Product deleted successfully (Soft Delete)" });
 	} catch (error) {

@@ -1,4 +1,3 @@
-// controllers/order.controller.js
 import Order from "../models/order.model.js";
 import Product from "../models/product.model.js";
 import Coupon from "../models/coupon.model.js";
@@ -6,6 +5,7 @@ import OrderService from "../services/order.service.js";
 import mongoose from "mongoose";
 import crypto from "crypto";
 import { emailQueue } from "./mail.controller.js";
+import { logAction } from "../middleware/permission.middleware.js";
 
 export const getAllOrders = async (req, res) => {
     try {
@@ -99,6 +99,16 @@ export const updateOrderStatus = async (req, res) => {
 
         await order.save();
 
+        // Log UPDATE_ORDER_STATUS
+        await logAction({
+            req,
+            action: "UPDATE_ORDER_STATUS",
+            targetId: order._id,
+            targetModel: "Order",
+            changes: [{ field: "status", old: oldStatus, new: status }],
+            details: `Updated order status for #${order.orderCode} from ${oldStatus} to ${status}`,
+        });
+
         // Queue Email Notification
         await emailQueue.add("order-status-update", {
             email: order.shippingDetails?.email || (await mongoose.model('User').findById(order.user))?.email,
@@ -124,6 +134,13 @@ export const updateOrderDetails = async (req, res) => {
 
         if (!order) return res.status(404).json({ message: "Order not found" });
 
+        const changes = [];
+        if (internalNotes !== undefined && internalNotes !== order.internalNotes) changes.push({ field: "internalNotes", old: order.internalNotes, new: internalNotes });
+        if (returnReason !== undefined && returnReason !== order.returnReason) changes.push({ field: "returnReason", old: order.returnReason, new: returnReason });
+        if (refundAmount !== undefined && refundAmount !== order.refundAmount) changes.push({ field: "refundAmount", old: order.refundAmount, new: refundAmount });
+        if (carrier !== undefined && carrier !== order.carrier) changes.push({ field: "carrier", old: order.carrier, new: carrier });
+        if (carrierTrackingNumber !== undefined && carrierTrackingNumber !== order.carrierTrackingNumber) changes.push({ field: "carrierTrackingNumber", old: order.carrierTrackingNumber, new: carrierTrackingNumber });
+
         // Update fields if provided
         if (internalNotes !== undefined) order.internalNotes = internalNotes;
         if (returnReason !== undefined) order.returnReason = returnReason;
@@ -140,6 +157,18 @@ export const updateOrderDetails = async (req, res) => {
         if (carrierTrackingNumber !== undefined) order.carrierTrackingNumber = carrierTrackingNumber;
 
         await order.save();
+
+        // Log UPDATE_ORDER_DETAILS
+        if (changes.length > 0) {
+            await logAction({
+                req,
+                action: "UPDATE_ORDER_DETAILS",
+                targetId: order._id,
+                targetModel: "Order",
+                changes,
+                details: `Updated details for order #${order.orderCode}`,
+            });
+        }
 
         res.json({ message: "Order details updated successfully", order });
     } catch (error) {

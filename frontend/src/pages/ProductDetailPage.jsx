@@ -285,7 +285,9 @@ const ProductDetailPage = () => {
 					{/* ==================== PRODUCT INFO ==================== */}
 					<div className="lg:col-span-5">
 						<div className="flex items-center justify-between mb-4">
-							<span className="font-bold tracking-widest uppercase text-emerald-600 dark:text-yellow-400 text-sm">{currentProduct.brand || 'Luxury Watch'}</span>
+							<span className="font-bold tracking-widest uppercase text-emerald-600 dark:text-yellow-400 text-sm">
+								{typeof currentProduct.brand === 'object' ? currentProduct.brand?.name : (currentProduct.brand || 'Luxury Watch')}
+							</span>
 							<div className="flex items-center gap-1.5 text-yellow-400">
 								<Star className="w-4 h-4 fill-current" />
 								<span className="font-bold text-gray-900 dark:text-white">{currentProduct.averageRating?.toFixed(1) || '5.0'}</span>
@@ -446,7 +448,7 @@ const ProductDetailPage = () => {
 				{/* SẢN PHẨM TƯƠNG TỰ */}
 				<div className="mt-24 max-w-6xl mx-auto">
 					<div className="flex justify-between items-end mb-10 border-b border-gray-200 dark:border-gray-800 pb-4">
-						<h2 className="text-3xl font-bold font-serif">Khám Phá Thêm</h2>
+						<h2 className="text-3xl font-bold font-sans">Khám Phá Thêm</h2>
 						<Link to="/catalog" className="text-sm font-bold uppercase tracking-widest text-emerald-600 dark:text-yellow-400 hover:underline">Xem tất cả</Link>
 					</div>
 					{relatedProducts.length > 0 ? (

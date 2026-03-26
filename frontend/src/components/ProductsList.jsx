@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash, Star, Search, ChevronLeft, ChevronRight, Package, FileSpreadsheet, PlusCircle, X } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
+import { useUserStore } from "../stores/useUserStore";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
 import CreateProductForm from "./CreateProductForm";
@@ -10,6 +11,7 @@ const PAGE_SIZE = 7;
 
 const ProductsList = () => {
 	const { deleteProduct, toggleFeaturedProduct, products, fetchAllProducts } = useProductStore();
+	const { user } = useUserStore();
 	const importInputRef = useRef(null);
 	const [search, setSearch] = useState("");
 	const [currentPage, setCurrentPage] = useState(1);
@@ -22,7 +24,7 @@ const ProductsList = () => {
 		let list = (products || []).filter(p =>
 			!q ||
 			p.name?.toLowerCase().includes(q) ||
-			p.brand?.toLowerCase().includes(q) ||
+			(typeof p.brand === 'object' ? p.brand?.name : p.brand)?.toLowerCase().includes(q) ||
 			p.category?.toLowerCase().includes(q)
 		);
 		list = [...list].sort((a, b) => {
@@ -187,7 +189,9 @@ const ProductsList = () => {
 										<div className="text-sm font-medium text-gray-900 dark:text-white max-w-[180px] truncate" title={product.name}>{product.name}</div>
 									</div>
 								</td>
-								<td className="px-5 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">{product.brand || "—"}</td>
+								<td className="px-5 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+									{typeof product.brand === 'object' ? product.brand?.name : (product.brand || "—")}
+								</td>
 								<td className="px-5 py-3 whitespace-nowrap text-sm font-semibold text-emerald-600 dark:text-luxury-gold">
 									{product.price?.toLocaleString("vi-VN")} ₫
 								</td>
@@ -203,12 +207,14 @@ const ProductsList = () => {
 									</button>
 								</td>
 								<td className="px-5 py-3 whitespace-nowrap">
-									<button
-										onClick={() => deleteProduct(product._id)}
-										className="p-1.5 text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors"
-									>
-										<Trash className="h-4 w-4" />
-									</button>
+									{user?.role === "admin" && (
+										<button
+											onClick={() => deleteProduct(product._id)}
+											className="p-1.5 text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors"
+										>
+											<Trash className="h-4 w-4" />
+										</button>
+									)}
 								</td>
 							</tr>
 						))}

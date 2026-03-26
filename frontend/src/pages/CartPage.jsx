@@ -55,7 +55,7 @@ const EmptyCartUI = () => (
 		<div className="w-24 h-24 bg-white dark:bg-gray-900 rounded-full shadow-lg flex items-center justify-center mb-6 border border-gray-100 dark:border-gray-800">
 			<ShoppingBag className='h-10 w-10 text-emerald-500 dark:text-yellow-400' />
 		</div>
-		<h3 className='text-3xl font-bold font-serif mb-3 text-gray-900 dark:text-white text-center'>
+		<h3 className='text-3xl font-bold font-sans mb-3 text-gray-900 dark:text-white text-center'>
 			Giỏ hàng trống
 		</h3>
 		<p className='text-gray-500 text-center max-w-sm mb-8'>
@@ -99,7 +99,7 @@ const CartPage = () => {
 					<motion.h1
 						initial={{ opacity: 0, y: -10 }}
 						animate={{ opacity: 1, y: 0 }}
-						className="text-3xl font-serif mb-8 text-center md:text-left"
+						className="text-3xl font-sans mb-8 text-center md:text-left"
 					>
 						Giỏ Hàng Của Bạn
 					</motion.h1>

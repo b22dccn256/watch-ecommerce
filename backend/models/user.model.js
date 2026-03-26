@@ -43,8 +43,12 @@ const userSchema = new mongoose.Schema(
 		],
 		role: {
 			type: String,
-			enum: ["customer", "admin"],
+			enum: ["customer", "admin", "staff"],
 			default: "customer",
+		},
+		twoFactorEnabled: {
+			type: Boolean,
+			default: true, // Default to true for admins, will be checked in controller
 		},
 		phone: {
 			type: String,
