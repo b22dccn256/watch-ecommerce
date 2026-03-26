@@ -30,6 +30,17 @@ const worker = new Worker(
 					finalHtml = Handlebars.compile(adminNotificationTemplate)(job.data);
 				} else if (job.name === "abandoned-cart") {
 					finalHtml = Handlebars.compile(abandonedCartTemplate)(job.data);
+				} else if (job.name === "order-status-update") {
+					finalHtml = `
+						<div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+							<h2 style="color: #D4AF37; text-align: center;">Thông báo cập nhật đơn hàng</h2>
+							<p>Kính gửi quý khách,</p>
+							<p>Đơn hàng <strong>#${job.data.order.orderCode}</strong> của quý khách đã được cập nhật trạng thái: <strong style="color: #b8860b; text-transform: uppercase;">${job.data.order.status}</strong>.</p>
+							<p>Quý khách có thể xem chi tiết hành trình vận chuyển tại: <br/><a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/order-tracking/${job.data.order.trackingToken}" style="color: #D4AF37; font-weight: bold; text-decoration: none;">Theo dõi đơn hàng</a></p>
+							<hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+							<p style="font-size: 12px; color: #777; text-align: center;">Cảm ơn quý khách đã mua sắm tại Luxury Watch Store.</p>
+						</div>
+					`;
 				}
 			} else {
 				// If html is provided (e.g. from campaign), compile it with job.data (Handlebars)

@@ -9,17 +9,59 @@ import { emailQueue } from "./mail.controller.js";
 
 export const getAllOrders = async (req, res) => {
     try {
-        const { status, startDate, endDate } = req.query;
+        const { status, startDate, endDate, search, page = 1, limit = 10 } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        
         const filter = {};
-        if (status) filter.status = status;
+        if (status && status !== "Tất cả") filter.status = status;
         if (startDate) filter.createdAt = { $gte: new Date(startDate) };
         if (endDate) filter.createdAt = { ...filter.createdAt, $lte: new Date(endDate) };
 
-        const orders = await Order.find(filter)
-            .populate("user", "name email")
-            .populate("products.product", "name price");
+        if (search) {
+            const searchRegex = new RegExp(search, "i");
+            filter.$or = [
+                { orderCode: searchRegex },
+                { "shippingDetails.phoneNumber": searchRegex },
+                { "shippingDetails.fullName": searchRegex },
+                { "shippingDetails.email": searchRegex }
+            ];
+            if (mongoose.Types.ObjectId.isValid(search)) {
+                filter.$or.push({ user: search });
+            }
+        }
 
-        res.json(orders);
+        const totalOrders = await Order.countDocuments(filter);
+        
+        // Tính toán stats cho toàn bộ database (theo filter hiện tại hoặc toàn bộ)
+        // User muốn "đơn cần xử lý" (pending) và "trả hàng" (returned) của toàn bộ database
+        const pendingCount = await Order.countDocuments({ status: "pending" });
+        const returnedCount = await Order.countDocuments({ status: "returned" });
+
+        let ordersQuery = Order.find(filter)
+            .populate("user", "name email")
+            .populate("products.product", "name price")
+            .sort({ createdAt: -1 });
+
+        if (limit !== "all") {
+            ordersQuery = ordersQuery.skip(skip).limit(parseInt(limit));
+        }
+
+        const orders = await ordersQuery;
+
+        res.json({
+            orders,
+            stats: {
+                pendingCount,
+                returnedCount,
+                totalOrders
+            },
+            pagination: {
+                totalOrders,
+                totalPages: limit === "all" ? 1 : Math.ceil(totalOrders / limit),
+                currentPage: parseInt(page),
+                limit: limit === "all" ? totalOrders : parseInt(limit)
+            }
+        });
     } catch (error) {
         console.error("Error in getAllOrders:", error.message);
         res.status(500).json({ message: "Server error" });
@@ -39,18 +81,69 @@ export const updateOrderStatus = async (req, res) => {
         order.trackingEvents.push({
             status,
             message: "Trạng thái đơn hàng đã được cập nhật thành: " + status,
-            timestamp: new Date()
+            timestamp: new Date(),
+            updatedBy: req.user?._id || "system"
         });
 
         if (status === "cancelled" && oldStatus !== "cancelled") {
             await OrderService.restoreStock(order.products, null, order._id, "Hủy đơn hàng");
+        } else if (status === "returned" && oldStatus !== "returned") {
+            try {
+                await OrderService.restoreStock(order.products, null, order._id, "Trả hàng: " + (order.returnReason || "Không rõ lý do"));
+            } catch (restoreError) {
+                console.error("Error restoring stock for returned order:", restoreError.message);
+                // Ghi log vào order thay vì failed hoàn toàn
+                order.internalNotes = (order.internalNotes || "") + "\n[SYSTEM] Lỗi khi hoàn cộng tồn kho: " + restoreError.message;
+            }
         }
 
         await order.save();
 
+        // Queue Email Notification
+        await emailQueue.add("order-status-update", {
+            email: order.shippingDetails?.email || (await mongoose.model('User').findById(order.user))?.email,
+            subject: "Cập nhật trạng thái đơn hàng #" + order.orderCode,
+            order: {
+                orderCode: order.orderCode,
+                status: status,
+                trackingToken: order.trackingToken
+            }
+        });
+
         res.json({ message: "Order status updated to " + status, order });
     } catch (error) {
         console.error("Error in updateOrderStatus:", error.message);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+export const updateOrderDetails = async (req, res) => {
+    try {
+        const { internalNotes, returnReason, refundAmount, carrier, carrierTrackingNumber } = req.body;
+        const order = await Order.findById(req.params.id);
+
+        if (!order) return res.status(404).json({ message: "Order not found" });
+
+        // Update fields if provided
+        if (internalNotes !== undefined) order.internalNotes = internalNotes;
+        if (returnReason !== undefined) order.returnReason = returnReason;
+        if (refundAmount !== undefined) {
+             // Validation for refundAmount
+             if (refundAmount < 0 || refundAmount > order.totalAmount) {
+                 return res.status(400).json({ message: "Số tiền hoàn không hợp lệ (phải từ 0 đến tổng giá trị đơn hàng)" });
+             }
+             order.refundAmount = refundAmount;
+        }
+
+        // Only admins can change carrier and tracking safely, but this route is adminRoute anyway
+        if (carrier !== undefined) order.carrier = carrier;
+        if (carrierTrackingNumber !== undefined) order.carrierTrackingNumber = carrierTrackingNumber;
+
+        await order.save();
+
+        res.json({ message: "Order details updated successfully", order });
+    } catch (error) {
+        console.error("Error in updateOrderDetails:", error.message);
         res.status(500).json({ message: "Server error" });
     }
 };
