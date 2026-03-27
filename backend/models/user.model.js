@@ -5,19 +5,27 @@ const userSchema = new mongoose.Schema(
 	{
 		name: {
 			type: String,
-			required: [true, "Name is required"],
+			required: [true, "Tên là bắt buộc"],
+			trim: true,
+			minlength: [2, "Tên phải có ít nhất 2 ký tự"],
+			maxlength: [50, "Tên không được vượt quá 50 ký tự"],
 		},
 		email: {
 			type: String,
-			required: [true, "Email is required"],
+			required: [true, "Email là bắt buộc"],
 			unique: true,
 			lowercase: true,
 			trim: true,
 		},
 		password: {
 			type: String,
-			required: [true, "Password is required"],
-			minlength: [6, "Password must be at least 6 characters long"],
+			required: [true, "Mật khẩu là bắt buộc"],
+			minlength: [8, "Mật khẩu phải có ít nhất 8 ký tự"],
+		},
+		phone: {
+			type: String,
+			default: "",
+			sparse: true, // allow empty string / null, only enforce unique on real values
 		},
 		cartItems: [
 			{
@@ -31,7 +39,7 @@ const userSchema = new mongoose.Schema(
 				},
 				wristSize: {
 					type: Number,
-					default: null, // e.g., 160 mm
+					default: null,
 				},
 			},
 		],
@@ -48,15 +56,24 @@ const userSchema = new mongoose.Schema(
 		},
 		twoFactorEnabled: {
 			type: Boolean,
-			default: true, // Default to true for admins, will be checked in controller
-		},
-		phone: {
-			type: String,
-			default: "",
+			default: true,
 		},
 		cartUpdatedAt: {
 			type: Date,
 			default: Date.now,
+		},
+		// Email verification fields
+		isEmailVerified: {
+			type: Boolean,
+			default: true, // true for existing users — only new signups start as false
+		},
+		emailVerificationToken: {
+			type: String,
+			default: null,
+		},
+		emailVerificationExpires: {
+			type: Date,
+			default: null,
 		},
 	},
 	{

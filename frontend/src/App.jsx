@@ -23,6 +23,7 @@ import ContactPage from "./pages/ContactPage";
 import OrderLookupPage from "./pages/OrderLookupPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
+import EmailVerificationPage from "./pages/EmailVerificationPage";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -105,6 +106,7 @@ function App() {
 						<Route path='/' element={<HomePage />} />
 						<Route path='/signup' element={!user ? <SignUpPage /> : <Navigate to='/' />} />
 						<Route path='/login' element={!user ? <LoginPage /> : <Navigate to='/' />} />
+						<Route path='/verify-email' element={<EmailVerificationPage />} />
 						<Route
 							path='/secret-dashboard'
 							element={user?.role === "admin" || user?.role === "staff" ? <AdminPage /> : <Navigate to='/login' />}

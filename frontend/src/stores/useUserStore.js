@@ -8,21 +8,18 @@ export const useUserStore = create((set, get) => ({
 	loading: false,
 	checkingAuth: true,
 
-	signup: async ({ name, email, password, confirmPassword }) => {
+	signup: async ({ name, email, phone, password, confirmPassword }) => {
 		set({ loading: true });
-
-		if (password !== confirmPassword) {
-			set({ loading: false });
-			return toast.error("Passwords do not match");
-		}
-
 		try {
-			const res = await axios.post("/auth/signup", { name, email, password });
-			set({ user: res.data, loading: false });
-			toast.success("Account created successfully!");
+			await axios.post("/auth/signup", { name, email, phone, password, confirmPassword });
+			set({ loading: false });
+			// Save email to localStorage for resend flow on EmailVerificationPage
+			localStorage.setItem("pendingVerifyEmail", email.toLowerCase().trim());
+			return true; // signals success — FE will show "check your email" screen
 		} catch (error) {
 			set({ loading: false });
-			toast.error(error.response.data.message || "An error occurred");
+			toast.error(error.response?.data?.message || "Đã xảy ra lỗi khi đăng ký");
+			return false;
 		}
 	},
 	login: async (email, password) => {
@@ -46,7 +43,13 @@ export const useUserStore = create((set, get) => ({
 
 		} catch (error) {
 			set({ loading: false });
-			toast.error(error.response?.data?.message || "Đã xảy ra lỗi");
+			const data = error.response?.data;
+			// If account is unverified, propagate the structured error so LoginPage can handle it
+			if (data?.unverified) {
+				toast.error(data.message || "Tài khoản chưa được xác minh");
+				throw { unverified: true, email: data.email || email };
+			}
+			toast.error(data?.message || "Đã xảy ra lỗi");
 			throw error;
 		}
 	},
@@ -76,6 +79,17 @@ export const useUserStore = create((set, get) => ({
 			return true;
 		} catch (error) {
 			toast.error(error.response?.data?.message || "Không thể gửi lại mã OTP");
+			return false;
+		}
+	},
+
+	resendVerificationEmail: async (email) => {
+		try {
+			const res = await axios.post("/auth/resend-verification", { email });
+			toast.success(res.data.message || "Đã gửi lại email xác minh");
+			return true;
+		} catch (error) {
+			toast.error(error.response?.data?.message || "Không thể gửi lại email xác minh");
 			return false;
 		}
 	},

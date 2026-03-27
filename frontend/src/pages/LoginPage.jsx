@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { LogIn, Mail, Lock, ArrowRight, Loader, ShieldCheck, RefreshCw } from "lucide-react";
+import { LogIn, Mail, Lock, ArrowRight, Loader, ShieldCheck, RefreshCw, AlertTriangle } from "lucide-react";
 import { useUserStore } from "../stores/useUserStore";
 
 const LoginPage = () => {
@@ -12,7 +12,9 @@ const LoginPage = () => {
 	const [otpExpiry, setOtpExpiry] = useState(300); // 5 mins in seconds
 	const [resendCooldown, setResendCooldown] = useState(0);
 
-	const { login, verifyOTP, resendOTP, loading } = useUserStore();
+	const { login, verifyOTP, resendOTP, resendVerificationEmail, loading } = useUserStore();
+	const [unverifiedEmail, setUnverifiedEmail] = useState(""); // email of unverified account
+	const [resendVerifyLoading, setResendVerifyLoading] = useState(false);
 
 	// Countdown for OTP validity
 	useEffect(() => {
@@ -44,6 +46,7 @@ const LoginPage = () => {
 
 	const handleLoginSubmit = async (e) => {
 		e.preventDefault();
+		setUnverifiedEmail(""); // reset previous unverified state
 		try {
 			const result = await login(email, password);
 			if (result === "OTP_REQUIRED") {
@@ -51,9 +54,18 @@ const LoginPage = () => {
 				setOtpExpiry(300);
 				setResendCooldown(60);
 			}
-		} catch {
-			// Error handled in store
+		} catch (err) {
+			// Show inline banner for unverified accounts
+			if (err?.unverified) {
+				setUnverifiedEmail(err.email || email);
+			}
 		}
+	};
+
+	const handleResendVerification = async () => {
+		setResendVerifyLoading(true);
+		await resendVerificationEmail(unverifiedEmail);
+		setResendVerifyLoading(false);
 	};
 
 	const handleVerifySubmit = async (e) => {
@@ -236,8 +248,44 @@ const LoginPage = () => {
 						</form>
 					)}
 
+					{/* ── Unverified Account Banner ─────────────────────────── */}
+					<AnimatePresence>
+						{unverifiedEmail && step === "login" && (
+							<motion.div
+								initial={{ opacity: 0, y: -8, height: 0 }}
+								animate={{ opacity: 1, y: 0, height: "auto" }}
+								exit={{ opacity: 0, y: -8, height: 0 }}
+								className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-600 rounded-lg"
+							>
+								<div className="flex items-start gap-3">
+									<AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+									<div className="flex-1">
+										<p className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">
+											Tài khoản chưa được xác minh
+										</p>
+										<p className="text-xs text-amber-700 dark:text-amber-400 mb-3">
+											Vui lòng kiểm tra email <strong>{unverifiedEmail}</strong> và click link xác minh. Không tìm thấy email? Kiểm tra thư mục Spam.
+										</p>
+										<button
+											type="button"
+											onClick={handleResendVerification}
+											disabled={resendVerifyLoading}
+											className="flex items-center gap-1.5 text-xs font-semibold text-amber-800 dark:text-amber-300 underline underline-offset-2 hover:text-amber-600 disabled:opacity-50 transition-colors"
+										>
+											{resendVerifyLoading ? (
+												<><Loader className="h-3 w-3 animate-spin" /> Đang gửi...</>
+											) : (
+												<><RefreshCw className="h-3 w-3" /> Gửi lại email xác minh</>
+											)}
+										</button>
+									</div>
+								</div>
+							</motion.div>
+						)}
+					</AnimatePresence>
+
 					{step === "login" && (
-						<p className='mt-8 text-center text-sm text-gray-400'>
+						<p className='mt-6 text-center text-sm text-gray-400'>
 							Chưa có tài khoản?{" "}
 							<Link to='/signup' className='font-medium text-emerald-400 hover:text-emerald-300'>
 								Đăng ký ngay <ArrowRight className='inline h-4 w-4' />

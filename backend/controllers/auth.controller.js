@@ -3,12 +3,19 @@ import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../lib/email.js";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { emailQueue } from "./mail.controller.js";
 import Order from "../models/order.model.js";
 import AuditLog from "../models/auditLog.model.js";
 import { logAction } from "../middleware/permission.middleware.js";
 
-// ... (existing code omitted for brevity but I will include it)
+// ─── Validation Helpers ────────────────────────────────────────────────────────
+const NAME_REGEX = /^[\p{L}\s]{2,50}$/u; // Unicode letters + spaces, 2-50 chars
+const PHONE_REGEX = /^(0[35789])\d{8}$/;  // Vietnamese mobile format
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PASS_REGEX  = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&*!])[A-Za-z\d@#$%^&*!]{8,}$/;
+
+// ... (existing code continues below)
 
 const generateTokens = (userId) => {
 	const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
@@ -42,48 +49,231 @@ const setCookies = (res, accessToken, refreshToken) => {
 };
 
 export const signup = async (req, res) => {
-	const { email, password, name } = req.body;
 	try {
-		const userExists = await User.findOne({ email });
+		const { name, email: rawEmail, phone, password, confirmPassword } = req.body;
 
-		if (userExists) {
-			return res.status(400).json({ message: "User already exists" });
+		// ── 1. Server-side validation ──────────────────────────────────────────
+		const email = (rawEmail || "").toLowerCase().trim();
+		const trimmedName = (name || "").trim();
+
+		if (!trimmedName || !email || !phone || !password || !confirmPassword) {
+			return res.status(400).json({ message: "Vui lòng điền đầy đủ tất cả các trường" });
 		}
-		const user = await User.create({ name, email, password });
+		if (!NAME_REGEX.test(trimmedName)) {
+			return res.status(400).json({ message: "Tên không hợp lệ (2–50 ký tự, không chứa số hoặc ký tự đặc biệt)" });
+		}
+		if (!EMAIL_REGEX.test(email)) {
+			return res.status(400).json({ message: "Địa chỉ email không hợp lệ" });
+		}
+		if (!PHONE_REGEX.test(phone)) {
+			return res.status(400).json({ message: "Số điện thoại không hợp lệ (phải là số di động Việt Nam 10 chữ số, bắt đầu bằng 0)" });
+		}
+		if (!PASS_REGEX.test(password)) {
+			return res.status(400).json({
+				message: "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt (@#$%^&*!)"
+			});
+		}
+		if (password !== confirmPassword) {
+			return res.status(400).json({ message: "Mật khẩu xác nhận không khớp" });
+		}
 
-		// --- QUEUE WELCOME EMAIL ---
-		await emailQueue.add("welcome-email", {
-			fullName: name,
-			email: email,
-			shopUrl: process.env.CLIENT_URL || "http://localhost:5173",
-			unsubscribeLink: (process.env.BACKEND_URL || "http://localhost:5000") + "/api/mail/unsubscribe/" + email
+		// ── 2. Duplicate checks ────────────────────────────────────────────────
+		const emailExists = await User.findOne({ email });
+		if (emailExists) {
+			return res.status(409).json({ message: "Email này đã được sử dụng. Vui lòng đăng nhập hoặc dùng email khác." });
+		}
+		if (phone) {
+			const phoneExists = await User.findOne({ phone });
+			if (phoneExists) {
+				return res.status(409).json({ message: "Số điện thoại này đã được liên kết với tài khoản khác." });
+			}
+		}
+
+		// ── 3. Create user (unverified) ────────────────────────────────────────
+		// Generate verification token — store raw token directly in DB
+		// (64 hex chars from 32 random bytes is already cryptographically strong)
+		const rawToken = crypto.randomBytes(32).toString("hex");
+		const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+		const user = await User.create({
+			name: trimmedName,
+			email,
+			phone,
+			password,
+			isEmailVerified: false,
+			emailVerificationToken: rawToken, // store raw token directly
+			emailVerificationExpires: tokenExpires,
 		});
 
-		// authenticate
-		const { accessToken, refreshToken } = generateTokens(user._id);
-		await storeRefreshToken(user._id, refreshToken);
+		// ── 4. Send verification email — ATOMIC ROLLBACK on failure ──────────
+		const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${rawToken}`;
+		try {
+			await sendEmail(
+				email,
+				"Xác minh tài khoản Luxury Watch Store",
+				`
+				<div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: auto; padding: 30px; background: #0f172a; color: #f1f5f9; border-radius: 12px;">
+					<div style="text-align: center; margin-bottom: 24px;">
+						<h1 style="color: #d4af37; font-size: 24px; margin: 0;">⌚ Luxury Watch Store</h1>
+					</div>
+					<h2 style="color: #f1f5f9; font-size: 20px;">Xác minh địa chỉ email của bạn</h2>
+					<p style="color: #94a3b8; line-height: 1.6;">Xin chào <strong style="color: #f1f5f9;">${trimmedName}</strong>,</p>
+					<p style="color: #94a3b8; line-height: 1.6;">Cảm ơn bạn đã đăng ký tài khoản. Vui lòng click nút bên dưới để xác minh email và kích hoạt tài khoản của bạn.</p>
+					<div style="text-align: center; margin: 32px 0;">
+						<a href="${verifyUrl}" style="background: linear-gradient(135deg, #d4af37, #b8952a); color: #0f172a; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">
+							✓ Xác Minh Email
+						</a>
+					</div>
+					<p style="color: #64748b; font-size: 13px;">Link có hiệu lực trong <strong>15 phút</strong>. Nếu bạn không yêu cầu đăng ký, hãy bỏ qua email này.</p>
+					<hr style="border-color: #1e293b; margin: 24px 0;" />
+					<p style="color: #475569; font-size: 12px; text-align: center;">Hoặc copy link: <br/><span style="color: #7c3aed; word-break: break-all;">${verifyUrl}</span></p>
+				</div>
+				`
+			);
+		} catch (emailError) {
+			// ROLLBACK: delete user so they can register again later
+			await User.findByIdAndDelete(user._id);
+			console.error("Signup email failed — rolled back user creation:", emailError.message);
+			return res.status(500).json({
+				message: "Không thể gửi email xác minh. Vui lòng thử lại sau hoặc liên hệ hỗ trợ."
+			});
+		}
 
-		setCookies(res, accessToken, refreshToken);
+		// ── 5. Queue welcome email (non-critical, fire-and-forget) ─────────────
+		try {
+			await emailQueue.add("welcome-email", {
+				fullName: trimmedName,
+				email,
+				shopUrl: process.env.CLIENT_URL || "http://localhost:5173",
+				unsubscribeLink: (process.env.BACKEND_URL || "http://localhost:5000") + "/api/mail/unsubscribe/" + email
+			});
+		} catch (_) { /* non-critical */ }
 
 		res.status(201).json({
-			_id: user._id,
-			name: user.name,
-			email: user.email,
-			role: user.role,
+			message: "Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản trước khi đăng nhập.",
 		});
 	} catch (error) {
-		console.log("Error in signup controller", error.message);
+		console.log("Error in signup controller:", error.message);
 		res.status(500).json({ message: error.message });
+	}
+};
+
+// ─── Verify Email ──────────────────────────────────────────────────────────────
+export const verifyEmail = async (req, res) => {
+	try {
+		const { token } = req.query;
+		console.log("🔐 verifyEmail called, token length:", token?.length);
+
+		if (!token) {
+			return res.status(400).json({ message: "Token xác minh không hợp lệ" });
+		}
+
+		// Search by raw token directly (no hashing)
+		const userByToken = await User.findOne({ emailVerificationToken: token });
+		console.log("🔐 User found by token:", !!userByToken, userByToken ? `expires: ${userByToken.emailVerificationExpires}` : "");
+
+		if (!userByToken) {
+			return res.status(400).json({
+				message: "Link xác minh không hợp lệ hoặc đã được sử dụng trước đó. Vui lòng yêu cầu gửi lại.",
+				expired: true,
+			});
+		}
+
+		// Check expiry separately for clearer message
+		if (userByToken.emailVerificationExpires < new Date()) {
+			return res.status(400).json({
+				message: "Link xác minh đã hết hạn (24 giờ). Vui lòng yêu cầu gửi lại.",
+				expired: true,
+			});
+		}
+
+		// Update using findByIdAndUpdate to bypass pre-save hooks
+		await User.findByIdAndUpdate(userByToken._id, {
+			$set: {
+				isEmailVerified: true,
+				emailVerificationToken: null,
+				emailVerificationExpires: null,
+			},
+		});
+
+		console.log("✅ Email verified for user:", userByToken.email);
+		res.json({ message: "Xác minh email thành công! Bạn có thể đăng nhập ngay bây giờ." });
+	} catch (error) {
+		console.error("Error in verifyEmail:", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+// ─── Resend Verification Email ─────────────────────────────────────────────────
+export const resendVerificationEmail = async (req, res) => {
+	try {
+		const email = (req.body.email || "").toLowerCase().trim();
+		if (!email) {
+			return res.status(400).json({ message: "Vui lòng cung cấp địa chỉ email" });
+		}
+
+		const user = await User.findOne({ email });
+		if (!user) {
+			return res.status(404).json({ message: "Không tìm thấy tài khoản với email này" });
+		}
+		if (user.isEmailVerified) {
+			return res.status(400).json({ message: "Tài khoản này đã được xác minh. Bạn có thể đăng nhập ngay." });
+		}
+
+		// Generate a new raw token (no hashing, store directly)
+		const rawToken = crypto.randomBytes(32).toString("hex");
+		const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+		await User.findByIdAndUpdate(user._id, {
+			$set: {
+				emailVerificationToken: rawToken,
+				emailVerificationExpires: tokenExpires,
+			},
+		});
+
+		const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${rawToken}`;
+		await sendEmail(
+			email,
+			"[Gửi lại] Xác minh tài khoản Luxury Watch Store",
+			`
+			<div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: auto; padding: 30px; background: #0f172a; color: #f1f5f9; border-radius: 12px;">
+				<h2 style="color: #d4af37;">Link xác minh mới</h2>
+				<p style="color: #94a3b8;">Xin chào <strong style="color: #f1f5f9;">${user.name}</strong>, đây là link xác minh mới của bạn.</p>
+				<div style="text-align: center; margin: 32px 0;">
+					<a href="${verifyUrl}" style="background: linear-gradient(135deg, #d4af37, #b8952a); color: #0f172a; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">
+						✓ Xác Minh Email
+					</a>
+				</div>
+				<p style="color: #64748b; font-size: 13px;">Link có hiệu lực trong <strong>24 giờ</strong>.</p>
+			</div>
+			`
+		);
+
+		res.json({ message: "Đã gửi lại email xác minh. Vui lòng kiểm tra hộp thư của bạn." });
+	} catch (error) {
+		console.error("Error in resendVerificationEmail:", error.message);
+		res.status(500).json({ message: "Không thể gửi email. Vui lòng thử lại sau." });
 	}
 };
 
 export const login = async (req, res) => {
 	try {
-		const { email, password } = req.body;
+		const { email: rawEmail, password } = req.body;
+		const email = (rawEmail || "").toLowerCase().trim();
 		const user = await User.findOne({ email });
 
 		if (user && (await user.comparePassword(password))) {
 			console.log("Login: User found and password matches. Role:", user.role);
+
+			// Check email verification — block unverified accounts
+			if (!user.isEmailVerified) {
+				return res.status(403).json({
+					message: "Tài khoản chưa được xác minh. Vui lòng kiểm tra email và click link xác minh.",
+					unverified: true,
+					email: user.email, // send back so FE can auto-fill the resend form
+				});
+			}
+
 			// Check if user is admin
 			if (user.role === "admin") {
 				console.log("Login: Admin detected, triggering OTP flow");
@@ -165,7 +355,9 @@ export const login = async (req, res) => {
 				_id: user._id,
 				name: user.name,
 				email: user.email,
+				phone: user.phone || "",
 				role: user.role,
+				isEmailVerified: user.isEmailVerified,
 			});
 		} else {
 			res.status(400).json({ message: "Email hoặc mật khẩu không chính xác" });
@@ -225,7 +417,9 @@ export const verifyOTP = async (req, res) => {
 				_id: user._id,
 				name: user.name,
 				email: user.email,
+				phone: user.phone || "",
 				role: user.role,
+				isEmailVerified: user.isEmailVerified,
 			});
 		} else {
 			const attempts = await redis.incr(`attempts:${email}`);
@@ -556,19 +750,30 @@ export const updateProfile = async (req, res) => {
 		const { name, phone } = req.body;
 		const userId = req.user._id;
 
-		if (!name) {
+		// ── Validate name ────────────────────────────────────────────────────────
+		const trimmedName = (name || "").trim();
+		if (!trimmedName) {
 			return res.status(400).json({ message: "Tên không được để trống" });
 		}
-
-		// Regex VN: 0 + (3,5,7,8,9) + 8 digits
-		const phoneRegex = /^(0)[3|5|7|8|9]\d{8}$/;
-		if (phone && !phoneRegex.test(phone)) {
-			return res.status(400).json({ message: "Số điện thoại không hợp lệ (định dạng di động VN)" });
+		const NAME_REGEX = /^[\p{L}\s]{2,50}$/u;
+		if (!NAME_REGEX.test(trimmedName)) {
+			return res.status(400).json({
+				message: "Tên không hợp lệ: chỉ được chứa chữ cái và khoảng trắng, độ dài từ 2–50 ký tự",
+			});
 		}
 
-		// Check unique phone (excluding current user)
-		if (phone) {
-			const existingPhone = await User.findOne({ phone, _id: { $ne: userId } });
+		// ── Validate phone ───────────────────────────────────────────────────────
+		const trimmedPhone = (phone || "").trim();
+		if (trimmedPhone) {
+			const PHONE_REGEX = /^(0[35789])\d{8}$/;
+			if (!PHONE_REGEX.test(trimmedPhone)) {
+				return res.status(400).json({
+					message: "Số điện thoại không hợp lệ (10 số, bắt đầu bằng 03/05/07/08/09)",
+				});
+			}
+
+			// Check unique phone (excluding current user)
+			const existingPhone = await User.findOne({ phone: trimmedPhone, _id: { $ne: userId } });
 			if (existingPhone) {
 				return res.status(400).json({ message: "Số điện thoại này đã được sử dụng bởi tài khoản khác" });
 			}
@@ -576,7 +781,7 @@ export const updateProfile = async (req, res) => {
 
 		const updatedUser = await User.findByIdAndUpdate(
 			userId,
-			{ name, phone },
+			{ name: trimmedName, phone: trimmedPhone || null },
 			{ new: true }
 		).select("-password");
 
