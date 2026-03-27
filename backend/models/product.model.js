@@ -16,9 +16,26 @@ const productSchema = new mongoose.Schema(
 			required: true,
 			index: true,
 		},
+		costPrice: {
+			type: Number,
+			min: 0,
+			default: 0,
+		},
 		image: {
-			type: String,
+			type: String, // Thumbnail / Main image
 			required: [true, "Image is required"],
+		},
+		images: {
+			type: [String],
+			default: [],
+		},
+		videoUrl: {
+			type: String,
+			default: null,
+		},
+		video360Url: {
+			type: String,
+			default: null,
 		},
 		categoryId: {
 			type: mongoose.Schema.Types.ObjectId,
@@ -84,13 +101,19 @@ const productSchema = new mongoose.Schema(
 			default: 0,
 		},
 		brand: {
-			type: String,
-			required: true, // e.g., "Rolex", "Seiko"
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Brand",
+			required: false, // tạm thời đổi thành false cho an toàn lúc chạy script migration
 			index: true,
+		},
+		collectionName: {
+			type: String,
+			default: "",
 		},
 		type: {
 			type: String,
 			enum: ["mechanical", "quartz", "automatic", "digital", "smartwatch"],
+			lowercase: true,
 			required: true,
 			index: true,
 		},
@@ -108,18 +131,33 @@ const productSchema = new mongoose.Schema(
 			}
 		},
 		specs: {
-			waterResistance: String,
-			glass: String,
-			caseMaterial: String,
+			movement: {
+				type: { type: String, default: "Automatic" },
+				caliber: { type: String, default: "" },
+				powerReserve: { type: String, default: "" }
+			},
+			case: {
+				diameter: { type: String, default: "40 mm" },
+				thickness: { type: String, default: "" },
+				lugToLug: { type: String, default: "" },
+				material: { type: String, default: "Stainless steel" }
+			},
+			strap: {
+				material: { type: String, default: "Steel" },
+				claspType: { type: String, default: "Folding clasp" }
+			},
+			waterResistance: { type: String, default: "100 m" },
+			weight: { type: String, default: "" },
+			glass: { type: String, default: "Sapphire" }
 		}
 	},
 	{ timestamps: true }
 );
 
 // --- AUDIT MIDDLEWARE ---
-productSchema.pre("save", async function (next) {
+productSchema.pre("save", async function () {
 	// Skip if nothing changed
-	if (!this.isModified()) return next();
+	if (!this.isModified()) return;
 
 	const action = this.isNew ? "Created" : (this.isModified("deletedAt") && this.deletedAt !== null ? "Deleted" : "Updated");
 	const userId = this.$locals && this.$locals.userId ? this.$locals.userId : null;
@@ -144,8 +182,6 @@ productSchema.pre("save", async function (next) {
 	} catch (err) {
 		console.error("Failed to write Product Audit Log:", err.message);
 	}
-
-	next();
 });
 
 const Product = mongoose.model("Product", productSchema);

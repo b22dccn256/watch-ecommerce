@@ -1,17 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { PlusCircle, Upload, Loader } from "lucide-react";
+import { PlusCircle, Upload, Loader, ImagePlus, Tag, DollarSign } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
 
-const categories = ["Digital", "Quartz", "Automatic", "Eco-Drive", "Smartwatch"];
-const brands = ["Rolex", "Casio", "Seiko", "Citizen", "Garmin", "Patek Philippe", "Audemars Piguet", "Hublot", "Omega", "Cartier", "Tag Heuer", "IWC"];
-const machineTypes = ["Mechanical", "Quartz", "Automatic", "Digital", "Smartwatch"];
+const categories = [
+	"Cơ Tự Động (Automatic)",
+	"Cơ Lên Cót Tay (Hand-wound)",
+	"Bộ Máy Pin (Quartz)",
+	"Năng Lượng Ánh Sáng (Solar)",
+	"Đồng Hồ Điện Tử (Digital)",
+	"Đồng Hồ Thông Minh (Smartwatch)",
+];
 
-const CreateProductForm = () => {
+const machineTypes = ["Mechanical", "Quartz", "Automatic", "Solar", "Digital", "Smartwatch"];
+
+const inputCls = "w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold focus:ring-1 focus:ring-luxury-gold/40 transition";
+const labelCls = "block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5";
+
+const CreateProductForm = ({ onSuccess }) => {
 	const [newProduct, setNewProduct] = useState({
 		name: "",
 		description: "",
 		price: "",
+		originalPrice: "",
 		category: "",
 		image: "",
 		stock: "",
@@ -19,205 +30,237 @@ const CreateProductForm = () => {
 		type: "",
 	});
 
-	const { createProduct, loading } = useProductStore();
+	const [dragOver, setDragOver] = useState(false);
+	const fileInputRef = useRef(null);
+
+	const { createProduct, loading, brands, fetchBrands } = useProductStore();
+
+	useEffect(() => {
+		fetchBrands();
+	}, [fetchBrands]);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
-			await createProduct({ ...newProduct, stock: Number(newProduct.stock), price: Number(newProduct.price) });
-			setNewProduct({ name: "", description: "", price: "", category: "", image: "", stock: "", brand: "", type: "" });
+			await createProduct({
+				...newProduct,
+				stock: Number(newProduct.stock),
+				price: Number(newProduct.price),
+				originalPrice: newProduct.originalPrice ? Number(newProduct.originalPrice) : undefined,
+			});
+			setNewProduct({ name: "", description: "", price: "", originalPrice: "", category: "", image: "", stock: "", brand: "", type: "" });
+			if (onSuccess) onSuccess();
 		} catch {
 			console.log("error creating a product");
 		}
 	};
 
-	const handleImageChange = (e) => {
-		const file = e.target.files[0];
-		if (file) {
-			const reader = new FileReader();
-
-			reader.onloadend = () => {
-				setNewProduct({ ...newProduct, image: reader.result });
-			};
-
-			reader.readAsDataURL(file); // base64
-		}
+	const processImageFile = (file) => {
+		if (!file) return;
+		const reader = new FileReader();
+		reader.onloadend = () => setNewProduct((prev) => ({ ...prev, image: reader.result }));
+		reader.readAsDataURL(file);
 	};
 
+	const handleImageChange = (e) => processImageFile(e.target.files[0]);
+
+	const handleDrop = (e) => {
+		e.preventDefault();
+		setDragOver(false);
+		processImageFile(e.dataTransfer.files[0]);
+	};
+
+	// Discount preview
+	const discount =
+		newProduct.originalPrice && newProduct.price && Number(newProduct.originalPrice) > 0
+			? Math.round((1 - Number(newProduct.price) / Number(newProduct.originalPrice)) * 100)
+			: null;
+
+	const descLen = newProduct.description.length;
+
 	return (
-		<motion.div
-			className='bg-white dark:bg-gray-800 shadow-xl dark:shadow-none rounded-lg p-8 mb-8 max-w-xl mx-auto border border-gray-100 dark:border-transparent'
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.8 }}
-		>
-			<h2 className='text-2xl font-semibold mb-6 text-emerald-600 dark:text-emerald-300'>Create New Product</h2>
+		<form onSubmit={handleSubmit} className="space-y-6">
+			<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-			<form onSubmit={handleSubmit} className='space-y-4'>
-				<div>
-					<label htmlFor='name' className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
-						Product Name
-					</label>
-					<input
-						type='text'
-						id='name'
-						name='name'
-						value={newProduct.name}
-						onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-						className='mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm py-2
-						 px-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2
-						focus:ring-emerald-500 focus:border-emerald-500'
-						required
-					/>
+				{/* ── Column 1 ───────────────────────── */}
+				<div className="space-y-4">
+					{/* Tên sản phẩm */}
+					<div>
+						<label htmlFor="name" className={labelCls}>Tên Sản Phẩm *</label>
+						<input
+							type="text" id="name" required
+							value={newProduct.name}
+							onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+							className={inputCls}
+							placeholder="VD: Rolex Oyster Perpetual 41mm..."
+						/>
+					</div>
+
+					{/* Thương hiệu */}
+					<div>
+						<label htmlFor="brand" className={labelCls}>Thương hiệu *</label>
+						<select
+							id="brand" required
+							value={newProduct.brand}
+							onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })}
+							className={inputCls}
+						>
+							<option value="">Chọn thương hiệu</option>
+							{Array.isArray(brands) && brands.map((b) => (
+								<option key={b._id} value={b._id}>{b.name}</option>
+							))}
+						</select>
+					</div>
+
+					{/* Price + Original Price */}
+					<div className="grid grid-cols-2 gap-3">
+						<div>
+							<label htmlFor="price" className={labelCls}>Giá bán (₫) *</label>
+							<div className="relative">
+								<DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-luxury-gold" />
+								<input
+									type="number" id="price" required min="0"
+									value={newProduct.price}
+									onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+									className={inputCls + " pl-8"}
+								/>
+							</div>
+						</div>
+						<div>
+							<label htmlFor="originalPrice" className={labelCls}>
+								Giá gốc (₫)
+								{discount !== null && discount > 0 && (
+									<span className="ml-2 text-red-500 font-bold normal-case">-{discount}%</span>
+								)}
+							</label>
+							<div className="relative">
+								<Tag className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+								<input
+									type="number" id="originalPrice" min="0"
+									value={newProduct.originalPrice}
+									onChange={(e) => setNewProduct({ ...newProduct, originalPrice: e.target.value })}
+									className={inputCls + " pl-8"}
+									placeholder="Để trống nếu không giảm"
+								/>
+							</div>
+						</div>
+					</div>
+
+					{/* Stock */}
+					<div>
+						<label htmlFor="stock" className={labelCls}>Tồn kho khởi tạo *</label>
+						<input
+							type="number" id="stock" required min="0"
+							value={newProduct.stock}
+							onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
+							className={inputCls}
+							placeholder="VD: 50"
+						/>
+					</div>
 				</div>
 
-				<div>
-					<label htmlFor='description' className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
-						Description
-					</label>
-					<textarea
-						id='description'
-						name='description'
-						value={newProduct.description}
-						onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-						rows='3'
-						className='mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm
-						 py-2 px-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 
-						 focus:border-emerald-500'
-						required
-					/>
-				</div>
+				{/* ── Column 2 ───────────────────────── */}
+				<div className="space-y-4">
+					{/* Danh mục */}
+					<div>
+						<label htmlFor="category" className={labelCls}>Danh mục *</label>
+						<select
+							id="category" required
+							value={newProduct.category}
+							onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+							className={inputCls}
+						>
+							<option value="">Chọn danh mục</option>
+							{categories.map((c) => <option key={c} value={c}>{c}</option>)}
+						</select>
+					</div>
 
-				<div>
-					<label htmlFor='price' className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
-						Price
-					</label>
-					<input
-						type='number'
-						id='price'
-						name='price'
-						value={newProduct.price}
-						onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-						step='1' min='0'
-						className='mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm 
-						py-2 px-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500
-						 focus:border-emerald-500'
-						required
-					/>
-				</div>
+					{/* Bộ máy */}
+					<div>
+						<label htmlFor="type" className={labelCls}>Loại bộ máy (Movement) *</label>
+						<select
+							id="type" required
+							value={newProduct.type}
+							onChange={(e) => setNewProduct({ ...newProduct, type: e.target.value })}
+							className={inputCls}
+						>
+							<option value="">Chọn bộ máy</option>
+							{machineTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+						</select>
+					</div>
 
-				<div>
-					<label htmlFor='category' className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
-						Category
-					</label>
-					<select
-						id='category'
-						name='category'
-						value={newProduct.category}
-						onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-						className='mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
-						required
-					>
-						<option value=''>Select a category</option>
-						{categories.map((category) => (
-							<option key={category} value={category}>
-								{category}
-							</option>
-						))}
-					</select>
+					{/* Image drag-and-drop */}
+					<div>
+						<label className={labelCls}>Ảnh đại diện</label>
+						<div
+							className={`drop-zone p-4 flex flex-col items-center justify-center gap-2 cursor-pointer min-h-[120px] ${dragOver ? "drag-over" : ""}`}
+							onClick={() => fileInputRef.current?.click()}
+							onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+							onDragLeave={() => setDragOver(false)}
+							onDrop={handleDrop}
+						>
+							{newProduct.image ? (
+								<div className="flex items-center gap-4 w-full">
+									<img src={newProduct.image} alt="Preview" className="h-16 w-16 object-cover rounded-lg border border-luxury-gold/30 flex-shrink-0" />
+									<div className="flex-1 min-w-0">
+										<p className="text-sm font-medium text-gray-700 dark:text-gray-300">Ảnh đã chọn</p>
+										<p className="text-xs text-gray-400 mt-0.5">Click để thay đổi</p>
+									</div>
+								</div>
+							) : (
+								<>
+									<ImagePlus className="w-8 h-8 text-gray-400" />
+									<p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+										Kéo thả ảnh vào đây hoặc <span className="text-luxury-gold font-medium">chọn file</span>
+									</p>
+									<p className="text-xs text-gray-400">PNG, JPG, WEBP – tối đa 5MB</p>
+								</>
+							)}
+						</div>
+						<input
+							ref={fileInputRef}
+							type="file" accept="image/*" className="hidden"
+							onChange={handleImageChange}
+						/>
+					</div>
 				</div>
+			</div>
 
-				<div>
-					<label htmlFor='stock' className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
-						Stock
-					</label>
-					<input
-						type='number'
-						id='stock'
-						name='stock'
-						value={newProduct.stock}
-						onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
-						min='0'
-						className='mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
-						required
-					/>
+			{/* ── Description full width ───────────── */}
+			<div>
+				<div className="flex items-center justify-between mb-1.5">
+					<label htmlFor="description" className={labelCls + " mb-0"}>Mô tả sản phẩm *</label>
+					<span className={`text-xs ${descLen >= 200 ? "text-green-500" : "text-gray-400"}`}>
+						{descLen} / 200+ ký tự
+					</span>
 				</div>
+				<textarea
+					id="description" required rows="4"
+					value={newProduct.description}
+					onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+					className={inputCls + " resize-none"}
+					placeholder="Chi tiết sản phẩm: chất liệu, tính năng, độ sâu chống nước..."
+				/>
+				{descLen > 0 && descLen < 80 && (
+					<p className="text-xs text-amber-500 mt-1">Nên thêm ít nhất 80 ký tự cho mô tả hấp dẫn hơn.</p>
+				)}
+			</div>
 
-				<div>
-					<label htmlFor='brand' className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
-						Brand
-					</label>
-					<select
-						id='brand'
-						name='brand'
-						value={newProduct.brand}
-						onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })}
-						className='mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
-						required
-					>
-						<option value=''>Select a brand</option>
-						{brands.map((b) => (
-							<option key={b} value={b}>
-								{b}
-							</option>
-						))}
-					</select>
-				</div>
-
-				<div>
-					<label htmlFor='type' className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
-						Machine Type
-					</label>
-					<select
-						id='type'
-						name='type'
-						value={newProduct.type}
-						onChange={(e) => setNewProduct({ ...newProduct, type: e.target.value })}
-						className='mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
-						required
-					>
-						<option value=''>Select a type</option>
-						{machineTypes.map((t) => (
-							<option key={t} value={t}>
-								{t}
-							</option>
-						))}
-					</select>
-				</div>
-
-				<div className='mt-1 flex items-center'>
-					<input type='file' id='image' className='sr-only' accept='image/*' onChange={handleImageChange} />
-					<label
-						htmlFor='image'
-						className='cursor-pointer bg-gray-100 dark:bg-gray-700 py-2 px-3 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500'
-					>
-						<Upload className='h-5 w-5 inline-block mr-2' />
-						Upload Image
-					</label>
-					{newProduct.image && <span className='ml-3 text-sm text-gray-400'>Image uploaded </span>}
-				</div>
-
+			{/* ── Submit ───────────────────────────── */}
+			<div className="flex justify-end pt-4 border-t border-gray-100 dark:border-luxury-border">
 				<button
-					type='submit'
-					className='w-full flex justify-center py-2 px-4 border border-transparent rounded-md 
-					shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 
-					focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50'
-					disabled={loading}
+					type="submit" disabled={loading}
+					className="flex items-center justify-center gap-2 px-8 py-2.5 rounded-lg text-sm font-bold shadow-md shadow-luxury-gold/20 text-luxury-dark bg-luxury-gold hover:bg-yellow-500 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-luxury-gold transition disabled:opacity-50 min-w-[160px]"
 				>
 					{loading ? (
-						<>
-							<Loader className='mr-2 h-5 w-5 animate-spin' aria-hidden='true' />
-							Loading...
-						</>
+						<><Loader className="h-4 w-4 animate-spin" /> Đang lưu...</>
 					) : (
-						<>
-							<PlusCircle className='mr-2 h-5 w-5' />
-							Create Product
-						</>
+						<><PlusCircle className="h-4 w-4" /> Hoàn tất tạo</>
 					)}
 				</button>
-			</form>
-		</motion.div>
+			</div>
+		</form>
 	);
 };
+
 export default CreateProductForm;

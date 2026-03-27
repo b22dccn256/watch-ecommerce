@@ -46,8 +46,17 @@ const orderSchema = new mongoose.Schema(
 		// Trạng thái đơn hàng tổng quát
 		status: {
 			type: String,
-			enum: ["pending", "awaiting_verification", "confirmed", "shipped", "delivered", "cancelled"],
-			default: "pending"
+			enum: [
+				"pending",
+				"awaiting_verification",
+				"confirmed",
+				"processing",
+				"shipped",
+				"delivered",
+				"returned",
+				"cancelled",
+			],
+			default: "pending",
 		},
 		paymentStatus: {
 			type: String,
@@ -84,6 +93,20 @@ const orderSchema = new mongoose.Schema(
 		carrier: {
 			type: String,
 			default: "DHL Express",
+			enum: ["DHL Express", "GHTK", "Viettel Post", "J&T Express", "VNPost", "Other"],
+		},
+		internalNotes: {
+			type: String,
+			default: "",
+		},
+		returnReason: {
+			type: String,
+			default: "",
+		},
+		refundAmount: {
+			type: Number,
+			default: 0,
+			min: 0,
 		},
 		carrierTrackingNumber: {
 			type: String,

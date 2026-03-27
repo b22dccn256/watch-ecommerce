@@ -1,21 +1,324 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+/* ═══════════════════════════════════════════
+   LUXURY WATCH DESIGN SYSTEM — 2026
+   ═══════════════════════════════════════════ */
+
+:root {
+  --lux-gold: #D4AF37;
+  --lux-gold-light: #E8C56B;
+  --lux-gold-dark: #B6922A;
+  --lux-dark: #1A1A1A;
+  --lux-darker: #111111;
+  --lux-nav: #0F172A;
+  --lux-text: #E5E5E5;
+  --lux-text-muted: #9CA3AF;
+  --lux-cream: #F8F1E3;
+  --lux-success: #22C55E;
+  --lux-warning: #F59E0B;
+  --lux-danger: #EF4444;
+  --lux-border: rgba(212, 175, 55, 0.15);
+
+  /* Animation durations */
+  --dur-fast: 150ms;
+  --dur-base: 250ms;
+  --dur-slow: 400ms;
 }
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+
+.dark {
+  --lux-gold: #E8C56B;
+  --lux-text: #E5E5E5;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #D4AF37;
-  border-radius: 4px;
+
+/* ═══════════════════════════════════════════
+   BASE STYLES
+   ═══════════════════════════════════════════ */
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  background-color: var(--lux-dark);
+  color: var(--lux-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #B6922A;
+
+.serif-heading {
+  font-family: 'Playfair Display', Georgia, serif;
 }
+
+/* ═══════════════════════════════════════════
+   SCROLLBAR
+   ═══════════════════════════════════════════ */
+
+.custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #B6922A; }
+
+/* ═══════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════ */
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(212, 175, 55, 0.3); }
+  50% { box-shadow: 0 0 25px rgba(212, 175, 55, 0.7), 0 0 50px rgba(212, 175, 55, 0.2); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+.animate-float { animation: float 3s ease-in-out infinite; }
+.animate-glow { animation: glow-pulse 2s ease-in-out infinite; }
+.animate-slide-up { animation: slide-up 0.3s ease-out; }
+.animate-fade-in { animation: fade-in 0.25s ease-out; }
+
+/* ═══════════════════════════════════════════
+   LUXURY CARD
+   ═══════════════════════════════════════════ */
+
+.luxury-card {
+  background: rgba(30, 26, 20, 0.95);
+  border: 1px solid rgba(212, 175, 55, 0.12);
+  border-radius: 16px;
+  transition: border-color var(--dur-base), box-shadow var(--dur-base), transform var(--dur-base);
+}
+
+.luxury-card:hover {
+  border-color: rgba(212, 175, 55, 0.35);
+  box-shadow: 0 20px 60px -10px rgba(212, 175, 55, 0.25);
+}
+
+/* ═══════════════════════════════════════════
+   FILTER CHIPS (Active Filters)
+   ═══════════════════════════════════════════ */
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: #D4AF37;
+  cursor: pointer;
+  transition: background var(--dur-fast), border-color var(--dur-fast);
+  white-space: nowrap;
+}
+
+.filter-chip:hover {
+  background: rgba(212, 175, 55, 0.25);
+  border-color: #D4AF37;
+}
+
+/* ═══════════════════════════════════════════
+   PRICE DISPLAY
+   ═══════════════════════════════════════════ */
+
+.price-display {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--lux-gold);
+  letter-spacing: -0.025em;
+}
+
+.price-original {
+  font-size: 0.875rem;
+  color: var(--lux-text-muted);
+  text-decoration: line-through;
+}
+
+/* ═══════════════════════════════════════════
+   GOLD GRADIENT BORDER
+   ═══════════════════════════════════════════ */
+
+.border-gold-gradient {
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+}
+
+.border-gold-gradient::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #D4AF37, #8B6914, #D4AF37);
+  z-index: -1;
+}
+
+/* ═══════════════════════════════════════════
+   STOCK BADGES
+   ═══════════════════════════════════════════ */
+
+.stock-badge-high {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22C55E;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.stock-badge-low {
+  background: rgba(245, 158, 11, 0.15);
+  color: #F59E0B;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.stock-badge-out {
+  background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* ═══════════════════════════════════════════
+   ADMIN SIDEBAR
+   ═══════════════════════════════════════════ */
+
+.admin-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #9CA3AF;
+  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+  border-left: 3px solid transparent;
+  cursor: pointer;
+}
+
+.admin-sidebar-link:hover {
+  background: rgba(212, 175, 55, 0.08);
+  color: #D4AF37;
+}
+
+.admin-sidebar-link.active {
+  background: rgba(212, 175, 55, 0.12);
+  color: #D4AF37;
+  border-left-color: #D4AF37;
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════
+   DRAG AND DROP ZONE
+   ═══════════════════════════════════════════ */
+
+.drop-zone {
+  border: 2px dashed rgba(212, 175, 55, 0.3);
+  border-radius: 12px;
+  transition: border-color var(--dur-base), background var(--dur-base);
+}
+
+.drop-zone:hover,
+.drop-zone.drag-over {
+  border-color: #D4AF37;
+  background: rgba(212, 175, 55, 0.05);
+}
+
+/* ═══════════════════════════════════════════
+   THEME TRANSITION
+   ═══════════════════════════════════════════ */
 
 .theme-transition * {
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease !important;
+}
+
+/* ═══════════════════════════════════════════
+   FORM INPUTS LUXURY
+   ═══════════════════════════════════════════ */
+
+.lux-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #E5E5E5;
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--dur-base), box-shadow var(--dur-base);
+}
+
+.lux-input:focus {
+  border-color: #D4AF37;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+.lux-input::placeholder {
+  color: #6B7280;
+}
+
+/* ═══════════════════════════════════════════
+   RANGE SLIDER
+   ═══════════════════════════════════════════ */
+
+input[type="range"] {
+  accent-color: #D4AF37;
+  cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE GRID UTILITIES
+   ═══════════════════════════════════════════ */
+
+.product-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 24px;
+}
+
+@media (min-width: 640px) {
+  .product-grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1024px) {
+  .product-grid-3 { grid-template-columns: repeat(3, 1fr); }
+}
+
+.product-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 20px;
+}
+
+@media (min-width: 640px) {
+  .product-grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1024px) {
+  .product-grid-4 { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (min-width: 1280px) {
+  .product-grid-4 { grid-template-columns: repeat(4, 1fr); }
 }

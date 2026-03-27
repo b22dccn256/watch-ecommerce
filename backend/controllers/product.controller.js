@@ -2,6 +2,7 @@ import { redis } from "../lib/redis.js";
 import cloudinary from "../lib/cloudinary.js";
 import Product from "../models/product.model.js";
 import Category from "../models/category.model.js";
+import Brand from "../models/brand.model.js";
 import CampaignService from "../services/campaign.service.js";
 import mongoose from "mongoose";
 import XLSX from "xlsx";
@@ -376,14 +377,24 @@ export const importProducts = async (req, res) => {
 					categoryId = cat._id;
 				}
 
+                let brandId = null;
+                if (row.brand) {
+                    let brandObj = await Brand.findOne({ name: row.brand });
+                    if (!brandObj) {
+                        brandObj = await Brand.create({ name: row.brand });
+                    }
+                    brandId = brandObj._id;
+                }
+
 				const product = new Product({
 					name: row.name,
 					description: row.description || "",
 					price: row.price || 0,
+                    costPrice: row.costPrice || Math.round((row.price || 0) * 0.7),
 					image: row.image || "",
 					categoryId: categoryId,
-					brand: row.brand || "Khác",
-					type: row.type || "quartz",
+					brand: brandId,
+					type: (row.type || "quartz").toLowerCase(),
 					stock: row.stock || 0,
 					isActive: true,
 				});
@@ -407,6 +418,38 @@ export const importProducts = async (req, res) => {
 	} catch (error) {
 		res.status(500).json({ message: "Server error during import", error: error.message });
 	}
+};
+
+export const exportProducts = async (req, res) => {
+    try {
+        const products = await Product.find({ deletedAt: null })
+            .populate("categoryId", "name")
+            .populate("brand", "name");
+        
+        const data = products.map(p => ({
+            "Tên sản phẩm": p.name,
+            "Thương hiệu": p.brand ? p.brand.name : "Khác",
+            "Danh mục": p.categoryId ? p.categoryId.name : "",
+            "Loại máy": p.type,
+            "Giá bán": p.price,
+            "Giá nhập": p.costPrice || 0,
+            "Tồn kho": p.stock,
+            "Lượt bán": p.salesCount || 0,
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+
+        const buf = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+        res.setHeader("Content-Disposition", "attachment; filename=products.xlsx");
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        res.send(buf);
+    } catch (error) {
+        console.error("Error exporting products", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
 };
 
 export const getInventoryAlerts = async (req, res) => {

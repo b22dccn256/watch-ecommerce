@@ -4,6 +4,7 @@ import { protectRoute, adminRoute } from "../middleware/auth.middleware.js";
 import {
     getAllOrders,
     updateOrderStatus,
+    updateOrderDetails,
     getOrderById,
     getMyOrders,
     createCODOrder,
@@ -24,6 +25,9 @@ router.get("/", protectRoute, adminRoute, getAllOrders);
 
 // Route cho admin: Cập nhật status đơn hàng (ví dụ: từ paid → shipped)
 router.patch("/:id/status", protectRoute, adminRoute, updateOrderStatus);
+
+// Route cho admin: Cập nhật chi tiết đơn hàng (ghi chú, carrier, refund, etc.)
+router.patch("/:id/details", protectRoute, adminRoute, updateOrderDetails);
 
 // Route cho user: Xem đơn hàng của mình (phải đặt TRƯỚC /:id)
 router.get("/my-orders", protectRoute, getMyOrders);

@@ -25,11 +25,13 @@ export const createCheckoutSession = async (req, res) => {
 			return res.status(400).json({ message: "Thiếu thông tin giao hàng." });
 		}
 
-		await OrderService.deductStock(products, sessionOpts);
+		const orderCode = OrderService.generateOrderCode();
+		const newOrderId = new mongoose.Types.ObjectId();
+
+		await OrderService.deductStock(products, sessionOpts, newOrderId, req.user._id, "Thanh toán Stripe");
 
 		const coupon = couponCode ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }).session(sessionOpts) : null;
 		let dbTotalAmount = await OrderService.calculateTotalAmount(products, coupon, sessionOpts);
-		const orderCode = OrderService.generateOrderCode();
 
 		let totalAmount = 0;
 
@@ -67,6 +69,7 @@ export const createCheckoutSession = async (req, res) => {
 		}
 
 		const newOrder = new Order({
+			_id: newOrderId,
 			user: req.user._id,
 			products: products.map(p => ({
 				product: p._id || p.id,
@@ -108,7 +111,10 @@ export const createCheckoutSession = async (req, res) => {
 		await newOrder.save({ session: sessionOpts });
 
 		// Clear user cart
-		req.user.cartItems = [];
+		const orderedProductIds = products.map(p => (p._id || p.id).toString());
+		req.user.cartItems = req.user.cartItems.filter(item =>
+			item.product && !orderedProductIds.includes(item.product.toString())
+		);
 		await req.user.save({ session: sessionOpts });
 
 		await sessionOpts.commitTransaction();
@@ -215,7 +221,14 @@ const handlePaymentSuccess = async (session) => {
 		}
 
 		// Clear cart just in case (webhook safety)
-		await User.findByIdAndUpdate(session.metadata.userId, { cartItems: [] });
+		const userToClear = await User.findById(session.metadata.userId);
+		if (userToClear) {
+			const orderedProductIds = order.products.map(p => p.product.toString());
+			userToClear.cartItems = userToClear.cartItems.filter(item =>
+				item.product && !orderedProductIds.includes(item.product.toString())
+			);
+			await userToClear.save();
+		}
 	}
 };
 
@@ -228,7 +241,7 @@ const handlePaymentExpired = async (session) => {
 		await order.save();
 
 		// Hoàn lại kho
-		await OrderService.restoreStock(order.products);
+		await OrderService.restoreStock(order.products, null, orderId, "Stripe Checkout hết hạn");
 	}
 };
 

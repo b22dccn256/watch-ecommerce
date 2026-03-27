@@ -16,10 +16,14 @@ import analyticsRoutes from "./routes/analytics.route.js";
 import orderRoutes from "./routes/order.route.js";
 import aiRoutes from "./routes/ai.route.js";
 import wishlistRoutes from "./routes/wishlist.route.js";
+import inventoryRoutes from "./routes/inventory.route.js";
 import categoryRoutes from "./routes/category.route.js";
+import brandRoutes from "./routes/brand.route.js";
 import bannerRoutes from "./routes/banner.route.js";
 import contactRoutes from "./routes/contact.route.js";
 import mailRoutes from "./routes/mail.route.js";
+import reviewRoutes from "./routes/review.route.js";
+import questionRoutes from "./routes/question.route.js";
 import "./services/mailWorker.js";
 // cron job
 import "./lib/cron.js";
@@ -83,10 +87,14 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/inventory", inventoryRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/brands", brandRoutes);
 app.use("/api/banners", bannerRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/mail", mailRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/questions", questionRoutes);
 
 if (process.env.NODE_ENV === "production") {
 	app.use(express.static(path.join(__dirname, "/frontend/dist")));
@@ -106,7 +114,24 @@ app.use((err, req, res, next) => {
 	res.status(500).json({ message: "Server error", error: err.message });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
 	console.log("Server is running on http://localhost:" + PORT);
 	connectDB();
+});
+
+server.on('error', (err) => {
+	if (err.code === 'EADDRINUSE') {
+		const altPort = Number(PORT) + 1;
+		console.warn(`Port ${PORT} in use, attempting to listen on ${altPort}`);
+		// try to listen on the next port
+		server.close(() => {
+			app.listen(altPort, () => {
+				console.log(`Server started on fallback port http://localhost:${altPort}`);
+				connectDB();
+			});
+		});
+	} else {
+		console.error('Server error:', err);
+		process.exit(1);
+	}
 });

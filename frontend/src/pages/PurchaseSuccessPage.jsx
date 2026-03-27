@@ -8,7 +8,7 @@ import Confetti from "react-confetti";
 
 const PurchaseSuccessPage = () => {
 	const [isProcessing, setIsProcessing] = useState(true);
-	const { clearCart } = useCartStore();
+	const { clearSelectedCart } = useCartStore();
 	const [error, setError] = useState(null);
 	const [order, setOrder] = useState(null);
 
@@ -30,7 +30,7 @@ const PurchaseSuccessPage = () => {
 				const res = await axios.post("/payments/checkout-success", {
 					sessionId,
 				});
-				clearCart();
+				clearSelectedCart();
 				if (res.data.orderId) {
 					fetchOrderDetails(res.data.orderId);
 				} else {
@@ -50,15 +50,15 @@ const PurchaseSuccessPage = () => {
 		if (sessionId) {
 			handleCheckoutSuccess(sessionId);
 		} else if (orderIdParam) {
-			// COD hoặc QR — clear cart và fetch chi tiết đơn hàng
-			clearCart();
+			// COD hoặc QR — clear selected cart nếu chưa clear và fetch chi tiết đơn hàng
+			clearSelectedCart();
 			fetchOrderDetails(orderIdParam);
 		} else {
 			setIsProcessing(false);
 			setError("Không tìm thấy mã phiên giao dịch hoặc mã đơn hàng.");
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [clearCart]);
+	}, [clearSelectedCart]);
 
 	if (isProcessing) {
 		return (

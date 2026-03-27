@@ -12,6 +12,7 @@ import {
 	getProductById,
 	updateProduct,
 	getInventoryAlerts,
+    exportProducts,
 } from "../controllers/product.controller.js";
 import { adminRoute, protectRoute } from "../middleware/auth.middleware.js";
 
@@ -21,6 +22,7 @@ const upload = multer({ dest: "uploads/" });
 const router = express.Router();
 
 router.post("/import", protectRoute, adminRoute, upload.single("file"), importProducts);
+router.get("/export", protectRoute, adminRoute, exportProducts);
 router.get("/", getAllProducts);
 router.get("/featured", getFeaturedProducts);
 router.get("/suggestions", getSuggestions);

@@ -1,17 +1,19 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { LayoutGrid, Grid3X3, X } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
-import ProductCard from "../components/ProductCard"; // sẽ nâng cấp ở bước sau
+import ProductCard from "../components/ProductCard";
 import FilterSidebar from "../components/FilterSidebar";
 import SearchBarWithSuggestions from "../components/SearchBarWithSuggestions";
 
 const CatalogPage = () => {
 	const { category } = useParams();
 	const [searchParams, setSearchParams] = useSearchParams();
+	const [gridCols, setGridCols] = useState(4); // 3 or 4 columns
 	const {
 		products, loading, totalPages, currentPage, sort, totalCount,
-		fetchFilteredProducts, setPage, searchTerm, setSearchTerm, setFilters, setSort
+		fetchFilteredProducts, setPage, searchTerm, setSearchTerm, setFilters, filters, setSort
 	} = useProductStore();
 
 	// Đồng bộ URL params với store
@@ -52,6 +54,42 @@ const CatalogPage = () => {
 			q
 		});
 	}, [searchParams, category, fetchFilteredProducts, setSearchTerm, setFilters, setSort]);
+
+	// Active filter chips builder
+	const buildActiveChips = () => {
+		const chips = [];
+		if (filters.category) chips.push({ key: "category", label: filters.category.split(" (")[0] });
+		(filters.brands || []).forEach(b => chips.push({ key: `brand:${b}`, label: b }));
+		(filters.machineType || []).forEach(t => chips.push({ key: `machineType:${t}`, label: t }));
+		(filters.strapMaterial || []).forEach(m => chips.push({ key: `strapMaterial:${m}`, label: m }));
+		(filters.colors || []).forEach(c => chips.push({ key: `colors:${c}`, label: c }));
+		(filters.sizes || []).forEach(s => chips.push({ key: `sizes:${s}`, label: s }));
+		if (filters.minRating > 0) chips.push({ key: "minRating", label: `${filters.minRating}+ sao` });
+		if (filters.minPrice > 0 || filters.maxPrice < 1_000_000_000)
+			chips.push({ key: "price", label: `${(filters.minPrice/1e6).toFixed(0)}–${filters.maxPrice >= 1e9 ? "∞" : (filters.maxPrice/1e6).toFixed(0)} Tr₫` });
+		return chips;
+	};
+
+	const removeChip = (chipKey) => {
+		if (chipKey === "category") setFilters({ category: "" });
+		else if (chipKey === "minRating") setFilters({ minRating: 0 });
+		else if (chipKey === "price") setFilters({ minPrice: 0, maxPrice: 1_000_000_000 });
+		else {
+			const [filterName, value] = chipKey.split(":");
+			const arr = (filters[filterName] || []).filter(v => v !== value);
+			setFilters({ [filterName]: arr });
+		}
+		setPage(1);
+		setTimeout(() => fetchFilteredProducts(), 0);
+	};
+
+	const clearAllFilters = () => {
+		setFilters({ brands: [], category: "", machineType: [], strapMaterial: [], colors: [], sizes: [], minRating: 0, minPrice: 0, maxPrice: 1_000_000_000 });
+		setPage(1);
+		setTimeout(() => fetchFilteredProducts(), 0);
+	};
+
+	const activeChips = buildActiveChips();
 
 	// Format Pagination Window Helper
 	const getPaginationRange = (currentPage, totalPages) => {
@@ -98,23 +136,64 @@ const CatalogPage = () => {
 							)}
 						</div>
 
-						<div className="flex justify-between items-center mb-4">
-							<h1 className="text-4xl font-bold">
-								{category ? category.toUpperCase() : "Tất cả đồng hồ"}
+						<div className="flex flex-wrap justify-between items-center mb-4 gap-3">
+							<h1 className="text-3xl font-bold serif-heading">
+								{category ? category : "Tất cả đồng hồ"}
 							</h1>
-							<select
-								value={sort}
-								onChange={handleSortChange}
-								className="bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-yellow-900 text-gray-900 dark:text-white px-6 py-3 rounded-full text-sm outline-none focus:border-[#D4AF37] transition"
-							>
-								<option value="newest">Mới nhất</option>
-								<option value="best_selling">Bán chạy nhất</option>
-								<option value="price_asc">Giá: Thấp đến Cao</option>
-								<option value="price_desc">Giá: Cao đến Thấp</option>
-								<option value="name_asc">Tên: A-Z</option>
-								<option value="name_desc">Tên: Z-A</option>
-							</select>
+							<div className="flex items-center gap-3">
+								{/* Grid toggle */}
+								<div className="flex items-center gap-1 bg-gray-100 dark:bg-zinc-900 rounded-lg p-1">
+									<button
+										onClick={() => setGridCols(3)}
+										className={`p-1.5 rounded transition ${gridCols === 3 ? "bg-[#D4AF37] text-black" : "text-gray-400 hover:text-white"}`}
+										title="3 cột"
+									>
+										<Grid3X3 className="w-4 h-4" />
+									</button>
+									<button
+										onClick={() => setGridCols(4)}
+										className={`p-1.5 rounded transition ${gridCols === 4 ? "bg-[#D4AF37] text-black" : "text-gray-400 hover:text-white"}`}
+										title="4 cột"
+									>
+										<LayoutGrid className="w-4 h-4" />
+									</button>
+								</div>
+								<select
+									value={sort}
+									onChange={handleSortChange}
+									className="bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-yellow-900 text-gray-900 dark:text-white px-4 py-2 rounded-lg text-sm outline-none focus:border-[#D4AF37] transition"
+								>
+									<option value="newest">Mới nhất</option>
+									<option value="best_selling">Bán chạy nhất</option>
+									<option value="price_asc">Giá: Thấp → Cao</option>
+									<option value="price_desc">Giá: Cao → Thấp</option>
+									<option value="name_asc">Tên: A-Z</option>
+									<option value="name_desc">Tên: Z-A</option>
+								</select>
+							</div>
 						</div>
+
+						{/* Active Filter Chips */}
+						{activeChips.length > 0 && (
+							<div className="flex flex-wrap items-center gap-2 mb-4">
+								{activeChips.map(chip => (
+									<button
+										key={chip.key}
+										onClick={() => removeChip(chip.key)}
+										className="filter-chip"
+									>
+										{chip.label}
+										<X className="w-3 h-3" />
+									</button>
+								))}
+								<button
+									onClick={clearAllFilters}
+									className="text-xs text-gray-500 hover:text-red-400 underline transition ml-1"
+								>
+									Xóa tất cả
+								</button>
+							</div>
+						)}
 
 						{!loading && (
 							<p className="text-sm text-gray-500 mb-8 border-b border-zinc-800 pb-4">
@@ -142,7 +221,7 @@ const CatalogPage = () => {
 								<p className="text-gray-500 max-w-md mx-auto">Thử điều chỉnh lại bộ lọc hoặc khoảng giá để tìm thấy chiếc đồng hồ ưng ý nhất của bạn.</p>
 							</div>
 						) : (
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+							<div className={gridCols === 4 ? "product-grid-4" : "product-grid-3"}>
 								{products.map((product) => (
 									<ProductCard key={product._id} product={product} />
 								))}

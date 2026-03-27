@@ -9,65 +9,88 @@ import { sendEmail } from "./email.js";
 import { Queue } from "bullmq";
 import IORedis from "ioredis";
 
-const redisConnection = new IORedis(process.env.UPSTASH_REDIS_URL || process.env.REDIS_URL || "redis://localhost:6379", {
-	maxRetriesPerRequest: null,
-	tls: process.env.UPSTASH_REDIS_URL ? { rejectUnauthorized: false } : undefined
-});
-const emailQueue = new Queue("email-campaigns", { connection: redisConnection });
+const isCronEnabled = process.env.ENABLE_CRON === "true";
+
+// Provide a safe stub queue if Redis is not available or cron is disabled
+let emailQueue = {
+    add: async (name, payload) => {
+        console.log(`[Cron Stub] queued ${name}`, payload && payload.email ? payload.email : "(no email)");
+        return Promise.resolve();
+    }
+};
+
+if (isCronEnabled) {
+    try {
+        const redisConnection = new IORedis(process.env.UPSTASH_REDIS_URL || process.env.REDIS_URL || "redis://localhost:6379", {
+            maxRetriesPerRequest: null,
+            tls: process.env.UPSTASH_REDIS_URL ? { rejectUnauthorized: false } : undefined
+        });
+        emailQueue = new Queue("email-campaigns", { connection: redisConnection });
+    } catch (err) {
+        console.error("[Cron] Redis connection failed, using stub queue:", err.message);
+    }
+} else {
+    console.log('[Cron] Disabled (ENABLE_CRON != "true"). Using stub queue.');
+}
 
 // Abandoned Cart Check (Every day at midnight)
-cron.schedule("0 0 * * *", async () => {
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+if (isCronEnabled) {
+    cron.schedule("0 0 * * *", async () => {
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
 
-    const users = await User.find({
-        cartItems: { $ne: [] },
-        cartUpdatedAt: { $gte: fortyEightHoursAgo, $lte: twentyFourHoursAgo }
-    }).populate("cartItems.product");
+        const users = await User.find({
+            cartItems: { $ne: [] },
+            cartUpdatedAt: { $gte: fortyEightHoursAgo, $lte: twentyFourHoursAgo }
+        }).populate("cartItems.product");
 
-    for (const user of users) {
-        const cartItemsData = user.cartItems
-            .filter(item => item.product) // Safety filter
-            .map(item => ({
-                name: item.product.name,
-                price: item.product.price.toLocaleString("vi-VN"),
-                image: item.product.image
-            }));
+        for (const user of users) {
+            const cartItemsData = user.cartItems
+                .filter(item => item.product) // Safety filter
+                .map(item => ({
+                    name: item.product.name,
+                    price: item.product.price.toLocaleString("vi-VN"),
+                    image: item.product.image
+                }));
 
-        if (cartItemsData.length > 0) {
-            await emailQueue.add("abandoned-cart", {
-                email: user.email,
-                fullName: user.name,
-                subject: "Bạn đang bỏ lỡ tuyệt tác này? – Luxury Watch",
-                cartItems: cartItemsData,
-                cartUrl: (process.env.CLIENT_URL || "http://localhost:5173") + "/cart",
-                unsubscribeLink: (process.env.BACKEND_URL || "http://localhost:5000") + "/api/mail/unsubscribe/" + user.email
-            });
-            console.log("[Cron] Queued abandoned cart email for " + user.email);
+            if (cartItemsData.length > 0) {
+                await emailQueue.add("abandoned-cart", {
+                    email: user.email,
+                    fullName: user.name,
+                    subject: "Bạn đang bỏ lỡ tuyệt tác này? – Luxury Watch",
+                    cartItems: cartItemsData,
+                    cartUrl: (process.env.CLIENT_URL || "http://localhost:5173") + "/cart",
+                    unsubscribeLink: (process.env.BACKEND_URL || "http://localhost:5000") + "/api/mail/unsubscribe/" + user.email
+                });
+                console.log("[Cron] Queued abandoned cart email for " + user.email);
+            }
         }
-    }
-});
-
-// Cancel Abandoned Stripe Orders (Every hour)
-cron.schedule("0 * * * *", async () => {
-    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const abandonedOrders = await Order.find({
-        paymentMethod: "stripe",
-        paymentStatus: "pending",
-        createdAt: { $lte: yesterday }
     });
 
-    for (const order of abandonedOrders) {
-        order.status = "cancelled";
-        order.paymentStatus = "cancelled";
-        await order.save();
-        await OrderService.restoreStock(order.products);
-        console.log("[Cron] Cancelled abandoned Stripe order " + order._id + " and restored stock.");
-    }
-});
+// Cancel Abandoned Stripe Orders (Every hour)
+    cron.schedule("0 * * * *", async () => {
+        const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const abandonedOrders = await Order.find({
+            paymentMethod: "stripe",
+            paymentStatus: "pending",
+            createdAt: { $lte: yesterday }
+        });
+
+        for (const order of abandonedOrders) {
+            try {
+                // Use updateOne to avoid triggering schema validators on legacy/incomplete docs
+                await Order.updateOne({ _id: order._id }, { $set: { status: "cancelled", paymentStatus: "cancelled" } });
+                await OrderService.restoreStock(order.products);
+                console.log("[Cron] Cancelled abandoned Stripe order " + order._id + " and restored stock.");
+            } catch (err) {
+                console.error('[Cron] Failed to cancel order', order._id, err.message);
+            }
+        }
+    });
+    
 
 // Update Campaign Status (Every minute)
-cron.schedule("* * * * *", async () => {
+    cron.schedule("* * * * *", async () => {
     try {
         const now = new Date();
         const toActive = await Campaign.updateMany(
@@ -81,10 +104,10 @@ cron.schedule("* * * * *", async () => {
     } catch (error) {
         console.error("[Cron Error] Campaign status update failed:", error);
     }
-});
+    });
 
 // Low Stock Alert (Every day at 8 AM)
-cron.schedule("0 8 * * *", async () => {
+    cron.schedule("0 8 * * *", async () => {
     try {
         const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com";
         const products = await Product.find({
@@ -102,4 +125,5 @@ cron.schedule("0 8 * * *", async () => {
     } catch (error) {
         console.error("[Cron Error] Low stock alert failed:", error);
     }
-});
+    });
+} // end isCronEnabled
