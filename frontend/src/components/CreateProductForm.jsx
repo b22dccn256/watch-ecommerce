@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { PlusCircle, Upload, Loader, ImagePlus, Tag, DollarSign } from "lucide-react";
+import { PlusCircle, Upload, Loader, ImagePlus, Tag, DollarSign, X, Plus } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
 
 const categories = [
@@ -28,6 +28,7 @@ const CreateProductForm = ({ onSuccess }) => {
 		stock: "",
 		brand: "",
 		type: "",
+		wristSizeOptions: [],
 	});
 
 	const [dragOver, setDragOver] = useState(false);
@@ -42,17 +43,37 @@ const CreateProductForm = ({ onSuccess }) => {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
+			const finalStock = newProduct.wristSizeOptions.length > 0 
+				? newProduct.wristSizeOptions.reduce((acc, curr) => acc + (Number(curr.stock) || 0), 0)
+				: Number(newProduct.stock);
+
 			await createProduct({
 				...newProduct,
-				stock: Number(newProduct.stock),
+				stock: finalStock,
 				price: Number(newProduct.price),
 				originalPrice: newProduct.originalPrice ? Number(newProduct.originalPrice) : undefined,
+				wristSizeOptions: newProduct.wristSizeOptions.filter(o => o.size.trim() !== "")
 			});
-			setNewProduct({ name: "", description: "", price: "", originalPrice: "", category: "", image: "", stock: "", brand: "", type: "" });
+			setNewProduct({ name: "", description: "", price: "", originalPrice: "", category: "", image: "", stock: "", brand: "", type: "", wristSizeOptions: [] });
 			if (onSuccess) onSuccess();
 		} catch {
 			console.log("error creating a product");
 		}
+	};
+
+	const addWristSizeOption = () => {
+		setNewProduct(prev => ({ ...prev, wristSizeOptions: [...prev.wristSizeOptions, { size: "", stock: 0 }] }));
+	};
+
+	const updateWristOption = (index, field, value) => {
+		const newOptions = [...newProduct.wristSizeOptions];
+		newOptions[index][field] = value;
+		setNewProduct(prev => ({ ...prev, wristSizeOptions: newOptions }));
+	};
+
+	const removeWristOption = (index) => {
+		const newOptions = newProduct.wristSizeOptions.filter((_, i) => i !== index);
+		setNewProduct(prev => ({ ...prev, wristSizeOptions: newOptions }));
 	};
 
 	const processImageFile = (file) => {
@@ -148,14 +169,52 @@ const CreateProductForm = ({ onSuccess }) => {
 
 					{/* Stock */}
 					<div>
-						<label htmlFor="stock" className={labelCls}>Tồn kho khởi tạo *</label>
+						<label htmlFor="stock" className={labelCls}>Tồn kho (Tổng) *</label>
 						<input
-							type="number" id="stock" required min="0"
-							value={newProduct.stock}
+							type="number" id="stock" required={newProduct.wristSizeOptions.length === 0} min="0"
+							value={newProduct.wristSizeOptions.length > 0 ? newProduct.wristSizeOptions.reduce((acc, curr) => acc + (Number(curr.stock) || 0), 0) : newProduct.stock}
 							onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
-							className={inputCls}
+							disabled={newProduct.wristSizeOptions.length > 0}
+							className={inputCls + (newProduct.wristSizeOptions.length > 0 ? " bg-gray-200 cursor-not-allowed" : "")}
 							placeholder="VD: 50"
 						/>
+						{newProduct.wristSizeOptions.length > 0 && <p className="text-xs text-gray-400 mt-1">Tổng tồn kho tự động tính từ các size.</p>}
+					</div>
+
+					{/* Wrist Size Options */}
+					<div className="pt-2 border-t border-gray-100 dark:border-luxury-border">
+						<div className="flex items-center justify-between mb-2">
+							<label className={labelCls + " !mb-0"}>Kích cỡ cổ tay (Tùy chọn)</label>
+							<button 
+								type="button" onClick={addWristSizeOption}
+								className="text-xs flex items-center gap-1 text-luxury-gold hover:text-yellow-500 font-medium cursor-pointer"
+							>
+								<Plus className="w-3 h-3" /> Thêm size
+							</button>
+						</div>
+						{newProduct.wristSizeOptions.length > 0 ? (
+							<div className="space-y-2">
+								{newProduct.wristSizeOptions.map((opt, i) => (
+									<div key={i} className="flex items-center gap-2">
+										<input 
+											type="text" placeholder="Size (vd: 38-42mm)" required
+											value={opt.size} onChange={(e) => updateWristOption(i, "size", e.target.value)}
+											className={inputCls + " flex-1 !py-1.5 !text-xs"} 
+										/>
+										<input 
+											type="number" placeholder="Số lượng" min="0" required
+											value={opt.stock} onChange={(e) => updateWristOption(i, "stock", Number(e.target.value))}
+											className={inputCls + " w-24 !py-1.5 !text-xs text-center"} 
+										/>
+										<button type="button" onClick={() => removeWristOption(i)} className="p-1 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
+											<X className="w-4 h-4" />
+										</button>
+									</div>
+								))}
+							</div>
+						) : (
+							<p className="text-xs text-gray-400 italic">Không có phân loại kích cỡ.</p>
+						)}
 					</div>
 				</div>
 

@@ -5,19 +5,15 @@ import { useUserStore } from "../stores/useUserStore";
 import { useNavigate } from "react-router-dom";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
-import { loadStripe } from "@stripe/stripe-js";
-import { CheckCircle, AlertCircle, ShoppingBag, X, ChevronRight, ChevronLeft, Truck, ArrowLeft } from "lucide-react";
+import { CheckCircle, AlertCircle, ShoppingBag, X, ChevronRight, ChevronLeft, Truck, ArrowLeft, CreditCard, Banknote, QrCode } from "lucide-react";
 import CheckoutStepper from "../components/CheckoutStepper";
 
-const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-const stripePromise = stripePublicKey ? loadStripe(stripePublicKey) : null;
-
 const CheckoutPage = () => {
-	const { cart, total, subtotal, coupon, isCouponApplied, clearSelectedCart, selectedItems } = useCartStore();
+	const { cart, total, subtotal, shippingFee, coupon, isCouponApplied, clearSelectedCart, selectedItems } = useCartStore();
 	const { user } = useUserStore();
 	const navigate = useNavigate();
 	
-	const checkoutItems = cart.filter(item => selectedItems.includes(item._id));
+	const checkoutItems = cart.filter(item => selectedItems.includes(useCartStore.getState().getUniqueId(item)));
 
     const [reviewStep, setReviewStep] = useState(false); // false = form, true = review
 
@@ -32,8 +28,9 @@ const CheckoutPage = () => {
 
     const [errors, setErrors] = useState({});
     const [isProcessing, setIsProcessing] = useState(false);
-    const [isConfirming, setIsConfirming] = useState(false); // Loading khi xác nhận QR
-    const [qrData, setQrData] = useState(null); // For QR modal
+    const [selectedPayment, setSelectedPayment] = useState("vnpay");
+    const [isConfirming, setIsConfirming] = useState(false); 
+    const [qrData, setQrData] = useState(null);
     const paymentDoneRef = useRef(false);
 
     // Load saved form data + auto-fill từ user nếu chưa có dữ liệu
@@ -57,6 +54,11 @@ const CheckoutPage = () => {
     useEffect(() => {
         localStorage.setItem("checkoutFormData", JSON.stringify(formData));
     }, [formData]);
+
+    // Recalculate shipping fee whenever city changes
+    useEffect(() => {
+        useCartStore.getState().calculateTotals(formData.city);
+    }, [formData.city]);
 
     useEffect(() => {
         if (checkoutItems.length === 0 && !qrData && !paymentDoneRef.current) {
@@ -104,60 +106,47 @@ const CheckoutPage = () => {
         else window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const handlePaymentStripe = async () => {
+    const handlePaymentSubmit = async () => {
         if (!validateForm()) return;
         setIsProcessing(true);
 
         try {
-            const stripe = await stripePromise;
-            if (!stripe) {
-                toast.error("Stripe chưa được cấu hình. Vui lòng dùng phương thức thanh toán khác.");
+            if (selectedPayment === "qr") {
+                const res = await axios.post("/orders/qr", {
+                    products: checkoutItems,
+                    couponCode: coupon ? coupon.code : null,
+                    shippingDetails: formData
+                });
+                paymentDoneRef.current = true;
+                setQrData(res.data);
+                localStorage.removeItem("checkoutFormData");
+                clearSelectedCart();
+                toast.success("Đơn hàng QR đã tạo thành công!");
                 setIsProcessing(false);
                 return;
             }
+
             const res = await axios.post("/payments/create-checkout-session", {
                 products: checkoutItems,
                 couponCode: coupon ? coupon.code : null,
-                shippingDetails: formData
+                shippingDetails: formData,
+                paymentMethod: selectedPayment
             });
 
-            const session = res.data;
-
-            // Clear storage before redirecting
             localStorage.removeItem("checkoutFormData");
 
-            const result = await stripe.redirectToCheckout({
-                sessionId: session.id,
-            });
-
-            if (result.error) {
-                toast.error(result.error.message || "Lỗi giao dịch Stripe");
+            if (res.data.url) {
+                if (res.data.isCod) {
+                    paymentDoneRef.current = true;
+                    clearSelectedCart();
+                    toast.success("Đặt hàng COD thành công!");
+                }
+                window.location.href = res.data.url;
+            } else {
+                toast.error("Không nhận được URL thanh toán từ server.");
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || "Lỗi thanh toán Stripe");
-        } finally {
-            setIsProcessing(false);
-        }
-    };
-
-    const handlePaymentCOD = async () => {
-        if (!validateForm()) return;
-        setIsProcessing(true);
-
-        try {
-            const res = await axios.post("/orders/cod", {
-                products: checkoutItems,
-                couponCode: coupon ? coupon.code : null,
-                shippingDetails: formData
-            });
-
-            localStorage.removeItem("checkoutFormData");
-            paymentDoneRef.current = true; // đánh dấu đồng bộ TRƯỚC khi clearCart
-            clearSelectedCart();
-            toast.success("Đặt hàng COD thành công!");
-            navigate(`/purchase-success?order_id=${res.data.orderId}`);
-        } catch (error) {
-            toast.error(error.response?.data?.message || "Lỗi đặt hàng COD");
+            toast.error(error.response?.data?.message || `Lỗi thanh toán ${selectedPayment.toUpperCase()}`);
         } finally {
             setIsProcessing(false);
         }
@@ -205,6 +194,15 @@ const CheckoutPage = () => {
     };
 
     const formatPrice = (price) => price.toLocaleString("vi-VN");
+
+    const paymentOptions = [
+        { id: "vnpay", name: "Cổng thanh toán VNPay", icon: <CreditCard className="w-5 h-5 text-blue-600" />, desc: "ATM nội địa, Visa, MasterCard" },
+        { id: "momo", name: "Ví điện tử MoMo", icon: <QrCode className="w-5 h-5 text-pink-600" />, desc: "Quét mã MoMo siêu tốc" },
+        { id: "zalopay", name: "Ví ZaloPay", icon: <QrCode className="w-5 h-5 text-blue-500" />, desc: "Thanh toán qua ZaloPay tiện lợi" },
+        { id: "stripe", name: "Thẻ Quốc tế (Stripe)", icon: <CreditCard className="w-5 h-5 text-purple-600" />, desc: "An toàn tuyệt đối với Stripe" },
+        { id: "qr", name: "Chuyển khoản VietQR", icon: <QrCode className="w-5 h-5 text-emerald-600" />, desc: "Mở ứng dụng ngân hàng quét mã" },
+        { id: "cod", name: "Thanh toán khi nhận hàng (COD)", icon: <Banknote className="w-5 h-5 text-amber-500" />, desc: "Thanh toán trực tiếp bằng tiền mặt" },
+    ];
 
     return (
         <div className="bg-white dark:bg-[#0f0c08] min-h-screen text-gray-900 dark:text-white transition-colors duration-300 pb-16">
@@ -325,7 +323,16 @@ const CheckoutPage = () => {
                                     <div key={item._id} className="flex justify-between items-center text-sm">
                                         <div className="flex items-center gap-3 overflow-hidden">
                                             <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded bg-gray-100 dark:bg-gray-700" />
-                                            <span className="text-gray-600 dark:text-gray-300 truncate max-w-[120px]" title={item.name}>{item.name} <span className="text-gray-400 dark:text-gray-500">x{item.quantity}</span></span>
+                                            <div className="flex flex-col truncate max-w-[140px]">
+                                                <span className="text-gray-600 dark:text-gray-300 truncate" title={item.name}>
+                                                    {item.name} <span className="text-gray-400 dark:text-gray-500 ml-1">x{item.quantity}</span>
+                                                </span>
+                                                {item.wristSize && (
+                                                    <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5" title={"Size: " + item.wristSize}>
+                                                        Size: {item.wristSize}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                         <span className="font-medium text-gray-900 dark:text-white">{formatPrice(item.price * item.quantity)} ₫</span>
                                     </div>
@@ -345,7 +352,9 @@ const CheckoutPage = () => {
                                 )}
                                 <div className='flex justify-between text-gray-500 dark:text-gray-400 items-center'>
                                     <span className='flex items-center gap-1.5'><Truck className='w-4 h-4 text-emerald-500' /> Phí vận chuyển</span>
-                                    <span className='text-emerald-600 dark:text-emerald-400 font-medium'>Miễn phí</span>
+                                    <span className={`font-medium ${shippingFee === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-900 dark:text-white'}`}>
+                                        {shippingFee === 0 ? 'Miễn phí' : `${formatPrice(shippingFee)} ₫`}
+                                    </span>
                                 </div>
                                 <div className='flex justify-between font-bold text-lg pt-2 border-t border-gray-100 dark:border-gray-700'>
                                     <span className="text-gray-900 dark:text-white">Tổng cộng</span>
@@ -381,27 +390,37 @@ const CheckoutPage = () => {
                                 >
                                     <ChevronLeft className='w-4 h-4' /> Sửa thông tin giao hàng
                                 </button>
-                                <p className='text-xs text-gray-400 text-center'>Chọn phương thức thanh toán</p>
+                                <div className='space-y-3 mt-4'>
+                                    {paymentOptions.map(option => (
+                                        <label 
+                                            key={option.id}
+                                            className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all ${selectedPayment === option.id ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 ring-1 ring-emerald-500' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-emerald-300'}`}
+                                        >
+                                            <input 
+                                                type="radio" 
+                                                name="paymentMethod" 
+                                                value={option.id}
+                                                checked={selectedPayment === option.id}
+                                                onChange={() => setSelectedPayment(option.id)}
+                                                className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 bg-gray-100 border-gray-300"
+                                            />
+                                            <div className="flex bg-gray-100 dark:bg-gray-700 p-2 rounded-lg items-center justify-center">
+                                                {option.icon}
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className="font-semibold text-gray-900 dark:text-white text-sm">{option.name}</h4>
+                                                <p className="text-gray-500 text-xs">{option.desc}</p>
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+
                                 <button
-                                    className='flex w-full items-center justify-center rounded-lg bg-[#635BFF] px-5 py-3 text-sm font-medium text-white hover:bg-[#524ac9] transition-colors shadow-lg shadow-[#635BFF]/20 disabled:opacity-50 disabled:cursor-not-allowed'
-                                    onClick={handlePaymentStripe}
+                                    className='mt-6 flex w-full items-center justify-center rounded-xl bg-emerald-600 px-5 py-4 text-base font-bold text-white hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest'
+                                    onClick={handlePaymentSubmit}
                                     disabled={isProcessing || checkoutItems.length === 0}
                                 >
-                                    {isProcessing ? "Đang xử lý..." : "Thanh toán qua Stripe"}
-                                </button>
-                                <button
-                                    className='flex w-full items-center justify-center rounded-lg bg-emerald-600 px-5 py-3 text-sm font-medium text-white hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed'
-                                    onClick={handlePaymentQR}
-                                    disabled={isProcessing || checkoutItems.length === 0}
-                                >
-                                    {isProcessing ? "Đang xử lý..." : "Chuyển khoản VietQR"}
-                                </button>
-                                <button
-                                    className='flex w-full items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 px-5 py-3 text-sm font-medium text-emerald-600 dark:text-emerald-400 border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-                                    onClick={handlePaymentCOD}
-                                    disabled={isProcessing || checkoutItems.length === 0}
-                                >
-                                    {isProcessing ? "Đang xử lý..." : "Thanh toán khi nhận hàng (COD)"}
+                                    {isProcessing ? "Đang xử lý..." : "Xác nhận & Thanh toán"}
                                 </button>
                             </div>
                         )}

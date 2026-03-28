@@ -1,8 +1,9 @@
 import toast from "react-hot-toast";
-import { ShoppingCart, Star, Heart, Eye, TrendingUp } from "lucide-react";
+import { ShoppingCart, Star, Heart, Eye, TrendingUp, ShieldCheck, ArrowLeftRight } from "lucide-react";
 import { useUserStore } from "../stores/useUserStore";
 import { useCartStore } from "../stores/useCartStore";
 import { useWishlistStore } from "../stores/useWishlistStore";
+import { useCompareStore } from "../stores/useCompareStore";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
@@ -10,8 +11,10 @@ const ProductCard = ({ product }) => {
 	const { user } = useUserStore();
 	const { addToCart } = useCartStore();
 	const { wishlist, toggleWishlist } = useWishlistStore();
+	const { addToCompare, compareList = [], removeFromCompare } = useCompareStore();
 
 	const isWishlisted = Array.isArray(wishlist) && wishlist.some((w) => w._id === product._id);
+	const isCompared = compareList?.some(c => c._id === product._id);
 	const isOutOfStock = product.stock !== undefined && product.stock <= 0;
 
 	// Discount calculation
@@ -84,6 +87,20 @@ const ProductCard = ({ product }) => {
 					</motion.div>
 				</button>
 
+				{/* RIGHT-SIDE BELOW WISHLIST: Compare */}
+				<button
+					onClick={(e) => {
+						e.stopPropagation();
+						isCompared ? removeFromCompare(product._id) : addToCompare(product);
+					}}
+					className="absolute top-14 right-3 z-30 p-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:text-blue-400 transition opacity-0 group-hover:opacity-100"
+					title="So sánh"
+				>
+					<motion.div whileTap={{ scale: 1.3 }}>
+						<ArrowLeftRight className={`${isCompared ? "text-blue-400" : "text-white"} w-5 h-5`} />
+					</motion.div>
+				</button>
+
 				{/* BOTTOM-LEFT: Quick view */}
 				<Link
 					to={`/product/${product._id}`}
@@ -122,14 +139,20 @@ const ProductCard = ({ product }) => {
 			{/* ── Content Zone ────────────────────────── */}
 			<div className="p-4 flex flex-col gap-2 flex-1">
 				{/* Category label */}
-				<p className="text-[10px] font-semibold tracking-widest text-gray-400 dark:text-luxury-text-muted uppercase">
-					{product.category || "Đồng hồ"}
+				<p className="text-[10px] font-semibold tracking-widest text-gray-400 dark:text-luxury-text-muted uppercase line-clamp-1">
+					{product.categoryId?.name || product.category || "Đồng hồ luxury"}
 				</p>
 
 				{/* Product name */}
 				<h3 className="text-sm font-semibold text-gray-900 dark:text-luxury-text-light line-clamp-2 leading-snug">
 					{product.name}
 				</h3>
+
+				{/* Warranty tag */}
+				<div className="flex items-center gap-1 mt-1 text-[10px] text-emerald-600 dark:text-emerald-400">
+					<ShieldCheck className="w-3 h-3" />
+					<span>Bảo hành Quốc tế 5 Năm</span>
+				</div>
 
 				{/* Star rating */}
 				<div className="flex items-center gap-1 mt-auto">

@@ -1,5 +1,6 @@
 import Product from "../models/product.model.js";
 import InventoryLog from "../models/inventoryLog.model.js";
+import CampaignService from "./campaign.service.js";
 
 class OrderService {
     // Kiểm tra và trừ tồn kho (Có hỗ trợ Transaction Session)
@@ -11,10 +12,19 @@ class OrderService {
             }
 
             const product = await Product.findById(item._id || item.id).session(session);
-            if (!product || product.stock < item.quantity) {
-                throw new Error(`Sản phẩm "${product?.name || item._id}" chỉ còn ${product?.stock || 0} cái`);
+            
+            let availableStock = product ? product.stock : 0;
+            let sizeOption = null;
+            if (product && item.wristSize && product.wristSizeOptions?.length > 0) {
+                sizeOption = product.wristSizeOptions.find(o => o.size === item.wristSize);
+                if (sizeOption) availableStock = sizeOption.stock;
+            }
+
+            if (!product || availableStock < item.quantity) {
+                throw new Error(`Sản phẩm "${product?.name || item._id}" (size ${item.wristSize || 'mặc định'}) chỉ còn ${availableStock} cái`);
             }
             product.stock -= item.quantity;
+            if (sizeOption) sizeOption.stock -= item.quantity;
 
             // Tăng biến salesCount khi mua hàng thành công
             product.salesCount = (product.salesCount || 0) + item.quantity;
@@ -38,6 +48,12 @@ class OrderService {
             const product = await Product.findById(item.product ? item.product : (item._id || item.id)).session(session);
             if (product) {
                 product.stock += item.quantity;
+                
+                if (item.wristSize && product.wristSizeOptions?.length > 0) {
+                    const sizeOption = product.wristSizeOptions.find(o => o.size === item.wristSize);
+                    if (sizeOption) sizeOption.stock += item.quantity;
+                }
+                
                 await product.save({ session });
 
                 await InventoryLog.create([{
@@ -52,19 +68,26 @@ class OrderService {
         }
     }
 
-    // Tính tổng tiền dựa trên giá gốc từ DB
+    // Tính tổng tiền dựa trên giá (đã bao gồm khuyến mãi/campaign)
     static async calculateTotalAmount(products, coupon, session = null) {
         let totalAmount = 0;
         for (const item of products) {
-            const product = await Product.findById(item._id || item.id).session(session);
+            let product = await Product.findById(item._id || item.id).session(session);
             if (!product) {
                 throw new Error(`Sản phẩm không tồn tại`);
             }
+            // Apply any active campaigns explicitly here to compute the ACTUAL live price!
+            product = await CampaignService.applyCampaignToProducts(product);
+
             totalAmount += product.price * item.quantity;
         }
 
         if (coupon && coupon.isActive) {
             totalAmount -= Math.round((totalAmount * coupon.discountPercentage) / 100);
+        }
+
+        if (totalAmount > 0 && totalAmount < 2000000) {
+            totalAmount += 30000;
         }
 
         return totalAmount;

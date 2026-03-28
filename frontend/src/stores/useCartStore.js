@@ -5,28 +5,33 @@ import { useUserStore } from "./useUserStore";
 
 export const useCartStore = create((set, get) => ({
 	cart: [],
-	selectedItems: JSON.parse(localStorage.getItem("watch_selected_items") || "[]"),
+	selectedItems: JSON.parse(localStorage.getItem("watch_selected_items") || "[]"), // stores unique cartItemIds
 	coupon: null,
 	total: 0,
 	subtotal: 0,
+	shippingFee: 0,
 	isCouponApplied: false,
+	
+	// Helper to generate unique cart item ID
+	getUniqueId: (item) => `${item._id}_${item.wristSize || 'default'}`,
 
 	setSelectedItems: (items) => {
 		localStorage.setItem("watch_selected_items", JSON.stringify(items));
 		set({ selectedItems: items });
 		get().calculateTotals();
 	},
-	toggleSelectItem: (productId) => {
+	toggleSelectItem: (product) => {
 		const { selectedItems } = get();
-		if (selectedItems.includes(productId)) {
-			get().setSelectedItems(selectedItems.filter((id) => id !== productId));
+		const uniqueId = get().getUniqueId(product);
+		if (selectedItems.includes(uniqueId)) {
+			get().setSelectedItems(selectedItems.filter((id) => id !== uniqueId));
 		} else {
-			get().setSelectedItems([...selectedItems, productId]);
+			get().setSelectedItems([...selectedItems, uniqueId]);
 		}
 	},
-	selectAllItems: (isSelected, productIds) => {
+	selectAllItems: (isSelected, products) => {
 		if (isSelected) {
-			get().setSelectedItems(productIds);
+			get().setSelectedItems(products.map(p => get().getUniqueId(p)));
 		} else {
 			get().setSelectedItems([]);
 		}
@@ -89,8 +94,8 @@ export const useCartStore = create((set, get) => ({
 		}
 	},
 	clearSelectedCart: () => {
-		const { cart, selectedItems, user } = get();
-		const newCart = cart.filter((item) => !selectedItems.includes(item._id));
+		const { cart, selectedItems, user, getUniqueId } = get();
+		const newCart = cart.filter((item) => !selectedItems.includes(getUniqueId(item)));
 		if (!user) {
 			localStorage.setItem("watch_cart", JSON.stringify(newCart));
 		}
@@ -114,7 +119,9 @@ export const useCartStore = create((set, get) => ({
 	addToCart: async (product) => {
 		const { user } = useUserStore.getState();
 		const prevState = get();
-		const existingItem = prevState.cart.find((item) => item._id === product._id);
+		const uniqueId = prevState.getUniqueId(product);
+		
+		const existingItem = prevState.cart.find((item) => prevState.getUniqueId(item) === uniqueId);
 		const newQuantity = existingItem ? existingItem.quantity + 1 : 1;
 
 		if (product.stock < newQuantity) {
@@ -125,7 +132,7 @@ export const useCartStore = create((set, get) => ({
 			// Guest Add
 			const newCart = existingItem
 				? prevState.cart.map((item) =>
-					item._id === product._id ? { ...item, quantity: item.quantity + 1, wristSize: product.wristSize || item.wristSize } : item
+					prevState.getUniqueId(item) === uniqueId ? { ...item, quantity: item.quantity + 1 } : item
 				)
 				: [...prevState.cart, { ...product, quantity: 1, wristSize: product.wristSize || null }];
 
@@ -133,8 +140,8 @@ export const useCartStore = create((set, get) => ({
 			set({ cart: newCart });
 			
 			// Auto-select when adding
-			if (!get().selectedItems.includes(product._id)) {
-				get().setSelectedItems([...get().selectedItems, product._id]);
+			if (!get().selectedItems.includes(uniqueId)) {
+				get().setSelectedItems([...get().selectedItems, uniqueId]);
 			} else {
 				get().calculateTotals();
 			}
@@ -148,18 +155,18 @@ export const useCartStore = create((set, get) => ({
 			toast.success("Đã thêm vào giỏ hàng!");
 
 			set((prevState) => {
-				const existingItem = prevState.cart.find((item) => item._id === product._id);
+				const existingItem = prevState.cart.find((item) => prevState.getUniqueId(item) === uniqueId);
 				const newCart = existingItem
 					? prevState.cart.map((item) =>
-						item._id === product._id ? { ...item, quantity: item.quantity + 1, wristSize: product.wristSize || item.wristSize } : item
+						prevState.getUniqueId(item) === uniqueId ? { ...item, quantity: item.quantity + 1 } : item
 					)
 					: [...prevState.cart, { ...product, quantity: 1, wristSize: product.wristSize || null }];
 				return { cart: newCart };
 			});
 
 			// Auto-select when adding
-			if (!get().selectedItems.includes(product._id)) {
-				get().setSelectedItems([...get().selectedItems, product._id]);
+			if (!get().selectedItems.includes(uniqueId)) {
+				get().setSelectedItems([...get().selectedItems, uniqueId]);
 			} else {
 				get().calculateTotals();
 			}
@@ -167,33 +174,36 @@ export const useCartStore = create((set, get) => ({
 			toast.error(error.response?.data?.message || "An error occurred");
 		}
 	},
-	removeFromCart: async (productId) => {
-		const { user, selectedItems } = useUserStore.getState();
+	removeFromCart: async (productId, wristSize) => {
+		const { user } = useUserStore.getState();
+		const uniqueId = get().getUniqueId({ _id: productId, wristSize });
 
 		// Update selected items if removing
-		if (get().selectedItems.includes(productId)) {
-			get().setSelectedItems(get().selectedItems.filter(id => id !== productId));
+		if (get().selectedItems.includes(uniqueId)) {
+			get().setSelectedItems(get().selectedItems.filter(id => id !== uniqueId));
 		}
 
 		if (!user) {
-			const newCart = get().cart.filter((item) => item._id !== productId);
+			const newCart = get().cart.filter((item) => get().getUniqueId(item) !== uniqueId);
 			localStorage.setItem("watch_cart", JSON.stringify(newCart));
 			set({ cart: newCart });
 			get().calculateTotals();
+			toast.success("Đã xóa sản phẩm khỏi giỏ hàng");
 			return;
 		}
 
 		try {
-			await axios.delete(`/cart`, { data: { productId } });
-			set((prevState) => ({ cart: prevState.cart.filter((item) => item._id !== productId) }));
+			await axios.delete(`/cart`, { data: { productId, wristSize } });
+			set((prevState) => ({ cart: prevState.cart.filter((item) => prevState.getUniqueId(item) !== uniqueId) }));
 			get().calculateTotals();
+			toast.success("Đã xóa sản phẩm khỏi giỏ hàng");
 		} catch (error) {
 			toast.error(error.response?.data?.message || "Không thể xóa sản phẩm khỏi giỏ hàng");
 		}
 	},
-	updateQuantity: async (productId, quantity, maxStock) => {
+	updateQuantity: async (productId, quantity, maxStock, wristSize) => {
 		if (quantity === 0) {
-			get().removeFromCart(productId);
+			get().removeFromCart(productId, wristSize);
 			return;
 		}
 
@@ -203,9 +213,10 @@ export const useCartStore = create((set, get) => ({
 		}
 
 		const { user } = useUserStore.getState();
+		const uniqueId = get().getUniqueId({ _id: productId, wristSize });
 
 		if (!user) {
-			const newCart = get().cart.map((item) => (item._id === productId ? { ...item, quantity } : item));
+			const newCart = get().cart.map((item) => (get().getUniqueId(item) === uniqueId ? { ...item, quantity } : item));
 			localStorage.setItem("watch_cart", JSON.stringify(newCart));
 			set({ cart: newCart });
 			get().calculateTotals();
@@ -213,18 +224,18 @@ export const useCartStore = create((set, get) => ({
 		}
 
 		try {
-			await axios.put(`/cart/${productId}`, { quantity });
+			await axios.put(`/cart/${productId}`, { quantity, wristSize });
 			set((prevState) => ({
-				cart: prevState.cart.map((item) => (item._id === productId ? { ...item, quantity } : item)),
+				cart: prevState.cart.map((item) => (prevState.getUniqueId(item) === uniqueId ? { ...item, quantity } : item)),
 			}));
 			get().calculateTotals();
 		} catch (error) {
 			toast.error(error.response?.data?.message || "An error occurred");
 		}
 	},
-	calculateTotals: () => {
-		const { cart, coupon, selectedItems } = get();
-		const selectedCart = cart.filter(item => selectedItems.includes(item._id));
+	calculateTotals: (city = "") => {
+		const { cart, coupon, selectedItems, getUniqueId } = get();
+		const selectedCart = cart.filter(item => selectedItems.includes(getUniqueId(item)));
 		const subtotal = selectedCart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 		let total = subtotal;
 
@@ -233,6 +244,30 @@ export const useCartStore = create((set, get) => ({
 			total = subtotal - discount;
 		}
 
-		set({ subtotal, total });
+		// --- Phí vận chuyển động theo Tỉnh / Thành phố ---
+		const FREE_SHIP_THRESHOLD = 5_000_000; // Miễn phí ship nếu đơn > 5tr
+		const BIG_CITY_FEE = 30_000; // Hà Nội và TP.HCM
+		const OTHER_PROVINCE_FEE = 50_000; // Tỉnh khác
+
+		const BIG_CITIES = [
+			"hà nội", "ha noi", "hn",
+			"hồ chí minh", "ho chi minh", "hcm", "tp.hcm", "tp hcm", "sài gòn", "sai gon"
+		];
+
+		const hasPhysicalItems = selectedCart.length > 0;
+		let shippingFee = 0;
+
+		if (hasPhysicalItems) {
+			if (total >= FREE_SHIP_THRESHOLD) {
+				shippingFee = 0; // Miễn phí
+			} else if (!city || BIG_CITIES.includes(city.toLowerCase().trim())) {
+				shippingFee = BIG_CITY_FEE; // Hà Nội / HCM (hoặc chưa nhập)
+			} else {
+				shippingFee = OTHER_PROVINCE_FEE; // Tỉnh khác
+			}
+		}
+
+		total += shippingFee;
+		set({ subtotal, total, shippingFee });
 	},
 }));

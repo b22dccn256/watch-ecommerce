@@ -110,6 +110,16 @@ const ProfilePage = () => {
 							<p className='text-luxury-gold text-xs font-semibold tracking-wider uppercase mt-1'>
 								{user?.role === "admin" ? "Quản trị viên" : "Thành viên"}
 							</p>
+							{/* Reward Points Display */}
+							{typeof user?.rewardPoints === 'number' && (
+								<div className="mt-3 flex flex-col items-center">
+									<span className="text-xs text-gray-500 dark:text-luxury-text-muted">Điểm thưởng hiện tại</span>
+									<span className="text-2xl font-bold text-luxury-gold">{user.rewardPoints.toLocaleString("vi-VN")} điểm</span>
+									{typeof user?.totalPointsEarned === 'number' && (
+										<span className="text-[10px] text-gray-400 dark:text-luxury-text-muted mt-1">Tổng tích lũy: {user.totalPointsEarned.toLocaleString("vi-VN")} điểm</span>
+									)}
+								</div>
+							)}
 						</div>
 
 						<nav className='bg-white dark:bg-luxury-darker border border-gray-100 dark:border-luxury-border shadow-xl dark:shadow-none rounded-2xl overflow-hidden'>
@@ -277,6 +287,20 @@ const ProfilePage = () => {
 																				title="Hủy đơn hàng"
 																			>
 																				<XCircle className='w-5 h-5' />
+																			</button>
+																		)}
+																		{/* Request Return button for delivered orders */}
+																		{order.status === 'delivered' && (
+																			<button
+																				onClick={async () => {
+																					if (window.confirm(`Yêu cầu trả hàng cho đơn #${order.orderCode}?`)) {
+																						await requestReturnOrder(order._id);
+																					}
+																				}}
+																				className='p-2 hover:bg-yellow-400/10 rounded-full transition-colors text-gray-400 hover:text-yellow-500'
+																				title="Yêu cầu trả hàng"
+																			>
+																				<Package className='w-5 h-5' />
 																			</button>
 																		)}
 																	</div>

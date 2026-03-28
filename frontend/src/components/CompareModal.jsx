@@ -3,11 +3,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCompareStore } from "../stores/useCompareStore";
 import { useCartStore } from "../stores/useCartStore";
 import { useNavigate } from "react-router-dom";
+import React, { useContext } from "react";
+import { I18nContext } from "../App";
+import { formatCurrency } from "../i18n/format";
+
 
 const CompareModal = ({ isOpen, onClose }) => {
 	const { compareItems, removeFromCompare, clearCompare } = useCompareStore();
 	const { addToCart } = useCartStore();
 	const navigate = useNavigate();
+	const { t, lang, currency } = useContext(I18nContext);
 
 	if (!isOpen) return null;
 
@@ -73,7 +78,7 @@ const CompareModal = ({ isOpen, onClose }) => {
 												</button>
 												<img src={item.image} alt={item.name} className="w-32 h-32 mx-auto object-cover rounded-xl mb-4 cursor-pointer" onClick={() => handleNavigate(item._id)} />
 												<h3 className="font-bold text-lg leading-tight mb-2 line-clamp-2 cursor-pointer hover:text-emerald-600 dark:hover:text-yellow-400" onClick={() => handleNavigate(item._id)}>{item.name}</h3>
-												<p className="text-xl font-bold text-emerald-600 dark:text-yellow-400 mb-4">{item.price.toLocaleString('vi-VN')} ₫</p>
+												<p className="text-xl font-bold text-emerald-600 dark:text-yellow-400 mb-4">{formatCurrency(item.price, currency, lang)}</p>
 												
 												<button
 													onClick={() => {

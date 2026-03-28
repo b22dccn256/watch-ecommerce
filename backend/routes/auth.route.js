@@ -10,7 +10,13 @@ router.post("/verify-otp", verifyOTP);
 router.post("/resend-otp", resendOTP);
 router.post("/logout", logout);
 router.post("/refresh-token", refreshToken);
-router.get("/profile", protectRoute, getProfile);
+router.get("/profile", (req, res, next) => {
+	if (!req.cookies.accessToken && !req.cookies.refreshToken) {
+		return res.json(null);
+	}
+	protectRoute(req, res, next);
+}, getProfile);
+
 router.patch("/profile", protectRoute, updateProfile);
 router.patch("/change-password", protectRoute, changePassword);
 router.get("/users", protectRoute, adminRoute, getAllUsers);

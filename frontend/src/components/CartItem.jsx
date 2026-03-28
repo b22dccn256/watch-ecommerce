@@ -2,16 +2,18 @@ import { Minus, Plus, Trash, Bookmark, AlertTriangle } from "lucide-react";
 import { useCartStore } from "../stores/useCartStore";
 import { useWishlistStore } from "../stores/useWishlistStore";
 import { useUserStore } from "../stores/useUserStore";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { I18nContext } from "../App";
+import { formatCurrency } from "../i18n/format";
 import { toast } from "react-hot-toast";
 
 const CartItem = ({ item }) => {
-	const { removeFromCart, updateQuantity, selectedItems, toggleSelectItem } = useCartStore();
+	const { removeFromCart, updateQuantity, selectedItems, toggleSelectItem, getUniqueId } = useCartStore();
 	const { toggleWishlist } = useWishlistStore();
 	const { user } = useUserStore();
 	const [localQuantity, setLocalQuantity] = useState(item.quantity);
 
-	const isSelected = selectedItems.includes(item._id);
+	const isSelected = selectedItems.includes(getUniqueId(item));
 
 	// Sync local quantity with remote prop changes
 	useEffect(() => {
@@ -27,7 +29,7 @@ const CartItem = ({ item }) => {
 		}
 		setLocalQuantity(val);
 		if (val !== item.quantity) {
-			updateQuantity(item._id, val, item.stock);
+			updateQuantity(item._id, val, item.stock, item.wristSize);
 		}
 	};
 
@@ -37,6 +39,7 @@ const CartItem = ({ item }) => {
 		}
 	};
 
+	const { t, lang, currency } = useContext(I18nContext);
 	return (
 		<div className='rounded-lg border p-4 shadow-sm border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 md:p-6'>
 			<div className='space-y-4 md:flex md:items-center md:justify-between md:gap-6 md:space-y-0'>
@@ -44,7 +47,7 @@ const CartItem = ({ item }) => {
 					<input 
 						type="checkbox"
 						checked={isSelected}
-						onChange={() => toggleSelectItem(item._id)}
+						onChange={() => toggleSelectItem(item)}
 						className="w-5 h-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer shrink-0"
 					/>
 					<img className='h-20 md:h-32 rounded object-cover' src={item.image} />
@@ -57,9 +60,9 @@ const CartItem = ({ item }) => {
 							className='inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border
 							 border-gray-200 dark:border-yellow-900 bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-yellow-900 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] transition disabled:opacity-50 disabled:cursor-not-allowed'
 							onClick={() => {
-								const newQ = localQuantity - 1;
+							const newQ = localQuantity - 1;
 								setLocalQuantity(newQ);
-								updateQuantity(item._id, newQ, item.stock);
+								updateQuantity(item._id, newQ, item.stock, item.wristSize);
 							}}
 							disabled={localQuantity <= 1}
 						>
@@ -81,7 +84,7 @@ const CartItem = ({ item }) => {
 							onClick={() => {
 								const newQ = localQuantity + 1;
 								setLocalQuantity(newQ);
-								updateQuantity(item._id, newQ, item.stock);
+								updateQuantity(item._id, newQ, item.stock, item.wristSize);
 							}}
 							disabled={localQuantity >= item.stock}
 						>
@@ -91,7 +94,7 @@ const CartItem = ({ item }) => {
 
 					<div className='text-end md:order-4 min-w-[120px]'>
 						<p className='text-lg font-bold text-emerald-600 dark:text-[#D4AF37]'>
-							{(item.price * localQuantity).toLocaleString("vi-VN")} ₫
+							{formatCurrency(item.price * localQuantity, currency, lang)}
 						</p>
 					</div>
 				</div>
@@ -122,7 +125,7 @@ const CartItem = ({ item }) => {
 					<div className='flex items-center gap-6 pt-2'>
 						<button
 							className='inline-flex items-center text-sm font-medium text-red-500 hover:text-red-400 transition hover:bg-red-500/10 px-2 py-1 -ml-2 rounded'
-							onClick={() => removeFromCart(item._id)}
+							onClick={() => removeFromCart(item._id, item.wristSize)}
 							title='Xóa khỏi giỏ hàng'
 						>
 							<Trash className="w-4 h-4" />
@@ -132,7 +135,7 @@ const CartItem = ({ item }) => {
 							className='inline-flex items-center text-sm font-medium text-blue-400 hover:text-blue-300 transition hover:bg-blue-400/10 px-2 py-1 rounded'
 							onClick={() => {
 								toggleWishlist(item, !!user);
-								removeFromCart(item._id);
+								removeFromCart(item._id, item.wristSize);
 							}}
 							title='Lưu lại mua sau'
 						>

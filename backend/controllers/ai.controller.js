@@ -1,21 +1,28 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import Product from "../models/product.model.js";
+import CampaignService from "../services/campaign.service.js";
 
 // --- Lấy danh sách sản phẩm từ DB để inject vào prompt ---
 const buildProductContext = async () => {
     try {
-        const products = await Product.find({ deletedAt: null, isActive: true })
-            .select("name brand type price stock description customAttributes specs")
+        const rawProducts = await Product.find({ deletedAt: null, isActive: true })
+            .select("name brand type price stock description customAttributes specs category")
             .sort({ salesCount: -1 })
             .limit(60)
             .lean();
 
-        if (!products || products.length === 0) return "";
+        if (!rawProducts || rawProducts.length === 0) return "";
+
+        const products = await CampaignService.applyCampaignToProducts(rawProducts);
 
         const typeLabel = { mechanical: "Cơ", quartz: "Quartz", automatic: "Tự động", digital: "Điện tử", smartwatch: "Smartwatch" };
 
         const lines = products.map((p) => {
-            const priceStr = p.price ? p.price.toLocaleString("vi-VN") + "đ" : "Liên hệ";
+            let priceStr = p.price ? p.price.toLocaleString("vi-VN") + "đ" : "Liên hệ";
+            if (p.originalPrice && p.price < p.originalPrice) {
+                 priceStr = `ĐANG SALE [${p.activeCampaignName || 'Flash Sale'}]: ${p.price.toLocaleString("vi-VN")}đ (Gốc: ${p.originalPrice.toLocaleString("vi-VN")}đ)`;
+            }
+
             const stockStr = p.stock > 0 ? `Còn hàng (${p.stock} chiếc)` : "Hết hàng";
             const typeStr = typeLabel[p.type] || p.type;
 
@@ -50,6 +57,7 @@ THÔNG TIN CỬA HÀNG:
 - Hotline: 1900 6789.
 
 HƯỚNG DẪN TRẢ LỜI:
+- CHÚ Ý CỰC KỲ QUAN TRỌNG VỀ GIÁ CẢ: 1 triệu = 1,000,000đ. Khi khách hỏi tìm sản phẩm theo một mức giá hoặc khoảng giá (VD: "dưới 10 triệu", "khoảng 5 triệu"), BẮT BUỘC bạn PHẢI so sánh bằng số học và CHỈ GỢI Ý các sản phẩm có giá thỏa mãn ngân sách đó. TUYỆT ĐỐI KHÔNG gợi ý sản phẩm vượt quá ngân sách hoặc giá trị mâu thuẫn. Nếu cửa hàng không có sản phẩm nào trong tầm giá đó, hãy thành thật xin lỗi và gợi ý mức giá gần nhất.
 - Khi khách hỏi sản phẩm, hãy gợi ý CỤ THỂ tên sản phẩm, thương hiệu, giá từ danh sách bên dưới.
 - Khi khách hỏi giá, hãy trả lời ĐÚNG giá sản phẩm có trong danh sách.
 - Khi khách hỏi tình trạng hàng, hãy dựa vào trạng thái "Còn hàng / Hết hàng" trong danh sách.
@@ -94,30 +102,114 @@ export const chatWithAI = async (req, res) => {
 import Order from "../models/order.model.js";
 import User from "../models/user.model.js";
 
+import OrderService from "../services/order.service.js";
+import { emailQueue } from "./mail.controller.js";
+
 export const confirmOrdersAI = async (req, res) => {
     try {
-        console.log("🤖 [AI System] Analyzing pending orders for auto-confirmation...");
+        console.log("🤖 [AI System] Analyzing pending orders for auto-confirmation using Gemini...");
         
         // Find pending COD orders
         const pendingOrders = await Order.find({ status: "pending", paymentMethod: "cod" }).populate("user");
         
-        let count = 0;
+        let confirmedCount = 0;
+        let cancelledCount = 0;
+
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+            return res.status(500).json({ message: "Thiếu cấu hình GEMINI_API_KEY để chạy AI Automation." });
+        }
+
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemma-3-1b-it" });
+
         for (const order of pendingOrders) {
-            // AI Analysis Mock: Verify phone exists, address has length, and user isn't brand new or has suspicious name
-            const userName = order.user?.name || "";
-            const isSuspicious = /bot|test|spam|admin/i.test(userName) || userName.length < 2;
-            
-            if (!isSuspicious && order.shippingAddress && order.shippingAddress.length > 10) {
-                order.status = "confirmed";
-                await order.save();
-                count++;
+            const prompt = `Bạn là hệ thống AI phân tích rủi ro đơn hàng thương mại điện tử. 
+Đánh giá xem đơn hàng sau có phải là đơn hàng ảo/spam không.
+Các yếu tố rủi ro: tên người dùng chứa bot/test/admin/spam, số điện thoại không có thực, địa chỉ chuỗi vô nghĩa.
+
+Thông tin đơn hàng:
+- Tên khách hàng: ${order.shippingDetails?.fullName || order.user?.name || "Không rõ"}
+- Email: ${order.shippingDetails?.email || order.user?.email || "Không rõ"}
+- SĐT: ${order.shippingDetails?.phoneNumber || "Không rõ"}
+- Địa chỉ: ${order.shippingDetails?.address || ""}, ${order.shippingDetails?.city || ""}
+- Giá trị đơn hàng: ${order.totalAmount}
+
+Trả về ĐÚNG MỘT JSON với cấu trúc (KHÔNG bọc bằng markdown, chỉ trả về chuỗi JSON phẳng hợp lệ):
+{
+  "isSpam": true hoặc false,
+  "reason": "Giải thích ngắn gọn lý do bằng tiếng Việt"
+}`;
+
+            try {
+                const result = await model.generateContent(prompt);
+                let text = result.response.text().trim();
+                
+                // Remove markdown code blocks if any
+                if (text.startsWith("\`\`\`")) {
+                    text = text.replace(/^\`\`\`(json)?/, "").replace(/\`\`\`$/, "").trim();
+                }
+
+                const aiAnalysis = JSON.parse(text);
+
+                if (aiAnalysis.isSpam) {
+                    order.status = "cancelled";
+                    order.internalNotes = (order.internalNotes ? order.internalNotes + "\n" : "") + 
+                                          `[AI Gemini] Tự động hủy lúc ${new Date().toLocaleString("vi-VN")}: ${aiAnalysis.reason}`;
+                    
+                    // Thêm sự kiện tracking
+                    order.trackingEvents.push({
+                        status: "cancelled",
+                        message: "Hệ thống AI từ chối đơn hàng do nghi ngờ rủi ro/spam.",
+                        timestamp: new Date()
+                    });
+
+                    await order.save();
+                    await OrderService.restoreStock(order.products, null, order._id, "AI tự động hủy: " + aiAnalysis.reason);
+                    
+                    if (order.shippingDetails?.email) {
+                        await emailQueue.add("order-status-update", {
+                            email: order.shippingDetails.email,
+                            subject: "Đơn hàng của bạn đã bị hủy #" + order.orderCode,
+                            order: { orderCode: order.orderCode, status: "cancelled", trackingToken: order.trackingToken }
+                        });
+                    }
+                    cancelledCount++;
+                } else {
+                    order.status = "confirmed";
+                    order.internalNotes = (order.internalNotes ? order.internalNotes + "\n" : "") + 
+                                          `[AI Gemini] Xác nhận tự động lúc ${new Date().toLocaleString("vi-VN")}: ${aiAnalysis.reason}`;
+                    
+                    // Thêm sự kiện tracking
+                    order.trackingEvents.push({
+                        status: "confirmed",
+                        message: "Đơn hàng đã được xác nhận tự động bởi hệ thống.",
+                        timestamp: new Date()
+                    });
+
+                    await order.save();
+                    
+                    if (order.shippingDetails?.email) {
+                        await emailQueue.add("order-status-update", {
+                            email: order.shippingDetails.email,
+                            subject: "Đơn hàng đã được xác nhận #" + order.orderCode,
+                            order: { orderCode: order.orderCode, status: "confirmed", trackingToken: order.trackingToken }
+                        });
+                    }
+                    confirmedCount++;
+                }
+
+            } catch (aiErr) {
+                console.error("Lỗi khi gọi Gemini cho Order " + order._id + ":", aiErr.message);
+                // Skips order if AI fails, leaving it as pending
             }
         }
 
         res.json({ 
             success: true, 
-            message: `AI đã phân tích và tự động xác nhận ${count}/${pendingOrders.length} đơn hàng COD hợp lệ.`,
-            count
+            message: `AI đã xử lý ${pendingOrders.length} đơn. Xác nhận: ${confirmedCount}, Hủy: ${cancelledCount}.`,
+            confirmedCount,
+            cancelledCount
         });
     } catch (error) {
         console.error("AI Automation Error (Orders):", error.message);

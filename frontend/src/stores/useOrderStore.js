@@ -47,4 +47,19 @@ export const useOrderStore = create((set) => ({
 			return false;
 		}
 	},
+	requestReturnOrder: async (orderId) => {
+		try {
+			await axios.patch(`/orders/${orderId}/request-return`);
+			set(state => ({
+				orders: state.orders.map(o =>
+					o._id === orderId ? { ...o, status: 'returned' } : o
+				)
+			}));
+			toast.success("Đã gửi yêu cầu trả hàng!");
+			return true;
+		} catch (error) {
+			toast.error(error.response?.data?.message || "Không thể gửi yêu cầu trả hàng");
+			return false;
+		}
+	},
 }));

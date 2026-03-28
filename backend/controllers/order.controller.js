@@ -1,7 +1,45 @@
+// User request return (after delivered)
+export const requestReturnOrder = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order) return res.status(404).json({ message: "Order not found" });
+        if (!order.user || order.user.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: "Bạn không có quyền yêu cầu trả hàng cho đơn này" });
+        }
+        if (order.status !== "delivered") {
+            return res.status(400).json({ message: "Chỉ có thể trả hàng khi đơn đã giao thành công" });
+        }
+        order.status = "returned";
+        order.trackingEvents.push({
+            status: "returned",
+            message: "Khách hàng đã yêu cầu trả hàng.",
+            timestamp: new Date(),
+            updatedBy: req.user._id
+        });
+        // Restore stock
+        await OrderService.restoreStock(order.products, null, order._id, "Yêu cầu trả hàng từ khách hàng");
+        await order.save();
+        // Email notify
+        await emailQueue.add("order-status-update", {
+            email: order.shippingDetails?.email || (await User.findById(order.user))?.email,
+            subject: `Yêu cầu trả hàng cho đơn #${order.orderCode}`,
+            order: {
+                orderCode: order.orderCode,
+                status: "returned",
+                trackingToken: order.trackingToken
+            }
+        });
+        res.json({ message: "Đã gửi yêu cầu trả hàng!" });
+    } catch (error) {
+        console.error("Error in requestReturnOrder:", error.message);
+        res.status(500).json({ message: "Server error" });
+    }
+};
 // controllers/order.controller.js
 import Order from "../models/order.model.js";
 import Product from "../models/product.model.js";
 import Coupon from "../models/coupon.model.js";
+import User from "../models/user.model.js";
 import OrderService from "../services/order.service.js";
 import mongoose from "mongoose";
 import crypto from "crypto";
@@ -98,6 +136,17 @@ export const updateOrderStatus = async (req, res) => {
         }
 
         await order.save();
+
+        // === Loyalty Points Accrual (1% of order when Delivered) ===
+        if (status === "delivered" && oldStatus !== "delivered" && order.user) {
+            const pointsToAdd = Math.max(1, Math.floor(order.totalAmount / 100)); // 1% giá trị đơn
+            await User.findByIdAndUpdate(order.user, {
+                $inc: { rewardPoints: pointsToAdd, totalPointsEarned: pointsToAdd }
+            });
+            // Log in order notes
+            order.internalNotes = (order.internalNotes || "") + `\n[SYSTEM] Cộng ${pointsToAdd.toLocaleString()} điểm thưởng cho khách.`;
+            await order.save();
+        }
 
         // Queue Email Notification
         await emailQueue.add("order-status-update", {
@@ -211,7 +260,7 @@ const createNonStripeOrder = async (req, res, paymentMethod) => {
         const deductNote = paymentMethod === 'cod' ? 'Đặt hàng COD' : (paymentMethod === 'qr' ? 'Đặt hàng VietQR' : 'Đặt hàng');
         await OrderService.deductStock(products, session, newOrderId, req.user?._id, deductNote);
 
-        const coupon = couponCode
+        const coupon = (couponCode && req.user)
             ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }).session(session)
             : null;
 
@@ -223,11 +272,12 @@ const createNonStripeOrder = async (req, res, paymentMethod) => {
 
         const newOrder = new Order({
             _id: newOrderId,
-            user: req.user._id,
+            ...(req.user && { user: req.user._id }),
             products: products.map(p => ({
                 product: p._id || p.id,
                 quantity: p.quantity,
-                price: p.price
+                price: p.price,
+                wristSize: p.wristSize || null
             })),
             totalAmount,
             orderCode,
@@ -250,18 +300,20 @@ const createNonStripeOrder = async (req, res, paymentMethod) => {
             await coupon.save({ session });
         }
 
-        const orderedProductIds = products.map(p => (p._id || p.id).toString());
-        req.user.cartItems = req.user.cartItems.filter(item => 
-            item.product && !orderedProductIds.includes(item.product.toString())
-        );
-        await req.user.save({ session });
+        if (req.user) {
+            const orderedProductIds = products.map(p => (p._id || p.id).toString());
+            req.user.cartItems = req.user.cartItems.filter(item => 
+                item.product && !orderedProductIds.includes(item.product.toString())
+            );
+            await req.user.save({ session });
+        }
 
         await session.commitTransaction();
         session.endSession();
 
         // Queue email xác nhận (ngoài transaction — không critical nếu fail)
         await emailQueue.add("order-confirmation", {
-            email: req.user.email,
+            email: req.user?.email || shippingDetails.email,
             subject: `Xác nhận đơn hàng #${orderCode} - Luxury Watch`,
             order: { orderCode, totalAmount, shippingDetails, paymentMethod }
         });

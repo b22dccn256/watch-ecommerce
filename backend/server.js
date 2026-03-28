@@ -2,11 +2,14 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 
 import authRoutes from "./routes/auth.route.js";
+import oauthRoutes from "./routes/oauth.route.js";
 import productRoutes from "./routes/product.route.js";
 import cartRoutes from "./routes/cart.route.js";
 import couponRoutes from "./routes/coupon.route.js";
@@ -24,10 +27,14 @@ import contactRoutes from "./routes/contact.route.js";
 import mailRoutes from "./routes/mail.route.js";
 import reviewRoutes from "./routes/review.route.js";
 import questionRoutes from "./routes/question.route.js";
+import storeConfigRoutes from "./routes/storeConfig.route.js";
 import "./services/mailWorker.js";
 // cron job
 import "./lib/cron.js";
 import "./lib/cron-ai.js";
+
+import "./config/passport.js";
+import passport from "passport";
 
 import { connectDB } from "./lib/db.js";
 
@@ -35,12 +42,13 @@ import { connectDB } from "./lib/db.js";
 import "./models/productAudit.model.js";
 
 
-dotenv.config({ path: "./backend/.env" });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
-const __dirname = path.resolve();
 
 // ── Security Headers ──────────────────────────────────────────────────────────
 app.use(helmet());
@@ -74,9 +82,16 @@ app.use("/api", rateLimit({
 app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
 app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(passport.initialize());
+
+const uploadDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+app.use("/uploads", express.static(uploadDir));
 
 
+app.use("/api/auth/oauth", oauthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
@@ -95,6 +110,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/mail", mailRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/questions", questionRoutes);
+app.use("/api/settings", storeConfigRoutes);
 
 if (process.env.NODE_ENV === "production") {
 	app.use(express.static(path.join(__dirname, "/frontend/dist")));
@@ -121,7 +137,7 @@ const server = app.listen(PORT, () => {
 
 server.on('error', (err) => {
 	if (err.code === 'EADDRINUSE') {
-		const altPort = Number(PORT) + 1;
+		const altPort = parseInt(PORT, 10) + 1 || 5001;
 		console.warn(`Port ${PORT} in use, attempting to listen on ${altPort}`);
 		// try to listen on the next port
 		server.close(() => {

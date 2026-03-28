@@ -19,7 +19,7 @@ export default {
 			},
 			fontFamily: {
 				'luxury': ['Playfair Display', 'Georgia', 'serif'],
-				'sans': ['Poppins', 'Segoe UI', 'sans-serif'],
+				'sans': ['Inter', 'Segoe UI', 'sans-serif'],
 			},
 			fontSize: {
 				'display': ['3rem', { lineHeight: '1.1', fontWeight: '700', letterSpacing: '-0.025em' }],

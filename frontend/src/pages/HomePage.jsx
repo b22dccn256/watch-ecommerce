@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useProductStore } from "../stores/useProductStore";
 import { useCartStore } from "../stores/useCartStore";
 import { useCampaignStore } from "../stores/useCampaignStore";
+import { useStorefrontStore } from "../stores/useStorefrontStore";
 import HeroBanner from "../components/HeroBanner";
 import FlashSaleSection from "../components/FlashSaleSection";
 import BestSellerSection from "../components/BestSellerSection";
@@ -13,6 +14,7 @@ const HomePage = () => {
 	const { fetchFeaturedProducts, products, loading } = useProductStore();
 	const { addToCart } = useCartStore();
 	const { campaigns, fetchActiveCampaigns } = useCampaignStore();
+	const { config, fetchConfig } = useStorefrontStore();
 
 	const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 	const [activeCampaign, setActiveCampaign] = useState(null);
@@ -20,7 +22,8 @@ const HomePage = () => {
 	useEffect(() => {
 		fetchFeaturedProducts();
 		fetchActiveCampaigns();
-	}, [fetchFeaturedProducts, fetchActiveCampaigns]);
+		fetchConfig();
+	}, [fetchFeaturedProducts, fetchActiveCampaigns, fetchConfig]);
 
 	useEffect(() => {
 		if (campaigns && campaigns.length > 0) {
@@ -62,27 +65,35 @@ const HomePage = () => {
 		return () => clearInterval(timer);
 	}, [activeCampaign]);
 
+	if (!config) return <div className="min-h-screen bg-white dark:bg-[#1a120b]" />;
+
+	const componentMap = {
+		hero: <HeroBanner key="hero" slogan={config.heroSlogan} />,
+		flashSale: <FlashSaleSection
+			key="flashSale"
+			title={config.flashSaleTitle}
+			gridCols={config.gridColumns}
+			products={products.slice(0, config.gridColumns || 4)} 
+			timeLeft={timeLeft}
+			addToCart={addToCart}
+			campaignName={activeCampaign?.name}
+		/>,
+		bestSeller: <BestSellerSection
+			key="bestSeller"
+			title={config.bestSellerTitle}
+			gridCols={config.gridColumns}
+			products={products.slice(4, 4 + (config.gridColumns || 4))} 
+			addToCart={addToCart}
+		/>,
+	};
+
 	return (
 		<div className="min-h-screen bg-white dark:bg-[#1a120b] text-gray-900 dark:text-white transition-colors duration-500 overflow-hidden">
-			{/* HERO BANNER */}
-			<HeroBanner />
+			{/* DYNAMIC CMS SECTIONS */}
+			{config.homeLayout?.map(key => componentMap[key])}
 
-			{/* FLASH SALE / ACTIVE CAMPAIGN */}
-			<FlashSaleSection
-				products={products.slice(0, 4)} // 4 sản phẩm flash
-				timeLeft={timeLeft}
-				addToCart={addToCart}
-				campaignName={activeCampaign?.name}
-			/>
-
-			{/* SẢN PHẨM BÁN CHẠY */}
-			<BestSellerSection
-				products={products.slice(4, 7)} // 3 sản phẩm bán chạy
-				addToCart={addToCart}
-			/>
-
-			{/* FLOATING CHATBOT */}
-			<ChatBot />
+			{/* CMS CHATBOT */}
+			{config.showChatBot && <ChatBot />}
 		</div>
 	);
 };

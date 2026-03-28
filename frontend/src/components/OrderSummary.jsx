@@ -1,16 +1,18 @@
+
 import { motion } from "framer-motion";
 import { useCartStore } from "../stores/useCartStore";
 import { Link, useNavigate } from "react-router-dom";
 import { MoveRight } from "lucide-react";
+import React, { useContext } from "react";
+import { I18nContext } from "../App";
+import { formatCurrency } from "../i18n/format";
+
 
 const OrderSummary = () => {
-	const { total, subtotal, coupon, isCouponApplied, selectedItems } = useCartStore();
-
-	const savings = subtotal - total;
-	const formattedSubtotal = subtotal.toLocaleString("vi-VN");
-	const formattedTotal = total.toLocaleString("vi-VN");
-	const formattedSavings = savings.toLocaleString("vi-VN");
-	const navigate = useNavigate();
+  const { total, subtotal, shippingFee, coupon, isCouponApplied, selectedItems } = useCartStore();
+  const { t, lang, currency } = useContext(I18nContext);
+  const savings = subtotal - (total - shippingFee);
+  const navigate = useNavigate();
 
 	return (
 		<motion.div
@@ -19,19 +21,19 @@ const OrderSummary = () => {
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.5 }}
 		>
-			<p className='text-xl font-semibold text-emerald-600 dark:text-emerald-400'>Tóm tắt đơn hàng</p>
+			<p className='text-xl font-semibold text-emerald-600 dark:text-emerald-400'>{t('order_summary')}</p>
 
 			<div className='space-y-4'>
 				<div className='space-y-2'>
-					<dl className='flex items-center justify-between gap-4'>
-						<dt className='text-base font-normal text-gray-600 dark:text-gray-300'>Tạm tính</dt>
-						<dd className='text-base font-medium text-gray-900 dark:text-white'>{formattedSubtotal} ₫</dd>
-					</dl>
+					   <dl className='flex items-center justify-between gap-4'>
+						   <dt className='text-base font-normal text-gray-600 dark:text-gray-300'>{t('subtotal')}</dt>
+						   <dd className='text-base font-medium text-gray-900 dark:text-white'>{formatCurrency(subtotal, currency, lang)}</dd>
+					   </dl>
 
 					{savings > 0 && (
 						<dl className='flex items-center justify-between gap-4'>
-							<dt className='text-base font-normal text-gray-600 dark:text-gray-300'>Tiết kiệm</dt>
-							<dd className='text-base font-medium text-emerald-400'>-{formattedSavings} ₫</dd>
+							   <dt className='text-base font-normal text-gray-600 dark:text-gray-300'>{t('savings')}</dt>
+							   <dd className='text-base font-medium text-emerald-400'>-{formatCurrency(savings, currency, lang)}</dd>
 						</dl>
 					)}
 
@@ -41,9 +43,16 @@ const OrderSummary = () => {
 							<dd className='text-base font-medium text-emerald-400'>-{coupon.discountPercentage}%</dd>
 						</dl>
 					)}
+					<dl className='flex items-center justify-between gap-4'>
+						   <dt className='text-base font-normal text-gray-600 dark:text-gray-300'>Phí vận chuyển</dt>
+						   <dd className={`text-base font-medium ${shippingFee === 0 ? 'text-emerald-400' : 'text-gray-900 dark:text-white'}`}>
+							   {shippingFee === 0 ? (lang === 'vi' ? 'Miễn phí' : 'Free') : formatCurrency(shippingFee, currency, lang)}
+						   </dd>
+					</dl>
+
 					<dl className='flex items-center justify-between gap-4 border-t border-gray-200 dark:border-gray-600 pt-2'>
-						<dt className='text-base font-bold text-gray-900 dark:text-white'>Tổng cộng</dt>
-						<dd className='text-base font-bold text-emerald-400'>{formattedTotal} ₫</dd>
+						   <dt className='text-base font-bold text-gray-900 dark:text-white'>{t('total')}</dt>
+						   <dd className='text-base font-bold text-emerald-400'>{formatCurrency(total, currency, lang)}</dd>
 					</dl>
 				</div>
 

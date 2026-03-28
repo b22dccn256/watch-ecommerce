@@ -1,5 +1,5 @@
+import React, { createContext, useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 import HomePage from "./pages/HomePage";
@@ -14,6 +14,7 @@ import PurchaseSuccessPage from "./pages/PurchaseSuccessPage";
 import PurchaseCancelPage from "./pages/PurchaseCancelPage";
 import AboutPage from "./pages/AboutPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import PaymentReturnPage from "./pages/PaymentReturnPage";
 import OrderTrackingPage from "./pages/OrderTrackingPage";
 import WishlistPage from "./pages/WishlistPage";
 import DeliveryPolicyPage from "./pages/DeliveryPolicyPage";
@@ -26,16 +27,17 @@ import TermsOfServicePage from "./pages/TermsOfServicePage";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import LoadingSpinner from "./components/LoadingSpinner";
 import ChatBot from "./components/ChatBot";
 import CompareModal from "./components/CompareModal";
-
+import LoadingSpinner from "./components/LoadingSpinner";
 import { useUserStore } from "./stores/useUserStore";
 import { useCartStore } from "./stores/useCartStore";
 import { useThemeStore } from "./stores/useThemeStore";
 import { useWishlistStore } from "./stores/useWishlistStore";
 import { ShimmerStyle } from "./components/SkeletonLoaders";
 import { useCompareStore } from "./stores/useCompareStore";
+import { useSettingsStore } from "./stores/useSettingsStore";
+import { resources } from "./i18n";
 
 // Scroll to top khi navigate
 const ScrollToTop = () => {
@@ -46,16 +48,23 @@ const ScrollToTop = () => {
 	return null;
 };
 
+
+// Simple i18n/context provider
+export const I18nContext = createContext({ t: (k) => k, lang: 'vi', currency: 'vnd' });
+
 function App() {
 	const { user, checkAuth, checkingAuth } = useUserStore();
 	const { getCartItems } = useCartStore();
 	const { wishlist, fetchWishlist, mergeWishlist, syncFromLocalStorage } = useWishlistStore();
 	const { theme } = useThemeStore();
 	const { isOpen, setIsOpen, compareItems } = useCompareStore();
+	const { lang, currency } = useSettingsStore();
 
 	useEffect(() => {
 		checkAuth();
 	}, [checkAuth]);
+
+	const t = (key) => resources[lang]?.translation[key] || key;
 
 	useEffect(() => {
 		if (theme === "dark") {
@@ -81,16 +90,23 @@ function App() {
 
 	useEffect(() => {
 		if (!user) return;
-		getCartItems();
+
+		const syncCartAndFetch = async () => {
+			await useCartStore.getState().syncLocalCartToServer();
+			await getCartItems();
+		};
+		
+		syncCartAndFetch();
 		mergeWishlist();
 	}, [getCartItems, mergeWishlist, user]);
 
 	if (checkingAuth) return <LoadingSpinner />;
 
 	return (
-		<div className={`min-h-screen relative theme-transition ${theme === 'dark' ? 'bg-luxury-dark text-white' : 'bg-white text-black'}`}>
-			<ShimmerStyle />
-			<ScrollToTop />
+		<I18nContext.Provider value={{ t, lang, currency }}>
+			<div className={`min-h-screen relative theme-transition ${theme === 'dark' ? 'bg-luxury-dark text-white' : 'bg-white text-black'}`}>
+				<ShimmerStyle />
+				<ScrollToTop />
 			<div className='absolute inset-0 overflow-hidden pointer-events-none'>
 				<div className='absolute inset-0'>
 					<div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-full ${theme === 'dark'
@@ -114,8 +130,8 @@ function App() {
 						<Route path="/catalog" element={<CatalogPage />} />
 						<Route path='/category/:category' element={<CatalogPage />} />
 						<Route path="/about" element={<AboutPage />} />
-						<Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
-						<Route path='/checkout' element={user ? <CheckoutPage /> : <Navigate to='/login' />} />
+						<Route path='/cart' element={<CartPage />} />
+						<Route path='/checkout' element={<CheckoutPage />} />
 						<Route path='/profile' element={user ? <ProfilePage /> : <Navigate to='/login' />} />
 						<Route path='/wishlist' element={user ? <WishlistPage /> : <Navigate to='/login' />} />
 
@@ -132,6 +148,9 @@ function App() {
 							element={user ? <PurchaseSuccessPage /> : <Navigate to='/login' />}
 						/>
 						<Route path='/purchase-cancel' element={user ? <PurchaseCancelPage /> : <Navigate to='/login' />} />
+						<Route path='/payment/vnpay-return' element={<PaymentReturnPage method="vnpay" />} />
+						<Route path='/payment/momo-return' element={<PaymentReturnPage method="momo" />} />
+						<Route path='/payment/zalopay-return' element={<PaymentReturnPage method="zalopay" />} />
 						<Route path="/product/:id" element={<ProductDetailPage />} />
 						<Route path="/order-tracking/:trackingToken?" element={<OrderTrackingPage />} />
 					</Routes>
@@ -169,7 +188,8 @@ function App() {
 					</span>
 				</button>
 			)}
-		</div>
+			</div>
+		</I18nContext.Provider>
 	);
 }
 

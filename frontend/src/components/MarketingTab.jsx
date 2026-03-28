@@ -23,6 +23,7 @@ const MarketingTab = () => {
     // Persistent Banners using API
     const [banners, setBanners] = useState([]);
     const [bannersLoading, setBannersLoading] = useState(false);
+    const [creating, setCreating] = useState(false);
 
     useEffect(() => {
         fetchCampaigns();
@@ -45,19 +46,29 @@ const MarketingTab = () => {
     // ─── Campaign handlers ────────────────────────────────────────────────
     const handleCreate = async () => {
         if (!formData.name.trim()) { toast.error("Vui lòng nhập tên chiến dịch"); return; }
-        if (!formData.discountPercentage || Number(formData.discountPercentage) <= 0) { toast.error("Vui lòng nhập phần trăm giảm hợp lệ (> 0)"); return; }
+        if (!formData.discountPercentage || Number(formData.discountPercentage) <= 0 || Number(formData.discountPercentage) > 99) { toast.error("Vui lòng nhập phần trăm giảm hợp lệ (1-99)"); return; }
         if (!formData.startDate || !formData.endDate) { toast.error("Vui lòng chọn ngày bắt đầu và ngày kết thúc"); return; }
-        if (new Date(formData.endDate) <= new Date(formData.startDate)) { toast.error("Ngày kết thúc phải sau ngày bắt đầu"); return; }
+        
+        const startDateObj = new Date(formData.startDate);
+        const endDateObj = new Date(formData.endDate);
+        const now = new Date();
+        
+        if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) { toast.error("Định dạng ngày không hợp lệ"); return; }
+        if (endDateObj <= startDateObj) { toast.error("Ngày kết thúc phải sau ngày bắt đầu"); return; }
+        if (startDateObj < now && startDateObj.getTime() < now.getTime() - 60000) { toast.error("Ngày bắt đầu không được trong quá khứ"); return; }
 
+        setCreating(true);
         const { success } = await createCampaign({
             ...formData,
             discountPercentage: Number(formData.discountPercentage),
             isGlobal: formData.group === "Entire Catalog",
         });
+        
         if (success) {
             setFormData({ name: "", group: "Entire Catalog", discountPercentage: "", startDate: "", endDate: "", isGlobal: true });
             toast.success("Chiến dịch đã được tạo thành công!");
         }
+        setCreating(false);
     };
 
     const formatDate = (dateString) => {
@@ -287,10 +298,15 @@ const MarketingTab = () => {
 
                     <button
                         onClick={handleCreate}
-                        disabled={loading}
-                        className="w-full bg-luxury-gold hover:bg-luxury-gold-light text-luxury-dark font-bold py-4 rounded-xl transition duration-300 mt-4 shadow-lg shadow-luxury-gold/20 disabled:opacity-50"
+                        disabled={creating}
+                        className="w-full bg-luxury-gold hover:bg-luxury-gold-light text-luxury-dark font-bold py-4 rounded-xl transition duration-300 mt-4 shadow-lg shadow-luxury-gold/20 disabled:opacity-50 flex justify-center items-center gap-2"
                     >
-                        {loading ? "Đang xử lý..." : "Kích hoạt chiến dịch"}
+                        {creating ? (
+                            <>
+                                <span className="w-5 h-5 border-2 border-luxury-dark border-t-transparent rounded-full animate-spin"></span>
+                                Đang xử lý...
+                            </>
+                        ) : "Kích hoạt chiến dịch"}
                     </button>
                 </div>
 

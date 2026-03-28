@@ -4,8 +4,12 @@ import { useCartStore } from "../stores/useCartStore";
 import { useWishlistStore } from "../stores/useWishlistStore";
 import { useProductStore } from "../stores/useProductStore";
 import { useThemeStore } from "../stores/useThemeStore";
-import { useState } from "react";
-import { ShoppingCart, User, LogOut, Lock, Search, Heart, Menu, X as CloseIcon } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ShoppingCart, User, LogOut, Lock, Search, Heart, Menu, X as CloseIcon, ChevronDown, Package, Scale, Sun, Moon, Star, ChevronRight } from "lucide-react";
+
+import { useCompareStore } from "../stores/useCompareStore";
+import CompareModal from "./CompareModal";
 
 const Navbar = () => {
 	const { user, logout } = useUserStore();
@@ -13,14 +17,28 @@ const Navbar = () => {
 	const { wishlist } = useWishlistStore();
 	const { searchProducts } = useProductStore(); // sẽ dùng sau
 	const { theme, toggleTheme } = useThemeStore();
+	const { isOpen, setIsOpen, compareItems } = useCompareStore();
 
 	const [searchTerm, setSearchTerm] = useState("");
 	const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+	const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+	const dropdownRef = useRef(null);
 
 	const isAdmin = user?.role === "admin";
+	const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
 	const navigate = useNavigate();
+
+	useEffect(() => {
+		const handleClickOutside = (event) => {
+			if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+				setIsProfileDropdownOpen(false);
+			}
+		};
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => document.removeEventListener("mousedown", handleClickOutside);
+	}, []);
 
 	const handleSearch = (e) => {
 		setSearchTerm(e.target.value);
@@ -47,9 +65,9 @@ const Navbar = () => {
 				<div className="max-w-screen-2xl mx-auto px-6 py-4">
 					<div className="flex items-center justify-between">
 						{/* LOGO */}
-						<Link to="/" className="flex items-center gap-2">
-							<span className="text-3xl font-bold tracking-luxury text-luxury-gold">LUXURY</span>
-							<span className="text-3xl font-bold tracking-luxury text-black dark:text-white">WATCH</span>
+						<Link to="/" className="flex items-center gap-1.5 group">
+							<span className="font-luxury text-[32px] font-extrabold tracking-[0.2em] text-luxury-gold group-hover:text-luxury-gold-light transition-colors drop-shadow-md">LUXURY</span>
+							<span className="font-luxury text-[32px] font-bold tracking-[0.3em] pl-1 text-black dark:text-white group-hover:text-gray-400 transition-colors drop-shadow-md">WATCH</span>
 						</Link>
 
 						{/* MENU CHÍNH */}
@@ -78,26 +96,30 @@ const Navbar = () => {
 								{/* Mega Menu thả xuống */}
 								<div className="absolute top-[80%] left-0 w-[500px] bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-gray-200 dark:border-white/5 p-6 grid grid-cols-2 gap-8 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 rounded-xl transform translate-y-2 group-hover:translate-y-0">
 									{/* Cột 1: Thương Hiệu */}
-									<div>
-										<h3 className="text-[#D4AF37] uppercase text-xs tracking-widest mb-4 font-bold border-b border-[#D4AF37]/20 pb-2">Thương Hiệu Nổi Bật</h3>
+									<div className="border-r border-gray-100 dark:border-white/5 pr-4">
+										<h3 className="flex items-center gap-2 text-[#D4AF37] uppercase text-xs tracking-widest mb-4 font-bold border-b border-[#D4AF37]/20 pb-2">
+											<Star className="w-3.5 h-3.5" /> Thương Hiệu Nổi Bật
+										</h3>
 										<ul className="space-y-3">
-											<li><NavLink to="/catalog?brand=Rolex" className="text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-colors text-sm block">Rolex Heritage</NavLink></li>
-											<li><NavLink to="/catalog?brand=Omega" className="text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-colors text-sm block">Omega Seamaster</NavLink></li>
-											<li><NavLink to="/catalog?brand=Patek+Philippe" className="text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-colors text-sm block">Patek Philippe Classic</NavLink></li>
-											<li><NavLink to="/catalog?brand=Hublot" className="text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-colors text-sm block">Hublot Big Bang</NavLink></li>
-											<li><NavLink to="/catalog?brand=Tag+Heuer" className="text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-colors text-sm block">Tag Heuer Carrera</NavLink></li>
+											<li><NavLink to="/catalog?brand=Rolex" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Rolex Heritage</NavLink></li>
+											<li><NavLink to="/catalog?brand=Omega" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Omega Seamaster</NavLink></li>
+											<li><NavLink to="/catalog?brand=Patek+Philippe" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Patek Philippe Classic</NavLink></li>
+											<li><NavLink to="/catalog?brand=Hublot" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Hublot Big Bang</NavLink></li>
+											<li><NavLink to="/catalog?brand=Tag+Heuer" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Tag Heuer Carrera</NavLink></li>
 										</ul>
 									</div>
 
 									{/* Cột 2: Bộ Máy */}
-									<div>
-										<h3 className="text-[#D4AF37] uppercase text-xs tracking-widest mb-4 font-bold border-b border-[#D4AF37]/20 pb-2">Cỗ Máy Thời Gian</h3>
+									<div className="pl-2">
+										<h3 className="flex items-center gap-2 text-[#D4AF37] uppercase text-xs tracking-widest mb-4 font-bold border-b border-[#D4AF37]/20 pb-2">
+											<Package className="w-3.5 h-3.5" /> Cỗ Máy Thời Gian
+										</h3>
 										<ul className="space-y-3">
-											<li><NavLink to="/catalog?machineType=automatic" className="text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-colors text-sm block">Cơ Tự Động (Automatic)</NavLink></li>
-											<li><NavLink to="/catalog?machineType=mechanical" className="text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-colors text-sm block">Cơ Lên Cót (Mechanical)</NavLink></li>
-											<li><NavLink to="/catalog?machineType=quartz" className="text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-colors text-sm block">Bộ máy Pin (Quartz)</NavLink></li>
-											<li><NavLink to="/catalog?machineType=digital" className="text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-colors text-sm block">Siêu Bền Điện Tử (Digital)</NavLink></li>
-											<li><NavLink to="/catalog?machineType=smartwatch" className="text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-colors text-sm block">Đồng Hồ Thông Minh</NavLink></li>
+											<li><NavLink to="/catalog?machineType=automatic" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Cơ Tự Động (Automatic)</NavLink></li>
+											<li><NavLink to="/catalog?machineType=mechanical" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Cơ Lên Cót (Mechanical)</NavLink></li>
+											<li><NavLink to="/catalog?machineType=quartz" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Bộ máy Pin (Quartz)</NavLink></li>
+											<li><NavLink to="/catalog?machineType=digital" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Siêu Bền Điện Tử (Digital)</NavLink></li>
+											<li><NavLink to="/catalog?machineType=smartwatch" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Đồng Hồ Thông Minh</NavLink></li>
 										</ul>
 									</div>
 								</div>
@@ -121,8 +143,16 @@ const Navbar = () => {
 							</button>
 						</nav>
 
-						{/* SEARCH + CART + USER */}
+						{/* SEARCH + THEME TOGGLE + CART + USER */}
 						<div className="flex items-center gap-6">
+							{/* Theme Toggle (Desktop) */}
+							<button 
+								onClick={toggleTheme} 
+								className="hidden md:flex items-center justify-center p-2 rounded-full bg-gray-100 dark:bg-luxury-darker text-gray-500 hover:text-luxury-gold dark:text-gray-400 dark:hover:text-luxury-gold transition-colors border border-gray-200 dark:border-luxury-border"
+								title="Bật/Tắt Giao Diện Tối"
+							>
+								{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+							</button>
 							{/* Thanh tìm kiếm */}
 							<div className="relative w-80 hidden lg:block">
 								<input
@@ -138,7 +168,7 @@ const Navbar = () => {
 								</button>
 							</div>
 
-							{/* Actions (Wishlist/Cart) */}
+							{/* Actions (Wishlist/Compare/Cart) */}
 							<div className="flex items-center gap-2">
 								<Link
 									to={"/wishlist"}
@@ -152,33 +182,89 @@ const Navbar = () => {
 									)}
 								</Link>
 
+								{/* Compare Icon */}
+								<button
+									onClick={() => setIsOpen(true)}
+									className='relative group p-2 text-gray-700 dark:text-luxury-text-light hover:text-luxury-gold transition-colors'
+								>
+									<Scale className='w-5 h-5 group-hover:scale-110 transition-transform' />
+									{compareItems.length > 0 && (
+										<span className='absolute -top-1 -right-1 bg-emerald-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center border-2 border-white dark:border-luxury-dark'>
+											{compareItems.length}
+										</span>
+									)}
+								</button>
+
 								{user && (
 									<Link
 										to={"/cart"}
 										className='relative group p-2 text-gray-700 dark:text-luxury-text-light hover:text-luxury-gold transition-colors'
-									>
+										>
 										<ShoppingCart className='w-5 h-5 group-hover:scale-110 transition-transform' />
-										{cart.reduce((sum, item) => sum + item.quantity, 0) > 0 && (
-											<span className='absolute -top-1 -right-1 bg-luxury-gold text-luxury-dark text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center border-2 border-white dark:border-luxury-dark'>
-												{cart.reduce((sum, item) => sum + item.quantity, 0)}
-											</span>
-										)}
+										<AnimatePresence>
+											{cartCount > 0 && (
+												<motion.span 
+													key={cartCount}
+													initial={{ scale: 0.5, opacity: 0 }}
+													animate={{ scale: [1, 1.4, 1], opacity: 1 }}
+													transition={{ duration: 0.3 }}
+													className='absolute -top-1 -right-1 bg-luxury-gold text-luxury-dark text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center border-2 border-white dark:border-luxury-dark'
+													>
+														{cartCount}
+													</motion.span>
+											)}
+										</AnimatePresence>
 									</Link>
 								)}
 							</div>
+		{/* Compare Modal (global) */}
+		<CompareModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
 
 							{/* Tài khoản */}
 							{user ? (
-								<div className="flex items-center gap-3">
-									<Link to="/profile" className="text-gray-400 dark:text-luxury-text-muted hover:text-luxury-gold transition duration-300">
-										<User className="w-6 h-6" />
-									</Link>
-									<button
-										onClick={logout}
-										className="text-gray-400 dark:text-luxury-text-muted hover:text-red-400 transition duration-300"
+								<div className="relative" ref={dropdownRef}>
+									<button 
+										onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+										className="flex items-center gap-2 focus:outline-none"
 									>
-										<LogOut className="w-6 h-6" />
+										{user.profilePicture ? (
+											<img src={user.profilePicture} alt="Avatar" className="w-8 h-8 rounded-full border-2 border-luxury-gold/50 object-cover" />
+										) : (
+											<div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-luxury-darker flex items-center justify-center border-2 border-luxury-gold/50">
+												<User className="w-4 h-4 text-luxury-gold" />
+											</div>
+										)}
+										<span className="hidden lg:block text-sm font-medium text-gray-700 dark:text-gray-200">
+											{user.name?.split(' ')[0] || "Khách"}
+										</span>
+										<ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
 									</button>
+
+									{/* Dropdown Menu */}
+									<div className={`absolute right-0 mt-3 w-56 bg-white dark:bg-[#18181b] rounded-xl shadow-2xl border border-gray-100 dark:border-white/5 py-2 z-50 transition-all duration-200 ${isProfileDropdownOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'}`}>
+										<div className="px-4 py-3 border-b border-gray-100 dark:border-white/5">
+											<p className="text-sm font-bold text-gray-900 dark:text-white truncate">{user.name}</p>
+											<p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{user.email}</p>
+										</div>
+										<div className="py-2">
+											<Link to="/profile" onClick={() => setIsProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-luxury-gold transition">
+												<User className="w-4 h-4" /> Tài khoản của tôi
+											</Link>
+											<Link to="/order-lookup" onClick={() => setIsProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-luxury-gold transition">
+												<Package className="w-4 h-4" /> Đơn mua
+											</Link>
+											{isAdmin && (
+												<Link to="/secret-dashboard" onClick={() => setIsProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-luxury-gold hover:bg-gray-50 dark:hover:bg-white/5 transition">
+													<Lock className="w-4 h-4" /> Admin Dashboard
+												</Link>
+											)}
+										</div>
+										<div className="pt-2 border-t border-gray-100 dark:border-white/5">
+											<button onClick={() => { logout(); setIsProfileDropdownOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition">
+												<LogOut className="w-4 h-4" /> Đăng xuất
+											</button>
+										</div>
+									</div>
 								</div>
 							) : (
 								<Link
@@ -190,16 +276,7 @@ const Navbar = () => {
 								</Link>
 							)}
 
-							{/* Admin Dashboard */}
-							{isAdmin && (
-								<Link
-									to="/secret-dashboard"
-									className="bg-luxury-gold hover:bg-luxury-gold-light text-luxury-dark px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 transition duration-300"
-								>
-									<Lock className="w-4 h-4" />
-									Dashboard
-								</Link>
-							)}
+
 
 							{/* Hamburger Button (mobile only) */}
 							<button
@@ -221,6 +298,16 @@ const Navbar = () => {
 						className="absolute top-[73px] left-0 right-0 bg-white dark:bg-luxury-dark border-b border-gray-200 dark:border-luxury-border shadow-2xl px-6 py-6 space-y-5"
 						onClick={e => e.stopPropagation()}
 					>
+						{/* Theme Toggle (Mobile) */}
+						<div className="mb-4 flex flex-row items-center justify-between border-b border-gray-100 dark:border-luxury-border pb-4">
+							<span className="text-sm font-medium text-gray-700 dark:text-gray-300">Giao diện</span>
+							<button 
+								onClick={toggleTheme} 
+								className="flex items-center justify-center p-2 rounded-full bg-gray-100 dark:bg-luxury-darker text-gray-500 hover:text-luxury-gold dark:text-gray-400 focus:outline-none transition-colors border border-gray-200 dark:border-luxury-border"
+							>
+								{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+							</button>
+						</div>
 						{/* Search */}
 						<div className="relative">
 							<input
@@ -275,7 +362,7 @@ const Navbar = () => {
 								<Link to="/cart" onClick={closeMobileMenu} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-luxury-gold transition-colors">
 									<ShoppingCart className="w-5 h-5" />
 									Giỏ hàng
-									{cart.length > 0 && <span className="ml-auto bg-luxury-gold text-luxury-dark text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{cart.reduce((sum, item) => sum + item.quantity, 0)}</span>}
+									{cartCount > 0 && <span className="ml-auto bg-luxury-gold text-luxury-dark text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{cartCount}</span>}
 								</Link>
 							)}
 						</div>

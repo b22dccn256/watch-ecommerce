@@ -16,9 +16,16 @@ const userSchema = new mongoose.Schema(
 		},
 		password: {
 			type: String,
-			required: [true, "Password is required"],
+			required: function() {
+				// Password is only required if the user doesn't have an OAuth ID
+				return !this.googleId && !this.facebookId && !this.githubId;
+			},
 			minlength: [6, "Password must be at least 6 characters long"],
 		},
+		googleId: { type: String, unique: true, sparse: true },
+		facebookId: { type: String, unique: true, sparse: true },
+		githubId: { type: String, unique: true, sparse: true },
+		profilePicture: { type: String, default: "" },
 		cartItems: [
 			{
 				quantity: {
@@ -55,6 +62,15 @@ const userSchema = new mongoose.Schema(
 		cartUpdatedAt: {
 			type: Date,
 			default: Date.now,
+		},
+		rewardPoints: {
+			type: Number,
+			default: 0,
+			min: 0,
+		},
+		totalPointsEarned: {
+			type: Number,
+			default: 0,
 		},
 	},
 	{

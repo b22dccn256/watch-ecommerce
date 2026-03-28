@@ -28,7 +28,17 @@ export const getAllProducts = async (req, res) => {
 			}
 		}
 		if (brands) {
-			query.brand = { $in: brands.split(",") };
+			const brandArr = brands.split(",");
+			const validIds = brandArr.filter(b => mongoose.Types.ObjectId.isValid(b));
+			const names = brandArr.filter(b => !mongoose.Types.ObjectId.isValid(b));
+
+			if (names.length > 0) {
+				const brandDocs = await Brand.find({ name: { $in: names.map(n => new RegExp(`^${n}$`, 'i')) } });
+				const brandIds = brandDocs.map(doc => doc._id);
+				query.brand = { $in: [...validIds, ...brandIds] };
+			} else {
+				query.brand = { $in: validIds };
+			}
 		}
 		if (machineType) {
 			query.type = { $in: machineType.split(",") };
@@ -48,7 +58,7 @@ export const getAllProducts = async (req, res) => {
 			query.averageRating = { $gte: Number(minRating) };
 		}
 
-		let productsQuery = Product.find(query);
+		let productsQuery = Product.find(query).populate('brand', 'name').populate('categoryId', 'name');
 
 		if (sort === "popular") {
 			productsQuery = productsQuery.sort({ createdAt: -1 });
@@ -99,14 +109,19 @@ export const getSuggestions = async (req, res) => {
 	try {
 		const { q } = req.query;
 		if (!q) return res.json([]);
+
+		const brandDocs = await Brand.find({ name: { $regex: q, $options: "i" } });
+		const brandIds = brandDocs.map(b => b._id);
+
 		const suggestions = await Product.find({
 			deletedAt: null,
 			$or: [
 				{ name: { $regex: q, $options: "i" } },
-				{ brand: { $regex: q, $options: "i" } },
+				{ brand: { $in: brandIds } },
 				{ type: { $regex: q, $options: "i" } },
 			]
-		}).select("name image price brand").limit(5);
+		}).populate('brand', 'name').select("name image price brand").limit(5);
+
 		res.json(suggestions);
 	} catch (error) {
 		console.log("Error in getSuggestions controller", error.message);
@@ -116,7 +131,9 @@ export const getSuggestions = async (req, res) => {
 
 export const getProductById = async (req, res) => {
 	try {
-		const product = await Product.findOne({ _id: req.params.id, deletedAt: null });
+		const product = await Product.findOne({ _id: req.params.id, deletedAt: null })
+			.populate('brand', 'name')
+			.populate('categoryId', 'name');
 		if (!product) return res.status(404).json({ message: "Product not found" });
 
 		const processedProduct = await CampaignService.applyCampaignToProducts(product);
@@ -146,10 +163,17 @@ export const getFeaturedProducts = async (req, res) => {
 		*/
 
 		// if not in redis or redis failed, fetch from mongodb
-		featuredProducts = await Product.find({ isFeatured: true, deletedAt: null }).lean();
+		featuredProducts = await Product.find({ isFeatured: true, deletedAt: null })
+			.populate('brand', 'name')
+			.populate('categoryId', 'name')
+			.lean();
 
 		if (!featuredProducts || featuredProducts.length === 0) {
-			featuredProducts = await Product.find({ deletedAt: null }).limit(8).lean();
+			featuredProducts = await Product.find({ deletedAt: null })
+				.populate('brand', 'name')
+				.populate('categoryId', 'name')
+				.limit(8)
+				.lean();
 		}
 
 		// store in redis for future quick access
@@ -322,7 +346,9 @@ export const getProductsByCategory = async (req, res) => {
 			return res.json({ products: [] });
 		}
 
-		const products = await Product.find(query);
+		const products = await Product.find(query)
+			.populate('brand', 'name')
+			.populate('categoryId', 'name');
 		const processedProducts = await CampaignService.applyCampaignToProducts(products);
 		res.json({ products: processedProducts });
 	} catch (error) {
@@ -353,8 +379,50 @@ export const toggleFeaturedProduct = async (req, res) => {
 	}
 };
 
-export const importProducts = async (req, res) => {
+// ============================================================
+// PREVIEW: Đọc file Excel, trả về dữ liệu chưu lưu để admin kiểm tra trước khi import
+// ============================================================
+export const previewImportProducts = async (req, res) => {
 	try {
+		if (!req.file) return res.status(400).json({ message: "Không có file được gửi lên" });
+		const workbook = XLSX.readFile(req.file.path);
+		const sheet = workbook.Sheets[workbook.SheetNames[0]];
+		const data = XLSX.utils.sheet_to_json(sheet);
+		try { fs.unlinkSync(req.file.path); } catch (e) {}
+
+		const preview = data.slice(0, 50).map((row, idx) => ({
+			row: idx + 2,
+			name: row.name || row["Tên sản phẩm"] || "",
+			brand: row.brand || row["Thương hiệu"] || "",
+			category: row.category || row["Danh mục"] || "",
+			price: row.price || row["Giá bán"] || 0,
+			stock: row.stock || row["Tồn kho"] || 0,
+			type: row.type || row["Loại máy"] || "",
+			validation: !row.name && !row["Tên sản phẩm"] ? "⚠ Thiếu tên" : "OK"
+		}));
+
+		res.json({
+			total: data.length,
+			preview,
+			message: `Đọc thành công ${data.length} sản phẩm. Kiểm tra và xác nhận để import.`
+		});
+	} catch (error) {
+		res.status(500).json({ message: "Server error during preview", error: error.message });
+	}
+};
+
+// ============================================================
+// IMPORT with MongoDB Session (All-or-Nothing Rollback)
+// ============================================================
+export const importProducts = async (req, res) => {
+	const session = await mongoose.startSession();
+	session.startTransaction();
+	try {
+		if (!req.file) {
+			await session.abortTransaction();
+			session.endSession();
+			return res.status(400).json({ message: "Không có file được gửi lên" });
+		}
 		const workbook = XLSX.readFile(req.file.path);
 		const sheet = workbook.Sheets[workbook.SheetNames[0]];
 		const data = XLSX.utils.sheet_to_json(sheet);
@@ -362,63 +430,108 @@ export const importProducts = async (req, res) => {
 		let successCount = 0;
 		let errorCount = 0;
 		const errors = [];
+		
+		// Validate all rows first (fail-fast)
+		const invalidRows = data.filter(row => !row.name && !row["Tên sản phẩm"]);
+		if (invalidRows.length > 0) {
+			await session.abortTransaction();
+			session.endSession();
+			try { fs.unlinkSync(req.file.path); } catch (e) {}
+			return res.status(400).json({
+				message: `${invalidRows.length} dòng thiếu tên sản phẩm. Không có dữ liệu nào được lưu.`,
+				errors: invalidRows.map((_, idx) => `Row ${idx + 2}: Thiếu tên sản phẩm`)
+			});
+		}
 
 		for (const [index, row] of data.entries()) {
 			try {
+				const productName = row.name || row["Tên sản phẩm"];
+				const categoryName = row.category || row["Danh mục"];
+				const brandName = row.brand || row["Thương hiệu"];
+				const priceVal = row.price ?? row["Giá bán"] ?? 0;
+				const stockVal = row.stock ?? row["Tồn kho"] ?? 0;
+
 				let categoryId = null;
-				if (row.category) {
-					let cat = await Category.findOne({ name: row.category });
+				if (categoryName) {
+					let cat = await Category.findOne({ name: categoryName }).session(session);
 					if (!cat) {
-						cat = await Category.create({
-							name: row.category,
-							slug: row.category.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-						});
+						[cat] = await Category.create([{
+							name: categoryName,
+							slug: categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+						}], { session });
 					}
 					categoryId = cat._id;
 				}
 
-                let brandId = null;
-                if (row.brand) {
-                    let brandObj = await Brand.findOne({ name: row.brand });
-                    if (!brandObj) {
-                        brandObj = await Brand.create({ name: row.brand });
-                    }
-                    brandId = brandObj._id;
-                }
+				let brandId = null;
+				if (brandName) {
+					let brandObj = await Brand.findOne({ name: brandName }).session(session);
+					if (!brandObj) {
+						[brandObj] = await Brand.create([{ name: brandName }], { session });
+					}
+					brandId = brandObj._id;
+				}
 
-				const product = new Product({
-					name: row.name,
-					description: row.description || "",
-					price: row.price || 0,
-                    costPrice: row.costPrice || Math.round((row.price || 0) * 0.7),
-					image: row.image || "",
-					categoryId: categoryId,
-					brand: brandId,
-					type: (row.type || "quartz").toLowerCase(),
-					stock: row.stock || 0,
-					isActive: true,
-				});
-				product.$locals = { userId: req.user._id };
-				await product.save();
+				let product = await Product.findOne({ name: productName, deletedAt: null }).session(session);
+
+				if (product) {
+					if (row.description) product.description = row.description;
+					if (priceVal !== undefined) product.price = priceVal;
+					if (row.costPrice !== undefined) product.costPrice = row.costPrice;
+					if (row.image) product.image = row.image;
+					if (categoryId) product.categoryId = categoryId;
+					if (brandId) product.brand = brandId;
+					if (row.type) product.type = String(row.type).toLowerCase();
+					if (stockVal !== undefined) product.stock = stockVal;
+					product.$locals = { userId: req.user._id };
+					await product.save({ session });
+				} else {
+					[product] = await Product.create([{
+						name: productName,
+						description: row.description || "",
+						price: priceVal,
+						costPrice: row.costPrice || Math.round(priceVal * 0.7),
+						image: row.image || "",
+						categoryId,
+						brand: brandId,
+						type: row.type ? String(row.type).toLowerCase() : "quartz",
+						stock: stockVal,
+						isActive: true,
+					}], { session });
+				}
 				successCount++;
 			} catch (err) {
 				errorCount++;
 				errors.push(`Row ${index + 2}: ${err.message}`);
+				// Abort on first error (strict mode) — rollback toàn bộ
+				await session.abortTransaction();
+				session.endSession();
+				try { fs.unlinkSync(req.file.path); } catch (e) {}
+				return res.status(422).json({
+					message: `Lỗi tại dòng ${index + 2}. Đã rollback toàn bộ, không có sản phẩm nào được lưu.`,
+					errors
+				});
 			}
 		}
 
-		try { fs.unlinkSync(req.file.path); } catch (e) { }
+		await session.commitTransaction();
+		session.endSession();
+		try { fs.unlinkSync(req.file.path); } catch (e) {}
 
 		res.json({
-			message: "Import finished",
+			message: "Import thành công!",
 			success: successCount,
 			failed: errorCount,
-			errors: errors
+			errors
 		});
 	} catch (error) {
+		await session.abortTransaction();
+		session.endSession();
+		try { fs.unlinkSync(req.file?.path); } catch (e) {}
 		res.status(500).json({ message: "Server error during import", error: error.message });
 	}
 };
+
 
 export const exportProducts = async (req, res) => {
     try {

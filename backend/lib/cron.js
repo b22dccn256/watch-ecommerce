@@ -1,15 +1,33 @@
-﻿import cron from "node-cron";
+import cron from "node-cron";
 import User from "../models/user.model.js";
 import Order from "../models/order.model.js";
 import Campaign from "../models/campaign.model.js";
 import Product from "../models/product.model.js";
 import OrderService from "../services/order.service.js";
 import { sendEmail } from "./email.js";
-
 import { Queue } from "bullmq";
 import IORedis from "ioredis";
 
 const isCronEnabled = process.env.ENABLE_CRON === "true";
+
+// Auto-delete guest carts after 7 days of inactivity (runs daily at 3:00 AM)
+if (isCronEnabled) {
+    cron.schedule("0 3 * * *", async () => {
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const filter = {
+            cartItems: { $ne: [] },
+            cartUpdatedAt: { $lte: sevenDaysAgo },
+            password: { $exists: false },
+            googleId: { $exists: false },
+            facebookId: { $exists: false },
+            githubId: { $exists: false }
+        };
+        const result = await User.updateMany(filter, { $set: { cartItems: [] } });
+        if (result.modifiedCount > 0) {
+            console.log(`[Cron] Cleared carts for ${result.modifiedCount} guest users inactive >7 days.`);
+        }
+    });
+}
 
 // Provide a safe stub queue if Redis is not available or cron is disabled
 let emailQueue = {

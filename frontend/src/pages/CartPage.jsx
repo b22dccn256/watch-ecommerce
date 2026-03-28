@@ -89,7 +89,7 @@ const CartPage = () => {
 
 	const isAllSelected = cart.length > 0 && selectedItems.length === cart.length;
 	const handleSelectAll = (e) => {
-		selectAllItems(e.target.checked, cart.map(item => item._id));
+		selectAllItems(e.target.checked, cart);
 	};
 
 	return (
@@ -135,7 +135,7 @@ const CartPage = () => {
 
 								<div className="space-y-4">
 									{cart.map((item) => (
-										<CartItem key={item._id} item={item} />
+										<CartItem key={useCartStore.getState().getUniqueId(item)} item={item} />
 									))}
 								</div>
 							</div>

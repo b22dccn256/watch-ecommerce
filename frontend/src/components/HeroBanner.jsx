@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useThemeStore } from "../stores/useThemeStore";
 
-const HeroBanner = () => {
+const HeroBanner = ({ slogan }) => {
 	const { theme } = useThemeStore();
 	const isDark = theme === "dark";
 
@@ -38,7 +38,7 @@ const HeroBanner = () => {
 				<motion.p
 					initial={{ opacity: 0, y: 30 }}
 					animate={{ opacity: 1, y: 0 }}
-					className="text-luxury-gold text-sm md:text-base tracking-wider-luxury mb-6 font-semibold"
+					className="text-luxury-gold text-sm md:text-base tracking-[0.3em] mb-6 font-bold uppercase drop-shadow-md"
 				>
 					NEW COLLECTION 2026
 				</motion.p>
@@ -47,16 +47,16 @@ const HeroBanner = () => {
 					initial={{ opacity: 0, y: 50 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ delay: 0.2 }}
-					className={`text-4xl md:text-display font-luxury leading-tight mb-8 transition-all duration-500 ${titleClass}`}
+					className={`text-5xl lg:text-7xl font-luxury leading-[1.1] mb-8 transition-all duration-500 capitalize tracking-tight ${titleClass}`}
 				>
-					Tuyệt tác thời<br />gian tuyệt đỉnh
+					<span dangerouslySetInnerHTML={{ __html: (slogan || "Tuyệt tác thời<br />gian tuyệt đỉnh").replace('\n', '<br/>') }} />
 				</motion.h1>
 
 				<motion.p
 					initial={{ opacity: 0, y: 30 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ delay: 0.4 }}
-					className={`text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed transition-colors duration-500 font-medium ${isDark ? 'text-luxury-text-light' : 'text-gray-900'}`}
+					className={`text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed transition-colors duration-500 font-medium ${isDark ? 'text-luxury-text-light drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]' : 'text-gray-900 drop-shadow-sm'}`}
 				>
 					Khám phá bộ sưu tập đồng hồ cơ tinh xảo từ những thương hiệu hàng đầu thế giới
 				</motion.p>

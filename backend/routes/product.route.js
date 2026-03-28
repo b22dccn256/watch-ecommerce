@@ -8,6 +8,7 @@ import {
 	getRecommendedProducts,
 	toggleFeaturedProduct,
 	importProducts,
+	previewImportProducts,
 	getSuggestions,
 	getProductById,
 	updateProduct,
@@ -21,6 +22,7 @@ const upload = multer({ dest: "uploads/" });
 
 const router = express.Router();
 
+router.post("/import/preview", protectRoute, adminRoute, upload.single("file"), previewImportProducts);
 router.post("/import", protectRoute, adminRoute, upload.single("file"), importProducts);
 router.get("/export", protectRoute, adminRoute, exportProducts);
 router.get("/", getAllProducts);

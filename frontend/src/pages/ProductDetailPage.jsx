@@ -151,7 +151,8 @@ const ProductDetailPage = () => {
 	const [isInWishlist, setIsInWishlist] = useState(false);
 	const [relatedProducts, setRelatedProducts] = useState([]);
 	const [activeTab, setActiveTab] = useState('specs');
-	const [wristSize, setWristSize] = useState("");
+	const [wristSize, setWristSize] = useState(""); // Input text for free sizing
+	const [selectedSizeOption, setSelectedSizeOption] = useState(null); // Selected predefined size
 
 	const images = currentProduct?.images?.length ? currentProduct.images : (currentProduct?.image ? [currentProduct.image] : []);
 	const hasVideo = !!currentProduct?.videoUrl;
@@ -166,6 +167,15 @@ const ProductDetailPage = () => {
 			const inWish = wishlist.some((item) => item._id === currentProduct._id);
 			setIsInWishlist(inWish);
 			setSelectedMedia({ type: 'image', index: 0 });
+			
+			// Default select first available size if options exist
+			if (currentProduct.wristSizeOptions?.length > 0) {
+				const firstAvailable = currentProduct.wristSizeOptions.find(o => o.stock > 0);
+				if (firstAvailable) setSelectedSizeOption(firstAvailable.size);
+				else setSelectedSizeOption(currentProduct.wristSizeOptions[0]?.size);
+			} else {
+				setSelectedSizeOption(null);
+			}
 
 			// Cập nhật SEO Meta tags
 			document.title = `${currentProduct.name} | Luxury Watch`;
@@ -189,11 +199,21 @@ const ProductDetailPage = () => {
 
 	const handleAddToCart = () => {
 		if (!currentProduct) return;
-		if (currentProduct.stock < 1) return;
 		
-		const parsedWrist = parseInt(wristSize);
-		const payloadWrist = !isNaN(parsedWrist) && parsedWrist > 0 ? parsedWrist : null;
-		addToCart({ ...currentProduct, wristSize: payloadWrist });
+		if (currentProduct.wristSizeOptions?.length > 0) {
+			if (!selectedSizeOption) {
+				toast.error("Vui lòng chọn kích cỡ/phân loại.");
+				return;
+			}
+			const option = currentProduct.wristSizeOptions.find(o => o.size === selectedSizeOption);
+			if (!option || option.stock < 1) return;
+			addToCart({ ...currentProduct, wristSize: selectedSizeOption });
+		} else {
+			if (currentProduct.stock < 1) return;
+			// Backward compatibility: free sizing for metal straps
+			const payloadWrist = wristSize ? wristSize.toString() : null;
+			addToCart({ ...currentProduct, wristSize: payloadWrist });
+		}
 	};
 
 	const handleShare = () => {
@@ -212,6 +232,13 @@ const ProductDetailPage = () => {
 		: 0;
 
 	const isMetalStrap = currentProduct.specs?.strap?.material?.toLowerCase().match(/steel|metal|titanium|thép|kim loại/);
+	const hasSizeOptions = currentProduct.wristSizeOptions?.length > 0;
+	
+	let activeStock = currentProduct.stock;
+	if (hasSizeOptions && selectedSizeOption) {
+		const opt = currentProduct.wristSizeOptions.find(o => o.size === selectedSizeOption);
+		if (opt) activeStock = opt.stock;
+	}
 
 	return (
 		<div className="min-h-screen bg-white dark:bg-[#0f0c08] text-gray-900 dark:text-white pt-24 pb-16 transition-colors duration-300">
@@ -256,7 +283,7 @@ const ProductDetailPage = () => {
 								{/* Badges */}
 								<div className="absolute top-6 left-6 flex flex-col gap-2">
 									{discount > 0 && <span className="bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider">Sale {discount}%</span>}
-									{currentProduct.stock === 0 && <span className="bg-gray-800 text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider">Hết hàng</span>}
+									{activeStock === 0 && <span className="bg-gray-800 text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider">Hết hàng</span>}
 								</div>
 							</motion.div>
 
@@ -285,7 +312,9 @@ const ProductDetailPage = () => {
 					{/* ==================== PRODUCT INFO ==================== */}
 					<div className="lg:col-span-5">
 						<div className="flex items-center justify-between mb-4">
-							<span className="font-bold tracking-widest uppercase text-emerald-600 dark:text-yellow-400 text-sm">{currentProduct.brand || 'Luxury Watch'}</span>
+							<span className="font-bold tracking-widest uppercase text-emerald-600 dark:text-yellow-400 text-sm">
+								{typeof currentProduct.brand === 'object' ? currentProduct.brand?.name : (currentProduct.brand || 'Luxury Watch')}
+							</span>
 							<div className="flex items-center gap-1.5 text-yellow-400">
 								<Star className="w-4 h-4 fill-current" />
 								<span className="font-bold text-gray-900 dark:text-white">{currentProduct.averageRating?.toFixed(1) || '5.0'}</span>
@@ -293,7 +322,7 @@ const ProductDetailPage = () => {
 							</div>
 						</div>
 
-						<h1 className="text-4xl md:text-5xl font-bold mt-2 leading-tight tracking-tight mb-6 text-gray-900 dark:text-white">{currentProduct.name}</h1>
+						<h1 className="font-luxury text-4xl md:text-5xl font-bold mt-2 leading-tight tracking-tight mb-6 text-gray-900 dark:text-white">{currentProduct.name}</h1>
 
 						{/* Giá */}
 						<div className="mb-8">
@@ -315,7 +344,7 @@ const ProductDetailPage = () => {
 						</p>
 
 						{/* Cắt dây miễn phí (Dynamic rendering based on specs) */}
-						{isMetalStrap && (
+						{!hasSizeOptions && isMetalStrap && (
 							<div className="mb-8 p-5 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800">
 								<h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
 									<Scale className="w-4 h-4 text-emerald-500" /> Yêu cầu cắt mắt dây miễn phí
@@ -330,7 +359,7 @@ const ProductDetailPage = () => {
 									/>
 									<div className="text-xs text-gray-500 group relative cursor-help">
 										<Info className="w-5 h-5" />
-										<div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition">
+										<div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 shadow-xl text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition">
 											Đo chu vi cổ tay của bạn bằng thước dây. Chúng tôi sẽ cắt dây vừa vặn trước khi giao.
 										</div>
 									</div>
@@ -338,9 +367,40 @@ const ProductDetailPage = () => {
 							</div>
 						)}
 
+						{/* Variants (Wrist Size Options) */}
+						{hasSizeOptions && (
+							<div className="mb-8">
+								<h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
+									<Scale className="w-4 h-4 text-emerald-500" /> Chọn kích cỡ/phân loại
+								</h4>
+								<div className="flex flex-wrap gap-3">
+									{currentProduct.wristSizeOptions.map(opt => {
+										const isSelected = selectedSizeOption === opt.size;
+										const isOut = opt.stock === 0;
+										return (
+											<button
+												key={opt.size}
+												onClick={() => !isOut && setSelectedSizeOption(opt.size)}
+												disabled={isOut}
+												className={`
+													px-5 py-2.5 rounded-xl border text-sm font-semibold transition-all relative
+													${isSelected ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:border-yellow-400 dark:bg-yellow-400/10 dark:text-yellow-400 ring-1 ring-emerald-500 dark:ring-yellow-400' : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'}
+													${isOut ? 'opacity-50 cursor-not-allowed border-dashed bg-gray-50 dark:bg-gray-900/50' : ''}
+												`}
+											>
+												{opt.size}
+												{isOut && <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">Hết</span>}
+												{!isOut && opt.stock <= 5 && <span className="absolute -top-2 -right-2 bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">Còn {opt.stock}</span>}
+											</button>
+										);
+									})}
+								</div>
+							</div>
+						)}
+
 						{/* Nút hành động */}
 						<div className="flex flex-col gap-4 mb-8">
-							{currentProduct.stock > 0 ? (
+							{activeStock > 0 ? (
 								<button
 									onClick={handleAddToCart}
 									className="w-full bg-emerald-600 hover:bg-emerald-700 dark:bg-yellow-400 dark:hover:bg-yellow-500 text-white dark:text-black font-bold uppercase tracking-widest py-5 rounded-2xl flex items-center justify-center gap-3 transition-colors duration-300 shadow-lg shadow-emerald-600/20 dark:shadow-yellow-400/20"
@@ -464,4 +524,15 @@ const ProductDetailPage = () => {
 	);
 };
 
-export default ProductDetailPage;
+import PeopleAlsoBought from "../components/PeopleAlsoBought";
+
+export default function EnhancedProductDetailPage(props) {
+	const Page = ProductDetailPage;
+	return <>
+		<Page {...props} />
+		{/* AI Recommendation Section */}
+		<div className="max-w-6xl mx-auto px-4 md:px-8">
+			<PeopleAlsoBought />
+		</div>
+	</>;
+}

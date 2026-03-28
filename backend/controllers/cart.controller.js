@@ -37,16 +37,25 @@ export const addToCart = async (req, res) => {
 		const product = await Product.findById(productId);
 		if (!product) return res.status(404).json({ message: "Product not found" });
 
-		const existingItem = user.cartItems.find(item => item.product.toString() === productId);
+		// Match exactly product ID and wristSize
+		const existingItem = user.cartItems.find(
+			item => item.product.toString() === productId && (item.wristSize || null) === (wristSize || null)
+		);
 
 		const newQuantity = existingItem ? existingItem.quantity + 1 : 1;
-		if (product.stock < newQuantity) {
-			return res.status(400).json({ message: `Sản phẩm này chỉ còn ${product.stock} cái trong kho` });
+		
+		let availableStock = product.stock;
+		if (wristSize && product.wristSizeOptions?.length > 0) {
+			const sizeOption = product.wristSizeOptions.find(o => o.size === wristSize);
+			if (sizeOption) availableStock = sizeOption.stock;
+		}
+
+		if (availableStock < newQuantity) {
+			return res.status(400).json({ message: `Sản phẩm này (size ${wristSize || 'mặc định'}) chỉ còn ${availableStock} cái trong kho` });
 		}
 
 		if (existingItem) {
 			existingItem.quantity = newQuantity;
-			if (wristSize) existingItem.wristSize = wristSize;
 		}
 		else user.cartItems.push({ product: productId, quantity: 1, wristSize: wristSize || null });
 
@@ -60,14 +69,14 @@ export const addToCart = async (req, res) => {
 
 export const removeAllFromCart = async (req, res) => {
 	try {
-		const { productId } = req.body; // nếu có productId thì xóa 1, không thì xóa hết
+		const { productId, wristSize } = req.body; // nếu có productId thì xóa 1, không thì xóa hết
 		const user = req.user;
 
 		if (!productId) {
 			user.cartItems = [];
 		} else {
 			user.cartItems = user.cartItems.filter(
-				(item) => item.product.toString() !== productId
+				(item) => !(item.product.toString() === productId && (item.wristSize || null) === (wristSize || null))
 			);
 		}
 
@@ -83,18 +92,26 @@ export const removeAllFromCart = async (req, res) => {
 export const updateQuantity = async (req, res) => {
 	try {
 		const productId = req.params.id;
-		const { quantity } = req.body;
+		const { quantity, wristSize } = req.body;
 		const user = req.user;
 
 		const product = await Product.findById(productId);
 		if (!product) return res.status(404).json({ message: "Product not found" });
 
-		const existingItem = user.cartItems.find(item => item.product.toString() === productId);
+		const existingItem = user.cartItems.find(
+			item => item.product.toString() === productId && (item.wristSize || null) === (wristSize || null)
+		);
 
 		if (!existingItem) return res.status(404).json({ message: "Item not in cart" });
 
-		if (product.stock < quantity) {
-			return res.status(400).json({ message: `Sản phẩm này chỉ còn ${product.stock} cái trong kho` });
+		let availableStock = product.stock;
+		if (wristSize && product.wristSizeOptions?.length > 0) {
+			const sizeOption = product.wristSizeOptions.find(o => o.size === wristSize);
+			if (sizeOption) availableStock = sizeOption.stock;
+		}
+
+		if (availableStock < quantity) {
+			return res.status(400).json({ message: `Sản phẩm này (size ${wristSize || 'mặc định'}) chỉ còn ${availableStock} cái trong kho` });
 		}
 
 		existingItem.quantity = quantity;
@@ -133,17 +150,25 @@ export const mergeCart = async (req, res) => {
 			const product = await Product.findById(guestItem._id || guestItem.productId);
 			if (!product) continue; // Skip deleted products
 
-			const existingItem = user.cartItems.find(item => item.product.toString() === product._id.toString());
+			const existingItem = user.cartItems.find(
+				item => item.product.toString() === product._id.toString() && (item.wristSize || null) === (guestItem.wristSize || null)
+			);
+
+			let availableStock = product.stock;
+			if (guestItem.wristSize && product.wristSizeOptions?.length > 0) {
+				const sizeOption = product.wristSizeOptions.find(o => o.size === guestItem.wristSize);
+				if (sizeOption) availableStock = sizeOption.stock;
+			}
 
 			if (existingItem) {
 				// Sum the quantities but clamp to max stock
 				const mergedQuantity = existingItem.quantity + guestItem.quantity;
-				existingItem.quantity = Math.min(mergedQuantity, product.stock);
+				existingItem.quantity = Math.min(mergedQuantity, availableStock);
 			} else {
 				// Add new item if stock allows
-				const initialQuantity = Math.min(guestItem.quantity, product.stock);
+				const initialQuantity = Math.min(guestItem.quantity, availableStock);
 				if (initialQuantity > 0) {
-					user.cartItems.push({ product: product._id, quantity: initialQuantity });
+					user.cartItems.push({ product: product._id, quantity: initialQuantity, wristSize: guestItem.wristSize || null });
 				}
 			}
 		}

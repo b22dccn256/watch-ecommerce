@@ -50,3 +50,26 @@ export const adminRoute = (req, res, next) => {
 		return res.status(403).json({ message: "Access denied - Admin only" });
 	}
 };
+
+export const optionalRoute = async (req, res, next) => {
+	try {
+		const accessToken = req.cookies.accessToken;
+
+		if (!accessToken) {
+			return next();
+		}
+
+		try {
+			const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+			const user = await User.findById(decoded.userId).select("-password");
+			if (user) {
+				req.user = user;
+			}
+			return next();
+		} catch (error) {
+			return next();
+		}
+	} catch (error) {
+		return next();
+	}
+};

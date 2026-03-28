@@ -19,11 +19,81 @@ export const getAnalyticsData = async () => {
 
 	const { totalSales, totalRevenue } = salesData[0] || { totalSales: 0, totalRevenue: 0 };
 
+	const paymentStats = await Order.aggregate([
+		{
+			$group: {
+				_id: "$paymentMethod",
+				count: { $sum: 1 },
+				revenue: { $sum: "$totalAmount" },
+			},
+		},
+	]);
+
+	const wristSizeStats = await Order.aggregate([
+		{ $unwind: "$products" },
+		{ $match: { "products.wristSize": { $ne: null, $ne: "Mặc định" } } },
+		{
+			$group: {
+				_id: "$products.wristSize",
+				count: { $sum: "$products.quantity" },
+			},
+		},
+		{ $sort: { count: -1 } },
+		{ $limit: 10 }
+	]);
+
+	// Tổng số đơn hàng đã hoàn thành (để tính Conversion Rate)
+	const totalOrdersPlaced = await Order.countDocuments({ paymentStatus: "paid" });
+
+	// AOV = Average Order Value
+	const aov = totalOrdersPlaced > 0 ? Math.round((salesData[0]?.totalRevenue || 0) / totalOrdersPlaced) : 0;
+
+	// Hourly Sales (for today, timezone VN)
+	const todayStart = new Date();
+	todayStart.setHours(0, 0, 0, 0);
+	const hourlySales = await Order.aggregate([
+		{
+			$match: {
+				paymentStatus: "paid",
+				createdAt: { $gte: todayStart }
+			}
+		},
+		{
+			$group: {
+				_id: { $hour: { date: "$createdAt", timezone: "Asia/Ho_Chi_Minh" } },
+				revenue: { $sum: "$totalAmount" },
+				count: { $sum: 1 }
+			}
+		},
+		{ $sort: { _id: 1 } }
+	]);
+
+	// Fill 0 for missing hours (0-23)
+	const hourlyMap = {};
+	hourlySales.forEach(h => { hourlyMap[h._id] = h; });
+	const hourlySalesData = Array.from({ length: 24 }, (_, i) => ({
+		hour: `${String(i).padStart(2, '0')}:00`,
+		revenue: hourlyMap[i]?.revenue || 0,
+		count: hourlyMap[i]?.count || 0
+	}));
+
 	return {
 		users: totalUsers,
 		products: totalProducts,
 		totalSales,
 		totalRevenue,
+		aov,
+		totalOrdersPlaced,
+		housrySalesData: hourlySalesData,
+		paymentStats: paymentStats.map(s => ({
+			name: s._id === "stripe" ? "Stripe" : s._id === "qr" ? "VietQR" : s._id === "cod" ? "COD" : s._id === "vnpay" ? "VNPay" : s._id === "momo" ? "MoMo" : s._id === "zalopay" ? "ZaloPay" : s._id || "Khác",
+			value: s.revenue,
+			count: s.count
+		})),
+		wristSizeStats: wristSizeStats.map(s => ({
+			size: String(s._id),
+			count: s.count
+		}))
 	};
 };
 

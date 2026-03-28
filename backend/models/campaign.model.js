@@ -14,7 +14,6 @@ const campaignSchema = new mongoose.Schema(
         },
         group: {
             type: String,
-            enum: ["Men's Luxury", "Women's Diamond", "Entire Catalog", "Rolex", "Hublot", "Patek Philippe", "Audemars Piguet", "Automatic", "Quartz"],
             required: function () {
                 return !this.isGlobal;
             },

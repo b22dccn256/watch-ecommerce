@@ -1,6 +1,6 @@
 import {
 	PlusCircle, ShoppingBasket, LayoutDashboard, Users, Mail,
-	Megaphone, ShieldCheck, Archive, Menu, X, Watch
+	Megaphone, ShieldCheck, Archive, Menu, X, Watch, LayoutTemplate
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,6 +13,7 @@ import EmailTab from "../components/EmailTab";
 import UsersTab from "../components/UsersTab";
 import AITab from "../components/AITab";
 import InventoryTab from "../components/InventoryTab";
+import StoreSettingsTab from "../components/StoreSettingsTab";
 import { useProductStore } from "../stores/useProductStore";
 
 const tabs = [
@@ -24,6 +25,7 @@ const tabs = [
 	{ id: "email",     label: "Email",     icon: Mail },
 	{ id: "users",     label: "Người dùng",icon: Users },
 	{ id: "ai",        label: "AI System", icon: ShieldCheck },
+	{ id: "settings",  label: "Giao diện", icon: LayoutTemplate },
 ];
 
 const AdminPage = () => {
@@ -43,6 +45,7 @@ const AdminPage = () => {
 			case "email":      return <EmailTab />;
 			case "users":      return <UsersTab />;
 			case "ai":         return <AITab />;
+			case "settings":   return <StoreSettingsTab />;
 			default:           return null;
 		}
 	};

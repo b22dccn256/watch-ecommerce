@@ -1,6 +1,6 @@
 // routes/order.route.js
 import express from "express";
-import { protectRoute, adminRoute } from "../middleware/auth.middleware.js";
+import { protectRoute, adminRoute, optionalRoute } from "../middleware/auth.middleware.js";
 import {
     getAllOrders,
     updateOrderStatus,
@@ -13,6 +13,7 @@ import {
     getOrderTracking,
     lookupOrder
 } from "../controllers/order.controller.js"; // Import controller
+import { requestReturnOrder } from "../controllers/order.controller.js";
 
 const router = express.Router();
 
@@ -30,16 +31,25 @@ router.patch("/:id/status", protectRoute, adminRoute, updateOrderStatus);
 router.patch("/:id/details", protectRoute, adminRoute, updateOrderDetails);
 
 // Route cho user: Xem đơn hàng của mình (phải đặt TRƯỚC /:id)
-router.get("/my-orders", protectRoute, getMyOrders);
+router.get("/my-orders", (req, res, next) => {
+    if (!req.cookies.accessToken && !req.cookies.refreshToken) {
+        return res.json([]);
+    }
+    protectRoute(req, res, next);
+}, getMyOrders);
+
+
+// User yêu cầu trả hàng (sau khi đã giao)
+router.patch("/:id/request-return", protectRoute, requestReturnOrder);
 
 // Route cho user/admin: Xem chi tiết 1 đơn hàng (kiểm tra thanh toán)
 router.get("/:id", protectRoute, getOrderById);
 
 // COD route
-router.post("/cod", protectRoute, createCODOrder);
+router.post("/cod", optionalRoute, createCODOrder);
 
 // QR Route
-router.post("/qr", protectRoute, createQROrder);
+router.post("/qr", optionalRoute, createQROrder);
 
 // User tự xác nhận đã chuyển khoản QR
 router.post("/:id/confirm-qr-payment", protectRoute, confirmQRPayment);

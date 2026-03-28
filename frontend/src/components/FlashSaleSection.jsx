@@ -1,30 +1,33 @@
 import { motion } from "framer-motion";
 import ProductCard from "./ProductCard";
 import { useThemeStore } from "../stores/useThemeStore";
+import { Zap } from "lucide-react";
 
-const FlashSaleSection = ({ products, timeLeft, addToCart, campaignName }) => {
-	const { theme } = useThemeStore();
-	const isDark = theme === "dark";
+const FlashSaleSection = ({ products, timeLeft, addToCart, campaignName, title, gridCols }) => {
+	if (!products.length) return null;
 
-	const bgGradient = isDark
-		? "linear-gradient(to bottom, rgba(15, 15, 15, 0.98), rgba(26, 18, 11, 0.85), rgba(15, 15, 15, 0.98))"
-		: "linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(245, 245, 245, 0.85), rgba(255, 255, 255, 0.95))";
+	const gridColsClass = {
+		3: "md:grid-cols-3",
+		4: "md:grid-cols-3 lg:grid-cols-4",
+		5: "md:grid-cols-4 lg:grid-cols-5",
+		6: "md:grid-cols-4 lg:grid-cols-6",
+	}[gridCols] || "md:grid-cols-3 lg:grid-cols-4";
 
 	return (
-		<div
-			className="py-20 border-b border-gray-100 dark:border-gray-800 relative bg-cover bg-center bg-no-repeat bg-fixed transition-all duration-500"
-			style={{ backgroundImage: `${bgGradient}, url('/sale-5.jpg')` }}
-		>
-			<div className="max-w-screen-2xl mx-auto px-6 relative z-10">
-				<div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10">
-					<div>
+		<div className="py-16 md:py-24 bg-gradient-to-b from-red-50 to-white dark:from-[#2a0808] dark:to-[#1a120b] relative mt-12 md:mt-24">
+			<div className="max-w-screen-2xl mx-auto px-4 sm:px-6">
+				<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 md:mb-16">
+					<div className="space-y-3">
 						<div className="flex items-center gap-3">
-							<span className="text-red-500 text-3xl md:text-4xl">⚡</span>
-							<h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white transition-colors duration-500">
-								{campaignName ? campaignName.toUpperCase() : "FLASH SALE"}
-							</h2>
+							<span className="bg-red-500 text-white font-bold tracking-widest uppercase text-xs px-3 py-1 rounded inline-block animate-pulse">
+								Limited Time Use
+							</span>
+							<span className="text-red-500 font-semibold">{campaignName || "Sự kiện Siêu Sale"}</span>
 						</div>
-						<p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mt-2 transition-colors duration-500">Ưu đãi giới hạn</p>
+						<h2 className="font-luxury text-4xl md:text-5xl font-bold text-gray-900 dark:text-white flex items-center gap-4">
+							{title || "Ưu Đãi Đặc Biệt"} 
+							<Zap className="w-8 h-8 md:w-10 md:h-10 text-yellow-400 fill-yellow-400" />
+						</h2>
 					</div>
 
 					<div className="flex gap-4 text-center">
@@ -35,7 +38,7 @@ const FlashSaleSection = ({ products, timeLeft, addToCart, campaignName }) => {
 									<div className="text-3xl md:text-4xl font-bold text-yellow-600 dark:text-yellow-400">
 										{value.toString().padStart(2, "0")}
 									</div>
-									<div className="text-[10px] md:text-xs uppercase tracking-widest text-gray-500 dark:text-gray-500 font-bold">
+									<div className="text-[10px] md:text-xs uppercase tracking-widest text-gray-500 font-bold">
 										{label === "days" ? "NGÀY" : label === "hours" ? "GIỜ" : label === "minutes" ? "PHÚT" : "GIÂY"}
 									</div>
 								</div>
@@ -44,18 +47,18 @@ const FlashSaleSection = ({ products, timeLeft, addToCart, campaignName }) => {
 					</div>
 				</div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {products.map((product) => (
-                        <ProductCard
-                            key={product._id}
-                            product={product.salePercentage ? product : { ...product, discount: Math.floor(Math.random() * 30) + 10 }} // real campaign or fallback
-                            addToCart={addToCart}
-                        />
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
+				<div className={`grid grid-cols-1 sm:grid-cols-2 ${gridColsClass} gap-6 md:gap-8`}>
+					{products.map((product) => (
+						<ProductCard
+							key={product._id}
+							product={product.salePercentage ? product : { ...product, discount: Math.floor(Math.random() * 30) + 10 }}
+							addToCart={addToCart}
+						/>
+					))}
+				</div>
+			</div>
+		</div>
+	);
 };
 
 export default FlashSaleSection;

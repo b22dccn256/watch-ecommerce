@@ -5,7 +5,7 @@ const orderSchema = new mongoose.Schema(
 		user: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "User",
-			required: true,
+			required: false,
 		},
 		products: [
 			{
@@ -23,6 +23,10 @@ const orderSchema = new mongoose.Schema(
 					type: Number,
 					required: true,
 					min: 0,
+				},
+				wristSize: {
+					type: String,
+					default: null,
 				},
 			},
 		],
@@ -65,8 +69,19 @@ const orderSchema = new mongoose.Schema(
 		},
 		paymentMethod: {
 			type: String,
-			enum: ["stripe", "cod", "paypal", "qr"],
-			default: "stripe"
+			enum: ["cod", "stripe", "vnpay", "momo", "zalopay", "paypal", "qr"],
+			default: "cod"
+		},
+		transactionId: {
+			type: String,
+			sparse: true,
+		},
+		paymentResponse: {
+			type: Object,
+		},
+		ipnVerified: {
+			type: Boolean,
+			default: false,
 		},
 		stripeSessionId: {
 			type: String,
@@ -128,8 +143,6 @@ const orderSchema = new mongoose.Schema(
 orderSchema.index({ user: 1, createdAt: -1 });
 // Tăng tốc lọc admin theo status + thời gian
 orderSchema.index({ status: 1, createdAt: -1 });
-// Tăng tốc tra cứu đơn hàng theo orderCode
-orderSchema.index({ orderCode: 1 });
 
 const Order = mongoose.model("Order", orderSchema);
 

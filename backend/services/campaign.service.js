@@ -44,6 +44,7 @@ class CampaignService {
                     product.salePercentage = bestCampaign.discountPercentage;
                     product.price = Math.round(product.price * (1 - bestCampaign.discountPercentage / 100));
                     product.activeCampaignName = bestCampaign.name;
+                    product.campaignEndDate = bestCampaign.endDate;
                 }
 
                 return product;

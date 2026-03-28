@@ -186,19 +186,6 @@ const ChatBot = () => {
                 )}
             </AnimatePresence>
 
-            {/* Theme Toggle Button */}
-            <motion.button
-                onClick={toggleTheme}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-                className={`p-4 rounded-full shadow-2xl transition-all border ${theme === 'dark' 
-                    ? 'bg-white text-black border-gray-200' 
-                    : 'bg-luxury-dark text-white border-luxury-border'}`}
-            >
-                {theme === "dark" ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
-            </motion.button>
-
             {/* Chat toggle button */}
             <motion.button
                 onClick={() => setIsOpen(!isOpen)}

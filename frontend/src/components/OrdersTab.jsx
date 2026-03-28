@@ -342,15 +342,15 @@ const OrdersTab = () => {
 
             {/* Modal Detail Order */}
             {selectedOrder && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+                <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center md:p-4 bg-black/60 backdrop-blur-sm">
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        initial={{ opacity: 0, scale: 0.95, y: 50 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        className="bg-white dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 shadow-2xl relative my-auto"
+                        className="bg-white dark:bg-luxury-dark rounded-t-2xl md:rounded-2xl w-full max-w-4xl max-h-[90vh] h-[90vh] md:h-auto flex flex-col shadow-2xl relative"
                     >
-                        <div className="sticky top-0 bg-white/90 dark:bg-luxury-dark/90 backdrop-blur-md pt-2 pb-4 border-b border-gray-100 dark:border-luxury-border flex items-center justify-between z-10">
+                        <div className="sticky top-0 bg-white dark:bg-luxury-dark pt-5 pb-4 px-6 md:pt-6 md:px-8 border-b border-gray-100 dark:border-luxury-border flex items-center justify-between z-10 rounded-t-2xl">
                             <div>
-                                <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                     Chi tiết đơn hàng #{selectedOrder.orderCode || selectedOrder._id?.substring(0, 8).toUpperCase()}
                                 </h2>
                                 <p className="text-xs text-gray-500 dark:text-luxury-text-muted mt-1">
@@ -373,9 +373,10 @@ const OrdersTab = () => {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
-                            {/* Phân vùng 1: Khách hàng và Vận chuyển */}
-                            <div className="space-y-6">
+                        <div className="overflow-y-auto flex-1 p-6 md:p-8 custom-scrollbar">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* Phân vùng 1: Khách hàng và Vận chuyển */}
+                                <div className="space-y-6">
                                 <div>
                                     <h3 className="text-sm font-bold text-luxury-gold uppercase tracking-wider mb-4 border-b border-gray-100 dark:border-luxury-border/50 pb-2">Thông tin Khách Hàng</h3>
                                     <div className="space-y-3 text-sm">
@@ -562,6 +563,7 @@ const OrdersTab = () => {
                                 ))}
                             </div>
                         </div>
+                    </div>
                     </motion.div>
                 </div>
             )}
