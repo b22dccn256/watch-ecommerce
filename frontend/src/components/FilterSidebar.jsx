@@ -74,7 +74,7 @@ const FilterSidebar = () => {
                                 <div className={`w-4 h-4 rounded border flex items-center justify-center transition ${filters.brands?.includes(brand) ? "bg-[#D4AF37] border-[#D4AF37]" : "border-gray-300 dark:border-yellow-900 group-hover:border-[#D4AF37]"}`}>
                                     {filters.brands?.includes(brand) && <svg className="w-2.5 h-2.5 text-black" fill="currentColor" viewBox="0 0 12 12"><path d="M10 3L5 9L2 6" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" /></svg>}
                                 </div>
-                                <span className={`text-sm transition ${filters.brands?.includes(brand) ? "text-[#D4AF37]" : "text-gray-500 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white"}`}>{brand}</span>
+                                <span className={`text-sm transition ${filters.brands?.includes(brand) ? "text-[#D4AF37]" : "text-gray-500 dark:text-gray-300 group-hover:text-black dark:group-hover:text-white"}`}>{brand}</span>
                             </label>
                         ))}
                     </div>
@@ -97,7 +97,7 @@ const FilterSidebar = () => {
                     <h3 className="text-[10px] font-semibold tracking-widest text-gray-500 uppercase mb-3">Bộ máy</h3>
                     <div className="flex flex-wrap gap-2">
                         {MACHINE_TYPES.map((type) => (
-                            <button key={type} onClick={() => toggleArrayFilter('machineType', type)} className={`px-3 py-1.5 rounded-full text-xs border transition ${filters.machineType?.includes(type) ? "bg-[#D4AF37] border-[#D4AF37] text-black font-semibold" : "border-gray-200 dark:border-yellow-900/50 text-gray-500 dark:text-gray-400 hover:border-[#D4AF37] hover:text-black dark:hover:text-white"}`}>
+                            <button key={type} onClick={() => toggleArrayFilter('machineType', type)} className={`px-3 py-1.5 rounded-full text-xs border transition ${filters.machineType?.includes(type) ? "bg-[#D4AF37] border-[#D4AF37] text-black font-semibold" : "border-gray-200 dark:border-yellow-900/50 text-gray-500 dark:text-gray-300 hover:border-[#D4AF37] hover:text-black dark:hover:text-white"}`}>
                                 {type}
                             </button>
                         ))}
@@ -140,7 +140,7 @@ const FilterSidebar = () => {
                                     {[...Array(5)].map((_, i) => (
                                         <Star key={i} className={`w-4 h-4 ${i < rating ? "text-[#D4AF37] fill-[#D4AF37]" : "text-gray-300 dark:text-zinc-700"}`} />
                                     ))}
-                                    <span className={`text-xs ml-1 transition ${filters.minRating === rating ? "text-[#D4AF37]" : "text-gray-500 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white"}`}>{rating} sao {rating < 5 ? "trở lên" : ""}</span>
+                                    <span className={`text-xs ml-1 transition ${filters.minRating === rating ? "text-[#D4AF37]" : "text-gray-500 dark:text-gray-300 group-hover:text-black dark:group-hover:text-white"}`}>{rating} sao {rating < 5 ? "trở lên" : ""}</span>
                                 </div>
                             </label>
                         ))}

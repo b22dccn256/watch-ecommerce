@@ -25,10 +25,10 @@ const ProductCard = ({ product }) => {
 
 	return (
 		<div className='group relative flex flex-col h-full w-full overflow-hidden rounded-lg border border-gray-200 dark:border-luxury-border bg-white dark:bg-luxury-darker shadow-lg transition-all duration-300 hover:shadow-2xl hover:border-luxury-gold'>
-			{/* Product Image */}
-			<div className='relative flex w-full aspect-square overflow-hidden rounded-t-lg bg-black'>
+			{/* Product Image — "khung tranh" sáng để ảnh nền trắng hòa hợp cả dark/light mode */}
+			<div className='relative flex w-full aspect-square overflow-hidden rounded-t-lg bg-white dark:bg-zinc-100'>
 				<img loading='lazy' className='object-cover w-full h-full transition-transform duration-300 group-hover:scale-105' src={product.image || "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=200&auto=format&fit=crop"} alt={product.name} />
-				<div className='absolute inset-0 bg-gradient-to-t from-luxury-dark/20 to-transparent' />
+				<div className='absolute inset-0 bg-gradient-to-t from-black/10 to-transparent' />
 
 				{/* Wishlist Button */}
 				<button
@@ -68,9 +68,14 @@ const ProductCard = ({ product }) => {
 
 			{/* Product Info */}
 			<div className='mt-4 px-5 pb-5 flex flex-col flex-grow'>
-				{/* Brand/Category */}
+				{/* Brand Label — ưu tiên tên brand thực tế từ DB, fallback về category */}
 				<p className='text-xs font-medium text-gray-500 dark:text-luxury-text-muted uppercase tracking-luxury mb-1'>
-					{product.category || 'Luxury Watch'}
+					{typeof product.brand === 'object' && product.brand?.name
+						? product.brand.name
+						: typeof product.brand === 'string' && product.brand
+						? product.brand
+						: product.category || '—'
+					}
 				</p>
 
 				{/* Product Name */}
@@ -78,16 +83,16 @@ const ProductCard = ({ product }) => {
 					{product.name}
 				</h5>
 
-				{/* Rating */}
+				{/* Rating — đồng bộ với averageRating và reviewsCount trong DB schema */}
 				<div className='flex items-center gap-1 mb-3'>
 					{[...Array(5)].map((_, i) => (
 						<Star
 							key={i}
-							className={`w-4 h-4 ${i < (product.rating || 4) ? 'text-luxury-gold fill-luxury-gold' : 'text-gray-400 dark:text-luxury-text-muted'}`}
+							className={`w-4 h-4 ${i < Math.round(product.averageRating || 0) ? 'text-luxury-gold fill-luxury-gold' : 'text-gray-300 dark:text-luxury-text-muted'}`}
 						/>
 					))}
 					<span className='text-sm text-gray-500 dark:text-luxury-text-muted ml-2'>
-						({product.reviews || 0})
+						({product.reviewsCount || 0})
 					</span>
 				</div>
 

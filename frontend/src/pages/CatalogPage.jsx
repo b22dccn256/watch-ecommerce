@@ -2,9 +2,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useProductStore } from "../stores/useProductStore";
-import ProductCard from "../components/ProductCard"; // sẽ nâng cấp ở bước sau
+import ProductCard from "../components/ProductCard";
 import FilterSidebar from "../components/FilterSidebar";
-import SearchBarWithSuggestions from "../components/SearchBarWithSuggestions";
 
 const CatalogPage = () => {
 	const { category } = useParams();
@@ -76,10 +75,7 @@ const CatalogPage = () => {
 	return (
 		<div className="min-h-screen bg-white dark:bg-[#0f0c08] text-gray-900 dark:text-white pt-20 transition-colors duration-500">
 			<div className="max-w-screen-2xl mx-auto px-6 py-10">
-				{/* Thanh tìm kiếm lớn + gợi ý */}
-				<SearchBarWithSuggestions />
-
-				<div className="flex gap-10 mt-10">
+				<div className="flex gap-10">
 					{/* Bộ lọc bên trái */}
 					<FilterSidebar />
 
