@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User as UserIcon, ShoppingBag, Lock, LogOut, ChevronRight, Eye, EyeOff, Package, ExternalLink, Truck, Copy, XCircle } from "lucide-react";
+import { User as UserIcon, ShoppingBag, Lock, LogOut, ChevronRight, Eye, EyeOff, Package, ExternalLink, Truck, Copy, XCircle, AlertCircle } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useUserStore } from "../stores/useUserStore";
 import { useOrderStore } from "../stores/useOrderStore";
@@ -17,6 +17,22 @@ const ProfilePage = () => {
 		name: user?.name || "",
 		phone: user?.phone || "",
 	});
+	const [profileErrors, setProfileErrors] = useState({ name: "", phone: "" });
+
+	// Validation rules (same as backend)
+	const NAME_REGEX = /^[\p{L}\s]{2,50}$/u;
+	const PHONE_REGEX = /^(0[35789])\d{8}$/;
+
+	const validateProfileField = (field, value) => {
+		if (field === "name") {
+			if (!value.trim()) return "Tên không được để trống";
+			if (!NAME_REGEX.test(value.trim())) return "Tên chỉ chứa chữ cái và khoảng trắng (2–50 ký tự)";
+		}
+		if (field === "phone" && value.trim()) {
+			if (!PHONE_REGEX.test(value.trim())) return "Số ĐT không hợp lệ (10 số, bắt đầu 03/05/07/08/09)";
+		}
+		return "";
+	};
 
 	// Password Form State
 	const [pwdData, setPwdData] = useState({
@@ -40,8 +56,28 @@ const ProfilePage = () => {
 		}
 	}, [user, fetchMyOrders]);
 
+	const handleProfileChange = (e) => {
+		const { name, value } = e.target;
+		setProfileData((prev) => ({ ...prev, [name]: value }));
+		// Clear error on type
+		if (profileErrors[name]) setProfileErrors((prev) => ({ ...prev, [name]: "" }));
+	};
+
+	const handleProfileBlur = (e) => {
+		const { name, value } = e.target;
+		const error = validateProfileField(name, value);
+		setProfileErrors((prev) => ({ ...prev, [name]: error }));
+	};
+
 	const handleProfileSubmit = async (e) => {
 		e.preventDefault();
+		// Validate all fields before submitting
+		const nameErr = validateProfileField("name", profileData.name);
+		const phoneErr = validateProfileField("phone", profileData.phone);
+		if (nameErr || phoneErr) {
+			setProfileErrors({ name: nameErr, phone: phoneErr });
+			return;
+		}
 		await updateProfile(profileData);
 	};
 
@@ -169,24 +205,38 @@ const ProfilePage = () => {
 
 										<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
 											<div className='space-y-2'>
-												<label className='text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>Họ và tên</label>
+												<label className='text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>Họ và tên <span className="text-red-500">*</span></label>
 												<input
 													type="text"
+													name="name"
 													value={profileData.name}
-													onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-													className='w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border focus:border-luxury-gold text-gray-900 dark:text-white px-5 py-3 rounded-xl focus:outline-none transition'
+													onChange={handleProfileChange}
+													onBlur={handleProfileBlur}
+													className={`w-full bg-gray-50 dark:bg-luxury-dark border ${profileErrors.name ? "border-red-400 focus:border-red-400" : "border-gray-200 dark:border-luxury-border focus:border-luxury-gold"} text-gray-900 dark:text-white px-5 py-3 rounded-xl focus:outline-none transition`}
 													required
 												/>
+												{profileErrors.name && (
+													<p className="flex items-center gap-1 text-xs text-red-500 mt-1">
+														<AlertCircle className="h-3 w-3 flex-shrink-0" />{profileErrors.name}
+													</p>
+												)}
 											</div>
 											<div className='space-y-2'>
 												<label className='text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>Số điện thoại</label>
 												<input
 													type="text"
+													name="phone"
 													value={profileData.phone}
-													onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+													onChange={handleProfileChange}
+													onBlur={handleProfileBlur}
 													placeholder="Ví dụ: 0912345678"
-													className='w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border focus:border-luxury-gold text-gray-900 dark:text-white px-5 py-3 rounded-xl focus:outline-none transition'
+													className={`w-full bg-gray-50 dark:bg-luxury-dark border ${profileErrors.phone ? "border-red-400 focus:border-red-400" : "border-gray-200 dark:border-luxury-border focus:border-luxury-gold"} text-gray-900 dark:text-white px-5 py-3 rounded-xl focus:outline-none transition`}
 												/>
+												{profileErrors.phone && (
+													<p className="flex items-center gap-1 text-xs text-red-500 mt-1">
+														<AlertCircle className="h-3 w-3 flex-shrink-0" />{profileErrors.phone}
+													</p>
+												)}
 											</div>
 											<div className='space-y-2 col-span-1 md:col-span-2'>
 												<label className='text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>Email (Không thể thay đổi)</label>

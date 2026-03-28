@@ -61,7 +61,9 @@ const SearchBarWithSuggestions = () => {
                             <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded" />
                             <div className="flex-1">
                                 <div className="font-medium text-gray-900 dark:text-white">{item.name}</div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400">{item.brand}</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    {typeof item.brand === 'object' ? item.brand?.name : item.brand}
+                                </div>
                             </div>
                             <div className="text-yellow-400 font-semibold">
                                 {item.price.toLocaleString("vi-VN")}đ

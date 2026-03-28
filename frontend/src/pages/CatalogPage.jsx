@@ -5,7 +5,6 @@ import { LayoutGrid, Grid3X3, X } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
 import ProductCard from "../components/ProductCard";
 import FilterSidebar from "../components/FilterSidebar";
-import SearchBarWithSuggestions from "../components/SearchBarWithSuggestions";
 
 const CatalogPage = () => {
 	const { category } = useParams();
@@ -114,10 +113,7 @@ const CatalogPage = () => {
 	return (
 		<div className="min-h-screen bg-white dark:bg-[#0f0c08] text-gray-900 dark:text-white pt-20 transition-colors duration-500">
 			<div className="max-w-screen-2xl mx-auto px-6 py-10">
-				{/* Thanh tìm kiếm lớn + gợi ý */}
-				<SearchBarWithSuggestions />
-
-				<div className="flex gap-10 mt-10">
+				<div className="flex gap-10">
 					{/* Bộ lọc bên trái */}
 					<FilterSidebar />
 
