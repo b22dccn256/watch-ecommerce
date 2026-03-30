@@ -27,9 +27,10 @@ const SizeGuidePage = () => {
 			description="Công cụ tính toán size đồng hồ từ chu vi cổ tay và các mẹo chọn đồng hồ phù hợp với vóc dáng."
 			activeId="size-guide"
 		>
-			<section className="space-y-12">
+			<section className="space-y-12 bg-gradient-to-br from-white to-gray-100 p-6 rounded-3xl border border-gray-200 shadow-lg">
+				<div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top,_rgba(212,175,55,0.18),_transparent_45%)] pointer-events-none"></div>
 				{/* Interactive Calculator */}
-				<div className="bg-gradient-to-br from-luxury-darker to-luxury-dark p-8 md:p-12 rounded-[2rem] border border-luxury-gold/20 shadow-2xl relative overflow-hidden">
+				<div className="bg-white p-8 md:p-12 rounded-[2rem] border border-luxury-border shadow-xl relative overflow-hidden">
 					<div className="absolute top-0 right-0 w-32 h-32 bg-luxury-gold/5 rounded-full -translate-y-16 translate-x-16 blur-3xl"></div>
 					<div className="relative z-10">
 						<h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
@@ -47,7 +48,7 @@ const SizeGuidePage = () => {
 									value={wristSize}
 									onChange={(e) => setWristSize(e.target.value)}
 									placeholder="Chu vi cổ tay (cm)..."
-									className="w-full bg-white/5 border border-white/10 rounded-xl px-6 py-4 text-white focus:outline-none focus:border-luxury-gold transition-all"
+									className="w-full bg-white/5 border border-white/10 rounded-xl px-6 py-4 text-luxury-dark focus:outline-none focus:border-luxury-gold transition-all"
 								/>
 								<span className="absolute right-4 top-1/2 -translate-y-1/2 text-luxury-gold font-bold">cm</span>
 							</div>

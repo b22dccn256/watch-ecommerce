@@ -1,12 +1,71 @@
 import fs from "fs";
+import crypto from "crypto";
 import Coupon from "../models/coupon.model.js";
 import Order from "../models/order.model.js";
+import ProcessedIPN from "../models/processedIPN.model.js";
 import { stripe } from "../lib/stripe.js";
 import OrderService from "../services/order.service.js";
 import mongoose from "mongoose";
 import User from "../models/user.model.js";
 import { emailQueue } from "./mail.controller.js";
 import { createVNPayPayment, createMoMoPayment, createZaloPayPayment, vnpayInstance } from "../services/payment.service.js";
+
+// Helper: lấy IP client (x-forwarded-for > req.ip > remote address)
+const getClientIp = (req) => {
+	const xff = req.headers["x-forwarded-for"];
+	if (xff) {
+		return xff.split(",")[0].trim();
+	}
+	if (req.ip) {
+		return req.ip.replace(/^::ffff:/, "");
+	}
+	return req.connection?.remoteAddress ? req.connection.remoteAddress.replace(/^::ffff:/, "") : null;
+};
+
+// Verify VNPay secure hash theo thuật toán
+const verifyVnpaySignature = (query) => {
+	const secretKey = process.env.VNPAY_HASH_SECRET || "";
+	if (!secretKey) {
+		return false;
+	}
+	const secureHash = query.vnp_SecureHash || query.vnp_SecureHash?.toLowerCase();
+	if (!secureHash) {
+		return false;
+	}
+
+	// Loại bỏ vnp_SecureHash/vnp_SecureHashType trước khi tạo string
+	const clone = { ...query };
+	delete clone.vnp_SecureHash;
+	delete clone.vnp_SecureHashType;
+
+	const keys = Object.keys(clone).sort();
+	const raw = keys
+		.filter((k) => clone[k] !== undefined && clone[k] !== null && clone[k] !== "")
+		.map((k) => `${k}=${clone[k]}`)
+		.join("&");
+
+	const hashed = crypto.createHmac("sha512", secretKey).update(raw, "utf8").digest("hex");
+	return hashed.toLowerCase() === secureHash.toLowerCase();
+};
+
+// Verify MoMo signature HMAC-SHA256
+const verifyMomoSignature = (body) => {
+	const secretKey = process.env.MOMO_SECRET_KEY || "";
+	if (!secretKey || !body.signature) return false;
+
+	const rawSignature = `partnerCode=${body.partnerCode}&accessKey=${process.env.MOMO_ACCESS_KEY}&requestId=${body.requestId}&amount=${body.amount}&orderId=${body.orderId}&orderInfo=${body.orderInfo}&orderType=${body.orderType}&transId=${body.transId}&resultCode=${body.resultCode}&message=${body.message}&payType=${body.payType}&responseTime=${body.responseTime}&extraData=${body.extraData}`;
+	const computed = crypto.createHmac("sha256", secretKey).update(rawSignature, "utf8").digest("hex");
+	return computed === body.signature;
+};
+
+// Verify ZaloPay HMAC-SHA256
+const verifyZaloPayMac = (body) => {
+	const key2 = process.env.ZALOPAY_KEY2 || "";
+	if (!key2 || !body.mac) return false;
+
+	const computed = crypto.createHmac("sha256", key2).update(body.data, "utf8").digest("hex");
+	return computed === body.mac;
+};
 
 export const createCheckoutSession = async (req, res) => {
 	const sessionOpts = await mongoose.startSession();
@@ -103,6 +162,11 @@ export const createCheckoutSession = async (req, res) => {
 		let sessionResponse = {};
 
 		if (paymentMethod === "stripe") {
+			if (!stripe) {
+				await sessionOpts.abortTransaction();
+				sessionOpts.endSession();
+				return res.status(500).json({ message: "Stripe chưa cấu hình (STRIPE_SECRET_KEY missing)." });
+			}
 			const session = await stripe.checkout.sessions.create({
 				payment_method_types: ["card"],
 				line_items: lineItems,
@@ -181,6 +245,9 @@ export const createCheckoutSession = async (req, res) => {
 };
 
 export const checkoutSuccess = async (req, res) => {
+	if (!stripe) {
+		return res.status(500).json({ message: "Stripe chưa cấu hình (STRIPE_SECRET_KEY missing)." });
+	}
 	try {
 		const { sessionId } = req.body;
 		const session = await stripe.checkout.sessions.retrieve(sessionId);
@@ -206,6 +273,10 @@ export const checkoutSuccess = async (req, res) => {
 
 // --- STRIPE WEBHOOK ---
 export const stripeWebhook = async (req, res) => {
+	if (!stripe) {
+		return res.status(500).json({ message: "Stripe webhook không thể xử lý vì STRIPE_SECRET_KEY chưa được cấu hình." });
+	}
+
 	const sig = req.headers['stripe-signature'];
 	let event;
 
@@ -322,203 +393,263 @@ async function createNewCoupon(userId) {
 // ======================= WEBHOOK IPN NỘI ĐỊA =======================
 
 export const vnpayIpn = async (req, res) => {
+	const provider = "vnpay";
+	const clientIp = getClientIp(req);
+	const body = req.query;
+	const transactionId = body.vnp_TransactionNo || body.vnp_TxnRef;
+	const orderCode = body.vnp_TxnRef;
+	const logMeta = { provider, clientIp, headers: req.headers, body };
+
+	console.info("[vnpay-ipn] received", logMeta);
+
+	if (!verifyVnpaySignature(body)) {
+		console.warn("[vnpay-ipn] signature verification failed", logMeta);
+		await ProcessedIPN.create({ provider, transactionId, orderCode, status: "failed", payload: body });
+		return res.status(200).json({ RspCode: "97", Message: "Checksum failed" });
+	}
+
+	const session = await mongoose.startSession();
 	try {
-		console.log("VNPay IPN Received:", req.query);
-		const verify = vnpayInstance.verifyIpnCall(req.query);
-		if (!verify.isSuccess) {
-			return res.status(200).json({ RspCode: '97', Message: 'Checksum failed' });
+		session.startTransaction();
+
+		// Atomic idempotency check + mark
+		const existing = await ProcessedIPN.findOne({ provider, transactionId }, null, { session });
+		if (existing) {
+			await session.commitTransaction();
+			console.info("[vnpay-ipn] duplicate callback ignored", { provider, transactionId });
+			return res.status(200).json({ RspCode: "02", Message: "Order already confirmed" });
 		}
 
-		const orderCode = req.query.vnp_TxnRef;
-		const order = await Order.findOne({ orderCode });
-		if (!order) return res.status(200).json({ RspCode: '01', Message: 'Order not found' });
-		
-		if (order.paymentStatus === 'paid') {
-			return res.status(200).json({ RspCode: '02', Message: 'Order already confirmed' });
+		// Anti-replay timestamp trong 30 phút nếu cung cấp
+		if (body.vnp_PayDate) {
+			const txnDate = new Date(body.vnp_PayDate.replace(/^(.{4})(..)(..)$/, "$1-$2-$3"));
+			if (isNaN(txnDate.getTime())) {
+				await session.abortTransaction();
+				return res.status(200).json({ RspCode: "10", Message: "Invalid timestamp" });
+			}
+			if (Math.abs(Date.now() - txnDate.getTime()) > 30 * 60 * 1000) {
+				await session.abortTransaction();
+				return res.status(200).json({ RspCode: "09", Message: "Timestamp out of acceptable range" });
+			}
 		}
 
-		if (req.query.vnp_ResponseCode === '00') {
-			order.paymentStatus = 'paid';
-			order.status = 'confirmed';
-			order.transactionId = req.query.vnp_TransactionNo;
-			order.paymentResponse = req.query;
+		const order = await Order.findOne({ orderCode }).session(session);
+		if (!order) {
+			await ProcessedIPN.create({ provider, transactionId, orderCode, status: "failed", payload: body, processedAt: new Date() }, { session });
+			await session.commitTransaction();
+			return res.status(200).json({ RspCode: "01", Message: "Order not found" });
+		}
+
+		if (order.paymentStatus === "paid") {
+			await ProcessedIPN.create({ provider, transactionId, orderCode, status: "processed", payload: body }, { session });
+			await session.commitTransaction();
+			return res.status(200).json({ RspCode: "02", Message: "Order already confirmed" });
+		}
+
+		if (body.vnp_ResponseCode === "00") {
+			order.paymentStatus = "paid";
+			order.status = "confirmed";
+			order.transactionId = transactionId;
+			order.paymentResponse = body;
 			order.ipnVerified = true;
 			order.paidAt = new Date();
-			await order.save();
-			
+			await order.save({ session });
+
+			await ProcessedIPN.create({ provider, transactionId, orderCode, status: "processed", payload: body }, { session });
+			await session.commitTransaction();
+
+			console.info("[vnpay-ipn] success", { provider, transactionId, orderCode, clientIp });
+
 			const emailTarget = order.user ? (await User.findById(order.user))?.email : order.shippingDetails.email;
 			if (emailTarget) {
 				await emailQueue.add("order-confirmation", {
 					email: emailTarget,
 					subject: `Xác nhận thanh toán VNPay đơn hàng #${order.orderCode} - Luxury Watch`,
-					order: {
-						orderCode: order.orderCode,
-						totalAmount: order.totalAmount,
-						shippingDetails: order.shippingDetails,
-						paymentMethod: "VNPay (Đã thanh toán)"
-					}
+					order: { orderCode: order.orderCode, totalAmount: order.totalAmount, shippingDetails: order.shippingDetails, paymentMethod: "VNPay (Đã thanh toán)" }
 				});
 			}
 
-			// Clear cart handling would have already happened during CheckoutSession creation for local user if they were logged in.
-		} else {
-			order.paymentStatus = 'failed';
-			await order.save();
-			await OrderService.restoreStock(order.products, null, order._id, "VNPay IPN Failed");
+			return res.status(200).json({ RspCode: "00", Message: "Confirm Success" });
 		}
-		
-		return res.status(200).json({ RspCode: '00', Message: 'Confirm Success' });
+
+		order.paymentStatus = "failed";
+		await order.save({ session });
+		await OrderService.restoreStock(order.products, null, order._id, "VNPay IPN Failed");
+		await ProcessedIPN.create({ provider, transactionId, orderCode, status: "failed", payload: body }, { session });
+		await session.commitTransaction();
+		return res.status(200).json({ RspCode: "00", Message: "Confirm Failed" });
 	} catch (error) {
-		console.error("VNPay IPN Error:", error);
-		res.status(200).json({ RspCode: '99', Message: 'Unknown error' });
+		await session.abortTransaction();
+		console.error("[vnpay-ipn] error", { error, provider, transactionId, orderCode, clientIp });
+		return res.status(200).json({ RspCode: "99", Message: "Unknown error" });
+	} finally {
+		session.endSession();
 	}
 };
 
 
-import crypto from "crypto";
-
 // MoMo IPN handler: verify signature, transaction, logging, queue email
 export const momoIpn = async (req, res) => {
+	const provider = "momo";
+	const clientIp = getClientIp(req);
+	const body = req.body;
+	const transactionId = body.transId;
+	const orderCode = body.orderId || body.extraData || body.order_code;
+	console.info("[momo-ipn] received", { provider, clientIp, headers: req.headers, body });
+
+	if (!verifyMomoSignature(body)) {
+		console.warn("[momo-ipn] signature invalid", { provider, clientIp, transactionId, orderCode });
+		return res.status(200).json({ resultCode: 94, message: "Signature mismatch" });
+	}
+
+	const session = await mongoose.startSession();
 	try {
-		// Log IPN for audit/debug
-		try { fs.appendFileSync("momo-ipn.log", new Date().toISOString() + " " + JSON.stringify(req.body) + "\n"); } catch {}
-
-		// MoMo signature verify
-		const {
-			partnerCode, orderId, requestId, amount, orderInfo, orderType, transId, resultCode, message, payType, responseTime, extraData, signature
-		} = req.body;
-		const secretKey = process.env.MOMO_SECRET_KEY || "SECRET";
-		// MoMo raw signature string (the order may vary by version, check MoMo docs)
-		const rawSignature = `partnerCode=${partnerCode}&accessKey=${process.env.MOMO_ACCESS_KEY}&requestId=${requestId}&amount=${amount}&orderId=${orderId}&orderInfo=${orderInfo}&orderType=${orderType}&transId=${transId}&resultCode=${resultCode}&message=${message}&payType=${payType}&responseTime=${responseTime}&extraData=${extraData}`;
-		const serverSignature = crypto.createHmac('sha256', secretKey).update(rawSignature).digest('hex');
-		if (signature !== serverSignature) {
-			return res.status(200).json({ resultCode: 94, message: "Signature mismatch" });
-		}
-
-		// Transactional update
-		const session = await mongoose.startSession();
 		session.startTransaction();
-		try {
-			const order = await Order.findOne({ orderCode }).session(session);
-			if (!order) {
-				await session.abortTransaction();
-				session.endSession();
-				return res.status(200).json({ resultCode: 1, message: "Order not found" });
-			}
-			if (order.paymentStatus === 'paid') {
-				await session.commitTransaction();
-				session.endSession();
-				return res.status(200).json({ resultCode: 2, message: "Order already paid" });
-			}
-			if (Number(resultCode) === 0) {
-				order.paymentStatus = 'paid';
-				order.status = 'confirmed';
-				order.transactionId = transId;
-				order.ipnVerified = true;
-				order.paymentResponse = req.body;
-				order.paidAt = new Date();
-				await order.save({ session });
-				// Queue email
-				const emailTarget = order.user ? (await User.findById(order.user))?.email : order.shippingDetails.email;
-				if (emailTarget) {
-					await emailQueue.add("order-confirmation", {
-						email: emailTarget,
-						subject: `Xác nhận thanh toán MoMo đơn hàng #${order.orderCode} - Luxury Watch`,
-						order: {
-							orderCode: order.orderCode,
-							totalAmount: order.totalAmount,
-							shippingDetails: order.shippingDetails,
-							paymentMethod: "MoMo (Đã thanh toán)"
-						}
-					});
-				}
-			} else {
-				order.paymentStatus = 'failed';
-				await order.save({ session });
-				await OrderService.restoreStock(order.products, null, order._id, "MoMo IPN Failed");
-			}
+
+		const existing = await ProcessedIPN.findOne({ provider, transactionId }, null, { session });
+		if (existing) {
 			await session.commitTransaction();
-			session.endSession();
-			return res.status(200).json({ resultCode: 0, message: "Confirm Success" });
-		} catch (error) {
-			await session.abortTransaction();
-			session.endSession();
-			throw error;
+			return res.status(200).json({ resultCode: 2, message: "Order already paid" });
 		}
+
+		if (!orderCode) {
+			await session.abortTransaction();
+			return res.status(200).json({ resultCode: 1, message: "Order not found" });
+		}
+
+		const order = await Order.findOne({ orderCode }).session(session);
+		if (!order) {
+			await ProcessedIPN.create([{ provider, transactionId, orderCode, status: "failed", payload: body }], { session });
+			await session.commitTransaction();
+			return res.status(200).json({ resultCode: 1, message: "Order not found" });
+		}
+
+		if (order.paymentStatus === "paid") {
+			await ProcessedIPN.create([{ provider, transactionId, orderCode, status: "processed", payload: body }], { session });
+			await session.commitTransaction();
+			return res.status(200).json({ resultCode: 2, message: "Order already paid" });
+		}
+
+		if (Number(body.resultCode) === 0) {
+			order.paymentStatus = "paid";
+			order.status = "confirmed";
+			order.transactionId = transactionId;
+			order.ipnVerified = true;
+			order.paymentResponse = body;
+			order.paidAt = new Date();
+			await order.save({ session });
+
+			await ProcessedIPN.create([{ provider, transactionId, orderCode, status: "processed", payload: body }], { session });
+			await session.commitTransaction();
+
+			const emailTarget = order.user ? (await User.findById(order.user))?.email : order.shippingDetails?.email;
+			if (emailTarget) {
+				await emailQueue.add("order-confirmation", {
+					email: emailTarget,
+					subject: `Xác nhận thanh toán MoMo đơn hàng #${order.orderCode} - Luxury Watch`,
+					order: { orderCode: order.orderCode, totalAmount: order.totalAmount, shippingDetails: order.shippingDetails, paymentMethod: "MoMo (Đã thanh toán)" }
+				});
+			}
+
+			return res.status(200).json({ resultCode: 0, message: "Confirm Success" });
+		}
+
+		order.paymentStatus = "failed";
+		await order.save({ session });
+		await ProcessedIPN.create([{ provider, transactionId, orderCode, status: "failed", payload: body }], { session });
+		await OrderService.restoreStock(order.products, null, order._id, "MoMo IPN Failed");
+		await session.commitTransaction();
+		return res.status(200).json({ resultCode: 0, message: "Confirm Failed" });
 	} catch (error) {
-		try { fs.appendFileSync("momo-ipn-error.log", new Date().toISOString() + " " + (error.stack || error.message) + "\n"); } catch {}
-		console.error("MoMo IPN Error:", error);
-		res.status(200).json({ resultCode: 99, message: "Unknown error" });
+		await session.abortTransaction();
+		console.error("[momo-ipn] error", { error, provider, clientIp, transactionId, orderCode });
+		return res.status(200).json({ resultCode: 99, message: "Unknown error" });
+	} finally {
+		session.endSession();
 	}
 };
 
 
 // ZaloPay IPN handler: verify signature, transaction, logging, queue email
 export const zalopayIpn = async (req, res) => {
+	const provider = "zalopay";
+	const clientIp = getClientIp(req);
+	const body = req.body;
+	const transactionId = body.zp_trans_id;
+	console.info("[zalopay-ipn] received", { provider, clientIp, headers: req.headers, body });
+
+	if (!verifyZaloPayMac(body)) {
+		console.warn("[zalopay-ipn] mac invalid", { provider, clientIp, transactionId });
+		return res.status(200).json({ return_code: -1, return_message: "MAC mismatch" });
+	}
+
+	const parsed = JSON.parse(body.data);
+	const orderCode = parsed.order_id || parsed.app_trans_id?.split("_")[1];
+	const resultCode = Number(parsed.return_code);
+
+	const session = await mongoose.startSession();
 	try {
-		try { fs.appendFileSync("zalopay-ipn.log", new Date().toISOString() + " " + JSON.stringify(req.body) + "\n"); } catch {}
-		// ZaloPay signature verify
-		const { data, mac } = req.body;
-		const key2 = process.env.ZALOPAY_KEY2 || "kLtgPl8PIATweXSmK76MamLSXMDZcnCj";
-		const serverMac = crypto.createHmac("sha256", key2).update(data).digest("hex");
-		if (mac !== serverMac) {
-			return res.status(200).json({ return_code: -1, return_message: "MAC mismatch" });
-		}
-		const parsed = JSON.parse(data);
-		const { app_trans_id, zp_trans_id, return_code, order_id } = parsed;
-		// Transactional update
-		const session = await mongoose.startSession();
 		session.startTransaction();
-		try {
-			const order = await Order.findOne({ orderCode: order_id || app_trans_id?.split('_')[1] }).session(session);
-			if (!order) {
-				await session.abortTransaction();
-				session.endSession();
-				return res.status(200).json({ return_code: 1, return_message: "Order not found" });
-			}
-			if (order.paymentStatus === 'paid') {
-				await session.commitTransaction();
-				session.endSession();
-				return res.status(200).json({ return_code: 2, return_message: "Order already paid" });
-			}
-			if (Number(return_code) === 1) {
-				order.paymentStatus = 'paid';
-				order.status = 'confirmed';
-				order.transactionId = zp_trans_id;
-				order.ipnVerified = true;
-				order.paymentResponse = req.body;
-				order.paidAt = new Date();
-				await order.save({ session });
-				// Queue email
-				const emailTarget = order.user ? (await User.findById(order.user))?.email : order.shippingDetails.email;
-				if (emailTarget) {
-					await emailQueue.add("order-confirmation", {
-						email: emailTarget,
-						subject: `Xác nhận thanh toán ZaloPay đơn hàng #${order.orderCode} - Luxury Watch`,
-						order: {
-							orderCode: order.orderCode,
-							totalAmount: order.totalAmount,
-							shippingDetails: order.shippingDetails,
-							paymentMethod: "ZaloPay (Đã thanh toán)"
-						}
-					});
-				}
-			} else {
-				order.paymentStatus = 'failed';
-				await order.save({ session });
-				await OrderService.restoreStock(order.products, null, order._id, "ZaloPay IPN Failed");
-			}
+
+		const existing = await ProcessedIPN.findOne({ provider, transactionId }, null, { session });
+		if (existing) {
 			await session.commitTransaction();
-			session.endSession();
-			return res.status(200).json({ return_code: 1, return_message: "Confirm Success" });
-		} catch (error) {
-			await session.abortTransaction();
-			session.endSession();
-			throw error;
+			return res.status(200).json({ return_code: 2, return_message: "Order already paid" });
 		}
+
+		if (!orderCode) {
+			await session.abortTransaction();
+			return res.status(200).json({ return_code: 1, return_message: "Order not found" });
+		}
+
+		const order = await Order.findOne({ orderCode }).session(session);
+		if (!order) {
+			await ProcessedIPN.create([{ provider, transactionId, orderCode, status: "failed", payload: body }], { session });
+			await session.commitTransaction();
+			return res.status(200).json({ return_code: 1, return_message: "Order not found" });
+		}
+
+		if (order.paymentStatus === "paid") {
+			await ProcessedIPN.create([{ provider, transactionId, orderCode, status: "processed", payload: body }], { session });
+			await session.commitTransaction();
+			return res.status(200).json({ return_code: 2, return_message: "Order already paid" });
+		}
+
+		if (resultCode === 1) {
+			order.paymentStatus = "paid";
+			order.status = "confirmed";
+			order.transactionId = transactionId;
+			order.ipnVerified = true;
+			order.paymentResponse = body;
+			order.paidAt = new Date();
+			await order.save({ session });
+
+			await ProcessedIPN.create([{ provider, transactionId, orderCode, status: "processed", payload: body }], { session });
+			await session.commitTransaction();
+
+			const emailTarget = order.user ? (await User.findById(order.user))?.email : order.shippingDetails?.email;
+			if (emailTarget) {
+				await emailQueue.add("order-confirmation", {
+					email: emailTarget,
+					subject: `Xác nhận thanh toán ZaloPay đơn hàng #${order.orderCode} - Luxury Watch`,
+					order: { orderCode: order.orderCode, totalAmount: order.totalAmount, shippingDetails: order.shippingDetails, paymentMethod: "ZaloPay (Đã thanh toán)" }
+				});
+			}
+
+			return res.status(200).json({ return_code: 1, return_message: "Confirm Success" });
+		}
+
+		order.paymentStatus = "failed";
+		await order.save({ session });
+		await ProcessedIPN.create([{ provider, transactionId, orderCode, status: "failed", payload: body }], { session });
+		await OrderService.restoreStock(order.products, null, order._id, "ZaloPay IPN Failed");
+		await session.commitTransaction();
+		return res.status(200).json({ return_code: 1, return_message: "Confirm Success" });
 	} catch (error) {
-		try { fs.appendFileSync("zalopay-ipn-error.log", new Date().toISOString() + " " + (error.stack || error.message) + "\n"); } catch {}
-		console.error("ZaloPay IPN Error:", error);
-		res.status(200).json({ return_code: -99, return_message: "Unknown error" });
+		await session.abortTransaction();
+		console.error("[zalopay-ipn] error", { error, provider, clientIp, transactionId, orderCode });
+		return res.status(200).json({ return_code: -99, return_message: "Unknown error" });
+	} finally {
+		session.endSession();
 	}
 };
