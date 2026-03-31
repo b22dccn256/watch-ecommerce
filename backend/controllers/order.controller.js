@@ -45,6 +45,42 @@ import mongoose from "mongoose";
 import crypto from "crypto";
 import { emailQueue } from "./mail.controller.js";
 
+// Ensure order products are always returned with product details (name/image etc.)
+const ensureOrderProductsPopulated = async (order) => {
+    if (!order) return order;
+    const orderObj = order.toObject ? order.toObject() : { ...order };
+
+    orderObj.products = await Promise.all(orderObj.products.map(async (item) => {
+        if (item.product && item.product.name) {
+            return item;
+        }
+        try {
+            const productData = await Product.findById(item.product).select("name price image category");
+            return {
+                ...item,
+                product: productData ? productData.toObject() : {
+                    _id: item.product,
+                    name: "Sản phẩm đã bị xóa",
+                    price: item.price,
+                    image: "",
+                }
+            };
+        } catch (err) {
+            return {
+                ...item,
+                product: {
+                    _id: item.product,
+                    name: "Sản phẩm không xác định",
+                    price: item.price,
+                    image: ""
+                }
+            };
+        }
+    }));
+
+    return orderObj;
+};
+
 export const getAllOrders = async (req, res) => {
     try {
         const { status, startDate, endDate, search, page = 1, limit = 10 } = req.query;
@@ -77,7 +113,7 @@ export const getAllOrders = async (req, res) => {
 
         let ordersQuery = Order.find(filter)
             .populate("user", "name email")
-            .populate("products.product", "name price")
+            .populate("products.product", "name price image")
             .sort({ createdAt: -1 });
 
         if (limit !== "all") {
@@ -85,9 +121,10 @@ export const getAllOrders = async (req, res) => {
         }
 
         const orders = await ordersQuery;
+        const ordersWithProductData = await Promise.all(orders.map(ensureOrderProductsPopulated));
 
         res.json({
-            orders,
+            orders: ordersWithProductData,
             stats: {
                 pendingCount,
                 returnedCount,
@@ -199,7 +236,7 @@ export const updateOrderDetails = async (req, res) => {
 
 export const getOrderById = async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id)
+        let order = await Order.findById(req.params.id)
             .populate("user", "name email")
             .populate("products.product", "name price image");
 
@@ -210,6 +247,8 @@ export const getOrderById = async (req, res) => {
             return res.status(403).json({ message: "Access denied" });
         }
 
+        order = await ensureOrderProductsPopulated(order);
+
         res.json(order);
     } catch (error) {
         console.error("Error in getOrderById:", error.message);
@@ -219,10 +258,12 @@ export const getOrderById = async (req, res) => {
 
 export const getMyOrders = async (req, res) => {
     try {
-        const orders = await Order.find({ user: req.user._id })
+        const ordersFetched = await Order.find({ user: req.user._id })
             .sort({ createdAt: -1 })
             .populate("user", "name email")
             .populate("products.product", "name price image");
+
+        const orders = await Promise.all(ordersFetched.map(ensureOrderProductsPopulated));
         res.json(orders);
     } catch (error) {
         console.error("Error in getMyOrders:", error.message);

@@ -45,8 +45,18 @@ export const createCampaign = async (req, res) => {
         else if (now >= sDate && now <= eDate) status = "Active";
         else if (now > eDate) status = "Ended";
 
+        const campaignGroup = isGlobal ? "Entire Catalog" : (group === "Toàn bộ danh mục" ? "Entire Catalog" : group);
+
         const newCampaign = await Campaign.create({
-            name, description, group: isGlobal ? undefined : group, discountPercentage, startDate: sDate, endDate: eDate, isActive, isGlobal, status
+            name,
+            description,
+            group: isGlobal ? undefined : campaignGroup,
+            discountPercentage,
+            startDate: sDate,
+            endDate: eDate,
+            isActive,
+            isGlobal,
+            status
         });
 
         res.status(201).json(newCampaign);

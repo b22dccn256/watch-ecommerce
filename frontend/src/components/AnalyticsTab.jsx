@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "../lib/axios";
 import { Users, Package, ShoppingCart, DollarSign, TrendingUp } from "lucide-react";
 import {
@@ -51,6 +51,17 @@ const AnalyticsTab = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [dailySalesData, setDailySalesData] = useState([]);
 	const [days, setDays] = useState(7);
+	const chartRef = useRef(null);
+	const [chartReady, setChartReady] = useState(false);
+
+	useEffect(() => {
+		const observer = new ResizeObserver((entries) => {
+			const width = entries?.[0]?.contentRect?.width || 0;
+			setChartReady(width > 0);
+		});
+		if (chartRef.current) observer.observe(chartRef.current);
+		return () => observer.disconnect();
+	}, []);
 
 	useEffect(() => {
 		const fetchAnalyticsData = async () => {
@@ -174,41 +185,45 @@ const AnalyticsTab = () => {
 						<p className="text-sm">Chưa có đơn hàng đã thanh toán trong {days} ngày qua</p>
 					</div>
 				) : (
-					<div style={{ width: '100%', height: 350, minHeight: 350 }}>
-						<ResponsiveContainer width="99%" height="100%">
-							<LineChart data={dailySalesData}>
-								<CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-								<XAxis dataKey="name" stroke="#9CA3AF" tick={{ fontSize: 11 }} />
-								<YAxis yAxisId="left" stroke="#9CA3AF" tick={{ fontSize: 11 }} tickFormatter={(v) => v} />
-								<YAxis
-									yAxisId="right"
-									orientation="right"
-									stroke="#9CA3AF"
-									tick={{ fontSize: 11 }}
-									tickFormatter={(v) => formatVND(v)}
-								/>
-								<Tooltip content={<CustomTooltip />} />
-								<Legend />
-								<Line
-									yAxisId="left"
-									type="monotone"
-									dataKey="sales"
-									stroke="#10B981"
-									activeDot={{ r: 6 }}
-									name="Đơn hàng"
-									strokeWidth={2}
-								/>
-								<Line
-									yAxisId="right"
-									type="monotone"
-									dataKey="revenue"
-									stroke="#F59E0B"
-									activeDot={{ r: 6 }}
-									name="Doanh thu (₫)"
-									strokeWidth={2}
-								/>
-							</LineChart>
-						</ResponsiveContainer>
+					<div ref={chartRef} style={{ width: '100%', height: 350, minHeight: 350 }}>
+						{chartReady ? (
+							<ResponsiveContainer width="100%" height="100%">
+								<LineChart data={dailySalesData}>
+									<CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+									<XAxis dataKey="name" stroke="#9CA3AF" tick={{ fontSize: 11 }} />
+									<YAxis yAxisId="left" stroke="#9CA3AF" tick={{ fontSize: 11 }} tickFormatter={(v) => v} />
+									<YAxis
+										yAxisId="right"
+										orientation="right"
+										stroke="#9CA3AF"
+										tick={{ fontSize: 11 }}
+										tickFormatter={(v) => formatVND(v)}
+									/>
+									<Tooltip content={<CustomTooltip />} />
+									<Legend />
+									<Line
+										yAxisId="left"
+										type="monotone"
+										dataKey="sales"
+										stroke="#10B981"
+										activeDot={{ r: 6 }}
+										name="Đơn hàng"
+										strokeWidth={2}
+									/>
+									<Line
+										yAxisId="right"
+										type="monotone"
+										dataKey="revenue"
+										stroke="#F59E0B"
+										activeDot={{ r: 6 }}
+										name="Doanh thu (₫)"
+										strokeWidth={2}
+									/>
+								</LineChart>
+							</ResponsiveContainer>
+						) : (
+							<div className="flex items-center justify-center h-full text-sm text-gray-500">Đang khởi tạo biểu đồ...</div>
+						)}
 					</div>
 				)}
 			</motion.div>
@@ -224,8 +239,8 @@ const AnalyticsTab = () => {
 				>
 					<h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Doanh thu theo Thanh toán</h2>
 					{analyticsData.paymentStats?.length > 0 ? (
-						<div className="h-64">
-							<ResponsiveContainer width="99%" height="100%">
+						<div className="h-64 w-full">
+							<ResponsiveContainer width="100%" height={256}>
 								<PieChart>
 									<Pie
 										data={analyticsData.paymentStats}
@@ -259,8 +274,8 @@ const AnalyticsTab = () => {
 				>
 					<h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Top Size Cổ Tay Được Chọn</h2>
 					{analyticsData.wristSizeStats?.length > 0 ? (
-						<div className="h-64">
-							<ResponsiveContainer width="99%" height="100%">
+						<div className="h-64 w-full">
+							<ResponsiveContainer width="100%" height={256}>
 								<BarChart data={analyticsData.wristSizeStats} layout="vertical" margin={{ left: 20 }}>
 									<CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
 									<XAxis type="number" stroke="#9CA3AF" />

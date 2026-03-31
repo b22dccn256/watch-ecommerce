@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { sendEmail } from "../lib/email.js";
 import bcrypt from "bcryptjs";
 import { emailQueue } from "./mail.controller.js";
+import AuditLog from "../models/auditLog.model.js";
 
 const generateTokens = (userId) => {
 	const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
@@ -475,3 +476,124 @@ export const changePassword = async (req, res) => {
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
 };
+
+export const getAuditLogs = async (req, res) => {
+	try {
+		const logs = await AuditLog.find({}).sort({ createdAt: -1 }).limit(100);
+		res.json(logs);
+	} catch (error) {
+		console.error("Error in getAuditLogs:", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+export const requestVerifyEmail = async (req, res) => {
+	try {
+		const userId = req.user._id;
+		const user = await User.findById(userId);
+		if (!user) return res.status(404).json({ message: "Người dùng không tồn tại" });
+
+		if (user.emailVerified) {
+			return res.status(400).json({ message: "Email đã được xác thực." });
+		}
+
+		// Không gửi quá nhanh: 1 phút/lần
+		const key = `resend_verify:${userId}`;
+		const locked = await redis.get(key);
+		if (locked) {
+			return res.status(429).json({ message: "Vui lòng đợi ít nhất 60 giây trước khi gửi lại email xác thực." });
+		}
+
+		const verificationToken = user.generateEmailVerificationToken();
+		await user.save();
+
+		// queue gửi email確認
+		await emailQueue.add("verify-email", {
+			email: user.email,
+			subject: "Xác thực email tài khoản Luxury Watch",
+			userName: user.name,
+			token: verificationToken,
+			verifyUrl: `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${verificationToken}`,
+		});
+
+		// Set rate limit resend
+		await redis.set(key, "1", "EX", 60);
+
+		return res.json({ message: "Email xác thực đã được gửi. Vui lòng kiểm tra hộp thư." });
+	} catch (error) {
+		console.error("Error in requestVerifyEmail:", error);
+		return res.status(500).json({ message: "Lỗi hệ thống", error: error.message });
+	}
+};
+
+export const verifyEmail = async (req, res) => {
+	let { token } = req.body;
+	if (!token) return res.status(400).json({ message: "Token xác thực không hợp lệ" });
+
+	// Cắt whitespace, chỉ chấp nhận 64 ký tự hex.
+	token = String(token || "").trim();
+	if (!/^[0-9a-fA-F]{64}$/.test(token)) {
+		return res.status(400).json({ message: "Token xác thực không hợp lệ" });
+	}
+
+	try {
+		const user = await User.findOne({ emailVerificationToken: token });
+		if (!user) {
+			console.warn(`Email verification failed: token not found`);
+			return res.status(400).json({ message: "Token xác thực không hợp lệ hoặc đã hết hạn" });
+		}
+
+		if (!user.verifyEmailToken(token)) {
+			console.warn(`Email verification failed: token invalid/expired for user ${user._id}`);
+			return res.status(400).json({ message: "Token xác thực không hợp lệ hoặc đã hết hạn" });
+		}
+
+		user.emailVerified = true;
+		user.emailVerificationToken = null;
+		user.emailVerificationExpires = null;
+		await user.save();
+
+		console.info(`Email verified success for user ${user._id}`);
+		return res.json({ message: "Xác thực email thành công" });
+	} catch (error) {
+		console.error("Error in verifyEmail:", error);
+		return res.status(500).json({ message: "Lỗi hệ thống" });
+	}
+};
+
+export const resendVerificationEmail = async (req, res) => {
+	try {
+		const userId = req.user._id;
+		const user = await User.findById(userId);
+		if (!user) return res.status(404).json({ message: "Người dùng không tồn tại" });
+
+		if (user.emailVerified) {
+			return res.status(400).json({ message: "Email đã được xác thực." });
+		}
+
+		const key = `resend_verify:${userId}`;
+		const locked = await redis.get(key);
+		if (locked) {
+			return res.status(429).json({ message: "Vui lòng đợi ít nhất 60 giây trước khi gửi lại email xác thực." });
+		}
+
+		const verificationToken = user.generateEmailVerificationToken();
+		await user.save();
+
+		await emailQueue.add("verify-email", {
+			email: user.email,
+			subject: "Xác thực email tài khoản Luxury Watch (gửi lại)",
+			userName: user.name,
+			token: verificationToken,
+			verifyUrl: `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${verificationToken}`,
+		});
+
+		await redis.set(key, "1", "EX", 60);
+
+		return res.json({ message: "Đã gửi lại email xác thực" });
+	} catch (error) {
+		console.error("Error in resendVerificationEmail:", error);
+		return res.status(500).json({ message: "Lỗi hệ thống", error: error.message });
+	}
+};
+

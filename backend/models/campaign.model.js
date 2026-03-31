@@ -17,6 +17,20 @@ const campaignSchema = new mongoose.Schema(
             required: function () {
                 return !this.isGlobal;
             },
+            enum: [
+                "Đồng hồ Nam", 
+                "Đồng hồ Nữ", 
+                "Đồng hồ Đôi", 
+                "Phụ kiện", 
+                "Cơ Tự Động (Automatic)", 
+                "Cơ Lên Cót Tay (Hand-wound)", 
+                "Bộ Máy Pin (Quartz)", 
+                "Năng Lượng Ánh Sáng (Solar)", 
+                "Đồng Hồ Điện Tử (Digital)", 
+                "Đồng Hồ Thông Minh (Smartwatch)",
+                "Entire Catalog",
+                "Toàn bộ danh mục"
+            ],
         },
         discountPercentage: {
             type: Number,

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 const userSchema = new mongoose.Schema(
 	{
@@ -72,22 +73,62 @@ const userSchema = new mongoose.Schema(
 			type: Number,
 			default: 0,
 		},
+		emailVerified: {
+			type: Boolean,
+			default: false,
+		},
+		emailVerificationToken: {
+			type: String,
+			default: null,
+		},
+		emailVerificationExpires: {
+			type: Date,
+			default: null,
+		},
+		lastVerificationEmailSent: {
+			type: Date,
+			default: null,
+		},
 	},
 	{
 		timestamps: true,
 	}
 );
 
-// Pre-save hook to hash password before saving to database
+// Pre-save hook để hash password trước khi lưu, và reset trạng thái verify nếu email thay đổi
 userSchema.pre("save", async function () {
-	if (!this.isModified("password")) return;
+	if (this.isModified("email") && !this.isNew) {
+		// đổi email cần verify lại
+		this.emailVerified = false;
+		this.emailVerificationToken = null;
+		this.emailVerificationExpires = null;
+	}
 
-	const salt = await bcrypt.genSalt(10);
-	this.password = await bcrypt.hash(this.password, salt);
+	if (this.isModified("password")) {
+		const salt = await bcrypt.genSalt(10);
+		this.password = await bcrypt.hash(this.password, salt);
+	}
 });
 
 userSchema.methods.comparePassword = async function (password) {
 	return bcrypt.compare(password, this.password);
+};
+
+// Sinh token email verification, lưu token vào user, và set TTL 15 phút
+userSchema.methods.generateEmailVerificationToken = function () {
+	const token = crypto.randomBytes(32).toString("hex");
+	this.emailVerificationToken = token;
+	this.emailVerificationExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 phút
+	this.lastVerificationEmailSent = new Date();
+	return token;
+};
+
+// Kiểm tra token email verify hợp lệ, not expired
+userSchema.methods.verifyEmailToken = function (token) {
+	if (!token || !this.emailVerificationToken) return false;
+	if (token !== this.emailVerificationToken) return false;
+	if (!this.emailVerificationExpires || this.emailVerificationExpires < new Date()) return false;
+	return true;
 };
 
 const User = mongoose.model("User", userSchema);

@@ -17,6 +17,9 @@ export const vnpayInstance = new VNPay({
 });
 
 export const createVNPayPayment = (order, req) => {
+    if (!process.env.VNP_TMN_CODE || !process.env.VNP_SECRET) {
+        throw new Error("VNPAY chưa cấu hình VNP_TMN_CODE hoặc VNP_SECRET");
+    }
     try {
         const ipAddr = req?.headers?.['x-forwarded-for'] || req?.connection?.remoteAddress || '127.0.0.1';
         
@@ -47,9 +50,12 @@ export const verifyVNPayReturn = (query) => {
 // 2. MoMo Sandbox Mock Setup (Implementation Example)
 export const createMoMoPayment = async (order) => {
     // Basic structural implementation for Momo Create Payment
-    const partnerCode = process.env.MOMO_PARTNER_CODE || 'MOMO';
-    const accessKey = process.env.MOMO_ACCESS_KEY || 'KEY';
-    const secretKey = process.env.MOMO_SECRET_KEY || 'SECRET';
+    if (!process.env.MOMO_PARTNER_CODE || !process.env.MOMO_ACCESS_KEY || !process.env.MOMO_SECRET_KEY) {
+        throw new Error("MoMo chưa cấu hình MOMO_PARTNER_CODE / MOMO_ACCESS_KEY / MOMO_SECRET_KEY");
+    }
+    const partnerCode = process.env.MOMO_PARTNER_CODE;
+    const accessKey = process.env.MOMO_ACCESS_KEY;
+    const secretKey = process.env.MOMO_SECRET_KEY;
     const requestId = order.orderCode;
     const orderId = order.orderCode;
     const orderInfo = `Thanh toán MoMo đơn hàng ${orderId}`;
@@ -101,10 +107,13 @@ export const createMoMoPayment = async (order) => {
 
 // 3. ZaloPay Configuration
 export const createZaloPayPayment = async (order) => {
+    if (!process.env.ZALOPAY_APP_ID || !process.env.ZALOPAY_KEY1 || !process.env.ZALOPAY_KEY2) {
+        throw new Error("ZaloPay chưa cấu hình ZALOPAY_APP_ID / ZALOPAY_KEY1 / ZALOPAY_KEY2");
+    }
     const config = {
-        app_id: process.env.ZALOPAY_APP_ID || "2553",
-        key1: process.env.ZALOPAY_KEY1 || "PcY4iZIKFCIdgZvA6ueMcMHHUbRlYjPL",
-        key2: process.env.ZALOPAY_KEY2 || "kLtgPl8PIATweXSmK76MamLSXMDZcnCj",
+        app_id: process.env.ZALOPAY_APP_ID,
+        key1: process.env.ZALOPAY_KEY1,
+        key2: process.env.ZALOPAY_KEY2,
         endpoint: process.env.ZALOPAY_ENDPOINT || "https://sb-openapi.zalopay.vn/v2/create"
     };
 

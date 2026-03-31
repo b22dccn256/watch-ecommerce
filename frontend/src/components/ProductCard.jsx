@@ -93,11 +93,12 @@ const ProductCard = ({ product }) => {
 						e.stopPropagation();
 						isCompared ? removeFromCompare(product._id) : addToCompare(product);
 					}}
-					className="absolute top-14 right-3 z-30 p-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:text-blue-400 transition opacity-0 group-hover:opacity-100"
+					className="absolute top-14 right-3 z-30 p-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:text-blue-400 transition opacity-0 group-hover:opacity-100 flex items-center justify-center"
 					title="So sánh"
 				>
-					<motion.div whileTap={{ scale: 1.3 }}>
+					<motion.div whileTap={{ scale: 1.3 }} className="flex items-center gap-1">
 						<ArrowLeftRight className={`${isCompared ? "text-blue-400" : "text-white"} w-5 h-5`} />
+						<span className="sr-only">{isCompared ? "Xóa khỏi so sánh" : "Thêm vào so sánh"}</span>
 					</motion.div>
 				</button>
 

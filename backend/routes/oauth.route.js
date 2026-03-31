@@ -31,6 +31,13 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 			res.redirect(`${process.env.CLIENT_URL || "http://localhost:5173"}/`);
 		}
 	);
+} else {
+	router.get("/google", (req, res) => {
+		res.status(501).json({ message: "Google OAuth is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET." });
+	});
+	router.get("/google/callback", (req, res) => {
+		res.status(501).json({ message: "Google OAuth callback is not configured." });
+	});
 }
 
 // --- Facebook ---
@@ -44,6 +51,13 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
 			res.redirect(`${process.env.CLIENT_URL || "http://localhost:5173"}/`);
 		}
 	);
+} else {
+	router.get("/facebook", (req, res) => {
+		res.status(501).json({ message: "Facebook OAuth is not configured. Please set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET." });
+	});
+	router.get("/facebook/callback", (req, res) => {
+		res.status(501).json({ message: "Facebook OAuth callback is not configured." });
+	});
 }
 
 // --- GitHub ---
@@ -57,6 +71,13 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
 			res.redirect(`${process.env.CLIENT_URL || "http://localhost:5173"}/`);
 		}
 	);
+} else {
+	router.get("/github", (req, res) => {
+		res.status(501).json({ message: "GitHub OAuth is not configured. Please set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET." });
+	});
+	router.get("/github/callback", (req, res) => {
+		res.status(501).json({ message: "GitHub OAuth callback is not configured." });
+	});
 }
 
 export default router;

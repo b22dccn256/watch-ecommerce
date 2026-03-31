@@ -1,9 +1,14 @@
-import express from "express";
 import dotenv from "dotenv";
-import cookieParser from "cookie-parser";
 import path from "path";
-import fs from "fs";
 import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, ".env") });
+
+import express from "express";
+import cookieParser from "cookie-parser";
+import fs from "fs";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -42,10 +47,7 @@ import { connectDB } from "./lib/db.js";
 import "./models/productAudit.model.js";
 
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
-dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
 const PORT = process.env.PORT || 5000;

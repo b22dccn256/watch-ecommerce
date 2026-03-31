@@ -1,4 +1,4 @@
-import React, { createContext, useEffect } from "react";
+import React, { createContext, useEffect, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
@@ -24,7 +24,7 @@ import ContactPage from "./pages/ContactPage";
 import OrderLookupPage from "./pages/OrderLookupPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
-import EmailVerificationPage from "./pages/EmailVerificationPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -55,6 +55,7 @@ export const I18nContext = createContext({ t: (k) => k, lang: 'vi', currency: 'v
 
 function App() {
 	const { user, checkAuth, checkingAuth } = useUserStore();
+	const [resendLoading, setResendLoading] = useState(false);
 	const { getCartItems } = useCartStore();
 	const { wishlist, fetchWishlist, mergeWishlist, syncFromLocalStorage } = useWishlistStore();
 	const { theme } = useThemeStore();
@@ -119,12 +120,38 @@ function App() {
 
 			<div className='relative z-50 pt-20 min-h-screen flex flex-col'>
 				<Navbar />
+				{user && !user.emailVerified && (
+					<div className="mx-auto w-full max-w-screen-xl px-4 sm:px-6 md:px-8 py-3 bg-gradient-to-r from-amber-200 to-amber-300 border-b border-amber-400 text-amber-900 shadow-sm flex justify-between items-center gap-3">
+						<div>
+							<p className="font-semibold">Email của bạn chưa được xác thực</p>
+							<p className="text-sm">Vui lòng kiểm tra email và click link xác thực để tránh bị hạn chế tạo đơn hàng.</p>
+						</div>
+						<button
+							className={`px-4 py-2 rounded-md font-semibold ${resendLoading ? 'bg-gray-300 text-gray-700' : 'bg-amber-500 text-white hover:bg-amber-600'}`}
+							onClick={async () => {
+								try {
+									setResendLoading(true);
+									const res = await axios.post('/auth/resend-verification');
+									toast.success(res.data.message || 'Đã gửi lại email xác thực');
+								} catch (err) {
+									const msg = err?.response?.data?.message || 'Gửi lại email xác thực thất bại';
+									toast.error(msg);
+								} finally {
+									setResendLoading(false);
+								}
+							}}
+							disabled={resendLoading}
+						>
+							{resendLoading ? 'Đang gửi...' : 'Gửi lại email xác thực'}
+						</button>
+					</div>
+				)}
 				<main className='flex-1'>
 					<Routes>
 						<Route path='/' element={<HomePage />} />
 						<Route path='/signup' element={!user ? <SignUpPage /> : <Navigate to='/' />} />
 						<Route path='/login' element={!user ? <LoginPage /> : <Navigate to='/' />} />
-						<Route path='/verify-email' element={<EmailVerificationPage />} />
+						<Route path='/verify-email' element={<VerifyEmailPage />} />
 						<Route
 							path='/secret-dashboard'
 							element={user?.role === "admin" || user?.role === "staff" ? <AdminPage /> : <Navigate to='/login' />}
