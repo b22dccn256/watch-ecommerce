@@ -37,37 +37,117 @@ const setCookies = (res, accessToken, refreshToken) => {
 };
 
 export const signup = async (req, res) => {
-	const { email, password, name } = req.body;
+	const { email, password, name, phone, confirmPassword } = req.body;
+	const normalizedName = name?.trim();
+	const normalizedEmail = email?.toLowerCase().trim();
+	const normalizedPhone = phone?.trim();
+
+	const validatePasswordStrength = (value) => {
+		if (value.length < 8) {
+			return "Mật khẩu phải có ít nhất 8 ký tự";
+		}
+
+		const hasLowercase = /[a-z]/.test(value);
+		const hasUppercase = /[A-Z]/.test(value);
+		const hasNumber = /\d/.test(value);
+		const hasSpecialChar = /[^A-Za-z0-9]/.test(value);
+		const strengthScore = [hasLowercase, hasUppercase, hasNumber, hasSpecialChar].filter(Boolean).length;
+
+		if (strengthScore < 3) {
+			return "Mật khẩu nên có chữ hoa, chữ thường, số và ký tự đặc biệt";
+		}
+
+		return null;
+	};
+
+	// Validate input
+	if (!normalizedName || !normalizedEmail || !password || !confirmPassword) {
+		return res.status(400).json({ message: "Vui lòng điền đầy đủ họ tên, email và mật khẩu" });
+	}
+
+	if (normalizedName.length < 2) {
+		return res.status(400).json({ message: "Họ và tên phải có ít nhất 2 ký tự" });
+	}
+
+	if (password !== confirmPassword) {
+		return res.status(400).json({ message: "Mật khẩu xác nhận không khớp" });
+	}
+
+	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	if (!emailRegex.test(normalizedEmail)) {
+		return res.status(400).json({ message: "Email không hợp lệ" });
+	}
+
+	if (normalizedPhone && !/^0[35789]\d{8}$/.test(normalizedPhone)) {
+		return res.status(400).json({ message: "Số điện thoại không hợp lệ. Vui lòng nhập số di động Việt Nam." });
+	}
+
+	const passwordStrengthError = validatePasswordStrength(password);
+	if (passwordStrengthError) {
+		return res.status(400).json({ message: passwordStrengthError });
+	}
+
 	try {
-		const userExists = await User.findOne({ email });
+		const userExists = await User.findOne({ email: normalizedEmail });
 
 		if (userExists) {
-			return res.status(400).json({ message: "User already exists" });
+			return res.status(400).json({ message: "Email đã được sử dụng" });
 		}
-		const user = await User.create({ name, email, password });
+
+		if (normalizedPhone) {
+			const phoneExists = await User.findOne({ phone: normalizedPhone });
+			if (phoneExists) {
+				return res.status(400).json({ message: "Số điện thoại này đã được sử dụng" });
+			}
+		}
+
+		// Tạo user trước, rồi mới sinh token verify để tránh lưu trạng thái dở dang
+		const user = new User({
+			name: normalizedName,
+			email: normalizedEmail,
+			phone: normalizedPhone || "",
+			password,
+			emailVerified: false,
+		});
+
+		// Sinh token verify email và lưu trạng thái
+		const verifyToken = user.generateEmailVerificationToken();
+		await user.save();
+
+		const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${verifyToken}`;
+
+		// --- QUEUE VERIFY EMAIL ---
+		await emailQueue.add("verify-email", {
+			userName: user.name,
+			email: user.email,
+			verifyUrl,
+		});
 
 		// --- QUEUE WELCOME EMAIL ---
 		await emailQueue.add("welcome-email", {
-			fullName: name,
-			email: email,
+			fullName: normalizedName,
+			email: normalizedEmail,
 			shopUrl: process.env.CLIENT_URL || "http://localhost:5173",
-			unsubscribeLink: (process.env.BACKEND_URL || "http://localhost:5000") + "/api/mail/unsubscribe/" + email
+			unsubscribeLink: (process.env.BACKEND_URL || "http://localhost:5000") + "/api/mail/unsubscribe/" + normalizedEmail,
 		});
 
-		// authenticate
-		const { accessToken, refreshToken } = generateTokens(user._id);
-		await storeRefreshToken(user._id, refreshToken);
-
-		setCookies(res, accessToken, refreshToken);
-
-		res.status(201).json({
-			_id: user._id,
-			name: user.name,
+		return res.status(201).json({
+			message: "Tài khoản đã tạo thành công. Vui lòng kiểm tra email để xác thực.",
 			email: user.email,
-			role: user.role,
 		});
 	} catch (error) {
 		console.log("Error in signup controller", error.message);
+		if (error.code === 11000) {
+			return res.status(400).json({ message: "Email đã được sử dụng" });
+		}
+
+		if (error.name === "ValidationError") {
+			const message = Object.values(error.errors)
+				.map((item) => item.message)
+				.join(". ");
+			return res.status(400).json({ message });
+		}
+
 		res.status(500).json({ message: error.message });
 	}
 };
@@ -79,6 +159,15 @@ export const login = async (req, res) => {
 
 		if (user && (await user.comparePassword(password))) {
 			console.log("Login: User found and password matches. Role:", user.role);
+
+			// User thường phải verify email, admin được bypass để luôn vào luồng OTP
+			if (user.role !== "admin" && !user.emailVerified) {
+				return res.status(403).json({
+					message: "Vui lòng xác thực email trước khi đăng nhập",
+					unverified: true,
+				});
+			}
+
 			// Check if user is admin
 			if (user.role === "admin") {
 				console.log("Login: Admin detected, triggering OTP flow");
@@ -204,6 +293,13 @@ export const verifyOTP = async (req, res) => {
 			await redis.del(`attempts:${email}`);
 			await redis.del(`lockUntil:${email}`);
 			await redis.del(`cooldown:${email}`);
+
+			if (user.role === "admin" && !user.emailVerified) {
+				user.emailVerified = true;
+				user.emailVerificationToken = null;
+				user.emailVerificationExpires = null;
+				await user.save();
+			}
 
 			// Generate tokens
 			const { accessToken, refreshToken } = generateTokens(user._id);
@@ -350,6 +446,64 @@ export const getProfile = async (req, res) => {
 		res.json(req.user);
 	} catch (error) {
 		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+export const verifyEmail = async (req, res) => {
+	try {
+		const token = req.body?.token || req.query?.token;
+		if (!token) {
+			return res.status(400).json({ message: "Token xác thực không hợp lệ" });
+		}
+
+		const user = await User.findOne({ emailVerificationToken: token });
+
+		if (!user) {
+			return res.status(400).json({ message: "Liên kết xác thực không hợp lệ hoặc đã được sử dụng" });
+		}
+
+		if (!user.verifyEmailToken(token)) {
+			return res.status(400).json({ message: "Token xác thực đã hết hạn hoặc không hợp lệ" });
+		}
+
+		user.emailVerified = true;
+		user.emailVerificationToken = null;
+		user.emailVerificationExpires = null;
+		await user.save();
+
+		return res.json({ message: "Email đã được xác thực thành công" });
+	} catch (error) {
+		console.error("Error in verifyEmail controller:", error.message);
+		return res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+export const resendVerificationEmail = async (req, res) => {
+	try {
+		const user = req.user;
+		if (!user) {
+			return res.status(401).json({ message: "Unauthorized" });
+		}
+
+		if (user.emailVerified) {
+			return res.status(400).json({ message: "Email đã được xác thực" });
+		}
+
+		const token = user.generateEmailVerificationToken();
+		await user.save();
+
+		const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${token}`;
+
+		await emailQueue.add("verify-email", {
+			userName: user.name,
+			email: user.email,
+			verifyUrl,
+		});
+
+		return res.json({ message: "Email xác thực đã được gửi lại" });
+	} catch (error) {
+		console.error("Error in resendVerificationEmail controller:", error.message);
+		return res.status(500).json({ message: "Server error", error: error.message });
 	}
 };
 

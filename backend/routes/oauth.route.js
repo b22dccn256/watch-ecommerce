@@ -1,23 +1,41 @@
 import express from "express";
 import passport from "passport";
 import jwt from "jsonwebtoken";
+import { redis } from "../lib/redis.js";
 
 const router = express.Router();
 
-// Helper to set cookie, same as auth.controller.js
-const generateTokenAndSetCookie = (userId, res) => {
-	const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
+
+const generateTokens = (userId) => {
+	const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
+		expiresIn: "15m",
+	});
+
+	const refreshToken = jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET, {
 		expiresIn: "7d",
 	});
 
-	res.cookie("jwt", token, {
+	return { accessToken, refreshToken };
+};
+
+const storeRefreshToken = async (userId, refreshToken) => {
+	await redis.set(`refresh_token:${userId}`, refreshToken, "EX", 7 * 24 * 60 * 60); // 7 days
+};
+
+const setCookies = (res, accessToken, refreshToken) => {
+	res.cookie("accessToken", accessToken, {
+		httpOnly: true,
+		secure: process.env.NODE_ENV === "production",
+		sameSite: "strict",
+		maxAge: 15 * 60 * 1000, // 15 minutes
+	});
+
+	res.cookie("refreshToken", refreshToken, {
 		httpOnly: true,
 		secure: process.env.NODE_ENV === "production",
 		sameSite: "strict",
 		maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 	});
-
-	return token;
 };
 
 // --- Google ---
@@ -26,8 +44,10 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 
 	router.get("/google/callback", 
 		passport.authenticate("google", { failureRedirect: `${process.env.CLIENT_URL || "http://localhost:5173"}/login`, session: false }),
-		(req, res) => {
-			generateTokenAndSetCookie(req.user._id, res);
+		async (req, res) => {
+			const { accessToken, refreshToken } = generateTokens(req.user._id);
+			await storeRefreshToken(req.user._id, refreshToken);
+			setCookies(res, accessToken, refreshToken);
 			res.redirect(`${process.env.CLIENT_URL || "http://localhost:5173"}/`);
 		}
 	);
@@ -46,8 +66,10 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
 
 	router.get("/facebook/callback", 
 		passport.authenticate("facebook", { failureRedirect: `${process.env.CLIENT_URL || "http://localhost:5173"}/login`, session: false }),
-		(req, res) => {
-			generateTokenAndSetCookie(req.user._id, res);
+		async (req, res) => {
+			const { accessToken, refreshToken } = generateTokens(req.user._id);
+			await storeRefreshToken(req.user._id, refreshToken);
+			setCookies(res, accessToken, refreshToken);
 			res.redirect(`${process.env.CLIENT_URL || "http://localhost:5173"}/`);
 		}
 	);
@@ -66,8 +88,10 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
 
 	router.get("/github/callback", 
 		passport.authenticate("github", { failureRedirect: `${process.env.CLIENT_URL || "http://localhost:5173"}/login`, session: false }),
-		(req, res) => {
-			generateTokenAndSetCookie(req.user._id, res);
+		async (req, res) => {
+			const { accessToken, refreshToken } = generateTokens(req.user._id);
+			await storeRefreshToken(req.user._id, refreshToken);
+			setCookies(res, accessToken, refreshToken);
 			res.redirect(`${process.env.CLIENT_URL || "http://localhost:5173"}/`);
 		}
 	);

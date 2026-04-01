@@ -94,6 +94,7 @@ app.use("/uploads", express.static(uploadDir));
 
 
 app.use("/api/auth/oauth", oauthRoutes);
+app.use("/api/auth", oauthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);

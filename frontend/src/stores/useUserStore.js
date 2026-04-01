@@ -8,21 +8,50 @@ export const useUserStore = create((set, get) => ({
 	loading: false,
 	checkingAuth: true,
 
-	signup: async ({ name, email, password, confirmPassword }) => {
+	signup: async ({ name, email, phone, password, confirmPassword }) => {
 		set({ loading: true });
+		const normalizedName = name?.trim();
+		const normalizedEmail = email?.toLowerCase().trim();
+		const normalizedPhone = phone?.trim();
 
 		if (password !== confirmPassword) {
 			set({ loading: false });
-			return toast.error("Passwords do not match");
+			toast.error("Mật khẩu xác nhận không khớp");
+			return { success: false };
 		}
 
 		try {
-			const res = await axios.post("/auth/signup", { name, email, password });
-			set({ user: res.data, loading: false });
-			toast.success("Account created successfully!");
+			const res = await axios.post("/auth/signup", {
+				name: normalizedName,
+				email: normalizedEmail,
+				phone: normalizedPhone,
+				password,
+				confirmPassword,
+			});
+			set({ loading: false });
+			localStorage.setItem("pendingVerifyEmail", normalizedEmail);
+			toast.success(res.data.message || "Đăng ký thành công! Vui lòng xác thực email.");
+			return { success: true, email: normalizedEmail };
 		} catch (error) {
 			set({ loading: false });
-			toast.error(error.response.data.message || "An error occurred");
+			toast.error(error.response?.data?.message || "Đã xảy ra lỗi khi đăng ký");
+			return { success: false };
+		}
+	},
+
+	resendVerificationEmail: async (email) => {
+		if (!email) {
+			toast.error("Email không hợp lệ");
+			return false;
+		}
+
+		try {
+			const res = await axios.post("/auth/resend-verification", { email });
+			toast.success(res.data.message || "Email xác thực đã được gửi lại");
+			return true;
+		} catch (error) {
+			toast.error(error.response?.data?.message || "Không thể gửi lại email xác thực");
+			return false;
 		}
 	},
 	login: async (email, password) => {

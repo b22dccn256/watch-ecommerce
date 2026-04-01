@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
+import { useUserStore } from "../stores/useUserStore";
 
 const VerifyEmailPage = () => {
 	const location = useLocation();
@@ -22,9 +23,10 @@ const VerifyEmailPage = () => {
 
 		setVerifying(true);
 		axios.post("/auth/verify-email", { token })
-			.then((res) => {
+			.then(async (res) => {
 				setStatus("success");
 				setMessage(res.data.message || "Email đã được xác thực.");
+				await useUserStore.getState().checkAuth();
 				toast.success("Xác thực email thành công!");
 				setTimeout(() => navigate("/"), 3000); // redirect sau 3 giây
 			})
