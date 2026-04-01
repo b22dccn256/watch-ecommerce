@@ -19,7 +19,6 @@ export const useUserStore = create((set, get) => ({
 		try {
 			const res = await axios.post("/auth/signup", { name, email, password });
 			set({ user: res.data, loading: false });
-			localStorage.setItem("isLoggedIn", "true");
 			toast.success("Account created successfully!");
 		} catch (error) {
 			set({ loading: false });
@@ -38,7 +37,6 @@ export const useUserStore = create((set, get) => ({
 			}
 
 			set({ user: res.data, loading: false });
-			localStorage.setItem("isLoggedIn", "true");
 			toast.success("Đăng nhập thành công!");
 
 			// Sync guest cart to server
@@ -58,7 +56,6 @@ export const useUserStore = create((set, get) => ({
 		try {
 			const res = await axios.post("/auth/verify-otp", { email, otp });
 			set({ user: res.data, loading: false });
-			localStorage.setItem("isLoggedIn", "true");
 			toast.success("Xác thực 2FA thành công!");
 
 			await useCartStore.getState().syncLocalCartToServer();
@@ -87,7 +84,6 @@ export const useUserStore = create((set, get) => ({
 		try {
 			await axios.post("/auth/logout");
 			set({ user: null });
-			localStorage.removeItem("isLoggedIn");
 			toast.success("Logged out successfully");
 		} catch (error) {
 			toast.error(error.response?.data?.message || "An error occurred during logout");
@@ -95,29 +91,26 @@ export const useUserStore = create((set, get) => ({
 	},
 
 	checkAuth: async () => {
-		if (localStorage.getItem("isLoggedIn") !== "true") {
-			set({ checkingAuth: false, user: null });
-			return;
-		}
-
 		set({ checkingAuth: true });
 		try {
 			const response = await axios.get("/auth/profile");
 			set({ user: response.data, checkingAuth: false });
 		} catch (error) {
-			localStorage.removeItem("isLoggedIn");
+			console.log(error.message);
 			set({ checkingAuth: false, user: null });
 		}
 	},
 
 	refreshToken: async () => {
+		// Prevent multiple simultaneous refresh attempts
+		if (get().checkingAuth) return;
+
 		set({ checkingAuth: true });
 		try {
 			const response = await axios.post("/auth/refresh-token");
 			set({ checkingAuth: false });
 			return response.data;
 		} catch (error) {
-			localStorage.removeItem("isLoggedIn");
 			set({ user: null, checkingAuth: false });
 			throw error;
 		}
@@ -148,6 +141,8 @@ export const useUserStore = create((set, get) => ({
 	},
 }));
 
+// TODO: Implement the axios interceptors for refreshing access token
+
 // Axios interceptor for token refresh
 let refreshPromise = null;
 
@@ -155,7 +150,7 @@ axios.interceptors.response.use(
 	(response) => response,
 	async (error) => {
 		const originalRequest = error.config;
-		if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== "/auth/refresh-token") {
+		if (error.response?.status === 401 && !originalRequest._retry) {
 			originalRequest._retry = true;
 
 			try {
@@ -173,7 +168,6 @@ axios.interceptors.response.use(
 				return axios(originalRequest);
 			} catch (refreshError) {
 				// If refresh fails, redirect to login or handle as needed
-				refreshPromise = null;
 				useUserStore.getState().logout();
 				return Promise.reject(refreshError);
 			}
