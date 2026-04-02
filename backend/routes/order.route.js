@@ -11,7 +11,8 @@ import {
     createQROrder,
     confirmQRPayment,
     getOrderTracking,
-    lookupOrder
+    lookupOrder,
+    getPublicOrderById
 } from "../controllers/order.controller.js"; // Import controller
 import { requestReturnOrder } from "../controllers/order.controller.js";
 
@@ -20,6 +21,7 @@ const router = express.Router();
 // Route công khai: Tra cứu đơn hàng
 router.get("/track/:trackingToken", getOrderTracking);
 router.post("/lookup", lookupOrder);
+router.get("/public/:id", getPublicOrderById);
 
 // Route cho admin: Lấy tất cả đơn hàng (thống kê doanh thu, lọc theo status)
 router.get("/", protectRoute, adminRoute, getAllOrders);

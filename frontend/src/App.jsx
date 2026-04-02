@@ -178,10 +178,7 @@ function App() {
 						<Route path='/order-lookup' element={<OrderLookupPage />} />
 						<Route path='/privacy-policy' element={<PrivacyPolicyPage />} />
 						<Route path='/terms' element={<TermsOfServicePage />} />
-						<Route
-							path='/purchase-success'
-								element={privateRoute(<PurchaseSuccessPage />)}
-							/>
+						<Route path='/purchase-success' element={<PurchaseSuccessPage />} />
 							<Route path='/purchase-cancel' element={privateRoute(<PurchaseCancelPage />)} />
 						<Route path='/payment/vnpay-return' element={<PaymentReturnPage method="vnpay" />} />
 						<Route path='/payment/momo-return' element={<PaymentReturnPage method="momo" />} />

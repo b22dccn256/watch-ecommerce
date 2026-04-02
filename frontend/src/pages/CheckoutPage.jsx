@@ -12,6 +12,8 @@ const CheckoutPage = () => {
 	const { cart, total, subtotal, shippingFee, coupon, isCouponApplied, clearSelectedCart, selectedItems } = useCartStore();
 	const { user } = useUserStore();
 	const navigate = useNavigate();
+    const STRIPE_MAX_AMOUNT = 99999999;
+    const isStripeBlocked = total > STRIPE_MAX_AMOUNT;
 	
 	const checkoutItems = cart.filter(item => selectedItems.includes(useCartStore.getState().getUniqueId(item)));
 
@@ -49,6 +51,24 @@ const CheckoutPage = () => {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Nếu user load sau lần render đầu, vẫn tự điền các trường còn trống
+    useEffect(() => {
+        if (!user) return;
+
+        setFormData(prev => ({
+            ...prev,
+            fullName: user.name || prev.fullName || "",
+            email: user.email || prev.email || "",
+            phoneNumber: user.phone || prev.phoneNumber || "",
+        }));
+    }, [user]);
+
+    useEffect(() => {
+        if (isStripeBlocked && selectedPayment === "stripe") {
+            setSelectedPayment("qr");
+        }
+    }, [isStripeBlocked, selectedPayment]);
 
     // Save form data on change
     useEffect(() => {
@@ -108,6 +128,11 @@ const CheckoutPage = () => {
 
     const handlePaymentSubmit = async () => {
         if (!validateForm()) return;
+        if (selectedPayment === "stripe" && isStripeBlocked) {
+            toast.error("Tổng đơn hàng vượt quá giới hạn 99.999.999 VNĐ của Stripe. Vui lòng chọn chuyển khoản QR hoặc COD.");
+            setSelectedPayment("qr");
+            return;
+        }
         setIsProcessing(true);
 
         try {
@@ -199,7 +224,7 @@ const CheckoutPage = () => {
         { id: "vnpay", name: "Cổng thanh toán VNPay", icon: <CreditCard className="w-5 h-5 text-blue-600" />, desc: "ATM nội địa, Visa, MasterCard" },
         { id: "momo", name: "Ví điện tử MoMo", icon: <QrCode className="w-5 h-5 text-pink-600" />, desc: "Quét mã MoMo siêu tốc" },
         { id: "zalopay", name: "Ví ZaloPay", icon: <QrCode className="w-5 h-5 text-blue-500" />, desc: "Thanh toán qua ZaloPay tiện lợi" },
-        { id: "stripe", name: "Thẻ Quốc tế (Stripe)", icon: <CreditCard className="w-5 h-5 text-purple-600" />, desc: "An toàn tuyệt đối với Stripe" },
+        { id: "stripe", name: "Thẻ Quốc tế (Stripe)", icon: <CreditCard className="w-5 h-5 text-purple-600" />, desc: isStripeBlocked ? "Đơn hàng quá giới hạn, vui lòng chọn QR hoặc COD" : "An toàn tuyệt đối với Stripe", disabled: isStripeBlocked },
         { id: "qr", name: "Chuyển khoản VietQR", icon: <QrCode className="w-5 h-5 text-emerald-600" />, desc: "Mở ứng dụng ngân hàng quét mã" },
         { id: "cod", name: "Thanh toán khi nhận hàng (COD)", icon: <Banknote className="w-5 h-5 text-amber-500" />, desc: "Thanh toán trực tiếp bằng tiền mặt" },
     ];
@@ -391,17 +416,23 @@ const CheckoutPage = () => {
                                     <ChevronLeft className='w-4 h-4' /> Sửa thông tin giao hàng
                                 </button>
                                 <div className='space-y-3 mt-4'>
+                                    {isStripeBlocked && (
+                                        <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200'>
+                                            Tổng đơn hàng đang vượt giới hạn 99.999.999 VNĐ của Stripe. Stripe đã bị khóa, vui lòng chọn chuyển khoản QR hoặc COD.
+                                        </div>
+                                    )}
                                     {paymentOptions.map(option => (
                                         <label 
                                             key={option.id}
-                                            className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all ${selectedPayment === option.id ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 ring-1 ring-emerald-500' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-emerald-300'}`}
+                                            className={`flex items-center gap-4 p-4 border rounded-xl transition-all ${option.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${selectedPayment === option.id ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 ring-1 ring-emerald-500' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-emerald-300'}`}
                                         >
                                             <input 
                                                 type="radio" 
                                                 name="paymentMethod" 
                                                 value={option.id}
                                                 checked={selectedPayment === option.id}
-                                                onChange={() => setSelectedPayment(option.id)}
+                                                onChange={() => !option.disabled && setSelectedPayment(option.id)}
+                                                disabled={option.disabled}
                                                 className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 bg-gray-100 border-gray-300"
                                             />
                                             <div className="flex bg-gray-100 dark:bg-gray-700 p-2 rounded-lg items-center justify-center">

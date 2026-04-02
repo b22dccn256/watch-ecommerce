@@ -6,7 +6,7 @@ import { checkoutSuccess, createCheckoutSession, stripeWebhook, vnpayIpn, momoIp
 const router = express.Router();
 
 router.post("/create-checkout-session", optionalRoute, createCheckoutSession);
-router.post("/checkout-success", protectRoute, checkoutSuccess);
+router.post("/checkout-success", optionalRoute, checkoutSuccess);
 router.post("/webhook", express.raw({ type: 'application/json' }), stripeWebhook);
 
 router.get("/vnpay/ipn", ipWhitelist("vnpay"), vnpayIpn);

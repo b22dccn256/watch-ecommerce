@@ -292,7 +292,11 @@ const ProfilePage = () => {
 													</thead>
 													<tbody className='divide-y divide-gray-100 dark:divide-luxury-border'>
 														{orders.map((order) => (
-															<tr key={order._id} className='group hover:bg-gray-50 dark:hover:bg-white/5 transition-colors'>
+															<tr
+																key={order._id}
+																onClick={() => setSelectedOrder(order)}
+																className='group hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer'
+															>
 																<td className='py-6'>
 																	<div className='font-bold text-gray-900 dark:text-white'>#{order.orderCode || order._id.slice(-6).toUpperCase()}</div>
 																	<div className='text-[10px] text-gray-500 dark:text-luxury-text-muted'>{order.products?.length} sản phẩm</div>
@@ -311,15 +315,28 @@ const ProfilePage = () => {
 																<td className='py-6 text-right'>
 																	<div className='flex items-center gap-2 justify-end'>
 																		<button
-																			onClick={() => setSelectedOrder(order)}
+																			onClick={(e) => {
+																				e.stopPropagation();
+																				setSelectedOrder(order);
+																			}}
 																			className='p-2 hover:bg-luxury-gold/10 rounded-full transition-colors group-hover:text-luxury-gold text-gray-400 dark:text-gray-400'
 																			title="Xem chi tiết"
 																		>
 																			<Eye className='w-5 h-5' />
 																		</button>
+																		<button
+																			onClick={(e) => {
+																				e.stopPropagation();
+																				setSelectedOrder(order);
+																			}}
+																			className='hidden xl:inline-flex items-center gap-1 rounded-full border border-luxury-border px-3 py-1 text-[11px] font-semibold text-gray-600 dark:text-luxury-text-muted hover:border-luxury-gold hover:text-luxury-gold transition-colors'
+																		>
+																			Xem chi tiết
+																		</button>
 																		{order.trackingToken && (
 																			<Link
 																				to={`/order-tracking/${order.trackingToken}`}
+																				onClick={(e) => e.stopPropagation()}
 																				className='p-2 hover:bg-emerald-500/10 rounded-full transition-colors text-gray-400 hover:text-emerald-500'
 																				title="Theo dõi vận chuyển"
 																			>
@@ -328,7 +345,8 @@ const ProfilePage = () => {
 																		)}
 																		{order.status === 'pending' && (
 																			<button
-																				onClick={async () => {
+																				onClick={async (e) => {
+																					e.stopPropagation();
 																					if (window.confirm(`Hủy đơn hàng #${order.orderCode}? Hành động này không thể hoàn tác.`)) {
 																						await cancelOrder(order._id);
 																					}
@@ -342,7 +360,8 @@ const ProfilePage = () => {
 																		{/* Request Return button for delivered orders */}
 																		{order.status === 'delivered' && (
 																			<button
-																				onClick={async () => {
+																				onClick={async (e) => {
+																					e.stopPropagation();
 																					if (window.confirm(`Yêu cầu trả hàng cho đơn #${order.orderCode}?`)) {
 																						await requestReturnOrder(order._id);
 																					}

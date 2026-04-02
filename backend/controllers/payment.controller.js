@@ -130,18 +130,6 @@ export const createCheckoutSession = async (req, res) => {
 			});
 		}
 
-		if (totalAmount < 10000) {
-			await sessionOpts.abortTransaction();
-			sessionOpts.endSession();
-			return res.status(400).json({ message: "Giá trị đơn hàng tối thiểu qua Stripe là 10.000 VNĐ" });
-		}
-
-		if (totalAmount > 99999999) {
-			await sessionOpts.abortTransaction();
-			sessionOpts.endSession();
-			return res.status(400).json({ message: "Tổng đơn hàng vượt quá giới hạn 99.999.999 VNĐ của cổng thanh toán Stripe. Vui lòng chọn chuyển khoản QR hoặc thanh toán COD." });
-		}
-
 		const newOrder = new Order({
 			_id: newOrderId,
 			...(req.user && { user: req.user._id }),
@@ -153,6 +141,7 @@ export const createCheckoutSession = async (req, res) => {
 			})),
 			totalAmount: dbTotalAmount,
 			orderCode,
+			trackingToken: crypto.randomUUID(),
 			shippingDetails,
 			paymentMethod: paymentMethod,
 			paymentStatus: "pending",
@@ -162,6 +151,18 @@ export const createCheckoutSession = async (req, res) => {
 		let sessionResponse = {};
 
 		if (paymentMethod === "stripe") {
+			if (totalAmount < 10000) {
+				await sessionOpts.abortTransaction();
+				sessionOpts.endSession();
+				return res.status(400).json({ message: "Giá trị đơn hàng tối thiểu qua Stripe là 10.000 VNĐ" });
+			}
+
+			if (totalAmount > 99999999) {
+				await sessionOpts.abortTransaction();
+				sessionOpts.endSession();
+				return res.status(400).json({ message: "Tổng đơn hàng vượt quá giới hạn 99.999.999 VNĐ của cổng thanh toán Stripe. Vui lòng chọn chuyển khoản QR hoặc thanh toán COD." });
+			}
+
 			if (!stripe) {
 				await sessionOpts.abortTransaction();
 				sessionOpts.endSession();

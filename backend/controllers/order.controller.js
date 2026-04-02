@@ -256,6 +256,22 @@ export const getOrderById = async (req, res) => {
     }
 };
 
+export const getPublicOrderById = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id)
+            .populate("user", "name email")
+            .populate("products.product", "name price image");
+
+        if (!order) return res.status(404).json({ message: "Order not found" });
+
+        const populatedOrder = await ensureOrderProductsPopulated(order);
+        res.json(populatedOrder);
+    } catch (error) {
+        console.error("Error in getPublicOrderById:", error.message);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
 export const getMyOrders = async (req, res) => {
     try {
         const ordersFetched = await Order.find({ user: req.user._id })
@@ -463,13 +479,15 @@ export const getOrderTracking = async (req, res) => {
 export const lookupOrder = async (req, res) => {
     try {
         const { orderNumber, email } = req.body;
+        const normalizedOrderNumber = typeof orderNumber === "string" ? orderNumber.trim().toUpperCase() : "";
+        const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
 
-        if (!orderNumber || !email) {
+        if (!normalizedOrderNumber || !normalizedEmail) {
             return res.status(400).json({ message: "Vui lòng nhập mã đơn hàng và email." });
         }
 
         const order = await Order.findOne({
-            orderCode: orderNumber.toUpperCase()
+            orderCode: normalizedOrderNumber
         }).populate("user", "email");
 
         if (!order) {
@@ -477,8 +495,8 @@ export const lookupOrder = async (req, res) => {
         }
 
         const isEmailMatch =
-            (order.shippingDetails?.email === email) ||
-            (order.user?.email === email);
+            (order.shippingDetails?.email || "").trim().toLowerCase() === normalizedEmail ||
+            (order.user?.email || "").trim().toLowerCase() === normalizedEmail;
 
         if (!isEmailMatch) {
             return res.status(404).json({ message: "Thông tin email hoặc mã đơn hàng chưa chính xác." });
