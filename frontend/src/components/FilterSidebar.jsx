@@ -12,7 +12,14 @@ const CATEGORIES = [
 ];
 
 const BRANDS = ["Rolex", "Casio", "Seiko", "Citizen", "Garmin", "Patek Philippe", "Audemars Piguet", "Hublot", "Omega", "Cartier", "Tag Heuer", "IWC"];
-const MACHINE_TYPES = ["Mechanical", "Quartz", "Automatic", "Solar", "Digital", "Smartwatch"];
+const MACHINE_TYPES = [
+	{ value: "Mechanical", label: "Cơ lên cót" },
+	{ value: "Quartz", label: "Bộ máy pin" },
+	{ value: "Automatic", label: "Cơ tự động" },
+	{ value: "Solar", label: "Năng lượng ánh sáng" },
+	{ value: "Digital", label: "Điện tử" },
+	{ value: "Smartwatch", label: "Đồng hồ thông minh" },
+];
 const STRAP_MATERIALS = ["Da", "Thép không gỉ", "Cao su", "Vải NATO", "Ceramic", "Titanium"];
 const COLORS = [
 	{ name: "Đen", hex: "#111111" },
@@ -226,15 +233,15 @@ const FilterSidebar = () => {
 					<div className="flex flex-wrap gap-2">
 						{MACHINE_TYPES.map((type) => (
 							<button
-								key={type}
-								onClick={() => toggleArrayFilter("machineType", type)}
+								key={type.value}
+								onClick={() => toggleArrayFilter("machineType", type.value)}
 								className={`px-3 py-1.5 rounded-full text-xs border transition ${
-									filters.machineType?.includes(type)
+									filters.machineType?.includes(type.value)
 										? "bg-[#D4AF37] border-[#D4AF37] text-black font-semibold"
 										: "border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-gray-400 hover:border-[#D4AF37] hover:text-black dark:hover:text-white"
 								}`}
 							>
-								{type}
+								{type.label}
 							</button>
 						))}
 					</div>
@@ -267,9 +274,9 @@ const FilterSidebar = () => {
 								key={color.name}
 								onClick={() => toggleArrayFilter("colors", color.name)}
 								title={color.name}
-								className={`w-8 h-8 rounded-full transition-all border-2 ${
+								className={`relative flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all ${
 									filters.colors?.includes(color.name)
-										? "scale-110 shadow-[0_0_8px_rgba(212,175,55,0.6)]"
+										? "scale-110 ring-2 ring-[#D4AF37] ring-offset-2 ring-offset-white dark:ring-offset-zinc-950 shadow-[0_0_10px_rgba(212,175,55,0.35)]"
 										: "hover:scale-105"
 								}`}
 								style={{
@@ -280,7 +287,13 @@ const FilterSidebar = () => {
 										? "#9CA3AF"
 										: "transparent",
 								}}
-							/>
+							>
+								{filters.colors?.includes(color.name) && (
+									<svg className={`w-4 h-4 ${color.hex === "#F5F5F5" || color.hex === "#C0C0C0" ? "text-gray-800" : "text-white"}`} viewBox="0 0 24 24" fill="none">
+										<path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+									</svg>
+								)}
+							</button>
 						))}
 					</div>
 				</FilterSection>

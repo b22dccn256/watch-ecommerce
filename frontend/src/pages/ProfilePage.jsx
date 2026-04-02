@@ -568,6 +568,11 @@ const ProfilePage = () => {
 												</div>
 												<div className='flex-grow min-w-0'>
 													<h4 className='text-gray-900 dark:text-white font-bold truncate'>{item.product?.name}</h4>
+													<div className='mt-1 flex flex-wrap gap-2 text-[11px] text-gray-500 dark:text-luxury-text-muted'>
+														{item.selectedColor && <span className='rounded-full border border-gray-200 dark:border-luxury-border px-2 py-0.5'>Màu: {item.selectedColor}</span>}
+														{item.selectedSize && <span className='rounded-full border border-gray-200 dark:border-luxury-border px-2 py-0.5'>Size: {item.selectedSize}</span>}
+														{item.wristSize && <span className='rounded-full border border-gray-200 dark:border-luxury-border px-2 py-0.5'>Cắt dây: {item.wristSize} mm</span>}
+													</div>
 													<p className='text-gray-500 dark:text-luxury-text-muted text-xs mt-1'>Số lượng: {item.quantity}</p>
 												</div>
 												<div className='text-right'>

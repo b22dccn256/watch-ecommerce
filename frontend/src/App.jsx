@@ -25,6 +25,7 @@ import OrderLookupPage from "./pages/OrderLookupPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
+import BrandsPage from "./pages/BrandsPage";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -175,6 +176,7 @@ function App() {
 						<Route path='/warranty' element={<WarrantyPage />} />
 						<Route path='/size-guide' element={<SizeGuidePage />} />
 						<Route path='/contact' element={<ContactPage />} />
+						<Route path='/brands' element={<BrandsPage />} />
 						<Route path='/order-lookup' element={<OrderLookupPage />} />
 						<Route path='/privacy-policy' element={<PrivacyPolicyPage />} />
 						<Route path='/terms' element={<TermsOfServicePage />} />

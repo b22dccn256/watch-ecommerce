@@ -94,33 +94,33 @@ const Navbar = () => {
 								</NavLink>
 
 								{/* Mega Menu thả xuống */}
-								<div className="absolute top-[80%] left-0 w-[500px] bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-gray-200 dark:border-white/5 p-6 grid grid-cols-2 gap-8 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 rounded-xl transform translate-y-2 group-hover:translate-y-0">
-									{/* Cột 1: Thương Hiệu */}
-									<div className="border-r border-gray-100 dark:border-white/5 pr-4">
-										<h3 className="flex items-center gap-2 text-[#D4AF37] uppercase text-xs tracking-widest mb-4 font-bold border-b border-[#D4AF37]/20 pb-2">
-											<Star className="w-3.5 h-3.5" /> Thương Hiệu Nổi Bật
-										</h3>
-										<ul className="space-y-3">
-											<li><NavLink to="/catalog?brand=Rolex" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Rolex Heritage</NavLink></li>
-											<li><NavLink to="/catalog?brand=Omega" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Omega Seamaster</NavLink></li>
-											<li><NavLink to="/catalog?brand=Patek+Philippe" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Patek Philippe Classic</NavLink></li>
-											<li><NavLink to="/catalog?brand=Hublot" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Hublot Big Bang</NavLink></li>
-											<li><NavLink to="/catalog?brand=Tag+Heuer" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Tag Heuer Carrera</NavLink></li>
-										</ul>
-									</div>
-
-									{/* Cột 2: Bộ Máy */}
-									<div className="pl-2">
-										<h3 className="flex items-center gap-2 text-[#D4AF37] uppercase text-xs tracking-widest mb-4 font-bold border-b border-[#D4AF37]/20 pb-2">
-											<Package className="w-3.5 h-3.5" /> Cỗ Máy Thời Gian
-										</h3>
-										<ul className="space-y-3">
-											<li><NavLink to="/catalog?machineType=automatic" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Cơ Tự Động (Automatic)</NavLink></li>
-											<li><NavLink to="/catalog?machineType=mechanical" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Cơ Lên Cót (Mechanical)</NavLink></li>
-											<li><NavLink to="/catalog?machineType=quartz" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Bộ máy Pin (Quartz)</NavLink></li>
-											<li><NavLink to="/catalog?machineType=digital" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Siêu Bền Điện Tử (Digital)</NavLink></li>
-											<li><NavLink to="/catalog?machineType=smartwatch" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Đồng Hồ Thông Minh</NavLink></li>
-										</ul>
+								<div className="absolute top-[80%] left-0 w-[420px] bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-gray-200 dark:border-white/5 p-6 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 rounded-xl transform translate-y-2 group-hover:translate-y-0">
+									<div className="space-y-6">
+										<div>
+											<h3 className="flex items-center gap-2 text-[#D4AF37] uppercase text-xs tracking-widest mb-4 font-bold border-b border-[#D4AF37]/20 pb-2">
+												<Star className="w-3.5 h-3.5" /> Thương hiệu nổi bật
+											</h3>
+											<ul className="space-y-3">
+												<li><NavLink to="/catalog?brand=Rolex" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Rolex Heritage</NavLink></li>
+												<li><NavLink to="/catalog?brand=Omega" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Omega Seamaster</NavLink></li>
+												<li><NavLink to="/catalog?brand=Patek+Philippe" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Patek Philippe Classic</NavLink></li>
+												<li><NavLink to="/catalog?brand=Hublot" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Hublot Big Bang</NavLink></li>
+												<li><NavLink to="/catalog?brand=Tag+Heuer" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Tag Heuer Carrera</NavLink></li>
+											</ul>
+										</div>
+										<div>
+											<h3 className="flex items-center gap-2 text-[#D4AF37] uppercase text-xs tracking-widest mb-4 font-bold border-b border-[#D4AF37]/20 pb-2">
+												<Package className="w-3.5 h-3.5" /> Bộ máy
+											</h3>
+											<ul className="space-y-3">
+												<li><NavLink to="/catalog?machineType=automatic" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Cơ tự động</NavLink></li>
+												<li><NavLink to="/catalog?machineType=mechanical" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Cơ lên cót</NavLink></li>
+												<li><NavLink to="/catalog?machineType=quartz" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Bộ máy pin</NavLink></li>
+												<li><NavLink to="/catalog?machineType=solar" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Năng lượng ánh sáng</NavLink></li>
+												<li><NavLink to="/catalog?machineType=digital" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Điện tử</NavLink></li>
+												<li><NavLink to="/catalog?machineType=smartwatch" className="hover:translate-x-1 flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#D4AF37] transition-all text-sm block"><ChevronRight className="w-3 h-3 text-transparent group-hover:text-[#D4AF37]" /> Đồng hồ thông minh</NavLink></li>
+											</ul>
+										</div>
 									</div>
 								</div>
 							</div>

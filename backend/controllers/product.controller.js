@@ -308,20 +308,12 @@ export const deleteProduct = async (req, res) => {
 
 export const getRecommendedProducts = async (req, res) => {
 	try {
-		const products = await Product.aggregate([
-			{
-				$sample: { size: 4 },
-			},
-			{
-				$project: {
-					_id: 1,
-					name: 1,
-					description: 1,
-					image: 1,
-					price: 1,
-				},
-			},
-		]);
+		const products = await Product.find({ deletedAt: null, isActive: true })
+			.populate("brand", "name logo")
+			.populate("categoryId", "name")
+			.sort({ salesCount: -1, createdAt: -1 })
+			.limit(4)
+			.lean();
 
 		const processedProducts = await CampaignService.applyCampaignToProducts(products);
 		res.json(processedProducts);

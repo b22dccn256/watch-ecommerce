@@ -13,7 +13,7 @@ export const useCartStore = create((set, get) => ({
 	isCouponApplied: false,
 	
 	// Helper to generate unique cart item ID
-	getUniqueId: (item) => `${item._id}_${item.wristSize || 'default'}`,
+	getUniqueId: (item) => `${item._id}_${item.wristSize || 'default'}_${item.selectedColor || 'default'}_${item.selectedSize || 'default'}`,
 
 	setSelectedItems: (items) => {
 		localStorage.setItem("watch_selected_items", JSON.stringify(items));
@@ -134,7 +134,13 @@ export const useCartStore = create((set, get) => ({
 				? prevState.cart.map((item) =>
 					prevState.getUniqueId(item) === uniqueId ? { ...item, quantity: item.quantity + 1 } : item
 				)
-				: [...prevState.cart, { ...product, quantity: 1, wristSize: product.wristSize || null }];
+				: [...prevState.cart, {
+					...product,
+					quantity: 1,
+					wristSize: product.wristSize || null,
+					selectedColor: product.selectedColor || null,
+					selectedSize: product.selectedSize || null,
+				}];
 
 			localStorage.setItem("watch_cart", JSON.stringify(newCart));
 			set({ cart: newCart });
@@ -151,7 +157,12 @@ export const useCartStore = create((set, get) => ({
 		}
 
 		try {
-			await axios.post("/cart", { productId: product._id, wristSize: product.wristSize });
+			await axios.post("/cart", {
+				productId: product._id,
+				wristSize: product.wristSize,
+				selectedColor: product.selectedColor || null,
+				selectedSize: product.selectedSize || null,
+			});
 			toast.success("Đã thêm vào giỏ hàng!");
 
 			set((prevState) => {
@@ -160,7 +171,13 @@ export const useCartStore = create((set, get) => ({
 					? prevState.cart.map((item) =>
 						prevState.getUniqueId(item) === uniqueId ? { ...item, quantity: item.quantity + 1 } : item
 					)
-					: [...prevState.cart, { ...product, quantity: 1, wristSize: product.wristSize || null }];
+					: [...prevState.cart, {
+						...product,
+						quantity: 1,
+						wristSize: product.wristSize || null,
+						selectedColor: product.selectedColor || null,
+						selectedSize: product.selectedSize || null,
+					}];
 				return { cart: newCart };
 			});
 
@@ -174,9 +191,9 @@ export const useCartStore = create((set, get) => ({
 			toast.error(error.response?.data?.message || "An error occurred");
 		}
 	},
-	removeFromCart: async (productId, wristSize) => {
+	removeFromCart: async (productId, wristSize, selectedColor = null, selectedSize = null) => {
 		const { user } = useUserStore.getState();
-		const uniqueId = get().getUniqueId({ _id: productId, wristSize });
+		const uniqueId = get().getUniqueId({ _id: productId, wristSize, selectedColor, selectedSize });
 
 		// Update selected items if removing
 		if (get().selectedItems.includes(uniqueId)) {
@@ -193,7 +210,7 @@ export const useCartStore = create((set, get) => ({
 		}
 
 		try {
-			await axios.delete(`/cart`, { data: { productId, wristSize } });
+			await axios.delete(`/cart`, { data: { productId, wristSize, selectedColor, selectedSize } });
 			set((prevState) => ({ cart: prevState.cart.filter((item) => prevState.getUniqueId(item) !== uniqueId) }));
 			get().calculateTotals();
 			toast.success("Đã xóa sản phẩm khỏi giỏ hàng");
@@ -201,9 +218,9 @@ export const useCartStore = create((set, get) => ({
 			toast.error(error.response?.data?.message || "Không thể xóa sản phẩm khỏi giỏ hàng");
 		}
 	},
-	updateQuantity: async (productId, quantity, maxStock, wristSize) => {
+	updateQuantity: async (productId, quantity, maxStock, wristSize, selectedColor = null, selectedSize = null) => {
 		if (quantity === 0) {
-			get().removeFromCart(productId, wristSize);
+			get().removeFromCart(productId, wristSize, selectedColor, selectedSize);
 			return;
 		}
 
@@ -213,7 +230,7 @@ export const useCartStore = create((set, get) => ({
 		}
 
 		const { user } = useUserStore.getState();
-		const uniqueId = get().getUniqueId({ _id: productId, wristSize });
+		const uniqueId = get().getUniqueId({ _id: productId, wristSize, selectedColor, selectedSize });
 
 		if (!user) {
 			const newCart = get().cart.map((item) => (get().getUniqueId(item) === uniqueId ? { ...item, quantity } : item));
@@ -224,13 +241,93 @@ export const useCartStore = create((set, get) => ({
 		}
 
 		try {
-			await axios.put(`/cart/${productId}`, { quantity, wristSize });
+			await axios.put(`/cart/${productId}`, { quantity, wristSize, selectedColor, selectedSize });
 			set((prevState) => ({
 				cart: prevState.cart.map((item) => (prevState.getUniqueId(item) === uniqueId ? { ...item, quantity } : item)),
 			}));
 			get().calculateTotals();
 		} catch (error) {
 			toast.error(error.response?.data?.message || "An error occurred");
+		}
+	},
+	updateCartItemAttributes: async (productId, currentAttributes, nextAttributes) => {
+		const { user } = useUserStore.getState();
+		const previousKey = get().getUniqueId({
+			_id: productId,
+			wristSize: currentAttributes.wristSize,
+			selectedColor: currentAttributes.selectedColor,
+			selectedSize: currentAttributes.selectedSize,
+		});
+		const nextKey = get().getUniqueId({
+			_id: productId,
+			wristSize: nextAttributes.wristSize,
+			selectedColor: nextAttributes.selectedColor,
+			selectedSize: nextAttributes.selectedSize,
+		});
+		const wasSelected = get().selectedItems.includes(previousKey);
+
+		const syncSelectedItems = (items) => {
+			const updated = items.filter((id) => id !== previousKey);
+			if (wasSelected && !updated.includes(nextKey)) updated.push(nextKey);
+			get().setSelectedItems(Array.from(new Set(updated)));
+		};
+
+		const mergeLocalCartItem = () => {
+			const currentCart = get().cart;
+			const currentItem = currentCart.find((item) => get().getUniqueId(item) === previousKey);
+			if (!currentItem) return currentCart;
+
+			const updatedItem = {
+				...currentItem,
+				wristSize: nextAttributes.wristSize ?? null,
+				selectedColor: nextAttributes.selectedColor ?? null,
+				selectedSize: nextAttributes.selectedSize ?? null,
+			};
+			const updatedKey = get().getUniqueId(updatedItem);
+			const conflictItem = currentCart.find((item) => get().getUniqueId(item) === updatedKey && get().getUniqueId(item) !== previousKey);
+
+			if (conflictItem) {
+				return currentCart.reduce((acc, item) => {
+					const itemKey = get().getUniqueId(item);
+					if (itemKey === previousKey) return acc;
+					if (itemKey === updatedKey) {
+						const mergedItem = { ...item, quantity: item.quantity + currentItem.quantity };
+						acc.push(mergedItem);
+						return acc;
+					}
+					acc.push(item);
+					return acc;
+				}, []);
+			}
+
+			return currentCart.map((item) => (get().getUniqueId(item) === previousKey ? updatedItem : item));
+		};
+
+		if (!user) {
+			const newCart = mergeLocalCartItem();
+			localStorage.setItem("watch_cart", JSON.stringify(newCart));
+			set({ cart: newCart });
+			syncSelectedItems(get().selectedItems);
+			get().calculateTotals();
+			toast.success("Đã cập nhật thuộc tính sản phẩm");
+			return;
+		}
+
+		try {
+			await axios.put(`/cart/${productId}/options`, {
+				previousWristSize: currentAttributes.wristSize ?? null,
+				previousSelectedColor: currentAttributes.selectedColor ?? null,
+				previousSelectedSize: currentAttributes.selectedSize ?? null,
+				wristSize: nextAttributes.wristSize ?? null,
+				selectedColor: nextAttributes.selectedColor ?? null,
+				selectedSize: nextAttributes.selectedSize ?? null,
+			});
+			await get().getCartItems();
+			syncSelectedItems(get().selectedItems);
+			get().calculateTotals();
+			toast.success("Đã cập nhật thuộc tính sản phẩm");
+		} catch (error) {
+			toast.error(error.response?.data?.message || "Không thể cập nhật thuộc tính");
 		}
 	},
 	calculateTotals: (city = "") => {

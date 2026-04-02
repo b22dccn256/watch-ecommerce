@@ -27,6 +27,24 @@ const AboutPage = () => {
                     <p className="text-lg md:text-xl text-gray-300 leading-relaxed">
                         Hơn cả một cỗ máy đong đếm giờ giấc, mỗi chiếc đồng hồ tại Luxury Watch là một tác phẩm nghệ thuật, một minh chứng cho sự thành đạt và đẳng cấp vĩnh cửu của người sở hữu.
                     </p>
+                    <p className="mt-5 text-base md:text-lg text-gray-400 leading-relaxed max-w-2xl mx-auto">
+                        Chúng tôi tuyển chọn đồng hồ theo tiêu chí rất rõ ràng: chính hãng, chuẩn thẩm mỹ, có giá trị sử dụng lâu dài và đủ tinh tế để trở thành một phần phong cách sống của bạn, thay vì chỉ là một món phụ kiện.
+                    </p>
+
+                    <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
+                        <div className="rounded-2xl border border-[#D4AF37]/20 bg-white/5 backdrop-blur-sm px-4 py-5">
+                            <p className="text-3xl font-bold text-[#D4AF37] mb-1">10+</p>
+                            <p className="text-sm text-gray-300">Năm định hình phong cách đồng hồ cao cấp</p>
+                        </div>
+                        <div className="rounded-2xl border border-[#D4AF37]/20 bg-white/5 backdrop-blur-sm px-4 py-5">
+                            <p className="text-3xl font-bold text-[#D4AF37] mb-1">100%</p>
+                            <p className="text-sm text-gray-300">Chính hãng, kiểm định và minh bạch nguồn gốc</p>
+                        </div>
+                        <div className="rounded-2xl border border-[#D4AF37]/20 bg-white/5 backdrop-blur-sm px-4 py-5">
+                            <p className="text-3xl font-bold text-[#D4AF37] mb-1">5★</p>
+                            <p className="text-sm text-gray-300">Tư vấn, bảo hành và chăm sóc sau bán hàng</p>
+                        </div>
+                    </div>
                 </motion.div>
             </section>
 
@@ -46,6 +64,9 @@ const AboutPage = () => {
                         </p>
                         <p className="text-gray-400 leading-loose">
                             Trải qua một thập kỷ phát triển, chúng tôi tự hào trở thành điểm đến định danh uy tín hàng đầu, quy tụ những tuyệt tác thời gian từ Thụy Sĩ, Đức và Nhật Bản. Chúng tôi không chỉ bán đồng hồ, chúng tôi trao gửi những giá trị truyền đời.
+                        </p>
+                        <p className="text-gray-400 leading-loose mt-6">
+                            Mỗi sản phẩm khi đến tay khách hàng đều được kiểm tra lại về ngoại hình, thông số kỹ thuật và trải nghiệm đeo thực tế. Chúng tôi muốn khách hàng cảm nhận được sự an tâm ngay từ lần đầu chạm vào hộp đồng hồ, chứ không chỉ ở khoảnh khắc thanh toán.
                         </p>
                     </motion.div>
 

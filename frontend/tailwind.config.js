@@ -18,8 +18,8 @@ export default {
 				}
 			},
 			fontFamily: {
-				'luxury': ['Playfair Display', 'Georgia', 'serif'],
-				'sans': ['Inter', 'Segoe UI', 'sans-serif'],
+				'luxury': ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+				'sans': ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
 			},
 			fontSize: {
 				'display': ['3rem', { lineHeight: '1.1', fontWeight: '700', letterSpacing: '-0.025em' }],

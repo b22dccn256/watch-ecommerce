@@ -6,7 +6,11 @@ export const getCartProducts = async (req, res) => {
 		// Populate để lấy thông tin sản phẩm đầy đủ + quantity
 		const user = await req.user.populate({
 			path: "cartItems.product",
-			select: "name price image category description",
+			select: "name price image images category description colors sizes wristSizeOptions specs type collectionName brand",
+			populate: {
+				path: "brand",
+				select: "name logo",
+			},
 		});
 
 		const validCartItems = user.cartItems.filter((item) => item.product);
@@ -20,6 +24,8 @@ export const getCartProducts = async (req, res) => {
 		const cartItems = validCartItems.map((item) => ({
 			...item.product.toJSON(),
 			quantity: item.quantity,
+			selectedColor: item.selectedColor || null,
+			selectedSize: item.selectedSize || null,
 			wristSize: item.wristSize || null,
 		}));
 
@@ -30,16 +36,83 @@ export const getCartProducts = async (req, res) => {
 	}
 };
 
+export const updateCartItemAttributes = async (req, res) => {
+	try {
+		const productId = req.params.id;
+		const {
+			previousWristSize,
+			previousSelectedColor,
+			previousSelectedSize,
+			wristSize,
+			selectedColor,
+			selectedSize,
+		} = req.body;
+		const user = req.user;
+		const product = await Product.findById(productId);
+		if (!product) return res.status(404).json({ message: "Product not found" });
+
+		const currentItem = user.cartItems.find(
+			(item) => item.product.toString() === productId
+				&& (item.wristSize || null) === (previousWristSize || null)
+				&& (item.selectedColor || null) === (previousSelectedColor || null)
+				&& (item.selectedSize || null) === (previousSelectedSize || null)
+		);
+
+		if (!currentItem) return res.status(404).json({ message: "Item not in cart" });
+
+		let availableStock = product.stock;
+		if (wristSize && product.wristSizeOptions?.length > 0) {
+			const sizeOption = product.wristSizeOptions.find((option) => option.size === wristSize);
+			if (sizeOption) availableStock = sizeOption.stock;
+		}
+
+		const targetItem = user.cartItems.find(
+			(item) => item !== currentItem
+				&& item.product.toString() === productId
+				&& (item.wristSize || null) === (wristSize || null)
+				&& (item.selectedColor || null) === (selectedColor || null)
+				&& (item.selectedSize || null) === (selectedSize || null)
+		);
+
+		if (targetItem) {
+			const mergedQuantity = currentItem.quantity + targetItem.quantity;
+			if (availableStock < mergedQuantity) {
+				return res.status(400).json({ message: `Sản phẩm này (size ${wristSize || 'mặc định'}) chỉ còn ${availableStock} cái trong kho` });
+			}
+			targetItem.quantity = mergedQuantity;
+			currentItem.deleteOne?.();
+			user.cartItems = user.cartItems.filter((item) => item !== currentItem);
+		} else {
+			if (availableStock < currentItem.quantity) {
+				return res.status(400).json({ message: `Sản phẩm này (size ${wristSize || 'mặc định'}) chỉ còn ${availableStock} cái trong kho` });
+			}
+			currentItem.wristSize = wristSize || null;
+			currentItem.selectedColor = selectedColor || null;
+			currentItem.selectedSize = selectedSize || null;
+		}
+
+		user.cartUpdatedAt = Date.now();
+		await user.save();
+		res.status(200).json({ message: "Cart item updated", cartItems: user.cartItems });
+	} catch (error) {
+		console.error("Error in updateCartItemAttributes:", error.message);
+		res.status(500).json({ message: "Server error" });
+	}
+};
+
 export const addToCart = async (req, res) => {
 	try {
-		const { productId, wristSize } = req.body;
+		const { productId, wristSize, selectedColor, selectedSize } = req.body;
 		const user = req.user;
 		const product = await Product.findById(productId);
 		if (!product) return res.status(404).json({ message: "Product not found" });
 
 		// Match exactly product ID and wristSize
 		const existingItem = user.cartItems.find(
-			item => item.product.toString() === productId && (item.wristSize || null) === (wristSize || null)
+			item => item.product.toString() === productId
+				&& (item.wristSize || null) === (wristSize || null)
+				&& (item.selectedColor || null) === (selectedColor || null)
+				&& (item.selectedSize || null) === (selectedSize || null)
 		);
 
 		const newQuantity = existingItem ? existingItem.quantity + 1 : 1;
@@ -57,7 +130,13 @@ export const addToCart = async (req, res) => {
 		if (existingItem) {
 			existingItem.quantity = newQuantity;
 		}
-		else user.cartItems.push({ product: productId, quantity: 1, wristSize: wristSize || null });
+		else user.cartItems.push({
+			product: productId,
+			quantity: 1,
+			wristSize: wristSize || null,
+			selectedColor: selectedColor || null,
+			selectedSize: selectedSize || null,
+		});
 
 		user.cartUpdatedAt = Date.now();
 		await user.save();
@@ -69,14 +148,17 @@ export const addToCart = async (req, res) => {
 
 export const removeAllFromCart = async (req, res) => {
 	try {
-		const { productId, wristSize } = req.body; // nếu có productId thì xóa 1, không thì xóa hết
+		const { productId, wristSize, selectedColor, selectedSize } = req.body; // nếu có productId thì xóa 1, không thì xóa hết
 		const user = req.user;
 
 		if (!productId) {
 			user.cartItems = [];
 		} else {
 			user.cartItems = user.cartItems.filter(
-				(item) => !(item.product.toString() === productId && (item.wristSize || null) === (wristSize || null))
+				(item) => !(item.product.toString() === productId
+					&& (item.wristSize || null) === (wristSize || null)
+					&& (item.selectedColor || null) === (selectedColor || null)
+					&& (item.selectedSize || null) === (selectedSize || null))
 			);
 		}
 
@@ -92,14 +174,17 @@ export const removeAllFromCart = async (req, res) => {
 export const updateQuantity = async (req, res) => {
 	try {
 		const productId = req.params.id;
-		const { quantity, wristSize } = req.body;
+		const { quantity, wristSize, selectedColor, selectedSize } = req.body;
 		const user = req.user;
 
 		const product = await Product.findById(productId);
 		if (!product) return res.status(404).json({ message: "Product not found" });
 
 		const existingItem = user.cartItems.find(
-			item => item.product.toString() === productId && (item.wristSize || null) === (wristSize || null)
+			item => item.product.toString() === productId
+				&& (item.wristSize || null) === (wristSize || null)
+				&& (item.selectedColor || null) === (selectedColor || null)
+				&& (item.selectedSize || null) === (selectedSize || null)
 		);
 
 		if (!existingItem) return res.status(404).json({ message: "Item not in cart" });
@@ -151,7 +236,10 @@ export const mergeCart = async (req, res) => {
 			if (!product) continue; // Skip deleted products
 
 			const existingItem = user.cartItems.find(
-				item => item.product.toString() === product._id.toString() && (item.wristSize || null) === (guestItem.wristSize || null)
+				item => item.product.toString() === product._id.toString()
+					&& (item.wristSize || null) === (guestItem.wristSize || null)
+					&& (item.selectedColor || null) === (guestItem.selectedColor || null)
+					&& (item.selectedSize || null) === (guestItem.selectedSize || null)
 			);
 
 			let availableStock = product.stock;
@@ -168,7 +256,13 @@ export const mergeCart = async (req, res) => {
 				// Add new item if stock allows
 				const initialQuantity = Math.min(guestItem.quantity, availableStock);
 				if (initialQuantity > 0) {
-					user.cartItems.push({ product: product._id, quantity: initialQuantity, wristSize: guestItem.wristSize || null });
+					user.cartItems.push({
+						product: product._id,
+						quantity: initialQuantity,
+						wristSize: guestItem.wristSize || null,
+						selectedColor: guestItem.selectedColor || null,
+						selectedSize: guestItem.selectedSize || null,
+					});
 				}
 			}
 		}

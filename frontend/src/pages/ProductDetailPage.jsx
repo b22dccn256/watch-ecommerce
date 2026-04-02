@@ -6,7 +6,7 @@ import { useCartStore } from "../stores/useCartStore";
 import { useWishlistStore } from "../stores/useWishlistStore";
 import { useCompareStore } from "../stores/useCompareStore";
 import { useUserStore } from "../stores/useUserStore";
-import { Heart, ShoppingCart, Star, ShieldCheck, Truck, Scale, Share2, PlayCircle, ArrowLeftRight, Bell, CreditCard, CheckCircle2, ChevronRight, Info } from "lucide-react";
+import { Heart, ShoppingCart, Star, ShieldCheck, Truck, Scale, Share2, PlayCircle, ArrowLeftRight, Bell, CreditCard, CheckCircle2, ChevronRight, Info, Palette, Tag } from "lucide-react";
 import toast from "react-hot-toast";
 import Zoom from 'react-medium-image-zoom';
 import 'react-medium-image-zoom/dist/styles.css';
@@ -16,6 +16,42 @@ import ProductCard from "../components/ProductCard";
 // Sub-components
 const SpecsTab = ({ specs }) => {
 	if (!specs) return <div className="text-gray-500 py-8">Chưa có thông số chi tiết.</div>;
+
+	const translateMovementType = (value) => {
+		const mapping = {
+			Automatic: "Cơ tự động",
+			Mechanical: "Cơ lên cót",
+			Quartz: "Bộ máy pin",
+			Solar: "Năng lượng ánh sáng",
+			Digital: "Điện tử",
+			Smartwatch: "Đồng hồ thông minh",
+		};
+		return mapping[value] || value;
+	};
+
+	const translateMaterial = (value) => {
+		const mapping = {
+			"Stainless steel": "Thép không gỉ",
+			Steel: "Thép",
+			Titanium: "Titanium",
+			Ceramic: "Gốm sứ",
+			Leather: "Da",
+			Sapphire: "Kính sapphire",
+			Mineral: "Kính khoáng",
+			Hardlex: "Kính Hardlex",
+		};
+		return mapping[value] || value;
+	};
+
+	const translateClasp = (value) => {
+		const mapping = {
+			"Folding clasp": "Khóa gập",
+			"Deployant clasp": "Khóa bướm",
+			"Butterfly clasp": "Khóa bướm",
+			"Pin buckle": "Khóa cài",
+		};
+		return mapping[value] || value;
+	};
 	
 	const renderRow = (label, value) => (
 		value && <div className="flex border-b border-gray-100 dark:border-gray-800 py-3">
@@ -27,27 +63,27 @@ const SpecsTab = ({ specs }) => {
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-2 text-sm mt-4">
 			<div>
-				<h4 className="font-bold text-lg mb-3 text-emerald-600 dark:text-yellow-400">Bộ máy (Movement)</h4>
-				{renderRow("Loại máy", specs.movement?.type)}
-				{renderRow("Caliber", specs.movement?.caliber)}
-				{renderRow("Dự trữ năng lượng", specs.movement?.powerReserve)}
+				<h4 className="font-bold text-lg mb-3 text-emerald-600 dark:text-yellow-400">Bộ máy</h4>
+				{renderRow("Loại máy", translateMovementType(specs.movement?.type))}
+				{renderRow("Mã máy", specs.movement?.caliber)}
+				{renderRow("Dự trữ cót", specs.movement?.powerReserve)}
 			</div>
 			<div>
-				<h4 className="font-bold text-lg mb-3 text-emerald-600 dark:text-yellow-400">Vỏ (Case)</h4>
+				<h4 className="font-bold text-lg mb-3 text-emerald-600 dark:text-yellow-400">Vỏ</h4>
 				{renderRow("Đường kính", specs.case?.diameter)}
 				{renderRow("Độ dày", specs.case?.thickness)}
 				{renderRow("Lug-to-lug", specs.case?.lugToLug)}
-				{renderRow("Chất liệu", specs.case?.material)}
+				{renderRow("Chất liệu", translateMaterial(specs.case?.material))}
 			</div>
 			<div className="mt-6">
-				<h4 className="font-bold text-lg mb-3 text-emerald-600 dark:text-yellow-400">Dây đeo (Strap)</h4>
-				{renderRow("Chất liệu dây", specs.strap?.material)}
-				{renderRow("Loại khóa", specs.strap?.claspType)}
+				<h4 className="font-bold text-lg mb-3 text-emerald-600 dark:text-yellow-400">Dây đeo</h4>
+				{renderRow("Chất liệu dây", translateMaterial(specs.strap?.material))}
+				{renderRow("Loại khóa", translateClasp(specs.strap?.claspType))}
 			</div>
 			<div className="mt-6">
 				<h4 className="font-bold text-lg mb-3 text-emerald-600 dark:text-yellow-400">Khác</h4>
 				{renderRow("Chống nước", specs.waterResistance)}
-				{renderRow("Mặt kính", specs.glass)}
+				{renderRow("Mặt kính", translateMaterial(specs.glass))}
 				{renderRow("Khối lượng", specs.weight)}
 			</div>
 		</div>
@@ -153,6 +189,8 @@ const ProductDetailPage = () => {
 	const [activeTab, setActiveTab] = useState('specs');
 	const [wristSize, setWristSize] = useState(""); // Input text for free sizing
 	const [selectedSizeOption, setSelectedSizeOption] = useState(null); // Selected predefined size
+	const [selectedColor, setSelectedColor] = useState(null);
+	const [selectedSize, setSelectedSize] = useState(null);
 
 	const images = currentProduct?.images?.length ? currentProduct.images : (currentProduct?.image ? [currentProduct.image] : []);
 	const hasVideo = !!currentProduct?.videoUrl;
@@ -176,6 +214,9 @@ const ProductDetailPage = () => {
 			} else {
 				setSelectedSizeOption(null);
 			}
+
+			setSelectedColor(currentProduct.colors?.[0] || null);
+			setSelectedSize(currentProduct.sizes?.[0] || null);
 
 			// Cập nhật SEO Meta tags
 			document.title = `${currentProduct.name} | Luxury Watch`;
@@ -207,12 +248,12 @@ const ProductDetailPage = () => {
 			}
 			const option = currentProduct.wristSizeOptions.find(o => o.size === selectedSizeOption);
 			if (!option || option.stock < 1) return;
-			addToCart({ ...currentProduct, wristSize: selectedSizeOption });
+			addToCart({ ...currentProduct, wristSize: selectedSizeOption, selectedColor, selectedSize });
 		} else {
 			if (currentProduct.stock < 1) return;
 			// Backward compatibility: free sizing for metal straps
 			const payloadWrist = wristSize ? wristSize.toString() : null;
-			addToCart({ ...currentProduct, wristSize: payloadWrist });
+			addToCart({ ...currentProduct, wristSize: payloadWrist, selectedColor, selectedSize });
 		}
 	};
 
@@ -230,9 +271,20 @@ const ProductDetailPage = () => {
 	const discount = currentProduct.originalPrice
 		? Math.round(((currentProduct.originalPrice - currentProduct.price) / currentProduct.originalPrice) * 100)
 		: 0;
+	const breadcrumbBrand = typeof currentProduct.brand === 'object' ? currentProduct.brand?.name : currentProduct.brand;
+	const breadcrumbCategory = currentProduct.categoryId?.name || currentProduct.category || "Collection";
+	const breadcrumbLabel = breadcrumbBrand || breadcrumbCategory;
+	const breadcrumbHref = breadcrumbBrand
+		? `/catalog?brand=${encodeURIComponent(breadcrumbBrand)}`
+		: breadcrumbCategory !== "Collection"
+			? `/category/${encodeURIComponent(breadcrumbCategory)}`
+			: "/catalog";
 
 	const isMetalStrap = currentProduct.specs?.strap?.material?.toLowerCase().match(/steel|metal|titanium|thép|kim loại/);
 	const hasSizeOptions = currentProduct.wristSizeOptions?.length > 0;
+	const hasColorOptions = currentProduct.colors?.length > 0;
+	const hasSimpleSizes = currentProduct.sizes?.length > 0;
+	const hasCustomAttributes = currentProduct.customAttributes?.length > 0;
 	
 	let activeStock = currentProduct.stock;
 	if (hasSizeOptions && selectedSizeOption) {
@@ -241,25 +293,25 @@ const ProductDetailPage = () => {
 	}
 
 	return (
-		<div className="min-h-screen bg-white dark:bg-[#0f0c08] text-gray-900 dark:text-white pt-24 pb-16 transition-colors duration-300">
-			<div className="max-w-screen-2xl mx-auto px-4 md:px-8">
+		<div className="min-h-screen bg-white dark:bg-[#0f0c08] text-gray-900 dark:text-white pt-20 pb-12 transition-colors duration-300">
+			<div className="max-w-7xl mx-auto px-4 md:px-6">
 				
 				{/* Breadcrumb */}
-				<div className="text-xs font-semibold tracking-wider uppercase text-gray-400 mb-8 flex items-center gap-2">
+				<div className="text-[11px] md:text-xs font-semibold tracking-wider uppercase text-gray-400 mb-5 flex items-center gap-2">
 					<Link to="/" className="hover:text-gray-900 dark:hover:text-white transition">Home</Link>
 					<ChevronRight className="w-3 h-3" />
-					<Link to="/catalog" className="hover:text-gray-900 dark:hover:text-white transition">Collection</Link>
+					<Link to={breadcrumbHref} className="hover:text-gray-900 dark:hover:text-white transition">{breadcrumbLabel}</Link>
 					<ChevronRight className="w-3 h-3" />
-					<span className="text-emerald-600 dark:text-yellow-400">{currentProduct.name}</span>
+					<span className="text-emerald-600 dark:text-yellow-400">Chi tiết</span>
 				</div>
 
-				<div className="grid grid-cols-1 lg:grid-cols-12 gap-12 xl:gap-20">
+				<div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12">
 					
 					{/* ==================== MEDIA GALLERY ==================== */}
-					<div className="lg:col-span-7">
-						<div className="sticky top-28">
+					<div className="lg:col-span-6">
+						<div className="sticky top-24">
 							<motion.div
-								className="relative bg-gray-50 dark:bg-black/50 rounded-2xl md:rounded-[2.5rem] overflow-hidden aspect-square border border-gray-100 dark:border-white/5 flex items-center justify-center"
+								className="relative bg-gray-50 dark:bg-black/50 rounded-2xl md:rounded-[2rem] overflow-hidden aspect-square border border-gray-100 dark:border-white/5 flex items-center justify-center"
 								initial={{ opacity: 0, y: 20 }}
 								animate={{ opacity: 1, y: 0 }}
 							>
@@ -275,15 +327,15 @@ const ProductDetailPage = () => {
 										<img
 											src={images[selectedMedia.index]}
 											alt={currentProduct.name}
-											className="w-full h-full object-contain p-4 md:p-12 hover:scale-105 transition-transform duration-700"
+											className="w-full h-full object-contain p-3 md:p-8 hover:scale-105 transition-transform duration-700"
 										/>
 									</Zoom>
 								)}
 								
 								{/* Badges */}
-								<div className="absolute top-6 left-6 flex flex-col gap-2">
-									{discount > 0 && <span className="bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider">Sale {discount}%</span>}
-									{activeStock === 0 && <span className="bg-gray-800 text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider">Hết hàng</span>}
+								<div className="absolute top-4 left-4 flex flex-col gap-2">
+									{discount > 0 && <span className="bg-red-500 text-white text-[10px] md:text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Sale {discount}%</span>}
+									{activeStock === 0 && <span className="bg-gray-800 text-white text-[10px] md:text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Hết hàng</span>}
 								</div>
 							</motion.div>
 
@@ -310,42 +362,96 @@ const ProductDetailPage = () => {
 					</div>
 
 					{/* ==================== PRODUCT INFO ==================== */}
-					<div className="lg:col-span-5">
-						<div className="flex items-center justify-between mb-4">
-							<span className="font-bold tracking-widest uppercase text-emerald-600 dark:text-yellow-400 text-sm">
+					<div className="lg:col-span-6">
+						<div className="flex items-center justify-between mb-3">
+							<span className="font-bold tracking-widest uppercase text-emerald-600 dark:text-yellow-400 text-[11px] md:text-sm">
 								{typeof currentProduct.brand === 'object' ? currentProduct.brand?.name : (currentProduct.brand || 'Luxury Watch')}
 							</span>
-							<div className="flex items-center gap-1.5 text-yellow-400">
+							<div className="flex items-center gap-1.5 text-yellow-400 text-sm">
 								<Star className="w-4 h-4 fill-current" />
 								<span className="font-bold text-gray-900 dark:text-white">{currentProduct.averageRating?.toFixed(1) || '5.0'}</span>
-								<span className="text-gray-400 text-sm font-normal">({currentProduct.reviewsCount || 0})</span>
+								<span className="text-gray-400 text-xs md:text-sm font-normal">({currentProduct.reviewsCount || 0})</span>
 							</div>
 						</div>
 
-						<h1 className="font-luxury text-4xl md:text-5xl font-bold mt-2 leading-tight tracking-tight mb-6 text-gray-900 dark:text-white">{currentProduct.name}</h1>
+						<h1 className="font-luxury text-3xl md:text-4xl font-bold mt-1 leading-tight tracking-tight mb-4 text-gray-900 dark:text-white">{currentProduct.name}</h1>
 
 						{/* Giá */}
-						<div className="mb-8">
+						<div className="mb-6">
 							<div className="flex items-baseline gap-4">
-								<span className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-500 dark:from-yellow-400 dark:to-[#D4AF37]">
+								<span className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-500 dark:from-yellow-400 dark:to-[#D4AF37]">
 									{currentProduct.price.toLocaleString("vi-VN")} ₫
 								</span>
 								{discount > 0 && (
-									<span className="text-2xl line-through text-gray-400">
+									<span className="text-lg md:text-xl line-through text-gray-400">
 										{currentProduct.originalPrice?.toLocaleString("vi-VN")} ₫
 									</span>
 								)}
 							</div>
-							<p className="text-sm text-gray-500 mt-2 font-medium">Đã bao gồm VAT. Bảo hành quốc tế 5 năm.</p>
+							<p className="text-xs md:text-sm text-gray-500 mt-2 font-medium">Đã bao gồm VAT. Bảo hành quốc tế 5 năm.</p>
 						</div>
 
-						<p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-10 text-base border-t border-b border-gray-100 dark:border-white/5 py-8">
+						{/* Thuộc tính chọn nhanh */}
+						<div className="mb-6 space-y-4 rounded-2xl border border-gray-100 dark:border-white/5 bg-gray-50/70 dark:bg-white/5 p-4 md:p-4.5">
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								{hasColorOptions && (
+									<div>
+										<div className="flex items-center gap-2 mb-3 text-sm font-semibold text-gray-800 dark:text-white">
+											<Palette className="w-4 h-4 text-emerald-500" /> Màu sắc
+										</div>
+										<div className="flex flex-wrap gap-2">
+											{currentProduct.colors.map((color) => (
+												<button
+													key={color}
+													onClick={() => setSelectedColor(color)}
+													className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${selectedColor === color ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37] ring-2 ring-[#D4AF37]/20 dark:border-[#D4AF37] dark:bg-[#D4AF37]/10 dark:text-[#D4AF37]' : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-[#D4AF37]'}`}
+												>
+													{color}
+												</button>
+											))}
+										</div>
+									</div>
+								)}
+
+								{hasSimpleSizes && (
+									<div>
+										<div className="flex items-center gap-2 mb-3 text-sm font-semibold text-gray-800 dark:text-white">
+											<Tag className="w-4 h-4 text-emerald-500" /> Kích cỡ
+										</div>
+										<div className="flex flex-wrap gap-2">
+											{currentProduct.sizes.map((size) => (
+												<button
+													key={size}
+													onClick={() => setSelectedSize(size)}
+													className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${selectedSize === size ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37] ring-2 ring-[#D4AF37]/20 dark:border-[#D4AF37] dark:bg-[#D4AF37]/10 dark:text-[#D4AF37]' : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-[#D4AF37]'}`}
+												>
+													{size}
+												</button>
+											))}
+										</div>
+									</div>
+								)}
+							</div>
+
+							{hasCustomAttributes && (
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+									{currentProduct.customAttributes.map((attr) => (
+										<div key={attr.name} className="flex items-center justify-between rounded-xl border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-black/20 px-3 py-2.5 text-sm">
+											<span className="text-gray-500 dark:text-gray-400">{attr.name}</span>
+											<span className="font-medium text-gray-900 dark:text-white text-right">{attr.value}</span>
+										</div>
+									))}
+								</div>
+							)}
+						</div>
+
+						<p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-8 text-sm md:text-base border-t border-b border-gray-100 dark:border-white/5 py-5 md:py-6">
 							{currentProduct.description}
 						</p>
 
 						{/* Cắt dây miễn phí (Dynamic rendering based on specs) */}
 						{!hasSizeOptions && isMetalStrap && (
-							<div className="mb-8 p-5 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800">
+							<div className="mb-6 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800">
 								<h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
 									<Scale className="w-4 h-4 text-emerald-500" /> Yêu cầu cắt mắt dây miễn phí
 								</h4>
@@ -369,7 +475,7 @@ const ProductDetailPage = () => {
 
 						{/* Variants (Wrist Size Options) */}
 						{hasSizeOptions && (
-							<div className="mb-8">
+							<div className="mb-6">
 								<h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
 									<Scale className="w-4 h-4 text-emerald-500" /> Chọn kích cỡ/phân loại
 								</h4>
@@ -399,17 +505,17 @@ const ProductDetailPage = () => {
 						)}
 
 						{/* Nút hành động */}
-						<div className="flex flex-col gap-4 mb-8">
+						<div className="flex flex-col gap-3 mb-6">
 							{activeStock > 0 ? (
 								<button
 									onClick={handleAddToCart}
-									className="w-full bg-emerald-600 hover:bg-emerald-700 dark:bg-yellow-400 dark:hover:bg-yellow-500 text-white dark:text-black font-bold uppercase tracking-widest py-5 rounded-2xl flex items-center justify-center gap-3 transition-colors duration-300 shadow-lg shadow-emerald-600/20 dark:shadow-yellow-400/20"
+									className="w-full bg-emerald-600 hover:bg-emerald-700 dark:bg-yellow-400 dark:hover:bg-yellow-500 text-white dark:text-black font-bold uppercase tracking-widest py-4 rounded-2xl flex items-center justify-center gap-3 transition-colors duration-300 shadow-lg shadow-emerald-600/20 dark:shadow-yellow-400/20 text-sm md:text-base"
 								>
 									<ShoppingCart className="w-5 h-5" /> THÊM VÀO GIỎ HÀNG
 								</button>
 							) : (
 								<button
-									className="w-full bg-gray-900 dark:bg-gray-800 text-white font-bold uppercase tracking-widest py-5 rounded-2xl flex items-center justify-center gap-3 transition-colors duration-300 border border-transparent hover:border-gray-700"
+									className="w-full bg-gray-900 dark:bg-gray-800 text-white font-bold uppercase tracking-widest py-4 rounded-2xl flex items-center justify-center gap-3 transition-colors duration-300 border border-transparent hover:border-gray-700 text-sm md:text-base"
 								>
 									<Bell className="w-5 h-5 text-yellow-400" /> THÔNG BÁO KHI CÓ HÀNG
 								</button>
@@ -418,20 +524,20 @@ const ProductDetailPage = () => {
 							<div className="flex items-center gap-4">
 								<button
 									onClick={() => toggleWishlist(currentProduct, !!user)}
-									className={`flex-1 py-4 rounded-xl border font-semibold flex items-center justify-center gap-2 transition hover:bg-gray-50 dark:hover:bg-gray-900 ${isInWishlist ? "border-red-500 text-red-500" : "border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"}`}
+									className={`flex-1 py-3 rounded-xl border text-sm font-semibold flex items-center justify-center gap-2 transition hover:bg-gray-50 dark:hover:bg-gray-900 ${isInWishlist ? "border-red-500 text-red-500" : "border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"}`}
 								>
 									<Heart className={`w-4 h-4 ${isInWishlist ? "fill-red-500" : ""}`} /> 
 									{isInWishlist ? 'ĐÃ LƯU' : 'YÊU THÍCH'}
 								</button>
 								<button
 									onClick={() => addToCompare(currentProduct)}
-									className="flex-[1.5] py-4 rounded-xl border border-gray-200 dark:border-gray-700 font-semibold flex items-center justify-center gap-2 transition hover:bg-gray-50 dark:hover:bg-gray-900 text-gray-700 dark:text-gray-300"
+									className="flex-[1.5] py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold flex items-center justify-center gap-2 transition hover:bg-gray-50 dark:hover:bg-gray-900 text-gray-700 dark:text-gray-300"
 								>
 									<ArrowLeftRight className="w-4 h-4" /> SO SÁNH
 								</button>
 								<button
 									onClick={handleShare}
-									className="w-14 shrink-0 py-4 rounded-xl border border-gray-200 dark:border-gray-700 flex items-center justify-center transition hover:bg-gray-50 dark:hover:bg-gray-900 text-gray-700 dark:text-gray-300"
+									className="w-12 shrink-0 py-3 rounded-xl border border-gray-200 dark:border-gray-700 flex items-center justify-center transition hover:bg-gray-50 dark:hover:bg-gray-900 text-gray-700 dark:text-gray-300"
 								>
 									<Share2 className="w-4 h-4" />
 								</button>
@@ -439,20 +545,20 @@ const ProductDetailPage = () => {
 						</div>
 						
 						{/* Trust Badges */}
-						<div className="flex items-center justify-between border-t border-gray-100 dark:border-white/5 pt-8">
-							<div className="flex flex-col items-center gap-2 text-center text-gray-500">
+						<div className="grid grid-cols-2 md:grid-cols-4 gap-3 border-t border-gray-100 dark:border-white/5 pt-6">
+							<div className="flex flex-col items-center gap-2 text-center text-gray-500 rounded-xl bg-gray-50/70 dark:bg-white/5 py-3">
 								<ShieldCheck className="w-6 h-6 text-emerald-500" />
 								<span className="text-xs font-medium">Bảo hành 5 năm</span>
 							</div>
-							<div className="flex flex-col items-center gap-2 text-center text-gray-500">
+							<div className="flex flex-col items-center gap-2 text-center text-gray-500 rounded-xl bg-gray-50/70 dark:bg-white/5 py-3">
 								<Truck className="w-6 h-6 text-emerald-500" />
 								<span className="text-xs font-medium">Freeship DHL</span>
 							</div>
-							<div className="flex flex-col items-center gap-2 text-center text-gray-500">
+							<div className="flex flex-col items-center gap-2 text-center text-gray-500 rounded-xl bg-gray-50/70 dark:bg-white/5 py-3">
 								<ArrowLeftRight className="w-6 h-6 text-emerald-500" />
 								<span className="text-xs font-medium">Đổi trả 30 ngày</span>
 							</div>
-							<div className="flex flex-col items-center gap-2 text-center text-gray-500">
+							<div className="flex flex-col items-center gap-2 text-center text-gray-500 rounded-xl bg-gray-50/70 dark:bg-white/5 py-3">
 								<CreditCard className="w-6 h-6 text-emerald-500" />
 								<span className="text-xs font-medium">Trả góp 0%</span>
 							</div>
@@ -461,18 +567,18 @@ const ProductDetailPage = () => {
 				</div>
 
 				{/* ==================== TABS HỖ TRỢ (TÓM TẮT DƯỚI) ==================== */}
-				<div className="mt-32 max-w-5xl mx-auto">
-					<div className="flex overflow-x-auto hide-scrollbar gap-8 border-b border-gray-200 dark:border-gray-800 mb-8 pb-4">
+					<div className="mt-20 max-w-5xl mx-auto">
+						<div className="flex overflow-x-auto hide-scrollbar gap-6 border-b border-gray-200 dark:border-gray-800 mb-6 pb-3">
 						{['specs', 'policies', 'reviews', 'qa'].map(tab => (
 							<button 
 								key={tab}
 								onClick={() => setActiveTab(tab)}
-								className={`whitespace-nowrap font-bold text-lg transition-colors relative ${activeTab === tab ? 'text-emerald-600 dark:text-yellow-400' : 'text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
+								className={`whitespace-nowrap font-bold text-sm md:text-base transition-colors relative ${activeTab === tab ? 'text-emerald-600 dark:text-yellow-400' : 'text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
 							>
-								{tab === 'specs' && 'THÔNG SỐ KỸ THUẬT'}
-								{tab === 'policies' && 'CHÍNH SÁCH & BẢO HÀNH'}
-								{tab === 'reviews' && 'ĐÁNH GIÁ TỪ KHÁCH HÀNG'}
-								{tab === 'qa' && 'HỎI & ĐÁP'}
+								{tab === 'specs' && 'THÔNG SỐ'}
+								{tab === 'policies' && 'BẢO HÀNH'}
+								{tab === 'reviews' && 'ĐÁNH GIÁ'}
+								{tab === 'qa' && 'HỎI ĐÁP'}
 								
 								{activeTab === tab && (
 									<motion.div layoutId="activeTabIndicator" className="absolute -bottom-[18px] left-0 right-0 h-0.5 bg-emerald-600 dark:bg-yellow-400"></motion.div>
@@ -481,7 +587,7 @@ const ProductDetailPage = () => {
 						))}
 					</div>
 
-					<div className="min-h-[400px]">
+					<div className="min-h-[280px]">
 						<AnimatePresence mode="wait">
 							<motion.div
 								key={activeTab}
@@ -504,10 +610,10 @@ const ProductDetailPage = () => {
 				</div>
 
 				{/* SẢN PHẨM TƯƠNG TỰ */}
-				<div className="mt-24 max-w-6xl mx-auto">
-					<div className="flex justify-between items-end mb-10 border-b border-gray-200 dark:border-gray-800 pb-4">
-						<h2 className="text-3xl font-bold font-sans">Khám Phá Thêm</h2>
-						<Link to="/catalog" className="text-sm font-bold uppercase tracking-widest text-emerald-600 dark:text-yellow-400 hover:underline">Xem tất cả</Link>
+				<div className="mt-16 max-w-6xl mx-auto">
+					<div className="flex justify-between items-end mb-6 border-b border-gray-200 dark:border-gray-800 pb-3">
+						<h2 className="text-xl md:text-2xl font-bold font-sans">Khám Phá Thêm</h2>
+						<Link to="/catalog" className="text-xs md:text-sm font-bold uppercase tracking-widest text-emerald-600 dark:text-yellow-400 hover:underline">Xem tất cả</Link>
 					</div>
 					{relatedProducts.length > 0 ? (
 						<div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">

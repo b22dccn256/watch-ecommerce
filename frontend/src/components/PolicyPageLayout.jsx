@@ -34,8 +34,8 @@ const PolicyPageLayout = ({ children, title, description, activeId }) => {
 				<div className="flex flex-col lg:flex-row gap-12">
 					{/* Sidebar Navigation */}
 					<aside className="w-full lg:w-80 shrink-0">
-						<div className="sticky top-32 space-y-2 bg-white dark:bg-luxury-darker p-6 rounded-2xl border border-gray-100 dark:border-luxury-border shadow-sm">
-							<h3 className="text-xs uppercase tracking-widest text-[#D4AF37] font-bold mb-6 px-4">Trung tâm hỗ trợ</h3>
+						<div className="sticky top-32 space-y-2 bg-white dark:bg-luxury-darker p-4 rounded-2xl border border-gray-100 dark:border-luxury-border shadow-sm">
+							<h3 className="text-[11px] uppercase tracking-[0.24em] text-gray-500 dark:text-luxury-text-muted font-bold mb-4 px-3">Hỗ trợ nhanh</h3>
 							{menuItems.map((item) => {
 								const Icon = item.icon;
 								const isActive = item.id === activeId || location.pathname === item.path;
@@ -43,14 +43,13 @@ const PolicyPageLayout = ({ children, title, description, activeId }) => {
 									<NavLink
 										key={item.id}
 										to={item.path}
-										className={`flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
-											isActive 
-											? "bg-luxury-gold text-luxury-dark shadow-luxury-gold/20 shadow-lg" 
-											: "text-gray-600 dark:text-luxury-text-muted hover:bg-gray-100 dark:hover:bg-white/5 hover:text-luxury-gold"
-										}`}
+										className={`flex items-center gap-3 px-4 py-3 rounded-xl border-l-4 transition-colors ${isActive
+											? "bg-gray-100 dark:bg-white/5 border-luxury-gold text-gray-900 dark:text-white"
+											: "border-transparent text-gray-600 dark:text-luxury-text-muted hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"}`}
 									>
-										<Icon className={`w-5 h-5 ${isActive ? "text-luxury-dark" : "text-luxury-gold"}`} />
-										{item.label}
+										<Icon className={`w-5 h-5 ${isActive ? "text-luxury-gold" : "text-gray-400"}`} />
+										<span className="flex-1 text-left text-sm font-medium">{item.label}</span>
+										<ChevronRight className={`w-4 h-4 transition-transform ${isActive ? "translate-x-0.5 text-luxury-gold" : "text-gray-300 dark:text-gray-600"}`} />
 									</NavLink>
 								);
 							})}
@@ -58,15 +57,16 @@ const PolicyPageLayout = ({ children, title, description, activeId }) => {
 					</aside>
 
 					{/* Main Content Area */}
-					<main className="flex-1 bg-white dark:bg-luxury-darker p-8 md:p-12 rounded-3xl border border-gray-100 dark:border-luxury-border shadow-sm">
+					<main className="flex-1 bg-white dark:bg-luxury-darker p-5 md:p-8 rounded-2xl border border-gray-100 dark:border-luxury-border shadow-sm">
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.5 }}
 						>
-							<h1 className="text-3xl md:text-4xl font-bold mb-8 text-black dark:text-white tracking-luxury">
-								{title}
-							</h1>
+							<div className="mb-6 border-b border-gray-100 dark:border-luxury-border pb-4">
+								<p className="text-[11px] font-bold uppercase tracking-[0.24em] text-gray-500 dark:text-luxury-text-muted mb-2">{title}</p>
+								<p className="text-sm text-gray-600 dark:text-luxury-text-muted leading-relaxed max-w-3xl">{description}</p>
+							</div>
 							<div className="prose prose-luxury dark:prose-invert max-w-none">
 								{children}
 							</div>

@@ -86,10 +86,11 @@ const EmptyCartUI = () => (
 
 const CartPage = () => {
 	const { cart, selectedItems, selectAllItems, subtotal } = useCartStore();
+	const { getUniqueId } = useCartStore.getState();
 
 	const isAllSelected = cart.length > 0 && selectedItems.length === cart.length;
 	const handleSelectAll = (e) => {
-		selectAllItems(e.target.checked, cart.map(item => item._id));
+		selectAllItems(e.target.checked, cart.map(item => getUniqueId(item)));
 	};
 
 	return (

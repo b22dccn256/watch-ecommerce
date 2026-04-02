@@ -352,10 +352,12 @@ const CheckoutPage = () => {
                                                 <span className="text-gray-600 dark:text-gray-300 truncate" title={item.name}>
                                                     {item.name} <span className="text-gray-400 dark:text-gray-500 ml-1">x{item.quantity}</span>
                                                 </span>
-                                                {item.wristSize && (
-                                                    <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5" title={"Size: " + item.wristSize}>
-                                                        Size: {item.wristSize}
-                                                    </span>
+                                                {(item.selectedColor || item.selectedSize || item.wristSize) && (
+                                                    <div className="flex flex-wrap gap-1 mt-0.5">
+                                                        {item.selectedColor && <span className="text-[10px] text-gray-400 dark:text-gray-500">Màu: {item.selectedColor}</span>}
+                                                        {item.selectedSize && <span className="text-[10px] text-gray-400 dark:text-gray-500">Size: {item.selectedSize}</span>}
+                                                        {item.wristSize && <span className="text-[10px] text-gray-400 dark:text-gray-500">Cắt dây: {item.wristSize} mm</span>}
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>

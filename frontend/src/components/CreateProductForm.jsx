@@ -12,7 +12,14 @@ const categories = [
 	"Đồng Hồ Thông Minh (Smartwatch)",
 ];
 
-const machineTypes = ["Mechanical", "Quartz", "Automatic", "Solar", "Digital", "Smartwatch"];
+const machineTypes = [
+	{ value: "Mechanical", label: "Cơ lên cót" },
+	{ value: "Quartz", label: "Bộ máy pin" },
+	{ value: "Automatic", label: "Cơ tự động" },
+	{ value: "Solar", label: "Năng lượng ánh sáng" },
+	{ value: "Digital", label: "Điện tử" },
+	{ value: "Smartwatch", label: "Đồng hồ thông minh" },
+];
 
 const inputCls = "w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold focus:ring-1 focus:ring-luxury-gold/40 transition";
 const labelCls = "block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5";
@@ -244,7 +251,7 @@ const CreateProductForm = ({ onSuccess }) => {
 							className={inputCls}
 						>
 							<option value="">Chọn bộ máy</option>
-							{machineTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+							{machineTypes.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
 						</select>
 					</div>
 

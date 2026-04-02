@@ -443,7 +443,19 @@ export const refreshToken = async (req, res) => {
 
 export const getProfile = async (req, res) => {
 	try {
-		res.json(req.user);
+		if (!req.user?._id) {
+			return res.status(401).json({ message: "Unauthorized" });
+		}
+
+		const user = await User.findById(req.user._id)
+			.select("-password -emailVerificationToken -emailVerificationExpires -lastVerificationEmailSent")
+			.lean();
+
+		if (!user) {
+			return res.status(404).json({ message: "Không tìm thấy người dùng" });
+		}
+
+		res.json(user);
 	} catch (error) {
 		res.status(500).json({ message: "Server error", error: error.message });
 	}

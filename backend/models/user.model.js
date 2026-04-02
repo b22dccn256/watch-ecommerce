@@ -37,6 +37,14 @@ const userSchema = new mongoose.Schema(
 					type: mongoose.Schema.Types.ObjectId,
 					ref: "Product",
 				},
+				selectedColor: {
+					type: String,
+					default: null,
+				},
+				selectedSize: {
+					type: String,
+					default: null,
+				},
 				wristSize: {
 					type: Number,
 					default: null, // e.g., 160 mm

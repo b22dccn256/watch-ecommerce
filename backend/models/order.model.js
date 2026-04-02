@@ -28,6 +28,14 @@ const orderSchema = new mongoose.Schema(
 					type: String,
 					default: null,
 				},
+				selectedColor: {
+					type: String,
+					default: null,
+				},
+				selectedSize: {
+					type: String,
+					default: null,
+				},
 			},
 		],
 		totalAmount: {

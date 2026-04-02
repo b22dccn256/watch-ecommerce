@@ -334,7 +334,9 @@ const createNonStripeOrder = async (req, res, paymentMethod) => {
                 product: p._id || p.id,
                 quantity: p.quantity,
                 price: p.price,
-                wristSize: p.wristSize || null
+                wristSize: p.wristSize || null,
+                selectedColor: p.selectedColor || null,
+                selectedSize: p.selectedSize || null,
             })),
             totalAmount,
             orderCode,
@@ -358,10 +360,22 @@ const createNonStripeOrder = async (req, res, paymentMethod) => {
         }
 
         if (req.user) {
-            const orderedProductIds = products.map(p => (p._id || p.id).toString());
-            req.user.cartItems = req.user.cartItems.filter(item => 
-                item.product && !orderedProductIds.includes(item.product.toString())
-            );
+            const orderedVariants = products.map(p => ({
+                productId: (p._id || p.id).toString(),
+                wristSize: p.wristSize || null,
+                selectedColor: p.selectedColor || null,
+                selectedSize: p.selectedSize || null,
+            }));
+            req.user.cartItems = req.user.cartItems.filter(item => {
+                if (!item.product) return true;
+                const matchesOrderedVariant = orderedVariants.some(v =>
+                    item.product.toString() === v.productId
+                    && (item.wristSize || null) === v.wristSize
+                    && (item.selectedColor || null) === v.selectedColor
+                    && (item.selectedSize || null) === v.selectedSize
+                );
+                return !matchesOrderedVariant;
+            });
             await req.user.save({ session });
         }
 

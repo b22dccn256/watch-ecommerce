@@ -291,6 +291,11 @@ const PurchaseSuccessPage = () => {
 								</div>
 								<div className='flex-1 min-w-0'>
 									<p className='text-white font-medium truncate' title={item.product?.name}>{item.product?.name}</p>
+									<div className='mt-1 flex flex-wrap gap-2 text-[11px] text-gray-400'>
+										{item.selectedColor && <span className='rounded-full border border-gray-600 px-2 py-0.5'>Màu: {item.selectedColor}</span>}
+										{item.selectedSize && <span className='rounded-full border border-gray-600 px-2 py-0.5'>Size: {item.selectedSize}</span>}
+										{item.wristSize && <span className='rounded-full border border-gray-600 px-2 py-0.5'>Cắt dây: {item.wristSize} mm</span>}
+									</div>
 									<p className='text-sm text-gray-400 mt-1'>
 										{item.price?.toLocaleString("vi-VN")} ₫ <span className="mx-1">x</span> <span className="font-bold text-white">{item.quantity}</span>
 									</p>

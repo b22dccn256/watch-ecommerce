@@ -4,14 +4,17 @@ import { useUserStore } from "../stores/useUserStore";
 import { useCartStore } from "../stores/useCartStore";
 import { useWishlistStore } from "../stores/useWishlistStore";
 import { useCompareStore } from "../stores/useCompareStore";
-import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const ProductCard = ({ product }) => {
+	const navigate = useNavigate();
 	const { user } = useUserStore();
 	const { addToCart } = useCartStore();
 	const { wishlist, toggleWishlist } = useWishlistStore();
 	const { addToCompare, compareList = [], removeFromCompare } = useCompareStore();
+	const [showQuickView, setShowQuickView] = useState(false);
 
 	const isWishlisted = Array.isArray(wishlist) && wishlist.some((w) => w._id === product._id);
 	const isCompared = compareList?.some(c => c._id === product._id);
@@ -39,8 +42,14 @@ const ProductCard = ({ product }) => {
 
 	const brandLabel = product.brand?.name || product.brand || "Thương hiệu";
 	const brandLogo = product.brand?.logo || null;
+	const productImage = product.image || "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=800&auto=format&fit=crop";
+
+	const handleOpenDetail = () => {
+		navigate(`/product/${product._id}`);
+	};
 
 	return (
+		<>
 		<motion.article
 			whileHover={{
 				scale: 1.025,
@@ -51,10 +60,21 @@ const ProductCard = ({ product }) => {
 			className="group relative bg-white dark:bg-luxury-darker rounded-2xl overflow-hidden border border-gray-100 dark:border-luxury-border transition-colors duration-200 flex flex-col"
 		>
 			{/* ── Image Zone ─────────────────────────── */}
-			<div className="relative w-full aspect-square overflow-hidden bg-black flex-shrink-0">
+			<div
+				onClick={handleOpenDetail}
+				role="button"
+				tabIndex={0}
+				onKeyDown={(e) => {
+					if (e.key === "Enter" || e.key === " ") {
+						e.preventDefault();
+						handleOpenDetail();
+					}
+				}}
+				className="relative w-full aspect-square overflow-hidden bg-black flex-shrink-0 cursor-pointer"
+			>
 				<img
 					loading="lazy"
-					src={product.image || "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=800&auto=format&fit=crop"}
+					src={productImage}
 					alt={product.name}
 					className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
 				/>
@@ -103,14 +123,17 @@ const ProductCard = ({ product }) => {
 				</button>
 
 				{/* BOTTOM-LEFT: Quick view */}
-				<Link
-					to={`/product/${product._id}`}
-					onClick={(e) => e.stopPropagation()}
+				<button
+					type="button"
+					onClick={(e) => {
+						e.stopPropagation();
+						setShowQuickView(true);
+					}}
 					className="absolute bottom-3 left-3 z-20 bg-white/90 dark:bg-black/80 backdrop-blur-sm p-2 rounded-full shadow-lg hover:scale-110 transition opacity-0 group-hover:opacity-100"
 					title="Xem nhanh"
 				>
 					<Eye className="w-4 h-4 text-gray-800 dark:text-white" />
-				</Link>
+				</button>
 
 				{/* BOTTOM-RIGHT: Movement badge */}
 				{product.type && (
@@ -191,15 +214,61 @@ const ProductCard = ({ product }) => {
 					</button>
 				</div>
 
-				{/* Detail link – subtle */}
-				<Link
-					to={`/product/${product._id}`}
-					className="text-[11px] text-center text-gray-400 hover:text-luxury-gold transition mt-1 opacity-70 hover:opacity-100"
-				>
-					Xem chi tiết →
-				</Link>
 			</div>
 		</motion.article>
+
+				<AnimatePresence>
+					{showQuickView && (
+						<div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowQuickView(false)}>
+							<motion.div
+								initial={{ opacity: 0, scale: 0.96, y: 16 }}
+								animate={{ opacity: 1, scale: 1, y: 0 }}
+								exit={{ opacity: 0, scale: 0.96, y: 16 }}
+								transition={{ duration: 0.2 }}
+								onClick={(e) => e.stopPropagation()}
+								className="w-full max-w-3xl rounded-3xl overflow-hidden bg-white dark:bg-luxury-darker border border-gray-100 dark:border-luxury-border shadow-2xl"
+							>
+								<div className="grid grid-cols-1 md:grid-cols-2">
+									<div className="relative bg-black">
+										<img src={productImage} alt={product.name} className="w-full h-full object-cover min-h-[320px]" />
+										<button
+											type="button"
+											onClick={() => setShowQuickView(false)}
+											className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 text-gray-800 font-bold shadow-lg"
+										>
+											×
+										</button>
+									</div>
+									<div className="p-6 md:p-8 flex flex-col">
+										<p className="text-xs font-semibold tracking-[0.3em] text-gray-400 uppercase">Xem nhanh</p>
+										<h3 className="mt-3 text-2xl font-bold text-gray-900 dark:text-white leading-tight">{product.name}</h3>
+										<p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{brandLabel}</p>
+										<p className="mt-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-4">{product.description || "Mẫu đồng hồ cao cấp được chọn lọc kỹ lưỡng về thiết kế, độ hoàn thiện và giá trị sử dụng lâu dài."}</p>
+										<div className="mt-6 flex items-end justify-between gap-3">
+											<div>
+												<p className="text-xs uppercase tracking-[0.2em] text-gray-400">Giá</p>
+												<p className="text-3xl font-bold text-luxury-gold">{product.price?.toLocaleString("vi-VN")} ₫</p>
+											</div>
+											<button
+												onClick={handleAddToCart}
+												disabled={isOutOfStock}
+												className="flex items-center gap-2 bg-luxury-gold hover:bg-amber-400 active:scale-95 text-lux-dark px-4 py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-luxury-gold/20"
+											>
+												<ShoppingCart className="w-4 h-4" />
+												Thêm vào giỏ
+											</button>
+										</div>
+										<div className="mt-6 flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400">
+											<ShieldCheck className="w-3.5 h-3.5" />
+											<span>Bảo hành Quốc tế 5 Năm</span>
+										</div>
+									</div>
+								</div>
+							</motion.div>
+						</div>
+					)}
+				</AnimatePresence>
+			</>
 	);
 };
 
