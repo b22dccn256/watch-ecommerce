@@ -7,6 +7,10 @@ const userSchema = new mongoose.Schema(
 		name: {
 			type: String,
 			required: [true, "Name is required"],
+			validate: {
+				validator: (value) => /^[\p{L}\s]{2,50}$/u.test(value.trim()),
+				message: "Họ và tên chỉ được chứa chữ cái và khoảng trắng (2–50 ký tự)",
+			},
 		},
 		email: {
 			type: String,

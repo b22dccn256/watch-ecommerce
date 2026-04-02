@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useUserStore } from "../stores/useUserStore";
 
 const SignUpPage = () => {
+	const NAME_REGEX = /^[\p{L}\s]{2,50}$/u;
 	const [formData, setFormData] = useState({
 		name: "",
 		email: "",
@@ -41,8 +42,8 @@ const SignUpPage = () => {
 
 		if (!trimmedName) {
 			nextErrors.name = "Vui lòng nhập họ và tên";
-		} else if (trimmedName.length < 2) {
-			nextErrors.name = "Họ và tên phải có ít nhất 2 ký tự";
+		} else if (!NAME_REGEX.test(trimmedName)) {
+			nextErrors.name = "Họ và tên chỉ được chứa chữ cái và khoảng trắng (2–50 ký tự)";
 		}
 
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -83,8 +84,8 @@ const SignUpPage = () => {
 			const trimmedName = value.trim();
 			if (!trimmedName) {
 				message = "Vui lòng nhập họ và tên";
-			} else if (trimmedName.length < 2) {
-				message = "Họ và tên phải có ít nhất 2 ký tự";
+			} else if (!NAME_REGEX.test(trimmedName)) {
+				message = "Họ và tên chỉ được chứa chữ cái và khoảng trắng (2–50 ký tự)";
 			}
 		}
 

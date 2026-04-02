@@ -5,6 +5,8 @@ import { sendEmail } from "../lib/email.js";
 import bcrypt from "bcryptjs";
 import { emailQueue } from "./mail.controller.js";
 
+const NAME_REGEX = /^[\p{L}\s]{2,50}$/u;
+
 const generateTokens = (userId) => {
 	const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
 		expiresIn: "15m",
@@ -67,6 +69,10 @@ export const signup = async (req, res) => {
 
 	if (normalizedName.length < 2) {
 		return res.status(400).json({ message: "Họ và tên phải có ít nhất 2 ký tự" });
+	}
+
+	if (!NAME_REGEX.test(normalizedName)) {
+		return res.status(400).json({ message: "Họ và tên chỉ được chứa chữ cái và khoảng trắng (2–50 ký tự)" });
 	}
 
 	if (password !== confirmPassword) {
@@ -247,6 +253,7 @@ export const login = async (req, res) => {
 				name: user.name,
 				email: user.email,
 				role: user.role,
+				emailVerified: user.emailVerified,
 			});
 		} else {
 			res.status(400).json({ message: "Email hoặc mật khẩu không chính xác" });
@@ -311,6 +318,7 @@ export const verifyOTP = async (req, res) => {
 				name: user.name,
 				email: user.email,
 				role: user.role,
+				emailVerified: user.emailVerified,
 			});
 		} else {
 			const attempts = await redis.incr(`attempts:${email}`);
@@ -580,6 +588,10 @@ export const updateProfile = async (req, res) => {
 
 		if (!name) {
 			return res.status(400).json({ message: "Tên không được để trống" });
+		}
+
+		if (!NAME_REGEX.test(name.trim())) {
+			return res.status(400).json({ message: "Họ và tên chỉ được chứa chữ cái và khoảng trắng (2–50 ký tự)" });
 		}
 
 		// Regex VN: 0 + (3,5,7,8,9) + 8 digits
