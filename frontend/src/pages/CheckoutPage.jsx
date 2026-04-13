@@ -177,29 +177,6 @@ const CheckoutPage = () => {
         }
     };
 
-    const handlePaymentQR = async () => {
-        if (!validateForm()) return;
-        setIsProcessing(true);
-
-        try {
-            const res = await axios.post("/orders/qr", {
-                products: checkoutItems,
-                couponCode: coupon ? coupon.code : null,
-                shippingDetails: formData
-            });
-
-            paymentDoneRef.current = true; // đánh dấu đồng bộ TRƯỚC khi clearCart
-            setQrData(res.data);
-            localStorage.removeItem("checkoutFormData");
-            clearSelectedCart();
-            toast.success("Đơn hàng QR đã tạo thành công!");
-        } catch (error) {
-            toast.error(error.response?.data?.message || "Lỗi tạo đơn hàng QR");
-        } finally {
-            setIsProcessing(false);
-        }
-    };
-
     // Xác nhận đã chuyển khoản QR — đơn chuyển sang awaiting_verification, chờ admin kiểm tra
     const handleConfirmQRPayment = async () => {
         if (isConfirming) return; // Chống spam click
@@ -542,7 +519,7 @@ const CheckoutPage = () => {
                 )}
             </AnimatePresence >
 
-            <style jsx="true">{`
+            <style>{`
 				.custom-scrollbar::-webkit-scrollbar {
 					width: 4px;
 				}

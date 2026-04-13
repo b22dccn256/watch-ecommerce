@@ -2,10 +2,11 @@ import { motion } from "framer-motion";
 import { useWishlistStore } from "../stores/useWishlistStore";
 import { useCartStore } from "../stores/useCartStore";
 import { useUserStore } from "../stores/useUserStore";
-import { Heart, ShoppingBag, ArrowRight, ShoppingCart } from "lucide-react";
+import { Heart, ArrowRight, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import toast from "react-hot-toast";
+import { SkeletonProductCard } from "../components/SkeletonLoaders";
 
 const WishlistPage = () => {
 	const { wishlist, loading } = useWishlistStore();
@@ -31,8 +32,18 @@ const WishlistPage = () => {
 
 	if (loading) {
 		return (
-			<div className='min-h-screen flex items-center justify-center pt-20'>
-				<div className='animate-luxury-pulse text-luxury-gold text-xl tracking-widest'>ĐANG TẢI...</div>
+			<div className='min-h-screen bg-white dark:bg-luxury-dark pt-32 pb-16'>
+				<div className='max-w-screen-2xl mx-auto px-6'>
+					<div className='mb-10 space-y-3'>
+						<div className='h-10 w-80 rounded-full bg-gray-200 dark:bg-zinc-700 skeleton-shimmer skeleton-shimmer-premium' />
+						<div className='h-5 w-1/2 rounded-full bg-gray-200 dark:bg-zinc-700 skeleton-shimmer skeleton-shimmer-premium' />
+					</div>
+					<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'>
+						{Array.from({ length: 8 }).map((_, index) => (
+							<SkeletonProductCard key={index} />
+						))}
+					</div>
+				</div>
 			</div>
 		);
 	}

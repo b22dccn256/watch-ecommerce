@@ -2,22 +2,28 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useUserStore } from "../stores/useUserStore";
 import { useCartStore } from "../stores/useCartStore";
 import { useWishlistStore } from "../stores/useWishlistStore";
-import { useProductStore } from "../stores/useProductStore";
 import { useThemeStore } from "../stores/useThemeStore";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingCart, User, LogOut, Lock, Search, Heart, Menu, X as CloseIcon, ChevronDown, Package, Scale, Sun, Moon, Star, ChevronRight } from "lucide-react";
+import { shallow } from "zustand/shallow";
 
 import { useCompareStore } from "../stores/useCompareStore";
 import CompareModal from "./CompareModal";
 
 const Navbar = () => {
-	const { user, logout } = useUserStore();
-	const { cart } = useCartStore();
-	const { wishlist } = useWishlistStore();
-	const { searchProducts } = useProductStore(); // sẽ dùng sau
-	const { theme, toggleTheme } = useThemeStore();
-	const { isOpen, setIsOpen, compareItems } = useCompareStore();
+	const { user, logout } = useUserStore((state) => ({ user: state.user, logout: state.logout }), shallow);
+	const cartCount = useCartStore((state) => state.cart.reduce((sum, item) => sum + item.quantity, 0));
+	const wishlistCount = useWishlistStore((state) => state.wishlist.length);
+	const { theme, toggleTheme } = useThemeStore((state) => ({ theme: state.theme, toggleTheme: state.toggleTheme }), shallow);
+	const { isOpen, setIsOpen, compareCount } = useCompareStore(
+		(state) => ({
+			isOpen: state.isOpen,
+			setIsOpen: state.setIsOpen,
+			compareCount: state.compareItems.length,
+		}),
+		shallow
+	);
 
 	const [searchTerm, setSearchTerm] = useState("");
 	const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -26,7 +32,6 @@ const Navbar = () => {
 	const dropdownRef = useRef(null);
 
 	const isAdmin = user?.role === "admin";
-	const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
 	const navigate = useNavigate();
 
@@ -61,17 +66,22 @@ const Navbar = () => {
 
 	return (
 		<>
-			<header className="fixed top-0 left-0 w-full bg-white/98 dark:bg-luxury-dark/98 backdrop-blur-md border-b border-gray-200 dark:border-luxury-border z-50">
-				<div className="max-w-screen-2xl mx-auto px-6 py-4">
+			<header className="fixed top-0 left-0 w-full z-50 border-b border-black/5 dark:border-luxury-border bg-white/85 dark:bg-luxury-dark/85 backdrop-blur-2xl shadow-[0_12px_40px_-28px_rgba(0,0,0,0.45)]">
+				<div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
 					<div className="flex items-center justify-between">
 						{/* LOGO */}
-						<Link to="/" className="flex items-center gap-1.5 group">
-							<span className="font-luxury text-[32px] font-extrabold tracking-[0.2em] text-luxury-gold group-hover:text-luxury-gold-light transition-colors drop-shadow-md">LUXURY</span>
-							<span className="font-luxury text-[32px] font-bold tracking-[0.3em] pl-1 text-black dark:text-white group-hover:text-gray-400 transition-colors drop-shadow-md">WATCH</span>
+						<Link to="/" className="flex items-center gap-2 group">
+							<div className="w-9 h-9 rounded-2xl bg-luxury-gold text-lux-dark flex items-center justify-center shadow-lg shadow-luxury-gold/20">
+								<Star className="w-4 h-4" />
+							</div>
+							<div className="leading-none">
+								<p className="hero-title text-[1.05rem] md:text-[1.15rem] font-bold tracking-[0.2em] text-luxury-gold group-hover:text-luxury-gold-light transition-colors">LUXURY</p>
+								<p className="text-[0.72rem] uppercase tracking-[0.34em] text-gray-500 dark:text-luxury-text-muted mt-1">WATCH</p>
+							</div>
 						</Link>
 
 						{/* MENU CHÍNH */}
-						<nav className="hidden md:flex items-center gap-10 text-sm font-medium">
+						<nav className="hidden md:flex items-center gap-8 text-sm font-medium">
 							<NavLink
 								to="/"
 								className={({ isActive }) =>
@@ -136,7 +146,7 @@ const Navbar = () => {
 
 							<button
 								onClick={() => setIsContactModalOpen(true)}
-								className="text-luxury-gold font-semibold hover:text-luxury-gold-light transition duration-300 flex items-center gap-1"
+								className="inline-flex items-center gap-1 rounded-full border border-luxury-gold/20 bg-luxury-gold/8 px-4 py-2 text-luxury-gold font-semibold hover:text-luxury-gold-light transition duration-300"
 							>
 								<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
 								Hotline
@@ -144,24 +154,24 @@ const Navbar = () => {
 						</nav>
 
 						{/* SEARCH + THEME TOGGLE + CART + USER */}
-						<div className="flex items-center gap-6">
+						<div className="flex items-center gap-4 lg:gap-6">
 							{/* Theme Toggle (Desktop) */}
 							<button 
 								onClick={toggleTheme} 
-								className="hidden md:flex items-center justify-center p-2 rounded-full bg-gray-100 dark:bg-luxury-darker text-gray-500 hover:text-luxury-gold dark:text-gray-400 dark:hover:text-luxury-gold transition-colors border border-gray-200 dark:border-luxury-border"
+								className="hidden md:flex items-center justify-center p-2.5 rounded-full bg-gray-100/90 dark:bg-luxury-darker text-gray-500 hover:text-luxury-gold dark:text-gray-400 dark:hover:text-luxury-gold transition-colors border border-gray-200/80 dark:border-luxury-border"
 								title="Bật/Tắt Giao Diện Tối"
 							>
 								{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
 							</button>
 							{/* Thanh tìm kiếm */}
-							<div className="relative w-80 hidden lg:block">
+							<div className="relative w-72 xl:w-80 hidden lg:block">
 								<input
 									type="text"
 									value={searchTerm}
 									onChange={handleSearch}
 									onKeyDown={handleKeyDown}
 									placeholder="Tìm kiếm đồng hồ..."
-									className="w-full bg-gray-100 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border focus:border-luxury-gold text-black dark:text-white pl-5 pr-12 py-3 rounded-full text-sm placeholder-gray-400 dark:placeholder-luxury-text-muted focus:outline-none transition duration-300"
+									className="w-full bg-gray-100/90 dark:bg-luxury-darker border border-gray-200/80 dark:border-luxury-border focus:border-luxury-gold text-black dark:text-white pl-5 pr-12 py-3 rounded-2xl text-sm placeholder-gray-400 dark:placeholder-luxury-text-muted focus:outline-none transition duration-300"
 								/>
 								<button onClick={executeSearch} className="absolute right-5 top-1/2 -translate-y-1/2 text-luxury-gold">
 									<Search className="w-5 h-5" />
@@ -169,15 +179,15 @@ const Navbar = () => {
 							</div>
 
 							{/* Actions (Wishlist/Compare/Cart) */}
-							<div className="flex items-center gap-2">
+							<div className="flex items-center gap-1.5 rounded-full border border-gray-200/80 dark:border-luxury-border bg-white/80 dark:bg-luxury-darker/80 px-2 py-1 shadow-sm">
 								<Link
 									to={"/wishlist"}
-									className='relative group p-2 text-gray-700 dark:text-luxury-text-light hover:text-luxury-gold transition-colors'
+									className='relative group p-2.5 text-gray-700 dark:text-luxury-text-light hover:text-luxury-gold transition-colors rounded-full'
 								>
 									<Heart className='w-5 h-5 group-hover:scale-110 transition-transform' />
-									{wishlist.length > 0 && (
+									{wishlistCount > 0 && (
 										<span className='absolute -top-1 -right-1 bg-luxury-gold text-luxury-dark text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center border-2 border-white dark:border-luxury-dark'>
-											{wishlist.length}
+											{wishlistCount}
 										</span>
 									)}
 								</Link>
@@ -185,12 +195,12 @@ const Navbar = () => {
 								{/* Compare Icon */}
 								<button
 									onClick={() => setIsOpen(true)}
-									className='relative group p-2 text-gray-700 dark:text-luxury-text-light hover:text-luxury-gold transition-colors'
+									className='relative group p-2.5 text-gray-700 dark:text-luxury-text-light hover:text-luxury-gold transition-colors rounded-full'
 								>
 									<Scale className='w-5 h-5 group-hover:scale-110 transition-transform' />
-									{compareItems.length > 0 && (
+									{compareCount > 0 && (
 										<span className='absolute -top-1 -right-1 bg-emerald-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center border-2 border-white dark:border-luxury-dark'>
-											{compareItems.length}
+											{compareCount}
 										</span>
 									)}
 								</button>
@@ -198,7 +208,7 @@ const Navbar = () => {
 								{user && (
 									<Link
 										to={"/cart"}
-										className='relative group p-2 text-gray-700 dark:text-luxury-text-light hover:text-luxury-gold transition-colors'
+										className='relative group p-2.5 text-gray-700 dark:text-luxury-text-light hover:text-luxury-gold transition-colors rounded-full'
 										>
 										<ShoppingCart className='w-5 h-5 group-hover:scale-110 transition-transform' />
 										<AnimatePresence>
@@ -225,12 +235,12 @@ const Navbar = () => {
 								<div className="relative" ref={dropdownRef}>
 									<button 
 										onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-										className="flex items-center gap-2 focus:outline-none"
+										className="flex items-center gap-2 focus:outline-none rounded-full pl-1 pr-2 py-1 hover:bg-black/5 dark:hover:bg-white/5 transition"
 									>
 										{user.profilePicture ? (
-											<img src={user.profilePicture} alt="Avatar" className="w-8 h-8 rounded-full border-2 border-luxury-gold/50 object-cover" />
+											<img src={user.profilePicture} alt="Avatar" className="w-8 h-8 rounded-full border border-luxury-gold/50 object-cover" />
 										) : (
-											<div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-luxury-darker flex items-center justify-center border-2 border-luxury-gold/50">
+											<div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-luxury-darker flex items-center justify-center border border-luxury-gold/50">
 												<User className="w-4 h-4 text-luxury-gold" />
 											</div>
 										)}
@@ -241,7 +251,7 @@ const Navbar = () => {
 									</button>
 
 									{/* Dropdown Menu */}
-									<div className={`absolute right-0 mt-3 w-56 bg-white dark:bg-[#18181b] rounded-xl shadow-2xl border border-gray-100 dark:border-white/5 py-2 z-50 transition-all duration-200 ${isProfileDropdownOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'}`}>
+									<div className={`absolute right-0 mt-3 w-56 bg-white dark:bg-[#18181b] rounded-2xl shadow-2xl border border-gray-100 dark:border-white/5 py-2 z-50 transition-all duration-200 ${isProfileDropdownOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'}`}>
 										<div className="px-4 py-3 border-b border-gray-100 dark:border-white/5">
 											<p className="text-sm font-bold text-gray-900 dark:text-white truncate">{user.name}</p>
 											<p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{user.email}</p>
@@ -295,9 +305,16 @@ const Navbar = () => {
 			{isMobileMenuOpen && (
 				<div className="fixed inset-0 z-40 md:hidden" onClick={closeMobileMenu}>
 					<div
-						className="absolute top-[73px] left-0 right-0 bg-white dark:bg-luxury-dark border-b border-gray-200 dark:border-luxury-border shadow-2xl px-6 py-6 space-y-5"
+						className="absolute top-[73px] left-0 right-0 bg-white dark:bg-luxury-dark border-b border-gray-200 dark:border-luxury-border shadow-2xl px-6 py-6 space-y-5 rounded-b-[2rem]"
 						onClick={e => e.stopPropagation()}
 					>
+						<div className="rounded-2xl border border-luxury-gold/20 bg-luxury-gold/8 px-4 py-4 shadow-sm">
+							<p className="hero-kicker text-[10px] font-semibold text-luxury-gold">Mobile shell</p>
+							<p className="mt-2 text-sm text-gray-600 dark:text-luxury-text-muted">
+								Tập trung vào điều hướng nhanh, tìm kiếm và các hành động chính.
+							</p>
+						</div>
+
 						{/* Theme Toggle (Mobile) */}
 						<div className="mb-4 flex flex-row items-center justify-between border-b border-gray-100 dark:border-luxury-border pb-4">
 							<span className="text-sm font-medium text-gray-700 dark:text-gray-300">Giao diện</span>
@@ -337,7 +354,7 @@ const Navbar = () => {
 									to={item.to}
 									onClick={closeMobileMenu}
 									className={({ isActive }) =>
-										`block px-4 py-3 rounded-xl text-sm font-medium transition-colors ${isActive
+										`block px-4 py-3 rounded-2xl text-sm font-medium transition-colors ${isActive
 											? 'bg-luxury-gold/10 text-luxury-gold'
 											: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-luxury-gold'
 										}`
@@ -356,7 +373,7 @@ const Navbar = () => {
 							<Link to="/wishlist" onClick={closeMobileMenu} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-luxury-gold transition-colors relative">
 								<Heart className="w-5 h-5" />
 								Yêu thích
-								{wishlist.length > 0 && <span className="ml-auto bg-luxury-gold text-luxury-dark text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{wishlist.length}</span>}
+								{wishlistCount > 0 && <span className="ml-auto bg-luxury-gold text-luxury-dark text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{wishlistCount}</span>}
 							</Link>
 							{user && (
 								<Link to="/cart" onClick={closeMobileMenu} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-luxury-gold transition-colors">

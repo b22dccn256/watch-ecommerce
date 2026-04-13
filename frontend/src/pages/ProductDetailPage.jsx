@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useProductStore } from "../stores/useProductStore";
 import { useCartStore } from "../stores/useCartStore";
@@ -12,6 +12,7 @@ import Zoom from 'react-medium-image-zoom';
 import 'react-medium-image-zoom/dist/styles.css';
 import axios from "../lib/axios";
 import ProductCard from "../components/ProductCard";
+import { SkeletonProductDetail } from "../components/SkeletonLoaders";
 
 // Sub-components
 const SpecsTab = ({ specs }) => {
@@ -176,8 +177,7 @@ const ReviewsTab = ({ productId }) => {
 
 const ProductDetailPage = () => {
 	const { id } = useParams();
-	const navigate = useNavigate();
-	const { currentProduct, fetchProductById } = useProductStore();
+	const { currentProduct, fetchProductById, loading: productLoading } = useProductStore();
 	const { addToCart } = useCartStore();
 	const { wishlist, toggleWishlist } = useWishlistStore();
 	const { addToCompare } = useCompareStore();
@@ -193,7 +193,6 @@ const ProductDetailPage = () => {
 	const [selectedSize, setSelectedSize] = useState(null);
 
 	const images = currentProduct?.images?.length ? currentProduct.images : (currentProduct?.image ? [currentProduct.image] : []);
-	const hasVideo = !!currentProduct?.videoUrl;
 
 	useEffect(() => {
 		fetchProductById(id);
@@ -262,11 +261,7 @@ const ProductDetailPage = () => {
 		toast.success("Đã copy link sản phẩm!");
 	};
 
-	if (!currentProduct) return (
-		<div className="min-h-screen pt-32 pb-16 flex items-center justify-center">
-			<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
-		</div>
-	);
+	if (productLoading || !currentProduct) return <SkeletonProductDetail />;
 
 	const discount = currentProduct.originalPrice
 		? Math.round(((currentProduct.originalPrice - currentProduct.price) / currentProduct.originalPrice) * 100)
@@ -293,7 +288,7 @@ const ProductDetailPage = () => {
 	}
 
 	return (
-		<div className="min-h-screen bg-white dark:bg-[#0f0c08] text-gray-900 dark:text-white pt-20 pb-12 transition-colors duration-300">
+		<div className="min-h-screen bg-[linear-gradient(180deg,#f8f5f0_0%,#ffffff_18%,#ffffff_100%)] dark:bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.08)_0%,rgba(15,12,8,1)_45%,rgba(10,10,10,1)_100%)] text-gray-900 dark:text-white pt-20 pb-12 transition-colors duration-300">
 			<div className="max-w-7xl mx-auto px-4 md:px-6">
 				
 				{/* Breadcrumb */}
@@ -309,9 +304,10 @@ const ProductDetailPage = () => {
 					
 					{/* ==================== MEDIA GALLERY ==================== */}
 					<div className="lg:col-span-6">
-						<div className="sticky top-24">
+						<div className="sticky top-24 space-y-5">
+							<div className="rounded-[2rem] border border-black/5 dark:border-white/5 bg-white/95 dark:bg-[#121212]/95 p-3 md:p-4 shadow-[0_24px_80px_-35px_rgba(0,0,0,0.35)]">
 							<motion.div
-								className="relative bg-gray-50 dark:bg-black/50 rounded-2xl md:rounded-[2rem] overflow-hidden aspect-square border border-gray-100 dark:border-white/5 flex items-center justify-center"
+								className="relative bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.08),transparent_35%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,245,240,0.92))] dark:bg-black/50 rounded-2xl md:rounded-[2rem] overflow-hidden aspect-square border border-black/5 dark:border-white/5 flex items-center justify-center"
 								initial={{ opacity: 0, y: 20 }}
 								animate={{ opacity: 1, y: 0 }}
 							>
@@ -327,7 +323,7 @@ const ProductDetailPage = () => {
 										<img
 											src={images[selectedMedia.index]}
 											alt={currentProduct.name}
-											className="w-full h-full object-contain p-3 md:p-8 hover:scale-105 transition-transform duration-700"
+											className="w-full h-full object-contain p-5 md:p-10 hover:scale-105 transition-transform duration-700"
 										/>
 									</Zoom>
 								)}
@@ -358,11 +354,19 @@ const ProductDetailPage = () => {
 									<PlayCircle className="w-8 h-8 text-gray-400" />
 								</button>
 							</div>
+							</div>
+							<div className="rounded-[1.5rem] border border-black/5 dark:border-white/5 bg-white/80 dark:bg-white/5 px-4 py-4 shadow-sm">
+								<p className="text-[10px] uppercase tracking-[0.34em] text-gray-400 mb-2">Quick impression</p>
+								<p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+									Hình ảnh được đặt làm tâm điểm, còn toàn bộ chi tiết còn lại lui xuống phía sau để giữ cảm giác cao cấp và tập trung.
+								</p>
+							</div>
 						</div>
 					</div>
 
 					{/* ==================== PRODUCT INFO ==================== */}
 					<div className="lg:col-span-6">
+						<div className="rounded-[2rem] border border-black/5 dark:border-white/5 bg-white/95 dark:bg-[#121212]/95 p-5 md:p-7 shadow-[0_24px_80px_-35px_rgba(0,0,0,0.35)]">
 						<div className="flex items-center justify-between mb-3">
 							<span className="font-bold tracking-widest uppercase text-emerald-600 dark:text-yellow-400 text-[11px] md:text-sm">
 								{typeof currentProduct.brand === 'object' ? currentProduct.brand?.name : (currentProduct.brand || 'Luxury Watch')}
@@ -374,12 +378,12 @@ const ProductDetailPage = () => {
 							</div>
 						</div>
 
-						<h1 className="font-luxury text-3xl md:text-4xl font-bold mt-1 leading-tight tracking-tight mb-4 text-gray-900 dark:text-white">{currentProduct.name}</h1>
+						<h1 className="hero-title text-4xl md:text-5xl font-bold mt-1 leading-tight tracking-tight mb-4 text-gray-900 dark:text-white">{currentProduct.name}</h1>
 
 						{/* Giá */}
 						<div className="mb-6">
 							<div className="flex items-baseline gap-4">
-								<span className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-500 dark:from-yellow-400 dark:to-[#D4AF37]">
+								<span className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-500 dark:from-luxury-gold dark:to-[#D4AF37]">
 									{currentProduct.price.toLocaleString("vi-VN")} ₫
 								</span>
 								{discount > 0 && (
@@ -392,7 +396,7 @@ const ProductDetailPage = () => {
 						</div>
 
 						{/* Thuộc tính chọn nhanh */}
-						<div className="mb-6 space-y-4 rounded-2xl border border-gray-100 dark:border-white/5 bg-gray-50/70 dark:bg-white/5 p-4 md:p-4.5">
+						<div className="mb-6 space-y-4 rounded-[1.75rem] border border-black/5 dark:border-white/5 bg-[linear-gradient(180deg,rgba(248,245,240,0.9),rgba(255,255,255,0.96))] dark:bg-white/5 p-4 md:p-5">
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								{hasColorOptions && (
 									<div>
@@ -404,7 +408,7 @@ const ProductDetailPage = () => {
 												<button
 													key={color}
 													onClick={() => setSelectedColor(color)}
-													className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${selectedColor === color ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37] ring-2 ring-[#D4AF37]/20 dark:border-[#D4AF37] dark:bg-[#D4AF37]/10 dark:text-[#D4AF37]' : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-[#D4AF37]'}`}
+													className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${selectedColor === color ? 'border-luxury-gold bg-luxury-gold/10 text-luxury-gold ring-2 ring-luxury-gold/20 dark:border-luxury-gold dark:bg-luxury-gold/10 dark:text-luxury-gold' : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-luxury-gold'}`}
 												>
 													{color}
 												</button>
@@ -423,7 +427,7 @@ const ProductDetailPage = () => {
 												<button
 													key={size}
 													onClick={() => setSelectedSize(size)}
-													className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${selectedSize === size ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37] ring-2 ring-[#D4AF37]/20 dark:border-[#D4AF37] dark:bg-[#D4AF37]/10 dark:text-[#D4AF37]' : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-[#D4AF37]'}`}
+													className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${selectedSize === size ? 'border-luxury-gold bg-luxury-gold/10 text-luxury-gold ring-2 ring-luxury-gold/20 dark:border-luxury-gold dark:bg-luxury-gold/10 dark:text-luxury-gold' : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-luxury-gold'}`}
 												>
 													{size}
 												</button>
@@ -490,7 +494,7 @@ const ProductDetailPage = () => {
 												disabled={isOut}
 												className={`
 													px-5 py-2.5 rounded-xl border text-sm font-semibold transition-all relative
-													${isSelected ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:border-yellow-400 dark:bg-yellow-400/10 dark:text-yellow-400 ring-1 ring-emerald-500 dark:ring-yellow-400' : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'}
+													${isSelected ? 'border-luxury-gold bg-luxury-gold/10 text-luxury-gold dark:border-luxury-gold dark:bg-luxury-gold/10 dark:text-luxury-gold ring-1 ring-luxury-gold/20' : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'}
 													${isOut ? 'opacity-50 cursor-not-allowed border-dashed bg-gray-50 dark:bg-gray-900/50' : ''}
 												`}
 											>
@@ -509,7 +513,7 @@ const ProductDetailPage = () => {
 							{activeStock > 0 ? (
 								<button
 									onClick={handleAddToCart}
-									className="w-full bg-emerald-600 hover:bg-emerald-700 dark:bg-yellow-400 dark:hover:bg-yellow-500 text-white dark:text-black font-bold uppercase tracking-widest py-4 rounded-2xl flex items-center justify-center gap-3 transition-colors duration-300 shadow-lg shadow-emerald-600/20 dark:shadow-yellow-400/20 text-sm md:text-base"
+									className="w-full bg-luxury-gold hover:bg-luxury-gold-light text-lux-dark font-bold uppercase tracking-widest py-4 rounded-2xl flex items-center justify-center gap-3 transition-colors duration-300 shadow-lg shadow-luxury-gold/20 text-sm md:text-base"
 								>
 									<ShoppingCart className="w-5 h-5" /> THÊM VÀO GIỎ HÀNG
 								</button>
@@ -547,21 +551,22 @@ const ProductDetailPage = () => {
 						{/* Trust Badges */}
 						<div className="grid grid-cols-2 md:grid-cols-4 gap-3 border-t border-gray-100 dark:border-white/5 pt-6">
 							<div className="flex flex-col items-center gap-2 text-center text-gray-500 rounded-xl bg-gray-50/70 dark:bg-white/5 py-3">
-								<ShieldCheck className="w-6 h-6 text-emerald-500" />
+								<ShieldCheck className="w-6 h-6 text-luxury-gold" />
 								<span className="text-xs font-medium">Bảo hành 5 năm</span>
 							</div>
 							<div className="flex flex-col items-center gap-2 text-center text-gray-500 rounded-xl bg-gray-50/70 dark:bg-white/5 py-3">
-								<Truck className="w-6 h-6 text-emerald-500" />
+								<Truck className="w-6 h-6 text-luxury-gold" />
 								<span className="text-xs font-medium">Freeship DHL</span>
 							</div>
 							<div className="flex flex-col items-center gap-2 text-center text-gray-500 rounded-xl bg-gray-50/70 dark:bg-white/5 py-3">
-								<ArrowLeftRight className="w-6 h-6 text-emerald-500" />
+								<ArrowLeftRight className="w-6 h-6 text-luxury-gold" />
 								<span className="text-xs font-medium">Đổi trả 30 ngày</span>
 							</div>
 							<div className="flex flex-col items-center gap-2 text-center text-gray-500 rounded-xl bg-gray-50/70 dark:bg-white/5 py-3">
-								<CreditCard className="w-6 h-6 text-emerald-500" />
+								<CreditCard className="w-6 h-6 text-luxury-gold" />
 								<span className="text-xs font-medium">Trả góp 0%</span>
 							</div>
+						</div>
 						</div>
 					</div>
 				</div>
@@ -612,8 +617,8 @@ const ProductDetailPage = () => {
 				{/* SẢN PHẨM TƯƠNG TỰ */}
 				<div className="mt-16 max-w-6xl mx-auto">
 					<div className="flex justify-between items-end mb-6 border-b border-gray-200 dark:border-gray-800 pb-3">
-						<h2 className="text-xl md:text-2xl font-bold font-sans">Khám Phá Thêm</h2>
-						<Link to="/catalog" className="text-xs md:text-sm font-bold uppercase tracking-widest text-emerald-600 dark:text-yellow-400 hover:underline">Xem tất cả</Link>
+						<h2 className="hero-title text-xl md:text-2xl font-bold">Khám Phá Thêm</h2>
+						<Link to="/catalog" className="text-xs md:text-sm font-bold uppercase tracking-widest text-luxury-gold hover:underline">Xem tất cả</Link>
 					</div>
 					{relatedProducts.length > 0 ? (
 						<div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">

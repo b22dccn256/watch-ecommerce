@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster, toast } from "react-hot-toast";
 
@@ -26,6 +26,7 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import BrandsPage from "./pages/BrandsPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -41,6 +42,8 @@ import { ShimmerStyle } from "./components/SkeletonLoaders";
 import { useCompareStore } from "./stores/useCompareStore";
 import { useSettingsStore } from "./stores/useSettingsStore";
 import { resources } from "./i18n";
+import { I18nContext } from "./contexts/I18nContext";
+import GlobalErrorBoundary from "./components/GlobalErrorBoundary";
 
 // Scroll to top khi navigate
 const ScrollToTop = () => {
@@ -51,15 +54,11 @@ const ScrollToTop = () => {
 	return null;
 };
 
-
-// Simple i18n/context provider
-export const I18nContext = createContext({ t: (k) => k, lang: 'vi', currency: 'vnd' });
-
 function App() {
 	const { user, checkAuth, checkingAuth } = useUserStore();
 	const [resendLoading, setResendLoading] = useState(false);
 	const { getCartItems } = useCartStore();
-	const { wishlist, fetchWishlist, mergeWishlist, syncFromLocalStorage } = useWishlistStore();
+	const { fetchWishlist, mergeWishlist, syncFromLocalStorage } = useWishlistStore();
 	const { theme } = useThemeStore();
 	const { isOpen, setIsOpen, compareItems } = useCompareStore();
 	const { lang, currency } = useSettingsStore();
@@ -114,6 +113,7 @@ function App() {
 	};
 
 	return (
+		<GlobalErrorBoundary>
 		<I18nContext.Provider value={{ t, lang, currency }}>
 			<div className={`min-h-screen relative theme-transition ${theme === 'dark' ? 'bg-luxury-dark text-white' : 'bg-white text-black'}`}>
 				<ShimmerStyle />
@@ -187,6 +187,7 @@ function App() {
 						<Route path='/payment/zalopay-return' element={<PaymentReturnPage method="zalopay" />} />
 						<Route path="/product/:id" element={<ProductDetailPage />} />
 						<Route path="/order-tracking/:trackingToken?" element={<OrderTrackingPage />} />
+						<Route path='*' element={<NotFoundPage />} />
 					</Routes>
 				</main>
 				<Footer />
@@ -224,6 +225,7 @@ function App() {
 			)}
 			</div>
 		</I18nContext.Provider>
+		</GlobalErrorBoundary>
 	);
 }
 

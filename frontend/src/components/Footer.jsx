@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
+import axios from "../lib/axios";
 
 // --- Sub-components for better maintainability ---
 
@@ -87,10 +88,10 @@ const Footer = () => {
 	};
 
 	return (
-		<footer className="bg-white dark:bg-luxury-dark border-t border-gray-200 dark:border-luxury-border font-sans">
+		<footer className="bg-[linear-gradient(180deg,#f8f5f0_0%,#ffffff_18%,#ffffff_100%)] dark:bg-[linear-gradient(180deg,#0f0f0f_0%,#111111_20%,#0b0b0b_100%)] border-t border-gray-200 dark:border-luxury-border font-sans">
 			{/* Top Bar: Highlight Features */}
 			<div className="border-b border-gray-100 dark:border-luxury-border">
-				<div className="max-w-screen-2xl mx-auto px-6 py-4 flex flex-wrap justify-center md:justify-between items-center gap-4">
+				<div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap justify-center md:justify-between items-center gap-4">
 					<div className="flex items-center gap-2 text-sm text-gray-600 dark:text-luxury-text-muted">
 						<Truck size={18} className="text-luxury-gold" />
 						<span>Giao hàng miễn phí cho đơn hàng từ 2.000.000đ</span>
@@ -103,7 +104,7 @@ const Footer = () => {
 			</div>
 
 			<motion.div
-				className="max-w-screen-2xl mx-auto px-6 py-16"
+				className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
 				initial="hidden"
 				whileInView="visible"
 				viewport={{ once: true }}
@@ -112,9 +113,14 @@ const Footer = () => {
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
 					{/* Brand Column */}
 					<div className="flex flex-col gap-6">
-						<div className="flex items-center gap-2">
-							<span className="text-2xl font-bold tracking-luxury text-luxury-gold">LUXURY</span>
-							<span className="text-2xl font-bold tracking-luxury text-black dark:text-white">WATCH</span>
+						<div className="flex items-center gap-3">
+							<div className="w-10 h-10 rounded-2xl bg-luxury-gold text-lux-dark flex items-center justify-center shadow-lg shadow-luxury-gold/20">
+								<ArrowRight size={16} />
+							</div>
+							<div>
+								<p className="hero-title text-xl font-bold tracking-[0.22em] text-luxury-gold">LUXURY</p>
+								<p className="text-[10px] uppercase tracking-[0.34em] text-gray-500 dark:text-luxury-text-muted mt-1">WATCH</p>
+							</div>
 						</div>
 						<p className="text-gray-600 dark:text-luxury-text-muted text-sm leading-relaxed max-w-xs">
 							Nơi hội tụ những tuyệt tác đồng hồ từ các thương hiệu hàng đầu thế giới.
@@ -122,7 +128,7 @@ const Footer = () => {
 						</p>
 						<div className="flex flex-wrap gap-2">
 							<TrustBadge Icon={CheckCircle} text="Chính hãng 100%" />
-							<TrustBadge Icon={ShieldCheck} text="Bảo hành 2 năm" />
+							<TrustBadge Icon={ShieldCheck} text="Bảo hành 5 năm" />
 						</div>
 						<div className="flex gap-3 mt-2">
 							<SocialIcon Icon={Facebook} href="https://www.facebook.com/HocvienPTIT" label="Facebook" />
@@ -181,7 +187,7 @@ const Footer = () => {
 							</div>
 						</FooterColumn>
 
-						<div className="flex flex-col gap-4">
+						<div className="flex flex-col gap-4 rounded-[1.5rem] border border-black/5 dark:border-luxury-border bg-white/80 dark:bg-white/5 p-5 shadow-sm">
 							<h4 className="text-gray-900 dark:text-luxury-text-light font-bold text-sm uppercase tracking-wider">
 								Nhận ưu đãi
 							</h4>
@@ -192,12 +198,12 @@ const Footer = () => {
 									onChange={(e) => setEmail(e.target.value)}
 									placeholder="Email của bạn..."
 									disabled={isLoading}
-									className="w-full bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border text-gray-900 dark:text-luxury-text-light placeholder-gray-400 dark:placeholder-luxury-text-muted px-6 py-3 rounded-full text-sm focus:ring-2 focus:ring-luxury-gold outline-none transition-all duration-300 disabled:opacity-50"
+									className="w-full bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border text-gray-900 dark:text-luxury-text-light placeholder-gray-400 dark:placeholder-luxury-text-muted px-6 py-3 rounded-2xl text-sm focus:ring-2 focus:ring-luxury-gold outline-none transition-all duration-300 disabled:opacity-50"
 								/>
 								<button
 									type="submit"
 									disabled={isLoading}
-									className="absolute right-1.5 top-1.5 bottom-1.5 bg-luxury-gold hover:bg-luxury-gold-light text-luxury-dark px-5 rounded-full transition-all duration-300 flex items-center justify-center disabled:opacity-50 group shadow-lg shadow-luxury-gold/20"
+										className="absolute right-1.5 top-1.5 bottom-1.5 bg-luxury-gold hover:bg-luxury-gold-light text-luxury-dark px-5 rounded-2xl transition-all duration-300 flex items-center justify-center disabled:opacity-50 group shadow-lg shadow-luxury-gold/20"
 									aria-label="Đăng ký nhận tin"
 								>
 									{isLoading ? (

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ShieldCheck, Zap, Ghost, RefreshCw, Terminal, CheckCircle2, AlertTriangle, Search } from "lucide-react";
+import { ShieldCheck, Zap, Ghost, RefreshCw, Terminal, CheckCircle2, AlertTriangle } from "lucide-react";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
 
@@ -22,7 +22,7 @@ const AITab = () => {
 			const res = await axios.post("/ai/automation/confirm-orders");
 			addLog(res.data.message, "success");
 			toast.success(res.data.message);
-		} catch (error) {
+		} catch {
 			addLog("Lỗi khi chạy AI xác nhận đơn hàng", "error");
 			toast.error("Lỗi AI xác nhận đơn hàng");
 		} finally {
@@ -37,7 +37,7 @@ const AITab = () => {
 			const res = await axios.post("/ai/automation/cleanup-users");
 			addLog(res.data.message, "success");
 			toast.success(res.data.message);
-		} catch (error) {
+		} catch {
 			addLog("Lỗi khi dọn dẹp tài khoản rác", "error");
 			toast.error("Lỗi xóa tài khoản rác");
 		} finally {

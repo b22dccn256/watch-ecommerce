@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-	Mail, Send, MousePointer2, ShoppingCart, Plus, Monitor, 
-	Smartphone, Eye, Power, Inbox, Users, BarChart3, 
-	FileCode, Settings, Trash2, CheckCircle2, Clock, 
-	ChevronRight, RefreshCcw, ExternalLink
+	Mail, Send, MousePointer2, Plus,
+	Eye, Power, Inbox, Users, BarChart3,
+	FileCode, Settings, Trash2, Clock,
+	ChevronRight
 } from "lucide-react";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { 
-	LineChart, Line, XAxis, YAxis, CartesianGrid, 
+	XAxis, YAxis, CartesianGrid,
 	Tooltip, ResponsiveContainer, AreaChart, Area 
 } from "recharts";
 
@@ -24,11 +24,7 @@ const EmailTab = () => {
 		stats: { openRate: 0, clickRate: 0, totalSent: 0 }
 	});
 
-	useEffect(() => {
-		fetchData();
-	}, [activeTab]);
-
-	const fetchData = async () => {
+	const fetchData = useCallback(async () => {
 		setLoading(true);
 		try {
 			if (activeTab === "inbox") {
@@ -49,7 +45,11 @@ const EmailTab = () => {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [activeTab]);
+
+	useEffect(() => {
+		fetchData();
+	}, [fetchData]);
 
 	const tabs = [
 		{ id: "dashboard", label: "Dashboard", icon: BarChart3 },
@@ -173,7 +173,7 @@ const DashboardView = () => {
 	);
 };
 
-const InboxView = ({ messages, loading }) => (
+const InboxView = ({ messages }) => (
 	<div className="bg-white dark:bg-luxury-dark border border-luxury-border rounded-3xl overflow-hidden">
 		<table className="w-full text-left">
 			<thead className="bg-gray-50 dark:bg-white/5 border-b border-luxury-border">
@@ -223,7 +223,7 @@ const InboxView = ({ messages, loading }) => (
 	</div>
 );
 
-const SubscribersView = ({ subscribers, loading }) => (
+const SubscribersView = ({ subscribers }) => (
 	<div className="space-y-4">
 		<div className="flex justify-between items-center text-sm font-bold text-gray-400 dark:text-luxury-text-muted px-2">
 			<span>{subscribers.length} Emails đăng ký</span>
@@ -255,7 +255,7 @@ const SubscribersView = ({ subscribers, loading }) => (
 	</div>
 );
 
-const CampaignsView = ({ campaigns, loading }) => (
+const CampaignsView = ({ campaigns }) => (
 	<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 		{campaigns.map((c) => (
 			<div key={c._id} className="bg-white dark:bg-luxury-dark border border-luxury-border rounded-3xl p-6 space-y-5 hover:border-luxury-gold/50 transition-all">

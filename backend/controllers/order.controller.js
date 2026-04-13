@@ -256,22 +256,6 @@ export const getOrderById = async (req, res) => {
     }
 };
 
-export const getPublicOrderById = async (req, res) => {
-    try {
-        const order = await Order.findById(req.params.id)
-            .populate("user", "name email")
-            .populate("products.product", "name price image");
-
-        if (!order) return res.status(404).json({ message: "Order not found" });
-
-        const populatedOrder = await ensureOrderProductsPopulated(order);
-        res.json(populatedOrder);
-    } catch (error) {
-        console.error("Error in getPublicOrderById:", error.message);
-        res.status(500).json({ message: "Server error" });
-    }
-};
-
 export const getMyOrders = async (req, res) => {
     try {
         const ordersFetched = await Order.find({ user: req.user._id })
@@ -465,7 +449,7 @@ export const getOrderTracking = async (req, res) => {
     try {
         const { trackingToken } = req.params;
         const order = await Order.findOne({ trackingToken })
-            .select("orderCode status estimatedDelivery carrier carrierTrackingNumber trackingEvents shippingDetails products createdAt")
+            .select("trackingToken orderCode status paymentMethod paymentStatus totalAmount estimatedDelivery carrier carrierTrackingNumber trackingEvents shippingDetails products createdAt")
             .populate("products.product", "name image price");
 
         if (!order) {

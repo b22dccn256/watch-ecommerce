@@ -1,9 +1,9 @@
-import { Minus, Plus, Trash, Bookmark, AlertTriangle, PencilLine, X, Check } from "lucide-react";
+import { Minus, Plus, Trash, Bookmark, AlertTriangle, PencilLine, X } from "lucide-react";
 import { useCartStore } from "../stores/useCartStore";
 import { useWishlistStore } from "../stores/useWishlistStore";
 import { useUserStore } from "../stores/useUserStore";
-import { useState, useEffect, useContext } from "react";
-import { I18nContext } from "../App";
+import { useState, useEffect, useContext, useMemo } from "react";
+import { I18nContext } from "../contexts/I18nContext";
 import { formatCurrency } from "../i18n/format";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,9 +20,9 @@ const CartItem = ({ item }) => {
 	const [isSavingAttributes, setIsSavingAttributes] = useState(false);
 
 	const isSelected = selectedItems.includes(getUniqueId(item));
-	const availableColors = Array.isArray(item.colors) ? item.colors : [];
-	const availableSizes = Array.isArray(item.sizes) ? item.sizes : [];
-	const availableWristOptions = Array.isArray(item.wristSizeOptions) ? item.wristSizeOptions : [];
+	const availableColors = useMemo(() => (Array.isArray(item.colors) ? item.colors : []), [item.colors]);
+	const availableSizes = useMemo(() => (Array.isArray(item.sizes) ? item.sizes : []), [item.sizes]);
+	const availableWristOptions = useMemo(() => (Array.isArray(item.wristSizeOptions) ? item.wristSizeOptions : []), [item.wristSizeOptions]);
 	const hasWristOptions = availableWristOptions.length > 0;
 	const isFreeWristSizing = !hasWristOptions && !!item.specs?.strap?.material?.toLowerCase().match(/steel|metal|titanium|thép|kim loại/);
 
@@ -78,7 +78,7 @@ const CartItem = ({ item }) => {
 		}
 	};
 
-	const { t, lang, currency } = useContext(I18nContext);
+	const { lang, currency } = useContext(I18nContext);
 	return (
 		<>
 		<div className='rounded-lg border p-4 shadow-sm border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 md:p-6'>

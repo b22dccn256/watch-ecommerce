@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
-	Users, Shield, Zap, AlertTriangle,
-	ShieldCheck, ShieldAlert, Key, Globe, Eye, Clock,
-	MoreVertical, Trash2, UserCog, X, ChevronDown
+	Users, Shield, Zap,
+	ShieldCheck, ShieldAlert, Key, Eye, Clock,
+	MoreVertical, Trash2, UserCog, X
 } from "lucide-react";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
@@ -25,25 +25,83 @@ const UsersTab = () => {
 	const [selectedUser, setSelectedUser] = useState(null);
 	const [showLogDetail, setShowLogDetail] = useState(null); // log object for modal
 	const menuRef = useRef(null);
+	const searchRef = useRef(search);
 
 	useEffect(() => {
-		fetchUsers();
-	}, [pagination.currentPage, roleFilter]);
+		searchRef.current = search;
+	}, [search]);
+
+	const fetchUsers = useCallback(async (page, role, keyword) => {
+		setLoading(true);
+		try {
+			const res = await axios.get("/auth/users", {
+				params: {
+					page,
+					limit: 10,
+					search: keyword,
+					role,
+				},
+			});
+			setUsers(Array.isArray(res.data?.users) ? res.data.users : []);
+			setPagination({
+				currentPage: res.data?.pagination?.currentPage ?? 1,
+				totalPages: res.data?.pagination?.totalPages ?? 1,
+				totalUsers: res.data?.pagination?.totalUsers ?? 0,
+				limit: res.data?.pagination?.limit ?? 10,
+			});
+		} catch (error) {
+			console.error("Failed to fetch users", error);
+			toast.error("Không thể tải danh sách người dùng");
+			setUsers([]);
+			setPagination({ currentPage: 1, totalPages: 1, totalUsers: 0, limit: 10 });
+		} finally {
+			setLoading(false);
+		}
+	}, []);
+
+	const fetchAuditLogs = useCallback(async (page) => {
+		setLogsLoading(true);
+		try {
+			const res = await axios.get("/auth/audit-logs", {
+				params: {
+					page,
+					limit: 10,
+				},
+			});
+			setAuditLogs(Array.isArray(res.data?.logs) ? res.data.logs : []);
+			setLogsPagination({
+				currentPage: res.data?.pagination?.currentPage ?? 1,
+				totalPages: res.data?.pagination?.totalPages ?? 1,
+				totalLogs: res.data?.pagination?.totalLogs ?? 0,
+				limit: res.data?.pagination?.limit ?? 10,
+			});
+		} catch (error) {
+			console.error("Failed to fetch audit logs", error);
+			setAuditLogs([]);
+			setLogsPagination({ currentPage: 1, totalPages: 1, totalLogs: 0, limit: 10 });
+		} finally {
+			setLogsLoading(false);
+		}
+	}, []);
+
+	useEffect(() => {
+		fetchUsers(pagination.currentPage, roleFilter, searchRef.current);
+	}, [pagination.currentPage, roleFilter, fetchUsers]);
 
 	useEffect(() => {
 		const delayDebounceFn = setTimeout(() => {
 			if (pagination.currentPage !== 1) {
 				setPagination(prev => ({ ...prev, currentPage: 1 }));
 			} else {
-				fetchUsers();
+				fetchUsers(1, roleFilter, search);
 			}
 		}, 500);
 		return () => clearTimeout(delayDebounceFn);
-	}, [search]);
+	}, [search, pagination.currentPage, roleFilter, fetchUsers]);
 
 	useEffect(() => {
-		fetchAuditLogs();
-	}, [logsPagination.currentPage]);
+		fetchAuditLogs(logsPagination.currentPage);
+	}, [logsPagination.currentPage, fetchAuditLogs]);
 
 	useEffect(() => {
 		const handleClickOutside = (e) => {
@@ -55,50 +113,11 @@ const UsersTab = () => {
 		return () => document.removeEventListener("mousedown", handleClickOutside);
 	}, []);
 
-	const fetchUsers = async () => {
-		setLoading(true);
-		try {
-			const res = await axios.get("/auth/users", {
-				params: {
-					page: pagination.currentPage,
-					limit: 10,
-					search,
-					role: roleFilter
-				}
-			});
-			setUsers(res.data.users);
-			setPagination(res.data.pagination);
-		} catch (error) {
-			console.error("Failed to fetch users", error);
-			toast.error("Không thể tải danh sách người dùng");
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	const fetchAuditLogs = async () => {
-		setLogsLoading(true);
-		try {
-			const res = await axios.get("/auth/audit-logs", {
-				params: {
-					page: logsPagination.currentPage,
-					limit: 10
-				}
-			});
-			setAuditLogs(res.data.logs);
-			setLogsPagination(res.data.pagination);
-		} catch (error) {
-			console.error("Failed to fetch audit logs", error);
-		} finally {
-			setLogsLoading(false);
-		}
-	};
-
 	const handleDeleteUser = async (userId, userName) => {
 		if (!window.confirm(`Bạn có chắc muốn xóa tài khoản "${userName}"?`)) return;
 		try {
 			await axios.delete(`/auth/users/${userId}`);
-			fetchUsers();
+			fetchUsers(pagination.currentPage, roleFilter, searchRef.current);
 			setOpenMenu(null);
 			toast.success(`Đã xóa tài khoản ${userName}`);
 		} catch (error) {
@@ -109,7 +128,7 @@ const UsersTab = () => {
 	const handleUpdateRole = async (userId, newRole, userName) => {
 		try {
 			await axios.patch(`/auth/users/${userId}/role`, { role: newRole });
-			fetchUsers();
+			fetchUsers(pagination.currentPage, roleFilter, searchRef.current);
 			setOpenMenu(null);
 			toast.success(`Đã đổi vai trò ${userName} thành ${newRole}`);
 		} catch (error) {

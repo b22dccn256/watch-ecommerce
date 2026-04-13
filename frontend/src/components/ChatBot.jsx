@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Bot, Sparkles, Sun, Moon } from "lucide-react";
+import { MessageCircle, X, Send, Bot, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import axios from "../lib/axios";
-import { useThemeStore } from "../stores/useThemeStore";
 
 const QUICK_QUESTIONS = [
     "Rolex Submariner giá bao nhiêu?",
@@ -11,25 +11,198 @@ const QUICK_QUESTIONS = [
     "Đồng hồ Patek Philippe nào phổ biến nhất?",
 ];
 
-const getBotResponse = (text) => {
-    const lower = text.toLowerCase();
-    if (lower.includes("rolex")) return "Rolex là thương hiệu đồng hồ Thụy Sĩ danh tiếng, thành lập năm 1905. Các dòng nổi tiếng: Submariner (từ 280tr), Daytona (từ 750tr), Day-Date (từ 900tr). Tất cả chính hãng 100% với bảo hành 5 năm.";
-    if (lower.includes("patek") || lower.includes("philippe")) return "Patek Philippe là thương hiệu đồng hồ cao cấp nhất thế giới. Các dòng hàng đầu: Nautilus 5711 (2.1 tỷ), Aquanaut 5168 (1.8 tỷ), Calatrava 5227 (1.2 tỷ). Đây là những tài sản đầu tư giá trị cao.";
-    if (lower.includes("audemars") || lower.includes("royal oak")) return "Audemars Piguet Royal Oak là biểu tượng đồng hồ thể thao sang trọng. Royal Oak 15500ST (1.85 tỷ), Royal Oak Offshore (từ 2 tỷ). Thiết kế hexagonal bezel đặc trưng không thể nhầm lẫn.";
-    if (lower.includes("omega") || lower.includes("speedmaster") || lower.includes("seamaster")) return "Omega nổi tiếng với Seamaster (từ 120tr) và Speedmaster Moonwatch (từ 185tr). Đây là thương hiệu đồng hồ chính thức của NASA và James Bond 007.";
-    if (lower.includes("giá") || lower.includes("bao nhiêu") || lower.includes("price")) return "Chúng tôi có đồng hồ từ 50 triệu đến 5 tỷ đồng. Bạn có thể dùng bộ lọc giá trên trang tìm kiếm để tìm sản phẩm phù hợp ngân sách. Tất cả giá đã bao gồm VAT và bảo hành chính hãng.";
-    if (lower.includes("bảo hành") || lower.includes("warranty")) return "Tất cả sản phẩm được bảo hành chính hãng 5 năm tại Luxury Watch. Bảo hành bao gồm: sửa chữa miễn phí, thay thế linh kiện chính hãng, và vệ sinh định kỳ. Mang theo phiếu bảo hành khi đến trung tâm.";
-    if (lower.includes("vận chuyển") || lower.includes("giao hàng") || lower.includes("ship") || lower.includes("delivery")) return "🚚 Giao hàng hỏa tốc: 2-4 giờ (nội thành TP.HCM & Hà Nội) - 150.000đ\n📦 Giao hàng tiêu chuẩn: 1-2 ngày làm việc - MIỄN PHÍ\n🔒 Tất cả đơn hàng đều được bảo hiểm vận chuyển toàn phần.";
-    if (lower.includes("thanh toán") || lower.includes("payment")) return "Chúng tôi chấp nhận: Thẻ tín dụng/ghi nợ (Visa, Mastercard), VNPay, MoMo, Chuyển khoản ngân hàng và COD (thanh toán khi nhận hàng, áp dụng cho đơn dưới 50tr).";
-    if (lower.includes("trả hàng") || lower.includes("đổi trả") || lower.includes("return")) return "Chính sách đổi trả trong vòng 30 ngày kể từ ngày nhận hàng. Điều kiện: sản phẩm còn nguyên tem, hộp, chưa có dấu hiệu sử dụng. Liên hệ hotline 1900 6789 để được hỗ trợ.";
-    if (lower.includes("xin chào") || lower.includes("hello") || lower.includes("hi") || lower.includes("chào")) return "Xin chào! Rất vui được phục vụ bạn tại Luxury Watch 🌟 Tôi có thể tư vấn về: thương hiệu đồng hồ, lựa chọn theo ngân sách, so sánh sản phẩm, hoặc chính sách mua hàng. Bạn cần hỗ trợ gì?";
-    if (lower.includes("so sánh") || lower.includes("nào tốt hơn")) return "Để so sánh đồng hồ, bạn có thể xem xét: 1) Rolex (độ bền cao, giá trị ổn định), 2) Patek Philippe (đỉnh cao kỹ nghệ, tăng giá theo thời gian), 3) Audemars Piguet (thiết kế độc đáo, hiếm có). Hãy cho tôi biết ngân sách để tư vấn chính xác hơn!";
-    if (lower.includes("mua") || lower.includes("đặt hàng") || lower.includes("order")) return "Để đặt hàng: 1) Tìm sản phẩm trong danh mục, 2) Nhấn 'Thêm vào giỏ hàng', 3) Thanh toán với nhiều phương thức. Hoặc gọi trực tiếp hotline 1900 6789 để được tư vấn và đặt hàng cùng nhân viên.";
-    return "Cảm ơn bạn đã liên hệ Luxury Watch! Tôi có thể tư vấn về thương hiệu, giá cả, bảo hành, vận chuyển và thanh toán. Hoặc liên hệ trực tiếp:\n📞 Hotline: 1900 6789\n📧 Email: contact@luxurywatch.vn\n🏪 Showroom: 123 Đường Lê Lợi, Q.1, TP.HCM";
+const stripAccents = (value) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const normalizeChatText = (value) => stripAccents(String(value || "")).toLowerCase().replace(/,/g, ".").replace(/\s+/g, " ").trim();
+const includesAny = (text, keywords) => keywords.some((keyword) => text.includes(keyword));
+
+const resolveChatIntent = (text) => {
+    const normalized = normalizeChatText(text);
+
+    if (includesAny(normalized, ["co tay nho", "co tay manh", "co tay gay", "tay nho", "tay manh", "tay gay", "small wrist", "wrist nho", "wrist small"])) {
+        return { type: "wrist" };
+    }
+
+    if (includesAny(normalized, ["top 5", "top5", "top 10", "ban chay nhat", "ban chay", "luot mua", "mua nhieu", "best seller", "best-selling", "rate cao", "danh gia cao", "rating cao", "tot nhat"])) {
+        return { type: includesAny(normalized, ["rate cao", "danh gia cao", "rating cao", "tot nhat"]) ? "topRated" : "topSelling" };
+    }
+
+    if (includesAny(normalized, ["so sanh", "nao tot hon", "nen chon", "nen mua", "compare"])) {
+        return { type: "compare" };
+    }
+
+    if (includesAny(normalized, ["huong dan size", "size guide", "do co tay", "do size", "chon size"])) {
+        return { type: "sizeGuide" };
+    }
+
+    if (includesAny(normalized, ["theo doi don", "tracking", "ma theo doi", "tra don", "don hang cua toi"])) {
+        return { type: "tracking" };
+    }
+
+    if (includesAny(normalized, ["bao hanh", "warranty"])) return { type: "warranty" };
+    if (includesAny(normalized, ["giao hang", "van chuyen", "ship", "delivery"])) return { type: "shipping" };
+    if (includesAny(normalized, ["thanh toan", "payment", "cod", "vnpay", "momo", "zalopay"])) return { type: "payment" };
+    if (includesAny(normalized, ["doi tra", "tra hang", "return", "hoan tien"])) return { type: "returns" };
+    if (includesAny(normalized, ["lien he", "hotline", "contact", "email", "ho tro"])) return { type: "contact" };
+    if (includesAny(normalized, ["dang nhap", "dang ky", "verify email", "xac thuc email", "ho so", "profile"])) return { type: "account" };
+
+    const budgetMatch = normalized.match(/(\d+(?:\.\d+)?)\s*(trieu|tr|trieu|m)/);
+    if (budgetMatch && includesAny(normalized, ["gia", "ngan sach", "duoi", "toi da", "khong qua", "khoang", "tam", "price", "budget"])) {
+        return { type: "budget" };
+    }
+
+    return { type: "fallback" };
+};
+
+const parseBudgetQuery = (text) => {
+    const normalized = normalizeChatText(text);
+    const match = normalized.match(/(\d+(?:\.\d+)?)\s*(trieu|tr|trieu|m)/);
+    if (!match) return null;
+
+    const amount = Number(match[1]);
+    if (!Number.isFinite(amount)) return null;
+
+    const maxPrice = amount * 1000000;
+
+    if (includesAny(normalized, ["duoi", "toi da", "khong qua", "under", "less than", "<=", "≤"])) {
+        return { maxPrice };
+    }
+
+    const rangeMatch = normalized.match(/(?:tu|from)\s*(\d+(?:\.\d+)?)\s*(trieu|tr|trieu|m)\s*(?:den|toi|to|-)\s*(\d+(?:\.\d+)?)\s*(trieu|tr|trieu|m)/);
+    if (rangeMatch) {
+        return {
+            minPrice: Number(rangeMatch[1]) * 1000000,
+            maxPrice: Number(rangeMatch[3]) * 1000000,
+        };
+    }
+
+    if (includesAny(normalized, ["khoang", "tam", "around", "about", "~"])) {
+        return {
+            minPrice: maxPrice * 0.85,
+            maxPrice: maxPrice * 1.15,
+        };
+    }
+
+    return null;
+};
+
+const formatBudgetProducts = (products, budgetText) => {
+    if (!products.length) {
+        return `Hiện tại chưa có sản phẩm phù hợp ${budgetText}. Bạn muốn mình lọc theo mức giá gần nhất hoặc theo thương hiệu không?`;
+    }
+
+    const lines = products.slice(0, 5).map((product) => {
+        const brandName = product.brand?.name || product.brand || "Không rõ";
+        const price = Number(product.price || 0).toLocaleString("vi-VN");
+        return `* **${brandName} ${product.name}**: ${price}đ${product.stock > 0 ? ` - Còn ${product.stock} chiếc` : " - Hết hàng"}`;
+    });
+
+    return `Mình tìm được các mẫu phù hợp ${budgetText}:\n\n${lines.join("\n")}\n\nBạn muốn mình lọc tiếp theo thương hiệu, kiểu máy hay màu dây không?`;
+};
+
+const buildAction = (label, to, description = "") => ({ label, to, description });
+
+const INTENT_RESPONSE = {
+    wrist: {
+        content: "Với cổ tay nhỏ, mình ưu tiên mặt 28-38mm, case mỏng, dây thanh và lug-to-lug ngắn để đeo cân đối. Mình sẽ lọc vài mẫu hợp dáng tay ngay đây:",
+        action: buildAction("Mở Size Guide", "/size-guide", "Đo cổ tay chính xác hơn"),
+    },
+    compare: {
+        content: "Nếu bạn muốn so sánh mẫu, mình có thể gợi ý theo 3 hướng: độ bền, giá trị giữ giá và độ hợp dáng tay. Bạn cũng có thể mở catalog để đối chiếu trực tiếp.",
+        action: buildAction("Mở Catalog", "/catalog", "So sánh sản phẩm trực tiếp"),
+    },
+    sizeGuide: {
+        content: "Mở size guide sẽ giúp bạn đo cổ tay và chọn đường kính mặt đồng hồ phù hợp nhất.",
+        action: buildAction("Mở Size Guide", "/size-guide", "Công cụ đo size"),
+    },
+    tracking: {
+        content: "Bạn có thể dán mã theo dõi để xem trạng thái đơn hàng theo thời gian thực.",
+        action: buildAction("Theo dõi đơn", "/order-tracking/search", "Nhập mã tracking"),
+    },
+    warranty: {
+        content: "Tất cả sản phẩm được bảo hành chính hãng 5 năm. Bảo hành gồm sửa chữa miễn phí, thay thế linh kiện chính hãng và vệ sinh định kỳ.",
+        action: buildAction("Xem chính sách bảo hành", "/warranty", "Chi tiết bảo hành"),
+    },
+    shipping: {
+        content: "Giao hàng hỏa tốc 2-4 giờ nội thành, toàn quốc 1-2 ngày làm việc, miễn phí với đa số đơn hàng.",
+        action: buildAction("Xem chính sách giao hàng", "/delivery-policy", "Thời gian và phí ship"),
+    },
+    payment: {
+        content: "Chúng tôi hỗ trợ thẻ quốc tế, VNPay, MoMo, chuyển khoản ngân hàng và COD tùy đơn hàng.",
+        action: buildAction("Xem thanh toán", "/checkout", "Xem luồng thanh toán"),
+    },
+    returns: {
+        content: "Đổi trả trong vòng 30 ngày nếu sản phẩm còn nguyên tem, hộp và chưa qua sử dụng.",
+        action: buildAction("Xem đổi trả", "/terms", "Chính sách đổi trả"),
+    },
+    contact: {
+        content: "Bạn có thể liên hệ hotline 1900 6789 hoặc email contact@luxurywatch.vn để được hỗ trợ nhanh.",
+        action: buildAction("Liên hệ", "/contact", "Mở trang liên hệ"),
+    },
+    account: {
+        content: "Nếu bạn cần đăng nhập, đăng ký hay xác thực email, mình có thể dẫn bạn sang đúng màn hình ngay.",
+        action: buildAction("Mở hồ sơ", "/profile", "Trang tài khoản"),
+    },
+    fallback: {
+        content: "Mình có thể tư vấn theo ngân sách, size cổ tay, top sản phẩm bán chạy hoặc đánh giá cao. Nếu bạn muốn, hãy nói ngắn hơn một chút để mình bắt đúng nhu cầu.",
+        action: buildAction("Mở Catalog", "/catalog", "Xem toàn bộ sản phẩm"),
+    },
+};
+
+const formatRankedProducts = (products, heading) => {
+    if (!products.length) {
+        return {
+            content: `Hiện tại mình chưa tìm thấy sản phẩm phù hợp cho mục ${heading}.`,
+            products: [],
+        };
+    }
+
+    return {
+        content: `Đây là ${heading} mà mình tìm được từ catalog:`,
+        products: products.slice(0, 5).map((product) => ({
+            id: product._id,
+            name: product.name,
+            brand: product.brand?.name || product.brand || "Không rõ",
+            price: Number(product.price || 0),
+            stock: product.stock || 0,
+            averageRating: Number(product.averageRating || 0),
+            salesCount: Number(product.salesCount || 0),
+            image: product.image,
+        })),
+    };
+};
+
+const parseDiameterMm = (product) => {
+    const diameter = product?.specs?.case?.diameter || product?.specs?.diameter || "";
+    const match = String(diameter).match(/(\d+(?:\.\d+)?)/);
+    return match ? Number(match[1]) : null;
+};
+
+const formatWristProducts = (products) => {
+    if (!products.length) {
+        return {
+            content: "Hiện tại mình chưa tìm thấy mẫu phù hợp cho cổ tay nhỏ. Bạn có thể mở Size Guide để đo cổ tay chính xác hơn.",
+            products: [],
+        };
+    }
+
+    return {
+        content: "Với cổ tay nhỏ, mình ưu tiên mặt 28-38mm, dây mảnh và case mỏng để đeo cân đối. Đây là vài mẫu phù hợp từ catalog:",
+        products: products.slice(0, 5).map((product) => ({
+            id: product._id,
+            name: product.name,
+            brand: product.brand?.name || product.brand || "Không rõ",
+            price: Number(product.price || 0),
+            stock: product.stock || 0,
+            averageRating: Number(product.averageRating || 0),
+            salesCount: Number(product.salesCount || 0),
+            image: product.image,
+            diameter: parseDiameterMm(product),
+        })),
+    };
 };
 
 const ChatBot = () => {
-    const { theme, toggleTheme } = useThemeStore();
+    const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
         {
@@ -58,14 +231,141 @@ const ChatBot = () => {
         setIsTyping(true);
 
         try {
+            const intent = resolveChatIntent(msgText);
+
+            if (intent.type === "tracking" || intent.type === "warranty" || intent.type === "shipping" || intent.type === "payment" || intent.type === "returns" || intent.type === "contact" || intent.type === "account" || intent.type === "sizeGuide" || intent.type === "compare" || intent.type === "fallback") {
+                const response = INTENT_RESPONSE[intent.type] || INTENT_RESPONSE.fallback;
+                const botMsg = {
+                    id: Date.now() + 1,
+                    role: "bot",
+                    content: response.content,
+                    actions: response.action ? [response.action] : [],
+                };
+                setMessages((prev) => [...prev, botMsg]);
+                return;
+            }
+
+            if (intent.type === "wrist") {
+                const res = await axios.get("/products", {
+                    params: {
+                        page: 1,
+                        limit: 100,
+                        sort: "best_selling",
+                    },
+                });
+
+                const allProducts = Array.isArray(res.data?.products) ? res.data.products : [];
+                const wristProducts = allProducts
+                    .map((product) => ({ ...product, _diameterMm: parseDiameterMm(product) }))
+                    .filter((product) => product._diameterMm == null || product._diameterMm <= 38)
+                    .sort((left, right) => {
+                        const leftDiameter = left._diameterMm ?? 999;
+                        const rightDiameter = right._diameterMm ?? 999;
+                        if (leftDiameter !== rightDiameter) return leftDiameter - rightDiameter;
+                        const ratingDiff = Number(right.averageRating || 0) - Number(left.averageRating || 0);
+                        if (ratingDiff !== 0) return ratingDiff;
+                        return Number(right.salesCount || 0) - Number(left.salesCount || 0);
+                    });
+
+                const summary = formatWristProducts(wristProducts);
+                const botMsg = {
+                    id: Date.now() + 1,
+                    role: "bot",
+                    content: summary.content,
+                    products: summary.products,
+                };
+                setMessages((prev) => [...prev, botMsg]);
+                return;
+            }
+
+            if (intent.type === "topSelling" || intent.type === "topRated") {
+                const res = await axios.get("/products", {
+                    params: {
+                        page: 1,
+                        limit: 100,
+                        sort: intent.type === "topSelling" ? "best_selling" : "newest",
+                    },
+                });
+
+                const allProducts = Array.isArray(res.data?.products) ? res.data.products : [];
+                const rankedProducts = [...allProducts]
+                    .sort((left, right) => {
+                        if (intent.type === "topRated") {
+                            const ratingDiff = (Number(right.averageRating || 0) - Number(left.averageRating || 0));
+                            if (ratingDiff !== 0) return ratingDiff;
+                            return Number(right.salesCount || 0) - Number(left.salesCount || 0);
+                        }
+
+                        const salesDiff = Number(right.salesCount || 0) - Number(left.salesCount || 0);
+                        if (salesDiff !== 0) return salesDiff;
+                        return Number(right.averageRating || 0) - Number(left.averageRating || 0);
+                    })
+                    .slice(0, 5);
+
+                const summary = formatRankedProducts(
+                    rankedProducts,
+                    intent.type === "topRated" ? "5 sản phẩm đánh giá cao nhất" : "5 sản phẩm bán chạy nhất"
+                );
+
+                const botMsg = {
+                    id: Date.now() + 1,
+                    role: "bot",
+                    content: summary.content,
+                    products: summary.products,
+                    actions: [buildAction("Mở Catalog", "/catalog", "Xem toàn bộ catalog")],
+                };
+                setMessages((prev) => [...prev, botMsg]);
+                return;
+            }
+
+            const budget = parseBudgetQuery(msgText);
+            if (budget) {
+                const res = await axios.get("/products", {
+                    params: {
+                        page: 1,
+                        sort: "price_asc",
+                        limit: 5,
+                        ...(budget.minPrice != null ? { minPrice: Math.floor(budget.minPrice) } : {}),
+                        ...(budget.maxPrice != null ? { maxPrice: Math.floor(budget.maxPrice) } : {}),
+                    },
+                });
+
+                const products = Array.isArray(res.data?.products) ? res.data.products : [];
+                const budgetText = budget.minPrice != null && budget.maxPrice != null
+                    ? `trong khoảng ${Math.round(budget.minPrice / 1000000)} đến ${Math.round(budget.maxPrice / 1000000)} triệu`
+                    : budget.maxPrice != null
+                        ? `dưới ${Math.round(budget.maxPrice / 1000000)} triệu`
+                        : `ở mức giá này`;
+
+                const botMsg = {
+                    id: Date.now() + 1,
+                    role: "bot",
+                    content: formatBudgetProducts(products, budgetText),
+                    products: products.slice(0, 5).map((product) => ({
+                        id: product._id,
+                        name: product.name,
+                        brand: product.brand?.name || product.brand || "Không rõ",
+                        price: Number(product.price || 0),
+                        stock: product.stock || 0,
+                        averageRating: Number(product.averageRating || 0),
+                        salesCount: Number(product.salesCount || 0),
+                        image: product.image,
+                    })),
+                    actions: [buildAction("Mở Catalog", "/catalog", "Xem thêm sản phẩm")],
+                };
+                setMessages((prev) => [...prev, botMsg]);
+                return;
+            }
+
             const res = await axios.post("/ai/chat", { message: msgText });
             const botMsg = {
                 id: Date.now() + 1,
                 role: "bot",
                 content: res.data.response,
+                actions: [buildAction("Mở Catalog", "/catalog", "Xem toàn bộ sản phẩm")],
             };
             setMessages((prev) => [...prev, botMsg]);
-        } catch (error) {
+        } catch {
             const errorMsg = {
                 id: Date.now() + 1,
                 role: "bot",
@@ -129,6 +429,58 @@ const ChatBot = () => {
                                             }`}
                                     >
                                         {msg.content}
+                                        {msg.actions?.length > 0 && (
+                                            <div className="mt-3 flex flex-wrap gap-2">
+                                                {msg.actions.map((action) => (
+                                                    <button
+                                                        key={action.label}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            navigate(action.to);
+                                                            setIsOpen(false);
+                                                        }}
+                                                        className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-black/20 px-3 py-1.5 text-[11px] font-semibold text-yellow-200 hover:bg-yellow-400/10 hover:border-yellow-400/50 transition"
+                                                    >
+                                                        {action.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {msg.products?.length > 0 && (
+                                            <div className="mt-3 space-y-2">
+                                                {msg.products.map((product) => (
+                                                    <button
+                                                        key={product.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            navigate(`/product/${product.id}`);
+                                                            setIsOpen(false);
+                                                        }}
+                                                        className="w-full text-left rounded-2xl border border-yellow-400/20 bg-black/20 hover:bg-yellow-400/10 hover:border-yellow-400/40 transition p-3"
+                                                    >
+                                                        <div className="flex gap-3">
+                                                            <div className="w-12 h-12 rounded-xl bg-[#1f1f13] overflow-hidden flex-shrink-0 border border-white/5">
+                                                                {product.image ? (
+                                                                    <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-500">No img</div>
+                                                                )}
+                                                            </div>
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="font-semibold text-yellow-300 truncate">{product.brand} {product.name}</div>
+                                                                <div className="text-[11px] text-gray-400 mt-0.5">
+                                                                    {Number(product.price || 0).toLocaleString("vi-VN")}đ · {product.stock > 0 ? `Còn ${product.stock}` : "Hết hàng"}
+                                                                </div>
+                                                                <div className="text-[10px] text-gray-500 mt-1">
+                                                                    ⭐ {Number(product.averageRating || 0).toFixed(1)} · Mua {Number(product.salesCount || 0).toLocaleString("vi-VN")}
+                                                                    {product.diameter ? ` · ${product.diameter}mm` : ""}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))}

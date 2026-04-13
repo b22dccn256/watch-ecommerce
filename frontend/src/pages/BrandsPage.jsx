@@ -1,4 +1,4 @@
-import { ArrowRight, Award, Crown, Gem, Globe2, ShieldCheck, Sparkles, Star } from "lucide-react";
+import { ArrowRight, Crown, Gem, Globe2, ShieldCheck, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const BRAND_HOUSES = [

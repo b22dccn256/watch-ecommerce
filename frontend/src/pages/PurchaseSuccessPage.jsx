@@ -1,10 +1,11 @@
-import { ArrowRight, CheckCircle, HandHeart, MapPin, Package, CreditCard, Wallet, QrCode, Copy } from "lucide-react";
+import { ArrowRight, CheckCircle, MapPin, Package, CreditCard, Wallet, QrCode, Copy } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useCartStore } from "../stores/useCartStore";
 import axios from "../lib/axios";
 import Confetti from "react-confetti";
+import { SkeletonPageShell } from "../components/SkeletonLoaders";
 
 const PurchaseSuccessPage = () => {
 	const [isProcessing, setIsProcessing] = useState(true);
@@ -51,21 +52,36 @@ const PurchaseSuccessPage = () => {
 	};
 
 	useEffect(() => {
-		const fetchOrderDetails = async (id) => {
+		const fallbackOrder = (id) => ({
+			_id: id,
+			orderCode: id,
+			totalAmount: 0,
+			shippingDetails: {},
+			products: [],
+			paymentMethod: "stripe",
+			paymentStatus: "paid",
+			status: "pending",
+		});
+
+		const fetchOrderDetailsByToken = async (trackingToken, fallbackId = "") => {
 			try {
-				const res = await axios.get(`/orders/public/${id}`);
+				const res = await axios.get(`/orders/track/${trackingToken}`);
 				setOrder(res.data);
 			} catch (error) {
 				console.error("Error fetching order:", error);
-				setOrder({
-					_id: id,
-					orderCode: id,
-					totalAmount: 0,
-					shippingDetails: {},
-					products: [],
-					paymentMethod: "stripe",
-					paymentStatus: "paid",
-				});
+				setOrder(fallbackOrder(fallbackId || trackingToken));
+			} finally {
+				setIsProcessing(false);
+			}
+		};
+
+		const fetchOrderDetailsById = async (id) => {
+			try {
+				const res = await axios.get(`/orders/${id}`);
+				setOrder(res.data);
+			} catch (error) {
+				console.error("Error fetching order by id:", error);
+				setOrder(fallbackOrder(id));
 			} finally {
 				setIsProcessing(false);
 			}
@@ -77,8 +93,10 @@ const PurchaseSuccessPage = () => {
 					sessionId,
 				});
 				clearSelectedCart();
-				if (res.data.orderId) {
-					fetchOrderDetails(res.data.orderId);
+				if (res.data.trackingToken) {
+					fetchOrderDetailsByToken(res.data.trackingToken, res.data.orderId);
+				} else if (res.data.orderId) {
+					fetchOrderDetailsById(res.data.orderId);
 				} else {
 					setIsProcessing(false);
 					setError("Order ID not found from payment session.");
@@ -92,29 +110,26 @@ const PurchaseSuccessPage = () => {
 
 		const sessionId = new URLSearchParams(window.location.search).get("session_id");
 		const orderIdParam = new URLSearchParams(window.location.search).get("order_id");
+		const trackingTokenParam = new URLSearchParams(window.location.search).get("tracking_token");
 
 		if (sessionId) {
 			handleCheckoutSuccess(sessionId);
-		} else if (orderIdParam) {
-			// COD hoặc QR — clear selected cart nếu chưa clear và fetch chi tiết đơn hàng
+		} else if (trackingTokenParam) {
+			// COD flow (or future flows): use safe public token-based tracking endpoint
 			clearSelectedCart();
-			fetchOrderDetails(orderIdParam);
+			fetchOrderDetailsByToken(trackingTokenParam, orderIdParam || trackingTokenParam);
+		} else if (orderIdParam) {
+			// Fallback for legacy URLs that only contain order_id
+			clearSelectedCart();
+			fetchOrderDetailsById(orderIdParam);
 		} else {
 			setIsProcessing(false);
 			setError("Không tìm thấy mã phiên giao dịch hoặc mã đơn hàng.");
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [clearSelectedCart]);
 
 	if (isProcessing) {
-		return (
-			<div className='min-h-screen flex items-center justify-center'>
-				<div className="flex flex-col items-center">
-					<div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-					<h2 className="text-xl text-emerald-400 font-medium animate-pulse">Đang xử lý đơn hàng...</h2>
-				</div>
-			</div>
-		);
+		return <SkeletonPageShell rows={4} />;
 	}
 
 	if (error) {

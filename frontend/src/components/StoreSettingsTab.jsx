@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { Save, Layout, Type, Grid, MessageSquareText } from "lucide-react";
 import { useStorefrontStore } from "../stores/useStorefrontStore";
 

@@ -2,6 +2,87 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import Product from "../models/product.model.js";
 import CampaignService from "../services/campaign.service.js";
 
+const formatVnd = (value) => new Intl.NumberFormat("vi-VN").format(Math.round(value));
+
+const getProductBrandName = (brand) => {
+    if (!brand) return "Không rõ";
+    if (typeof brand === "string") return brand;
+    return brand.name || brand.title || "Không rõ";
+};
+
+const parseBudgetRange = (message) => {
+    const normalized = message.toLowerCase().replace(/,/g, ".").replace(/\s+/g, " ");
+    const currencyMatch = normalized.match(/(\d+(?:\.\d+)?)\s*(triệu|tr|trieu|trệu|m)/);
+
+    if (!currencyMatch) return null;
+
+    const amount = Number(currencyMatch[1]);
+    if (!Number.isFinite(amount)) return null;
+
+    const valueInVnd = amount * 1_000_000;
+    const hasBelowIntent = normalized.includes("dưới") || normalized.includes("tối đa") || normalized.includes("không quá") || normalized.includes("under") || normalized.includes("less than") || normalized.includes("<=") || normalized.includes("≤");
+    const hasRangeIntent = normalized.includes("từ") && (normalized.includes("đến") || normalized.includes("tới") || normalized.includes("-") || normalized.includes(" to "));
+    const hasApproxIntent = normalized.includes("khoảng") || normalized.includes("tầm") || normalized.includes("around") || normalized.includes("about") || normalized.includes("~");
+
+    if (hasBelowIntent) {
+        return { maxPrice: valueInVnd, label: `dưới ${currencyMatch[1]} triệu` };
+    }
+
+    const rangeMatch = normalized.match(/(?:từ|from)\s*(\d+(?:\.\d+)?)\s*(triệu|tr|trieu|trệu|m)\s*(?:đến|tới|to|-)\s*(\d+(?:\.\d+)?)\s*(triệu|tr|trieu|trệu|m)/);
+    if (rangeMatch) {
+        return {
+            minPrice: Number(rangeMatch[1]) * 1_000_000,
+            maxPrice: Number(rangeMatch[3]) * 1_000_000,
+            label: `từ ${rangeMatch[1]} đến ${rangeMatch[3]} triệu`,
+        };
+    }
+
+    if (hasApproxIntent || hasRangeIntent) {
+        return {
+            minPrice: valueInVnd * 0.85,
+            maxPrice: valueInVnd * 1.15,
+            label: `khoảng ${currencyMatch[1]} triệu`,
+        };
+    }
+
+    return null;
+};
+
+const fetchBudgetMatches = async (budget) => {
+    const rawProducts = await Product.find({ deletedAt: null, isActive: true })
+        .select("name brand type price stock description customAttributes specs category")
+        .sort({ salesCount: -1 })
+        .limit(100)
+        .lean();
+
+    if (!rawProducts.length) return [];
+
+    const products = await CampaignService.applyCampaignToProducts(rawProducts);
+    return products
+        .filter((product) => {
+            const price = Number(product.price || 0);
+            if (!price) return false;
+            if (budget.minPrice != null && price < budget.minPrice) return false;
+            if (budget.maxPrice != null && price > budget.maxPrice) return false;
+            return true;
+        })
+        .sort((a, b) => (a.price || 0) - (b.price || 0));
+};
+
+const formatBudgetResponse = (matches, budget) => {
+    if (!matches.length) {
+        const limitText = budget.maxPrice ? `${formatVnd(budget.maxPrice)}đ` : `${formatVnd(budget.minPrice)}đ trở lên`;
+        return `Hiện tại chưa có sản phẩm phù hợp ${budget.label}. Bạn có thể xem Catalog để lọc theo mức giá gần nhất quanh ${limitText}.`;
+    }
+
+    const topMatches = matches.slice(0, 5).map((product) => {
+        const brandName = getProductBrandName(product.brand);
+        return `- ${brandName} ${product.name}: ${formatVnd(product.price)}đ${product.stock > 0 ? `, còn ${product.stock} chiếc` : ", hết hàng"}`;
+    });
+
+    return `Mình tìm được ${matches.length} sản phẩm phù hợp ${budget.label}:\n${topMatches.join("\n")}\n\nBạn muốn mình lọc tiếp theo kiểu máy, thương hiệu hay màu dây không?`;
+};
+
 // --- Lấy danh sách sản phẩm từ DB để inject vào prompt ---
 const buildProductContext = async () => {
     try {
@@ -74,6 +155,12 @@ export const chatWithAI = async (req, res) => {
             return res.status(400).json({ message: "Vui lòng cung cấp nội dung tin nhắn" });
         }
 
+        const budget = parseBudgetRange(message);
+        if (budget) {
+            const matches = await fetchBudgetMatches(budget);
+            return res.json({ response: formatBudgetResponse(matches, budget) });
+        }
+
         // Lấy danh sách sản phẩm thực từ DB
         const productContext = await buildProductContext();
         const fullSystemPrompt = BASE_SYSTEM_PROMPT + productContext;
@@ -85,10 +172,25 @@ export const chatWithAI = async (req, res) => {
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemma-3-1b-it" });
+        const model = genAI.getGenerativeModel({
+            model: "gemma-3-1b-it",
+            generationConfig: {
+                temperature: 0.2,
+                topP: 0.8,
+                topK: 20,
+                maxOutputTokens: 220,
+            },
+        });
 
         const result = await model.generateContent(`${fullSystemPrompt}\n\nKhách hàng: ${message}\nTrợ lý:`);
-        const responseText = result.response.text();
+        const responseText = result.response.text().trim();
+
+        if (/\b(dưới|tối đa|không quá|khoảng|tầm|from|under|less than)\b/i.test(message)) {
+            const budgetMatches = await fetchBudgetMatches(parseBudgetRange(message) || {});
+            if (budgetMatches.length > 0) {
+                return res.json({ response: formatBudgetResponse(budgetMatches, parseBudgetRange(message)) });
+            }
+        }
 
         res.json({ response: responseText });
     } catch (error) {

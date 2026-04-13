@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { Plus, Image as ImageIcon, Trash2, Power } from "lucide-react";
-import { motion } from "framer-motion";
 import { useCampaignStore } from "../stores/useCampaignStore";
 import { useProductStore } from "../stores/useProductStore";
 import { toast } from "react-hot-toast";
 import axios from "../lib/axios";
 
 const MarketingTab = () => {
-    const { campaigns, loading, fetchCampaigns, createCampaign, toggleCampaignStatus, deleteCampaign } = useCampaignStore();
+    const { campaigns, fetchCampaigns, createCampaign, toggleCampaignStatus, deleteCampaign } = useCampaignStore();
     const { products } = useProductStore();
     const bannerInputRef = useRef(null);
 
@@ -96,7 +95,7 @@ const MarketingTab = () => {
                 });
                 setBanners(prev => [res.data, ...prev]);
                 toast.success("Banner đã được tải lên thành công!", { id: toastId });
-            } catch (error) {
+            } catch {
                 toast.error("Lỗi khi tải banner lên", { id: toastId });
             }
         };
@@ -110,7 +109,7 @@ const MarketingTab = () => {
             await axios.delete(`/banners/${id}`);
             setBanners(prev => prev.filter(b => b._id !== id));
             toast.success("Đã xóa banner");
-        } catch (error) {
+        } catch {
             toast.error("Không thể xóa banner");
         }
     };
@@ -119,7 +118,7 @@ const MarketingTab = () => {
         try {
             const res = await axios.patch(`/banners/${id}/toggle`);
             setBanners(prev => prev.map(b => b._id === id ? res.data : b));
-        } catch (error) {
+        } catch {
             toast.error("Lỗi khi cập nhật trạng thái banner");
         }
     };

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useOrderStore } from "../stores/useOrderStore";
 import {
@@ -8,18 +8,16 @@ import {
     MapPin,
     CheckCircle2,
     Printer,
-    Calendar,
     Clock,
     ChevronRight,
     Search,
     AlertCircle,
     User,
     Phone,
-    Mail,
-    CreditCard
+    Mail
 } from "lucide-react";
 import { motion } from "framer-motion";
-import LoadingSpinner from "../components/LoadingSpinner";
+import { SkeletonPageShell } from "../components/SkeletonLoaders";
 
 const OrderTrackingPage = () => {
     const { trackingToken } = useParams();
@@ -51,7 +49,7 @@ const OrderTrackingPage = () => {
         window.print();
     };
 
-    if (loading) return <div className="h-screen flex items-center justify-center bg-[#0d0d0d]"><LoadingSpinner /></div>;
+    if (loading) return <SkeletonPageShell rows={6} />;
 
     if (error) return (
         <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center p-4">

@@ -134,6 +134,8 @@ const AdminPage = () => {
 
 			{/* ── Main Content ─────────────────────── */}
 			<div className="flex-1 flex flex-col min-w-0">
+				<div className="pt-6" />
+
 				{/* Top bar (mobile hamburger + page title) */}
 				<header className="sticky top-0 z-30 bg-white dark:bg-luxury-darker border-b border-gray-100 dark:border-luxury-border px-5 py-3 flex items-center gap-4 md:hidden">
 					<button onClick={() => setSidebarOpen(true)} className="p-2 rounded-lg text-gray-500 hover:text-luxury-gold hover:bg-gray-100 dark:hover:bg-luxury-border transition">
@@ -159,7 +161,7 @@ const AdminPage = () => {
 				</header>
 
 				{/* Tab content */}
-				<main className="flex-1 p-6 md:p-8 overflow-auto">
+				<main className="flex-1 p-4 md:p-8 overflow-auto space-y-6">
 					<motion.div
 						key={activeTab}
 						initial={{ opacity: 0, y: 12 }}

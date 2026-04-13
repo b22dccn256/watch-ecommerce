@@ -35,4 +35,8 @@ export const useCompareStore = create((set, get) => ({
 		localStorage.removeItem("watch_compare_items");
 		set({ compareItems: [] });
 	},
+	resetStore: () => {
+		localStorage.removeItem("watch_compare_items");
+		set({ compareItems: [], isOpen: false });
+	},
 }));

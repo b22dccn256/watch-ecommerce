@@ -1,10 +1,10 @@
-import { X, Trash2, ShieldCheck, Scale, Check } from "lucide-react";
+import { X, Trash2, ShieldCheck, Scale } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCompareStore } from "../stores/useCompareStore";
 import { useCartStore } from "../stores/useCartStore";
 import { useNavigate } from "react-router-dom";
-import React, { useContext } from "react";
-import { I18nContext } from "../App";
+import { useContext } from "react";
+import { I18nContext } from "../contexts/I18nContext";
 import { formatCurrency } from "../i18n/format";
 
 
@@ -12,7 +12,7 @@ const CompareModal = ({ isOpen, onClose }) => {
 	const { compareItems, removeFromCompare, clearCompare } = useCompareStore();
 	const { addToCart } = useCartStore();
 	const navigate = useNavigate();
-	const { t, lang, currency } = useContext(I18nContext);
+	const { lang, currency } = useContext(I18nContext);
 
 	if (!isOpen) return null;
 

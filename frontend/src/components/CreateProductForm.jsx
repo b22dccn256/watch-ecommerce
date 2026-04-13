@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { motion } from "framer-motion";
-import { PlusCircle, Upload, Loader, ImagePlus, Tag, DollarSign, X, Plus } from "lucide-react";
+import { PlusCircle, Loader, ImagePlus, Tag, DollarSign, X, Plus } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
 
 const categories = [

@@ -5,7 +5,6 @@ import {
 	Package, FileSpreadsheet, PlusCircle, X, CheckSquare, Square, Trash2, Megaphone, Eye, AlertTriangle
 } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
-import { useCampaignStore } from "../stores/useCampaignStore";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
 import CreateProductForm from "./CreateProductForm";
@@ -19,6 +18,43 @@ const StockBadge = ({ stock }) => {
 	if (stock <= 5) return <span className="stock-badge-low px-2 py-0.5 rounded-full text-xs font-semibold">Còn {stock}</span>;
 	return <span className="stock-badge-high px-2 py-0.5 rounded-full text-xs font-semibold">Còn {stock}</span>;
 };
+
+const CampaignPickerModal = ({ selectedIds, onClose, onSuccess }) => (
+	<motion.div
+		initial={{ opacity: 0 }}
+		animate={{ opacity: 1 }}
+		exit={{ opacity: 0 }}
+		className="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4"
+		onClick={onClose}
+	>
+		<motion.div
+			initial={{ opacity: 0, y: 20, scale: 0.96 }}
+			animate={{ opacity: 1, y: 0, scale: 1 }}
+			exit={{ opacity: 0, y: 10, scale: 0.98 }}
+			className="w-full max-w-md rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl p-6"
+			onClick={(e) => e.stopPropagation()}
+		>
+			<h3 className="text-lg font-bold text-gray-900 dark:text-white">Gán chiến dịch</h3>
+			<p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+				Đã chọn {selectedIds.length} sản phẩm. Tính năng chọn chiến dịch đang được hoàn thiện.
+			</p>
+			<div className="mt-5 flex justify-end gap-3">
+				<button
+					onClick={onClose}
+					className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-200"
+				>
+					Đóng
+				</button>
+				<button
+					onClick={onSuccess}
+					className="px-4 py-2 rounded-lg bg-luxury-gold text-luxury-dark font-semibold"
+				>
+					Xác nhận
+				</button>
+			</div>
+		</motion.div>
+	</motion.div>
+);
 
 const ProductsList = () => {
 	const { deleteProduct, toggleFeaturedProduct, products, fetchAllProducts } = useProductStore();
@@ -276,7 +312,7 @@ const ProductsList = () => {
 									<td colSpan="9" className="text-center py-16 text-gray-400 dark:text-gray-500">
 										<Package className="w-12 h-12 mx-auto mb-3 opacity-20" />
 										<p className="font-medium">{search ? `Không tìm thấy "${search}"` : "Chưa có sản phẩm nào"}</p>
-										<p className="text-xs mt-1 opacity-60">Thêm sản phẩm đầu tiên bằng nút "Thêm mới"</p>
+										<p className="text-xs mt-1 opacity-60">Thêm sản phẩm đầu tiên bằng nút &quot;Thêm mới&quot;</p>
 									</td>
 								</tr>
 							) : (

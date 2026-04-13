@@ -3,25 +3,26 @@ import { motion } from "framer-motion";
 import { useCartStore } from "../stores/useCartStore";
 import { Link, useNavigate } from "react-router-dom";
 import { MoveRight } from "lucide-react";
-import React, { useContext } from "react";
-import { I18nContext } from "../App";
+import { useContext } from "react";
+import { I18nContext } from "../contexts/I18nContext";
 import { formatCurrency } from "../i18n/format";
 
 
 const OrderSummary = () => {
-  const { total, subtotal, shippingFee, coupon, isCouponApplied, selectedItems } = useCartStore();
+	const { total, subtotal, shippingFee, coupon, isCouponApplied, selectedItems } = useCartStore();
   const { t, lang, currency } = useContext(I18nContext);
   const savings = subtotal - (total - shippingFee);
   const navigate = useNavigate();
 
 	return (
 		<motion.div
-			className='space-y-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm sm:p-6'
+			className='space-y-4 rounded-[1.5rem] border border-black/5 dark:border-luxury-border bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,245,240,0.96))] dark:bg-[linear-gradient(180deg,rgba(22,22,22,0.96),rgba(12,12,12,0.98))] p-4 shadow-[0_24px_80px_-45px_rgba(0,0,0,0.4)] sm:p-6'
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.5 }}
 		>
-			<p className='text-xl font-semibold text-emerald-600 dark:text-emerald-400'>{t('order_summary')}</p>
+			<p className='hero-kicker text-[10px] font-semibold text-luxury-gold'>Checkout summary</p>
+			<p className='hero-title text-2xl font-semibold text-gray-900 dark:text-white'>{t('order_summary')}</p>
 
 			<div className='space-y-4'>
 				<div className='space-y-2'>
@@ -33,31 +34,31 @@ const OrderSummary = () => {
 					{savings > 0 && (
 						<dl className='flex items-center justify-between gap-4'>
 							   <dt className='text-base font-normal text-gray-600 dark:text-gray-300'>{t('savings')}</dt>
-							   <dd className='text-base font-medium text-emerald-400'>-{formatCurrency(savings, currency, lang)}</dd>
+							   <dd className='text-base font-medium text-luxury-gold'>-{formatCurrency(savings, currency, lang)}</dd>
 						</dl>
 					)}
 
 					{coupon && isCouponApplied && (
 						<dl className='flex items-center justify-between gap-4'>
 							<dt className='text-base font-normal text-gray-600 dark:text-gray-300'>Mã giảm giá ({coupon.code})</dt>
-							<dd className='text-base font-medium text-emerald-400'>-{coupon.discountPercentage}%</dd>
+							<dd className='text-base font-medium text-luxury-gold'>-{coupon.discountPercentage}%</dd>
 						</dl>
 					)}
 					<dl className='flex items-center justify-between gap-4'>
 						   <dt className='text-base font-normal text-gray-600 dark:text-gray-300'>Phí vận chuyển</dt>
-						   <dd className={`text-base font-medium ${shippingFee === 0 ? 'text-emerald-400' : 'text-gray-900 dark:text-white'}`}>
+						   <dd className={`text-base font-medium ${shippingFee === 0 ? 'text-luxury-gold' : 'text-gray-900 dark:text-white'}`}>
 							   {shippingFee === 0 ? (lang === 'vi' ? 'Miễn phí' : 'Free') : formatCurrency(shippingFee, currency, lang)}
 						   </dd>
 					</dl>
 
 					<dl className='flex items-center justify-between gap-4 border-t border-gray-200 dark:border-gray-600 pt-2'>
 						   <dt className='text-base font-bold text-gray-900 dark:text-white'>{t('total')}</dt>
-						   <dd className='text-base font-bold text-emerald-400'>{formatCurrency(total, currency, lang)}</dd>
+						   <dd className='text-base font-bold text-luxury-gold'>{formatCurrency(total, currency, lang)}</dd>
 					</dl>
 				</div>
 
 				<motion.button
-					className='flex w-full items-center justify-center rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed'
+					className='btn-primary flex w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-luxury-gold/30 disabled:opacity-50 disabled:cursor-not-allowed'
 					whileHover={selectedItems.length > 0 ? { scale: 1.05 } : {}}
 					whileTap={selectedItems.length > 0 ? { scale: 0.95 } : {}}
 					onClick={() => selectedItems.length > 0 && navigate('/checkout')}
@@ -70,7 +71,7 @@ const OrderSummary = () => {
 					<span className='text-sm font-normal text-gray-400'>hoặc</span>
 					<Link
 						to='/'
-						className='inline-flex items-center gap-2 text-sm font-medium text-emerald-400 underline hover:text-emerald-300 hover:no-underline'
+						className='inline-flex items-center gap-2 text-sm font-medium text-luxury-gold underline hover:text-luxury-gold-light hover:no-underline'
 					>
 						Tiếp tục mua sắm
 						<MoveRight size={16} />

@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Eye, XCircle, Download, ShieldCheck, AlertCircle, Search, Printer, Save, DollarSign, PenTool, StickyNote, ChevronLeft, ChevronRight } from "lucide-react";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
-import { useUserStore } from "../stores/useUserStore";
 
 const STATUS_OPTIONS = ["pending", "confirmed", "processing", "shipped", "delivered", "returned", "cancelled"];
 const STATUS_COLORS = {
@@ -29,7 +28,6 @@ const STATUS_LABELS = {
 const FILTER_TABS = ["Tất cả", ...STATUS_OPTIONS];
 
 const OrdersTab = () => {
-    const { user } = useUserStore();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
@@ -289,7 +287,19 @@ const OrdersTab = () => {
                         </thead>
                         <tbody className='divide-y divide-gray-100 dark:divide-luxury-border/30'>
                             {loading ? (
-                                <tr><td colSpan="5" className="text-center py-8 text-luxury-gold">Đang tải...</td></tr>
+                                Array.from({ length: 5 }).map((_, index) => (
+                                    <tr key={index} className="animate-pulse">
+                                        <td className="px-6 py-5" colSpan="5">
+                                            <div className="grid grid-cols-5 gap-4 items-center">
+                                                <div className="h-4 w-24 rounded bg-gray-200 dark:bg-luxury-border/60" />
+                                                <div className="h-4 w-32 rounded bg-gray-200 dark:bg-luxury-border/60" />
+                                                <div className="h-4 w-28 rounded bg-gray-200 dark:bg-luxury-border/60" />
+                                                <div className="h-6 w-24 rounded-full bg-gray-200 dark:bg-luxury-border/60" />
+                                                <div className="h-8 w-8 rounded-lg bg-gray-200 dark:bg-luxury-border/60 ml-auto" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
                             ) : orders.length === 0 ? (
                                 <tr><td colSpan="5" className="text-center py-8 text-luxury-text-muted">Không tìm thấy đơn hàng.</td></tr>
                             ) : orders.map((order) => (
@@ -303,12 +313,19 @@ const OrdersTab = () => {
                                         {order.totalAmount?.toLocaleString("vi-VN")} ₫
                                     </td>
                                     <td className='px-6 py-6'>
-                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${STATUS_COLORS[order.status]}`}>
-                                            {STATUS_LABELS[order.status]?.toUpperCase()}
-                                        </span>
+                                        <select
+                                            value={order.status}
+                                            onChange={(e) => updateOrderStatus(order._id, e.target.value)}
+                                            disabled={updatingStatus}
+                                            className={`min-w-[150px] px-3 py-2 rounded-full text-[10px] font-bold border transition ${STATUS_COLORS[order.status]} bg-transparent disabled:opacity-50`}
+                                        >
+                                            {STATUS_OPTIONS.map((status) => (
+                                                <option key={status} value={status}>{STATUS_LABELS[status]}</option>
+                                            ))}
+                                        </select>
                                     </td>
                                     <td className='px-6 py-6 text-right'>
-                                        <button onClick={() => openOrderDetails(order)} className='p-2 bg-gray-50 dark:bg-luxury-dark border rounded-lg text-gray-400 hover:text-luxury-gold transition-colors'>
+                                        <button onClick={() => openOrderDetails(order)} className='p-2 bg-gray-50 dark:bg-luxury-dark border rounded-lg text-gray-400 hover:text-luxury-gold transition-colors' title="Xem chi tiết / chỉnh sửa nhanh">
                                             <Eye className='w-4 h-4' />
                                         </button>
                                     </td>

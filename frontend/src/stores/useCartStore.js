@@ -367,4 +367,17 @@ export const useCartStore = create((set, get) => ({
 		total += shippingFee;
 		set({ subtotal, total, shippingFee });
 	},
+	resetStore: () => {
+		localStorage.removeItem("watch_cart");
+		localStorage.removeItem("watch_selected_items");
+		set({
+			cart: [],
+			selectedItems: [],
+			coupon: null,
+			total: 0,
+			subtotal: 0,
+			shippingFee: 0,
+			isCouponApplied: false,
+		});
+	},
 }));

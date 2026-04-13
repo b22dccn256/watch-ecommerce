@@ -3,25 +3,26 @@ import { ShieldCheck, Clock, Award } from "lucide-react";
 
 const AboutPage = () => {
     return (
-        <div className="min-h-screen bg-[#0f0c08] text-white pt-24 pb-20">
+        <div className="min-h-screen bg-[linear-gradient(180deg,#f8f5f0_0%,#ffffff_42%,#0f0c08_42%,#0f0c08_100%)] text-white pt-24 pb-20">
             {/* HERO SECTION */}
-            <section className="relative w-full h-[60vh] flex items-center justify-center overflow-hidden mb-20">
+            <section className="relative w-full min-h-[70vh] flex items-center justify-center overflow-hidden mb-20">
                 <div className="absolute inset-0 z-0">
                     <img
                         src="https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=2574&auto=format&fit=crop"
                         alt="Watchmaking Workshop"
-                        className="w-full h-full object-cover opacity-30"
+                        className="w-full h-full object-cover opacity-35"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0f0c08] via-transparent to-transparent"></div>
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(212,175,55,0.15),transparent_35%),linear-gradient(180deg,rgba(15,12,8,0.15)_0%,rgba(15,12,8,0.7)_60%,rgba(15,12,8,0.98)_100%)]"></div>
                 </div>
 
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
-                    className="relative z-10 text-center px-4 max-w-3xl"
+                    className="relative z-10 text-center px-4 max-w-4xl"
                 >
-                    <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6 text-white">
+                    <p className="hero-kicker text-xs md:text-sm font-semibold text-luxury-gold mb-4">Brand story</p>
+                    <h1 className="hero-title text-5xl md:text-7xl font-bold tracking-tight mb-6 text-white">
                         Di Sản Của <span className="text-[#D4AF37]">Thời Gian</span>
                     </h1>
                     <p className="text-lg md:text-xl text-gray-300 leading-relaxed">
@@ -32,15 +33,15 @@ const AboutPage = () => {
                     </p>
 
                     <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
-                        <div className="rounded-2xl border border-[#D4AF37]/20 bg-white/5 backdrop-blur-sm px-4 py-5">
+                        <div className="rounded-2xl border border-white/10 bg-white/[0.08] backdrop-blur-md px-4 py-5 shadow-[0_16px_50px_-30px_rgba(0,0,0,0.4)]">
                             <p className="text-3xl font-bold text-[#D4AF37] mb-1">10+</p>
                             <p className="text-sm text-gray-300">Năm định hình phong cách đồng hồ cao cấp</p>
                         </div>
-                        <div className="rounded-2xl border border-[#D4AF37]/20 bg-white/5 backdrop-blur-sm px-4 py-5">
+                        <div className="rounded-2xl border border-white/10 bg-white/[0.08] backdrop-blur-md px-4 py-5 shadow-[0_16px_50px_-30px_rgba(0,0,0,0.4)]">
                             <p className="text-3xl font-bold text-[#D4AF37] mb-1">100%</p>
                             <p className="text-sm text-gray-300">Chính hãng, kiểm định và minh bạch nguồn gốc</p>
                         </div>
-                        <div className="rounded-2xl border border-[#D4AF37]/20 bg-white/5 backdrop-blur-sm px-4 py-5">
+                        <div className="rounded-2xl border border-white/10 bg-white/[0.08] backdrop-blur-md px-4 py-5 shadow-[0_16px_50px_-30px_rgba(0,0,0,0.4)]">
                             <p className="text-3xl font-bold text-[#D4AF37] mb-1">5★</p>
                             <p className="text-sm text-gray-300">Tư vấn, bảo hành và chăm sóc sau bán hàng</p>
                         </div>
@@ -58,7 +59,8 @@ const AboutPage = () => {
                         transition={{ duration: 0.8 }}
                         className="flex-1"
                     >
-                        <h2 className="text-3xl font-bold mb-6 text-[#D4AF37]">Câu Chuyện Của Chúng Tôi</h2>
+                        <p className="hero-kicker text-xs font-semibold text-luxury-gold mb-3">The atelier</p>
+                        <h2 className="hero-title text-3xl md:text-4xl font-bold mb-6 text-[#D4AF37]">Câu Chuyện Của Chúng Tôi</h2>
                         <p className="text-gray-400 leading-loose mb-6">
                             Được thành lập từ niềm đam mê mãnh liệt với các cỗ máy cơ khí vi mô, Luxury Watch bắt đầu hành trình của mình như một boutique nhỏ bé dành cho những nhà sưu tầm tại Hà Nội.
                         </p>
@@ -77,7 +79,7 @@ const AboutPage = () => {
                         transition={{ duration: 0.8 }}
                         className="flex-1"
                     >
-                        <div className="relative rounded-2xl overflow-hidden border border-[#D4AF37]/30 shadow-2xl">
+                        <div className="relative rounded-[2rem] overflow-hidden border border-[#D4AF37]/30 shadow-2xl">
                             <img
                                 src="https://images.unsplash.com/photo-1508004680771-708b02aabdc0?q=80&w=2070&auto=format&fit=crop"
                                 alt="Watch Craftsmanship"
@@ -89,10 +91,11 @@ const AboutPage = () => {
             </section>
 
             {/* WHY US (3 PILLARS) */}
-            <section className="bg-zinc-900/50 py-24 border-y border-zinc-900">
+            <section className="bg-zinc-900/60 py-24 border-y border-zinc-900">
                 <div className="max-w-screen-xl mx-auto px-6">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl font-bold text-white mb-4">Giá Trị Cốt Lõi</h2>
+                        <p className="hero-kicker text-xs font-semibold text-luxury-gold mb-3">Why us</p>
+                        <h2 className="hero-title text-3xl font-bold text-white mb-4">Giá Trị Cốt Lõi</h2>
                         <p className="text-gray-500">Những cam kết tạo nên uy tín của Luxury Watch</p>
                     </div>
 

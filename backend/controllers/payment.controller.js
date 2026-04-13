@@ -200,7 +200,11 @@ export const createCheckoutSession = async (req, res) => {
 			sessionResponse = { url, totalAmount: totalAmount };
 		} else if (paymentMethod === "cod") {
 			newOrder.status = "confirmed"; // COD được confirm luôn (có thể chờ phone verification sau tuỳ quy trình)
-			sessionResponse = { url: `${process.env.CLIENT_URL}/purchase-success?order_id=${newOrder._id}`, totalAmount: totalAmount, isCod: true };
+			sessionResponse = {
+				url: `${process.env.CLIENT_URL}/purchase-success?order_id=${newOrder._id}&tracking_token=${newOrder.trackingToken}`,
+				totalAmount: totalAmount,
+				isCod: true,
+			};
 		}
 
 		await newOrder.save({ session: sessionOpts });
@@ -276,6 +280,7 @@ export const checkoutSuccess = async (req, res) => {
 				success: true,
 				message: "Trạng thái được tự động xử lý bởi webhook, chỉ trả về để frontend tiếp tục.",
 				orderId: order._id,
+				trackingToken: order.trackingToken,
 			});
 		} else {
 			res.status(400).json({ success: false, message: "Payment not completed" });
@@ -283,6 +288,68 @@ export const checkoutSuccess = async (req, res) => {
 	} catch (error) {
 		console.error("Error processing successful checkout:", error);
 		res.status(500).json({ message: "Error processing successful checkout", error: error.message });
+	}
+};
+
+export const verifyPaymentReturn = async (req, res) => {
+	try {
+		const { method, query = {} } = req.body || {};
+
+		if (!method || !["vnpay", "momo", "zalopay"].includes(method)) {
+			return res.status(400).json({ verified: false, status: "failed", message: "Phương thức thanh toán không hợp lệ" });
+		}
+
+		let orderCode = "";
+		if (method === "vnpay") {
+			orderCode = query.vnp_TxnRef || "";
+			if (!verifyVnpaySignature(query)) {
+				return res.status(400).json({ verified: false, status: "failed", message: "Chữ ký VNPay không hợp lệ" });
+			}
+		} else if (method === "momo") {
+			orderCode = query.orderId || "";
+		} else if (method === "zalopay") {
+			const apptransid = query.apptransid || "";
+			orderCode = apptransid ? apptransid.split("_")[1] || "" : "";
+		}
+
+		if (!orderCode) {
+			return res.status(400).json({ verified: false, status: "failed", message: "Không tìm thấy mã đơn hàng từ cổng thanh toán" });
+		}
+
+		const order = await Order.findOne({ orderCode }).select("orderCode paymentStatus status trackingToken");
+		if (!order) {
+			return res.status(404).json({ verified: false, status: "failed", message: "Không tìm thấy đơn hàng" });
+		}
+
+		if (order.paymentStatus === "paid") {
+			return res.json({
+				verified: true,
+				status: "success",
+				message: "Thanh toán đã được xác nhận từ hệ thống",
+				orderCode: order.orderCode,
+				trackingToken: order.trackingToken,
+			});
+		}
+
+		if (order.paymentStatus === "failed" || order.paymentStatus === "cancelled") {
+			return res.json({
+				verified: true,
+				status: "failed",
+				message: "Giao dịch không thành công",
+				orderCode: order.orderCode,
+			});
+		}
+
+		return res.json({
+			verified: true,
+			status: "pending",
+			message: "Thanh toán đang được đối soát, vui lòng chờ trong giây lát",
+			orderCode: order.orderCode,
+			trackingToken: order.trackingToken,
+		});
+	} catch (error) {
+		console.error("Error in verifyPaymentReturn:", error.message);
+		res.status(500).json({ verified: false, status: "failed", message: "Server error" });
 	}
 };
 

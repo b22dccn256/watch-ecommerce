@@ -1,5 +1,6 @@
 import { redis } from "../lib/redis.js";
 import User from "../models/user.model.js";
+import AuditLog from "../models/auditLog.model.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../lib/email.js";
 import bcrypt from "bcryptjs";
@@ -529,8 +530,71 @@ export const resendVerificationEmail = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
 	try {
-		const users = await User.find({}).select("-password").sort({ createdAt: -1 });
-		res.json(users);
+		const page = Math.max(parseInt(req.query.page) || 1, 1);
+		const limit = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 100);
+		const search = (req.query.search || "").trim();
+		const role = (req.query.role || "").trim();
+
+		const query = {};
+		if (role) {
+			query.role = role;
+		}
+		if (search) {
+			query.$or = [
+				{ name: { $regex: search, $options: "i" } },
+				{ email: { $regex: search, $options: "i" } },
+				{ phone: { $regex: search, $options: "i" } },
+			];
+		}
+
+		const totalUsers = await User.countDocuments(query);
+		const totalPages = Math.max(Math.ceil(totalUsers / limit), 1);
+		const safePage = Math.min(page, totalPages);
+
+		const users = await User.find(query)
+			.select("-password")
+			.sort({ createdAt: -1 })
+			.skip((safePage - 1) * limit)
+			.limit(limit);
+
+		res.json({
+			users,
+			pagination: {
+				currentPage: safePage,
+				totalPages,
+				totalUsers,
+				limit,
+			},
+		});
+	} catch (error) {
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+export const getAuditLogs = async (req, res) => {
+	try {
+		const page = Math.max(parseInt(req.query.page) || 1, 1);
+		const limit = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 100);
+
+		const totalLogs = await AuditLog.countDocuments();
+		const totalPages = Math.max(Math.ceil(totalLogs / limit), 1);
+		const safePage = Math.min(page, totalPages);
+
+		const logs = await AuditLog.find()
+			.populate("userId", "name email role")
+			.sort({ createdAt: -1 })
+			.skip((safePage - 1) * limit)
+			.limit(limit);
+
+		res.json({
+			logs,
+			pagination: {
+				currentPage: safePage,
+				totalPages,
+				totalLogs,
+				limit,
+			},
+		});
 	} catch (error) {
 		res.status(500).json({ message: "Server error", error: error.message });
 	}

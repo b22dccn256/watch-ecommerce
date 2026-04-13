@@ -1,5 +1,5 @@
 import PolicyPageLayout from "../components/PolicyPageLayout";
-import { ShieldCheck, RotateCcw, PenTool, CheckCircle, ArrowRight } from "lucide-react";
+import { ShieldCheck, RotateCcw, PenTool, CheckCircle } from "lucide-react";
 
 const WarrantyPage = () => {
 	const steps = [
@@ -16,8 +16,9 @@ const WarrantyPage = () => {
 			activeId="warranty"
 		>
 			<section className="space-y-10">
-				<div className="bg-luxury-gold/10 p-8 rounded-3xl border border-luxury-gold/20">
-					<h2 className="text-2xl font-bold text-luxury-gold mb-4 flex items-center gap-3">
+				<div className="bg-luxury-gold/10 p-8 rounded-[2rem] border border-luxury-gold/20 shadow-sm">
+					<p className="hero-kicker text-[10px] font-semibold text-luxury-gold mb-3">Coverage</p>
+					<h2 className="hero-title text-2xl font-bold text-luxury-gold mb-4 flex items-center gap-3">
 						<ShieldCheck className="w-8 h-8" />
 						Đặc quyền Bảo hành 5 Năm
 					</h2>
@@ -27,11 +28,11 @@ const WarrantyPage = () => {
 				</div>
 
 				<div>
-					<h3 className="text-xl font-bold mb-6">Quy trình Đổi trả & Bảo hành</h3>
+					<h3 className="hero-title text-xl font-bold mb-6">Quy trình Đổi trả & Bảo hành</h3>
 					<div className="relative flex flex-col md:flex-row justify-between items-start gap-8">
 						{steps.map((step, index) => (
 							<div key={index} className="flex-1 flex flex-col items-center text-center group">
-								<div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center mb-4 transition-all duration-300 group-hover:bg-luxury-gold group-hover:text-luxury-dark border border-luxury-border">
+								<div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center mb-4 transition-all duration-300 group-hover:bg-luxury-gold group-hover:text-luxury-dark border border-luxury-border shadow-sm">
 									<step.icon className="w-8 h-8" />
 								</div>
 								<h4 className="font-bold mb-2">{step.title}</h4>
@@ -45,13 +46,13 @@ const WarrantyPage = () => {
 				</div>
 
 				<div className="space-y-6">
-					<h3 className="text-xl font-bold">Chính sách Đổi trả</h3>
+					<h3 className="hero-title text-xl font-bold">Chính sách Đổi trả</h3>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<div className="p-4 border border-luxury-border rounded-xl">
+						<div className="p-4 border border-luxury-border rounded-2xl bg-white/60 dark:bg-white/5">
 							<p className="font-bold text-luxury-gold mb-1">Đổi mới 30 ngày</p>
 							<p className="text-sm text-gray-400">Nếu lỗi phát sinh từ nhà sản xuất, khách hàng được đổi sản phẩm mới cùng model.</p>
 						</div>
-						<div className="p-4 border border-luxury-border rounded-xl">
+						<div className="p-4 border border-luxury-border rounded-2xl bg-white/60 dark:bg-white/5">
 							<p className="font-bold text-luxury-gold mb-1">Hoàn tiền 100%</p>
 							<p className="text-sm text-gray-400">Trong vòng 7 ngày đầu nếu quý khách không hài lòng về trải nghiệm (sản phẩm phải còn seal).</p>
 						</div>

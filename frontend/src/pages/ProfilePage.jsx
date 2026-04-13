@@ -5,10 +5,11 @@ import { toast } from "react-hot-toast";
 import { useUserStore } from "../stores/useUserStore";
 import { useOrderStore } from "../stores/useOrderStore";
 import { Link } from "react-router-dom";
+import { SkeletonPageShell } from "../components/SkeletonLoaders";
 
 const ProfilePage = () => {
 	const { user, logout, updateProfile, changePassword, loading: userLoading } = useUserStore();
-	const { orders, fetchMyOrders, loading: ordersLoading, cancelOrder } = useOrderStore();
+	const { orders, fetchMyOrders, loading: ordersLoading, cancelOrder, requestReturnOrder } = useOrderStore();
 	const [activeTab, setActiveTab] = useState("info");
 	const [selectedOrder, setSelectedOrder] = useState(null);
 
@@ -127,6 +128,10 @@ const ProfilePage = () => {
 			default: return status?.toUpperCase();
 		}
 	};
+
+	if (userLoading && !user) {
+		return <SkeletonPageShell rows={5} />;
+	}
 
 	return (
 		<div className='min-h-screen pt-28 pb-20 px-4'>

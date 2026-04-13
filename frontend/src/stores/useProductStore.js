@@ -137,7 +137,7 @@ export const useProductStore = create((set, get) => ({
 		};
 
 		const queryString = new URLSearchParams(
-			Object.fromEntries(Object.entries(queryParams).filter(([_, v]) => v))
+			Object.fromEntries(Object.entries(queryParams).filter(([, v]) => v))
 		).toString();
 
 		try {
@@ -148,7 +148,7 @@ export const useProductStore = create((set, get) => ({
 				totalCount: res.data.totalCount ?? res.data.total ?? (res.data.products?.length || 0),
 				loading: false,
 			});
-		} catch (error) {
+		} catch {
 			toast.error("Lỗi tải sản phẩm");
 			set({ loading: false });
 		}
@@ -176,7 +176,7 @@ export const useProductStore = create((set, get) => ({
 		try {
 			const res = await axios.get(`/products/${id}`);
 			set({ currentProduct: res.data, loading: false });
-		} catch (error) {
+		} catch {
 			toast.error("Không tìm thấy sản phẩm");
 			set({ loading: false });
 		}
