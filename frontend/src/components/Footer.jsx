@@ -1,252 +1,192 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import {
-	Facebook, Instagram, Youtube, Mail, Phone, MapPin,
-	Clock, Twitter, CheckCircle, CreditCard, Wallet,
-	ShieldCheck, Truck, ArrowRight, Loader2
-} from "lucide-react";
 import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  Clock,
+  CreditCard,
+  Facebook,
+  Instagram,
+  Mail,
+  MapPin,
+  Phone,
+  ShieldCheck,
+  Truck,
+  Twitter,
+  Wallet,
+  Youtube,
+  Loader2,
+} from "lucide-react";
 import { toast } from "react-hot-toast";
+
 import axios from "../lib/axios";
 
-// --- Sub-components for better maintainability ---
+const footerColumns = [
+  {
+    title: "Danh mục",
+    links: [
+      ["Đồng hồ nam", "/category/men"],
+      ["Đồng hồ nữ", "/category/women"],
+      ["Luxury", "/category/luxury"],
+      ["Thể thao", "/category/sport"],
+      ["Thương hiệu", "/brands"],
+    ],
+  },
+  {
+    title: "Hỗ trợ",
+    links: [
+      ["Về chúng tôi", "/about"],
+      ["Chính sách giao hàng", "/delivery-policy"],
+      ["Đổi trả và bảo hành", "/warranty"],
+      ["Hướng dẫn chọn size", "/size-guide"],
+      ["Tra cứu đơn hàng", "/order-lookup"],
+      ["Liên hệ", "/contact"],
+    ],
+  },
+];
 
-const FooterColumn = ({ title, children }) => (
-	<div className="flex flex-col gap-4">
-		<h3 className="text-gray-900 dark:text-luxury-text-light font-bold text-lg tracking-wide">
-			{title}
-		</h3>
-		{children}
-	</div>
-);
-
-const FooterLink = ({ to, children }) => (
-	<li>
-		<Link
-			to={to}
-			className="text-gray-600 dark:text-luxury-text-muted hover:text-luxury-gold transition-colors duration-300 text-sm flex items-center gap-2 group"
-		>
-			<span className="w-1.5 h-1.5 rounded-full bg-luxury-gold scale-0 group-hover:scale-100 transition-transform duration-300" />
-			{children}
-		</Link>
-	</li>
-);
-
-const SocialIcon = ({ Icon, href, label }) => (
-	<motion.a
-		href={href}
-		aria-label={label}
-		target="_blank"
-		rel="noopener noreferrer"
-		whileHover={{ scale: 1.1, translateY: -2 }}
-		whileTap={{ scale: 0.9 }}
-		className="w-10 h-10 rounded-full bg-gray-100 dark:bg-luxury-darker flex items-center justify-center text-gray-600 dark:text-luxury-text-muted hover:text-white hover:bg-luxury-gold transition-all duration-300 border border-gray-200 dark:border-luxury-border"
-	>
-		<Icon size={18} />
-	</motion.a>
-);
-
-const TrustBadge = ({ Icon, text }) => (
-	<div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 dark:bg-luxury-darker border border-gray-100 dark:border-luxury-border">
-		<Icon size={14} className="text-luxury-gold" />
-		<span className="text-[10px] md:text-xs font-medium text-gray-700 dark:text-luxury-text-light uppercase tracking-tighter">
-			{text}
-		</span>
-	</div>
-);
+const socials = [
+  [Facebook, "https://www.facebook.com/HocvienPTIT", "Facebook"],
+  [Instagram, "https://www.instagram.com/gdgoc.ptit/", "Instagram"],
+  [Twitter, "https://x.com/elonmusk", "X"],
+  [Youtube, "https://www.youtube.com/@dhcstech", "YouTube"],
+];
 
 const Footer = () => {
-	const [email, setEmail] = useState("");
-	const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-	const handleSubscribe = async (e) => {
-		e.preventDefault();
-		if (!email) return toast.error("Vui lòng nhập email của bạn.");
+  const handleSubscribe = async (event) => {
+    event.preventDefault();
 
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		if (!emailRegex.test(email)) return toast.error("Email không đúng định dạng.");
+    if (!email) {
+      toast.error("Vui lòng nhập email.");
+      return;
+    }
 
-		setIsLoading(true);
-		try {
-			const res = await axios.post("/mail/subscribe", { email });
-			toast.success(res.data.message);
-			setEmail("");
-		} catch (error) {
-			toast.error(error.response?.data?.message || "Có lỗi xảy ra. Vui lòng thử lại sau.");
-		} finally {
-			setIsLoading(false);
-		}
-	};
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Email không đúng định dạng.");
+      return;
+    }
 
-	const containerVariants = {
-		hidden: { opacity: 0, y: 20 },
-		visible: {
-			opacity: 1,
-			y: 0,
-			transition: { duration: 0.6, staggerChildren: 0.1 }
-		}
-	};
+    setIsLoading(true);
+    try {
+      const res = await axios.post("/mail/subscribe", { email });
+      toast.success(res.data.message || "Đăng ký thành công");
+      setEmail("");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Không thể đăng ký nhận tin.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-	return (
-		<footer className="bg-[linear-gradient(180deg,#f8f5f0_0%,#ffffff_18%,#ffffff_100%)] dark:bg-[linear-gradient(180deg,#0f0f0f_0%,#111111_20%,#0b0b0b_100%)] border-t border-gray-200 dark:border-luxury-border font-sans">
-			{/* Top Bar: Highlight Features */}
-			<div className="border-b border-gray-100 dark:border-luxury-border">
-				<div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap justify-center md:justify-between items-center gap-4">
-					<div className="flex items-center gap-2 text-sm text-gray-600 dark:text-luxury-text-muted">
-						<Truck size={18} className="text-luxury-gold" />
-						<span>Giao hàng miễn phí cho đơn hàng từ 2.000.000đ</span>
-					</div>
-					<div className="flex items-center gap-2 text-sm text-gray-600 dark:text-luxury-text-muted">
-						<ShieldCheck size={18} className="text-luxury-gold" />
-						<span>Thanh toán bảo mật 100%</span>
-					</div>
-				</div>
-			</div>
+  return (
+    <footer className="section-divider mt-16 border-t border-black/10 bg-[color:var(--color-surface)] dark:border-white/10">
+      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-wrap items-center justify-center gap-3 border-b border-black/8 py-5 text-xs uppercase tracking-[0.16em] text-secondary dark:border-white/8 sm:justify-between">
+          <span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-[color:var(--color-gold)]" />Miễn phí giao hàng từ 2.000.000 đ</span>
+          <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-[color:var(--color-gold)]" />Bảo mật thanh toán 100%</span>
+        </div>
 
-			<motion.div
-				className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
-				initial="hidden"
-				whileInView="visible"
-				viewport={{ once: true }}
-				variants={containerVariants}
-			>
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
-					{/* Brand Column */}
-					<div className="flex flex-col gap-6">
-						<div className="flex items-center gap-3">
-							<div className="w-10 h-10 rounded-2xl bg-luxury-gold text-lux-dark flex items-center justify-center shadow-lg shadow-luxury-gold/20">
-								<ArrowRight size={16} />
-							</div>
-							<div>
-								<p className="hero-title text-xl font-bold tracking-[0.22em] text-luxury-gold">LUXURY</p>
-								<p className="text-[10px] uppercase tracking-[0.34em] text-gray-500 dark:text-luxury-text-muted mt-1">WATCH</p>
-							</div>
-						</div>
-						<p className="text-gray-600 dark:text-luxury-text-muted text-sm leading-relaxed max-w-xs">
-							Nơi hội tụ những tuyệt tác đồng hồ từ các thương hiệu hàng đầu thế giới.
-							Đẳng cấp, tinh tế và bền bỉ theo thời gian.
-						</p>
-						<div className="flex flex-wrap gap-2">
-							<TrustBadge Icon={CheckCircle} text="Chính hãng 100%" />
-							<TrustBadge Icon={ShieldCheck} text="Bảo hành 5 năm" />
-						</div>
-						<div className="flex gap-3 mt-2">
-							<SocialIcon Icon={Facebook} href="https://www.facebook.com/HocvienPTIT" label="Facebook" />
-							<SocialIcon Icon={Instagram} href="https://www.instagram.com/gdgoc.ptit//" label="Instagram" />
-							<SocialIcon Icon={Twitter} href="https://x.com/elonmusk" label="X" />
-							<SocialIcon Icon={Youtube} href="https://www.youtube.com/@dhcstech" label="Youtube" />
-						</div>
-					</div>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4 }}
+          className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.1fr_0.7fr_0.7fr_1fr]"
+        >
+          <section className="space-y-5">
+            <div className="inline-flex items-center gap-3">
+              <div className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[color:var(--color-gold)]/35 bg-[color:var(--color-gold)]/10 text-[11px] font-bold text-[color:var(--color-gold)]">
+                LW
+              </div>
+              <div>
+                <p className="hero-title text-lg tracking-[0.24em]">LUXURY</p>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-muted">Watch Gallery</p>
+              </div>
+            </div>
 
-					{/* Categories */}
-					<FooterColumn title="Danh mục">
-						<ul className="flex flex-col gap-3">
-							<FooterLink to="/category/men">Đồng hồ nam</FooterLink>
-							<FooterLink to="/category/women">Đồng hồ nữ</FooterLink>
-							<FooterLink to="/category/luxury">Đồng hồ luxury</FooterLink>
-							<FooterLink to="/category/sport">Đồng hồ thể thao</FooterLink>
-							<FooterLink to="/brands">Thương hiệu</FooterLink>
-						</ul>
-					</FooterColumn>
+            <p className="max-w-sm text-sm leading-relaxed text-secondary">
+              Tuyển chọn đồng hồ cao cấp từ những thương hiệu danh tiếng, kết hợp trải nghiệm mua sắm tinh gọn và dịch vụ hậu mãi chuyên nghiệp.
+            </p>
 
-					{/* Customer Support */}
-					<FooterColumn title="Hỗ trợ khách hàng">
-						<ul className="flex flex-col gap-3">
-							<FooterLink to="/about">Về chúng tôi</FooterLink>
-							<FooterLink to="/delivery-policy">Chính sách giao hàng</FooterLink>
-							<FooterLink to="/warranty">Đổi trả & Bảo hành</FooterLink>
-							<FooterLink to="/size-guide">Hướng dẫn chọn size</FooterLink>
-							<FooterLink to="/order-lookup">Tra cứu đơn hàng</FooterLink>
-							<FooterLink to="/contact">Liên hệ</FooterLink>
-						</ul>
-					</FooterColumn>
+            <div className="flex gap-2">
+              {socials.map(([Icon, href, label]) => (
+                <motion.a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  whileHover={{ y: -2 }}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 text-secondary transition hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)] dark:border-white/10"
+                  aria-label={label}
+                >
+                  <Icon className="h-4 w-4" />
+                </motion.a>
+              ))}
+            </div>
+          </section>
 
-					{/* Contact & Newsletter */}
-					<div className="flex flex-col gap-8">
-						<FooterColumn title="Liên hệ">
-							<div className="flex flex-col gap-3">
-								<div className="flex items-start gap-3 group">
-									<MapPin size={18} className="text-luxury-gold shrink-0 group-hover:scale-110 transition-transform" />
-									<span className="text-sm text-gray-600 dark:text-luxury-text-muted">123 Đường ABC, Quận 1, TP.HCM</span>
-								</div>
-								<div className="flex items-center gap-3 group">
-									<Phone size={18} className="text-luxury-gold shrink-0 group-hover:scale-110 transition-transform" />
-									<span className="text-sm text-gray-600 dark:text-luxury-text-muted">1900 XXX XXX</span>
-								</div>
-								<div className="flex items-center gap-3 group">
-									<Mail size={18} className="text-luxury-gold shrink-0 group-hover:scale-110 transition-transform" />
-									<span className="text-sm text-gray-600 dark:text-luxury-text-muted">info@luxurywatch.vn</span>
-								</div>
-								<div className="flex items-start gap-3 group">
-									<Clock size={18} className="text-luxury-gold shrink-0 group-hover:scale-110 transition-transform mt-0.5" />
-									<div className="text-sm text-gray-600 dark:text-luxury-text-muted leading-snug">
-										<p>Thứ 2 - Thứ 7: 9:00 - 21:00</p>
-										<p>Chủ nhật: 10:00 - 20:00</p>
-									</div>
-								</div>
-							</div>
-						</FooterColumn>
+          {footerColumns.map((column) => (
+            <section key={column.title}>
+              <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-primary">{column.title}</h3>
+              <ul className="space-y-3 text-sm text-secondary">
+                {column.links.map(([label, to]) => (
+                  <li key={to}>
+                    <Link to={to} className="transition hover:text-[color:var(--color-gold)]">
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
 
-						<div className="flex flex-col gap-4 rounded-[1.5rem] border border-black/5 dark:border-luxury-border bg-white/80 dark:bg-white/5 p-5 shadow-sm">
-							<h4 className="text-gray-900 dark:text-luxury-text-light font-bold text-sm uppercase tracking-wider">
-								Nhận ưu đãi
-							</h4>
-							<form onSubmit={handleSubscribe} className="relative">
-								<input
-									type="email"
-									value={email}
-									onChange={(e) => setEmail(e.target.value)}
-									placeholder="Email của bạn..."
-									disabled={isLoading}
-									className="w-full bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border text-gray-900 dark:text-luxury-text-light placeholder-gray-400 dark:placeholder-luxury-text-muted px-6 py-3 rounded-2xl text-sm focus:ring-2 focus:ring-luxury-gold outline-none transition-all duration-300 disabled:opacity-50"
-								/>
-								<button
-									type="submit"
-									disabled={isLoading}
-										className="absolute right-1.5 top-1.5 bottom-1.5 bg-luxury-gold hover:bg-luxury-gold-light text-luxury-dark px-5 rounded-2xl transition-all duration-300 flex items-center justify-center disabled:opacity-50 group shadow-lg shadow-luxury-gold/20"
-									aria-label="Đăng ký nhận tin"
-								>
-									{isLoading ? (
-										<Loader2 size={18} className="animate-spin" />
-									) : (
-										<ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-									)}
-								</button>
-							</form>
-							<p className="text-[11px] text-gray-400 dark:text-luxury-text-muted italic px-2">
-								* Không spam, hủy bất cứ lúc nào.
-							</p>
-						</div>
-					</div>
-				</div>
+          <section className="space-y-5">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-primary">Liên hệ</h3>
+            <div className="space-y-3 text-sm text-secondary">
+              <p className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 text-[color:var(--color-gold)]" />123 Đường ABC, Quận 1, TP.HCM</p>
+              <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-[color:var(--color-gold)]" />1900 XXX XXX</p>
+              <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-[color:var(--color-gold)]" />info@luxurywatch.vn</p>
+              <p className="flex items-start gap-2"><Clock className="mt-0.5 h-4 w-4 text-[color:var(--color-gold)]" />Thứ 2 đến Chủ nhật: 09:00 - 21:00</p>
+            </div>
 
-				{/* Footer Bottom */}
-				<div className="mt-16 pt-8 border-t border-gray-100 dark:border-luxury-border flex flex-col md:flex-row justify-between items-center gap-6">
-					<div className="flex flex-col items-center md:items-start gap-2">
-						<p className="text-sm text-gray-500 dark:text-luxury-text-muted">
-							© 2026 <span className="text-luxury-gold font-semibold">Luxury Watch</span>. Tất cả quyền được bảo lưu.
-						</p>
-						<div className="flex gap-4 text-[12px] md:text-xs">
-							<Link to="/privacy-policy" className="text-gray-400 hover:text-luxury-gold transition-colors">Chính sách bảo mật</Link>
-							<span className="text-gray-300 dark:text-luxury-border">|</span>
-							<Link to="/terms" className="text-gray-400 hover:text-luxury-gold transition-colors">Điều khoản sử dụng</Link>
-						</div>
-					</div>
+            <form onSubmit={handleSubscribe} className="space-y-2 rounded-xl border border-black/10 bg-surface-soft p-3 dark:border-white/10">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">Nhận ưu đãi mới</p>
+              <div className="relative">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="Email của bạn"
+                  className="input-base h-10 rounded-full pr-10"
+                  disabled={isLoading}
+                />
+                <button type="submit" disabled={isLoading} className="absolute right-1 top-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[color:var(--color-gold)] text-black">
+                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                </button>
+              </div>
+            </form>
+          </section>
+        </motion.div>
 
-					<div className="flex flex-col items-center md:items-end gap-3">
-						<div className="flex items-center gap-4 text-gray-400 dark:text-luxury-text-muted">
-							<CreditCard size={24} title="Visa/Mastercard" />
-							<Wallet size={24} title="COD" />
-							<ShieldCheck size={24} title="Secure Payment" />
-						</div>
-						<p className="text-[10px] text-gray-400 dark:text-luxury-text-muted uppercase tracking-widest font-medium">
-							Verified Security
-						</p>
-					</div>
-				</div>
-			</motion.div>
-		</footer>
-	);
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-black/8 py-6 text-xs text-muted dark:border-white/8 sm:flex-row">
+          <p>© 2026 Luxury Watch. All rights reserved.</p>
+          <div className="flex items-center gap-3">
+            <CreditCard className="h-4 w-4" />
+            <Wallet className="h-4 w-4" />
+            <ShieldCheck className="h-4 w-4" />
+          </div>
+          <div className="flex items-center gap-3">
+            <Link to="/privacy-policy" className="transition hover:text-[color:var(--color-gold)]">Chính sách bảo mật</Link>
+            <span>|</span>
+            <Link to="/terms" className="transition hover:text-[color:var(--color-gold)]">Điều khoản</Link>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
 };
 
 export default Footer;

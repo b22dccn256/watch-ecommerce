@@ -13,7 +13,24 @@ export const useCartStore = create((set, get) => ({
 	isCouponApplied: false,
 	
 	// Helper to generate unique cart item ID
-	getUniqueId: (item) => `${item._id}_${item.wristSize || 'default'}_${item.selectedColor || 'default'}_${item.selectedSize || 'default'}`,
+	getUniqueId: (item) => {
+		const baseId = item?.product?._id || item?.productId || item?._id || "unknown";
+		return `${baseId}_${item?.wristSize || 'default'}_${item?.selectedColor || 'default'}_${item?.selectedSize || 'default'}`;
+	},
+
+	normalizeCartItems: (items = []) => {
+		const merged = new Map();
+		items.forEach((item) => {
+			const key = get().getUniqueId(item);
+			if (merged.has(key)) {
+				const existing = merged.get(key);
+				existing.quantity += Number(item.quantity) || 1;
+			} else {
+				merged.set(key, { ...item, quantity: Number(item.quantity) || 1 });
+			}
+		});
+		return Array.from(merged.values());
+	},
 
 	setSelectedItems: (items) => {
 		localStorage.setItem("watch_selected_items", JSON.stringify(items));
@@ -31,7 +48,7 @@ export const useCartStore = create((set, get) => ({
 	},
 	selectAllItems: (isSelected, products) => {
 		if (isSelected) {
-			get().setSelectedItems(products.map(p => get().getUniqueId(p)));
+			get().setSelectedItems(products.map((p) => (typeof p === "string" ? p : get().getUniqueId(p))));
 		} else {
 			get().setSelectedItems([]);
 		}
@@ -79,14 +96,18 @@ export const useCartStore = create((set, get) => ({
 		if (!user) {
 			// Guest Flow
 			const localCart = JSON.parse(localStorage.getItem("watch_cart") || "[]");
-			set({ cart: localCart });
+			const normalizedCart = get().normalizeCartItems(localCart);
+			set({ cart: normalizedCart });
+			if (normalizedCart.length !== localCart.length) {
+				localStorage.setItem("watch_cart", JSON.stringify(normalizedCart));
+			}
 			get().calculateTotals();
 			return;
 		}
 
 		try {
 			const res = await axios.get("/cart");
-			set({ cart: res.data });
+			set({ cart: get().normalizeCartItems(res.data) });
 			get().calculateTotals();
 		} catch (error) {
 			set({ cart: [] });

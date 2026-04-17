@@ -1,15 +1,16 @@
 import { cn } from "../../lib/cn";
 
 const sizeClasses = {
-	sm: "h-9 px-3 text-xs",
-	md: "h-10 px-4 text-sm",
-	lg: "h-11 px-5 text-sm",
+	sm: "h-9 px-3.5 text-xs",
+	md: "h-11 px-5 text-sm",
+	lg: "h-12 px-6 text-sm",
 };
 
 const variantClasses = {
 	primary: "btn-primary",
 	secondary: "btn-secondary",
-	ghost: "bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-current",
+	outline: "btn-outline",
+	ghost: "btn-ghost",
 };
 
 const Button = ({
@@ -27,9 +28,9 @@ const Button = ({
 		<Component
 			type={resolvedType}
 			className={cn(
-				"font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-60",
-				variantClasses[variant],
-				sizeClasses[size],
+				"btn-base",
+				variantClasses[variant] || variantClasses.primary,
+				sizeClasses[size] || sizeClasses.md,
 				className
 			)}
 			{...props}

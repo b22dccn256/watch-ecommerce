@@ -4,6 +4,7 @@ import { Search, Package, ArrowRight, AlertCircle, CheckCircle2 } from "lucide-r
 import { Link, useNavigate } from "react-router-dom";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
+import Input from "../components/ui/Input";
 
 const OrderLookupPage = () => {
 	const [orderNumber, setOrderNumber] = useState("");
@@ -33,7 +34,7 @@ const OrderLookupPage = () => {
 			description="Nhập mã đơn hàng và email để xem trạng thái hiện tại, hành trình vận chuyển và thông tin xác nhận."
 			activeId="order-lookup"
 		>
-			<div className="max-w-2xl py-8">
+			<div className="max-w-3xl py-8">
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
 					<div className="rounded-xl border border-gray-200 dark:border-luxury-border bg-white dark:bg-white/5 p-4">
 						<div className="flex items-center gap-3 mb-2">
@@ -60,38 +61,33 @@ const OrderLookupPage = () => {
 
 				<form onSubmit={handleLookup} className="bg-white dark:bg-white/5 border border-gray-200 dark:border-luxury-border p-5 md:p-6 rounded-2xl shadow-sm space-y-5">
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<label className="text-xs font-bold uppercase tracking-wider text-gray-500">Mã đơn hàng *</label>
-							<div className="relative">
-								<input
-									type="text"
-									required
-									value={orderNumber}
-									onChange={(e) => setOrderNumber(e.target.value)}
-									placeholder="Ví dụ: ORD-123456"
-									className="w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border rounded-xl pl-12 pr-4 py-4 text-sm focus:border-luxury-gold outline-none transition"
-								/>
-								<Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-							</div>
+						<div className="relative">
+							<Input
+								label="Mã đơn hàng *"
+								type="text"
+								required
+								value={orderNumber}
+								onChange={(e) => setOrderNumber(e.target.value)}
+								placeholder="Ví dụ: ORD-123456"
+								className="pl-12"
+							/>
+							<Search className="absolute left-4 top-[2.35rem] text-gray-400 w-4 h-4" />
 						</div>
 
-						<div className="space-y-2">
-							<label className="text-xs font-bold uppercase tracking-wider text-gray-500">Email nhận hàng *</label>
-							<input
-								type="email"
-								required
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-								placeholder="example@gmail.com"
-								className="w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border rounded-xl px-4 py-4 text-sm focus:border-luxury-gold outline-none transition"
-							/>
-						</div>
+						<Input
+							label="Email nhận hàng *"
+							type="email"
+							required
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
+							placeholder="example@gmail.com"
+						/>
 					</div>
 
 					<button
 						type="submit"
 						disabled={loading}
-						className="w-full bg-luxury-gold text-luxury-dark font-bold py-4 rounded-xl hover:bg-luxury-gold-light transition-all flex items-center justify-center gap-3 shadow-lg disabled:opacity-50"
+						className="btn-base btn-primary h-11 w-full"
 					>
 						{loading ? "ĐANG TÌM KIẾM..." : (
 							<>

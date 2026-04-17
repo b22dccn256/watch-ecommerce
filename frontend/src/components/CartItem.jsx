@@ -88,7 +88,7 @@ const CartItem = ({ item }) => {
 						type="checkbox"
 						checked={isSelected}
 						onChange={() => toggleSelectItem(item)}
-						className="w-5 h-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer shrink-0"
+						className="w-5 h-5 rounded border-gray-300 text-[color:var(--color-gold)] focus:ring-[color:var(--color-gold)]/30 cursor-pointer shrink-0"
 					/>
 					<img className='h-20 md:h-32 rounded object-cover' src={item.image} />
 				</div>
@@ -133,7 +133,7 @@ const CartItem = ({ item }) => {
 					</div>
 
 					<div className='text-end md:order-4 min-w-[120px]'>
-						<p className='text-lg font-bold text-emerald-600 dark:text-[#D4AF37]'>
+						<p className='text-lg font-bold text-[color:var(--color-gold)]'>
 							{formatCurrency(item.price * localQuantity, currency, lang)}
 						</p>
 					</div>
@@ -178,14 +178,14 @@ const CartItem = ({ item }) => {
 						</p>
 					)}
 					{item.stock === 0 && (
-						<p className="text-xs text-red-500 font-bold bg-red-500/10 w-fit px-2 py-1 rounded">
+						<p className="text-xs text-secondary font-bold bg-black/5 dark:bg-white/10 w-fit px-2 py-1 rounded">
 							Đã hết hàng
 						</p>
 					)}
 
 					<div className='flex items-center gap-6 pt-2'>
 						<button
-							className='inline-flex items-center text-sm font-medium text-red-500 hover:text-red-400 transition hover:bg-red-500/10 px-2 py-1 -ml-2 rounded'
+							className='inline-flex items-center text-sm font-medium text-secondary hover:text-[color:var(--color-gold)] transition hover:bg-[color:var(--color-gold)]/10 px-2 py-1 -ml-2 rounded'
 							onClick={() => removeFromCart(item._id, item.wristSize, item.selectedColor, item.selectedSize)}
 							title='Xóa khỏi giỏ hàng'
 						>
@@ -193,7 +193,7 @@ const CartItem = ({ item }) => {
 							<span className='ml-1.5'>Xóa</span>
 						</button>
 						<button
-							className='inline-flex items-center text-sm font-medium text-blue-400 hover:text-blue-300 transition hover:bg-blue-400/10 px-2 py-1 rounded'
+							className='inline-flex items-center text-sm font-medium text-secondary hover:text-[color:var(--color-gold)] transition hover:bg-[color:var(--color-gold)]/10 px-2 py-1 rounded'
 							onClick={() => {
 								toggleWishlist(item, !!user);
 								removeFromCart(item._id, item.wristSize, item.selectedColor, item.selectedSize);

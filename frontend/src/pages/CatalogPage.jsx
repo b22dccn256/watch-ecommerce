@@ -111,7 +111,7 @@ const CatalogPage = () => {
 	};
 
 	return (
-		<div className="min-h-screen bg-[linear-gradient(180deg,#f8f5f0_0%,#ffffff_14%,#ffffff_100%)] dark:bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.08)_0%,rgba(15,12,8,1)_40%,rgba(10,10,10,1)_100%)] text-gray-900 dark:text-white pt-20 transition-colors duration-500">
+		<div className="min-h-screen bg-[linear-gradient(180deg,#f8f5f0_0%,#ffffff_14%,#ffffff_100%)] dark:bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.08)_0%,rgba(15,12,8,1)_40%,rgba(10,10,10,1)_100%)] text-gray-900 dark:text-white transition-colors duration-500">
 			<div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
 				<div className="mb-8 rounded-[2rem] editorial-surface px-6 py-6 md:px-8 md:py-7 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.35)]">
 					<div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
@@ -121,7 +121,7 @@ const CatalogPage = () => {
 								{category ? category : "Tất cả đồng hồ"}
 							</h1>
 							<p className="max-w-2xl text-sm md:text-base text-gray-600 dark:text-luxury-text-muted leading-relaxed">
-								Trang catalog giờ cần cảm giác như một curated showroom: có nhịp, có lọc nhanh, và mỗi section phải dễ lướt hơn là chỉ liệt kê.
+								Khám phá những cỗ máy thời gian tinh xảo được tuyển chọn khắt khe, nơi nghệ thuật chế tác và phong cách sống đẳng cấp gặp nhau trong từng chi tiết.
 							</p>
 						</div>
 						<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -213,7 +213,7 @@ const CatalogPage = () => {
 								))}
 								<button
 									onClick={clearAllFilters}
-									className="text-xs text-gray-500 hover:text-red-400 underline transition ml-1"
+									className="text-xs text-gray-500 hover:text-[color:var(--color-gold)] underline transition ml-1"
 								>
 									Xóa tất cả
 								</button>

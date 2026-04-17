@@ -49,13 +49,13 @@ const VerifyEmailPage = () => {
 			)}
 
 			{status === "success" && !verifying && (
-				<button className="px-6 py-2 bg-emerald-500 text-white rounded-lg" onClick={() => navigate("/")}>
+				<button className="btn-base btn-primary h-10 px-6" onClick={() => navigate("/")}>
 					Trở về trang chủ
 				</button>
 			)}
 
 			{status === "error" && !verifying && (
-				<button className="px-6 py-2 bg-blue-500 text-white rounded-lg" onClick={() => navigate("/login")}>
+				<button className="btn-base btn-outline h-10 px-6" onClick={() => navigate("/login")}>
 					Đăng nhập lại
 				</button>
 			)}

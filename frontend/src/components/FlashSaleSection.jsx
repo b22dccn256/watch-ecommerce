@@ -18,14 +18,14 @@ const FlashSaleSection = ({ products, timeLeft, addToCart, campaignName, title, 
 					<div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
 						<div className="space-y-3">
 							<div className="flex items-center gap-3">
-								<span className="bg-red-500 text-white font-bold tracking-widest uppercase text-xs px-3 py-1 rounded-full inline-block animate-pulse">
+								<span className="bg-black text-white font-bold tracking-widest uppercase text-xs px-3 py-1 rounded-full inline-block">
 									Flash Sale
 								</span>
-								<span className="text-red-500 font-semibold">{campaignName || "Sự kiện Siêu Sale"}</span>
+								<span className="text-[color:var(--color-gold)] font-semibold">{campaignName || "Sự kiện Siêu Sale"}</span>
 							</div>
 							<h2 className="hero-title text-4xl md:text-5xl font-bold text-gray-900 dark:text-white flex items-center gap-4">
 								{title || "Ưu Đãi Đặc Biệt"}
-								<Zap className="w-8 h-8 md:w-10 md:h-10 text-yellow-400 fill-yellow-400" />
+								<Zap className="w-8 h-8 md:w-10 md:h-10 text-[color:var(--color-gold)] fill-[color:var(--color-gold)]" />
 							</h2>
 						</div>
 

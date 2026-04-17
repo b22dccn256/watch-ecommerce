@@ -4,23 +4,27 @@ import { Eye, XCircle, Download, ShieldCheck, AlertCircle, Search, Printer, Save
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 
-const STATUS_OPTIONS = ["pending", "confirmed", "processing", "shipped", "delivered", "returned", "cancelled"];
+const STATUS_OPTIONS = ["pending", "awaiting_verification", "confirmed", "processing", "shipped", "delivered", "return_requested", "returned", "cancelled"];
 const STATUS_COLORS = {
     pending: "text-yellow-400 bg-yellow-400/10",
+    awaiting_verification: "text-amber-400 bg-amber-400/10",
     confirmed: "text-blue-400 bg-blue-400/10",
     processing: "text-orange-400 bg-orange-400/10",
     shipped: "text-purple-400 bg-purple-400/10",
     delivered: "text-emerald-400 bg-emerald-400/10",
+    return_requested: "text-pink-400 bg-pink-400/10",
     returned: "text-red-400 bg-red-400/10",
     cancelled: "text-gray-400 bg-gray-400/10",
 };
 
 const STATUS_LABELS = {
     pending: "Chờ xác nhận",
+    awaiting_verification: "Chờ xác minh",
     confirmed: "Đã xác nhận",
     processing: "Đang xử lý",
     shipped: "Đang giao hàng",
     delivered: "Đã giao",
+    return_requested: "Đang chờ duyệt trả hàng",
     returned: "Trả hàng",
     cancelled: "Đã hủy",
 };
@@ -119,7 +123,7 @@ const OrdersTab = () => {
         if (!selectedOrder) return;
         setSavingDetails(true);
         try {
-            if (selectedOrder.status === "returned") {
+            if (["return_requested", "returned"].includes(selectedOrder.status)) {
                 if (!detailsForm.returnReason.trim()) {
                     toast.error("Vui lòng nhập lý do trả hàng.");
                     return;
@@ -500,7 +504,7 @@ const OrdersTab = () => {
                                         </div>
 
                                         {/* Hiển thị form trả hàng nếu status liên quan */}
-                                        {(selectedOrder.status === "returned" || detailsForm.returnReason) && (
+                                        {(["return_requested", "returned"].includes(selectedOrder.status) || detailsForm.returnReason) && (
                                             <div className="p-3 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/50 rounded-lg space-y-3">
                                                 <p className="text-xs font-bold text-red-600 dark:text-red-400">Thông tin Hoàn trả</p>
                                                 <div>

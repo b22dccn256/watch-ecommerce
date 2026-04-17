@@ -81,11 +81,11 @@ const PaymentReturnPage = ({ method }) => {
                     recycle={false}
                     numberOfPieces={300}
                     gravity={0.15}
-                    colors={["#10B981", "#34D399", "#D4AF37", "#F59E0B"]}
+                    colors={["#B7925A", "#C7A775", "#151311", "#8E6F42"]}
                 />
                 <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl max-w-md w-full text-center border border-gray-100 dark:border-gray-700 relative z-10 m-4">
-                    <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <CheckCircle className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
+                    <div className="w-20 h-20 bg-[color:var(--color-gold)]/15 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <CheckCircle className="w-10 h-10 text-[color:var(--color-gold)]" />
                     </div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Thanh Toán Thành Công</h1>
                     <p className="text-gray-500 dark:text-gray-400 mb-8">{message}</p>
@@ -97,7 +97,7 @@ const PaymentReturnPage = ({ method }) => {
                     <div className="flex flex-col gap-3">
                         <Link
                             to="/catalog"
-                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition duration-300 flex items-center justify-center gap-2"
+                            className="btn-base btn-primary h-11 w-full"
                         >
                             Tiếp tục mua sắm <ShoppingBag className="w-4 h-4" />
                         </Link>
@@ -110,8 +110,8 @@ const PaymentReturnPage = ({ method }) => {
     return (
         <div className="min-h-screen py-32 flex items-center justify-center bg-gray-50 dark:bg-[#0f0c08]">
             <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl max-w-md w-full text-center border border-gray-100 dark:border-gray-700 m-4">
-                <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <AlertCircle className="w-10 h-10 text-red-600 dark:text-red-400" />
+                <div className="w-20 h-20 bg-black/10 dark:bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <AlertCircle className="w-10 h-10 text-[color:var(--color-gold)]" />
                 </div>
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Thanh Toán Thất Bại</h1>
                 <p className="text-gray-500 dark:text-gray-400 mb-8">{message}</p>

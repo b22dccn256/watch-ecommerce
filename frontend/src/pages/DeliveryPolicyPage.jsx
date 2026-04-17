@@ -32,25 +32,25 @@ const DeliveryPolicyPage = () => {
 			description="Thông tin chi tiết về phí vận chuyển, thời gian giao hàng và bảo hiểm hàng hóa tại Luxury Watch Store."
 			activeId="delivery"
 		>
-			<section className="space-y-8">
-				<p className="text-lg text-gray-600 dark:text-luxury-text-muted leading-relaxed">
+			<section className="space-y-10">
+				<p className="max-w-3xl text-lg text-gray-600 dark:text-luxury-text-muted leading-relaxed">
 					Tại <span className="text-luxury-gold font-bold">Luxury Watch Store</span>, chúng tôi hiểu rằng việc nhận được chiếc đồng hồ yêu thích một cách an toàn và nhanh chóng là ưu tiên hàng đầu của quý khách. Chúng tôi hợp tác với các đơn vị vận chuyển hàng đầu để đảm bảo mọi kiện hàng đều được nâng niu.
 				</p>
 
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 					{shippingMethods.map((method, index) => (
-						<div key={index} className="p-6 rounded-2xl border border-gray-100 dark:border-luxury-border bg-gray-50/50 dark:bg-white/5">
+						<div key={index} className="p-5 rounded-2xl border border-black/8 dark:border-luxury-border bg-gray-50/70 dark:bg-white/5">
 							<method.icon className="w-10 h-10 text-luxury-gold mb-4" />
-							<h3 className="text-lg font-bold mb-2">{method.title}</h3>
+							<h3 className="hero-title text-lg font-semibold mb-2 text-gray-900 dark:text-white">{method.title}</h3>
 							<p className="text-luxury-gold font-semibold text-sm mb-2">{method.time}</p>
 							<p className="text-xs text-gray-500 dark:text-luxury-text-muted mb-4">{method.price}</p>
-							<p className="text-sm text-gray-400 leading-relaxed">{method.desc}</p>
+							<p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{method.desc}</p>
 						</div>
 					))}
 				</div>
 
-				<div className="space-y-6">
-					<h2 className="text-2xl font-bold flex items-center gap-3">
+				<div className="space-y-6 border-l border-black/10 dark:border-white/10 pl-5 md:pl-8">
+					<h2 className="hero-title text-2xl font-semibold flex items-center gap-3 text-gray-900 dark:text-white">
 						<Shield className="w-6 h-6 text-luxury-gold" />
 						Bảo hiểm và Kiểm tra hàng hóa
 					</h2>

@@ -2,7 +2,8 @@ import {
 	PlusCircle, ShoppingBasket, LayoutDashboard, Users, Mail,
 	Megaphone, ShieldCheck, Archive, Menu, X, Watch, LayoutTemplate
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 import AnalyticsTab from "../components/AnalyticsTab";
@@ -15,25 +16,60 @@ import AITab from "../components/AITab";
 import InventoryTab from "../components/InventoryTab";
 import StoreSettingsTab from "../components/StoreSettingsTab";
 import { useProductStore } from "../stores/useProductStore";
+import { useUserStore } from "../stores/useUserStore";
 
 const tabs = [
-	{ id: "analytics", label: "Dashboard", icon: LayoutDashboard },
-	{ id: "orders",    label: "Đơn hàng",  icon: ShoppingBasket },
-	{ id: "products",  label: "Sản phẩm",  icon: PlusCircle },
-	{ id: "inventory", label: "Kho hàng",  icon: Archive },
-	{ id: "marketing", label: "Marketing", icon: Megaphone },
-	{ id: "email",     label: "Email",     icon: Mail },
-	{ id: "users",     label: "Người dùng",icon: Users },
-	{ id: "ai",        label: "AI System", icon: ShieldCheck },
-	{ id: "settings",  label: "Giao diện", icon: LayoutTemplate },
+	{ id: "analytics", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "staff"] },
+	{ id: "orders",    label: "Đơn hàng",  icon: ShoppingBasket, roles: ["admin", "staff"] },
+	{ id: "products",  label: "Sản phẩm",  icon: PlusCircle, roles: ["admin", "staff"] },
+	{ id: "inventory", label: "Kho hàng",  icon: Archive, roles: ["admin", "staff"] },
+	{ id: "marketing", label: "Marketing", icon: Megaphone, roles: ["admin", "staff"] },
+	{ id: "email",     label: "Email",     icon: Mail, roles: ["admin", "staff"] },
+	{ id: "users",     label: "Người dùng",icon: Users, roles: ["admin"] },
+	{ id: "ai",        label: "AI System", icon: ShieldCheck, roles: ["admin"] },
+	{ id: "settings",  label: "Giao diện", icon: LayoutTemplate, roles: ["admin"] },
 ];
 
+const resolveTabFromParams = (searchParams, accessibleTabs) => {
+	const tabParam = searchParams.get("tab");
+	const accessibleTabIds = new Set(accessibleTabs.map((tab) => tab.id));
+	return accessibleTabIds.has(tabParam) ? tabParam : accessibleTabs[0]?.id || "analytics";
+};
+
 const AdminPage = () => {
-	const [activeTab, setActiveTab] = useState("analytics");
+	const { user } = useUserStore();
+	const currentRole = user?.role || "admin";
+	const accessibleTabs = useMemo(
+		() => tabs.filter((tab) => tab.roles.includes(currentRole)),
+		[currentRole]
+	);
+	const [searchParams, setSearchParams] = useSearchParams();
+	const [activeTab, setActiveTab] = useState(() => resolveTabFromParams(searchParams, accessibleTabs));
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const { fetchAllProducts } = useProductStore();
 
 	useEffect(() => { fetchAllProducts(); }, [fetchAllProducts]);
+
+	useEffect(() => {
+		const tabFromUrl = resolveTabFromParams(searchParams, accessibleTabs);
+		if (tabFromUrl !== activeTab) {
+			setActiveTab(tabFromUrl);
+		}
+
+		const accessibleTabIds = new Set(accessibleTabs.map((tab) => tab.id));
+		if (!searchParams.get("tab") || !accessibleTabIds.has(searchParams.get("tab"))) {
+			const nextParams = new URLSearchParams(searchParams);
+			nextParams.set("tab", tabFromUrl);
+			setSearchParams(nextParams, { replace: true });
+		}
+	}, [searchParams, setSearchParams, activeTab, accessibleTabs]);
+
+	const handleTabChange = (tabId) => {
+		setActiveTab(tabId);
+		const nextParams = new URLSearchParams(searchParams);
+		nextParams.set("tab", tabId);
+		setSearchParams(nextParams, { replace: true });
+	};
 
 	const renderTab = () => {
 		switch (activeTab) {
@@ -68,10 +104,10 @@ const AdminPage = () => {
 
 				{/* Nav items */}
 				<nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto custom-scrollbar">
-					{tabs.map((tab) => (
+					{accessibleTabs.map((tab) => (
 						<button
 							key={tab.id}
-							onClick={() => setActiveTab(tab.id)}
+							onClick={() => handleTabChange(tab.id)}
 							className={`admin-sidebar-link w-full text-left ${activeTab === tab.id ? "active" : ""}`}
 						>
 							<tab.icon className="w-4 h-4 flex-shrink-0" />
@@ -116,10 +152,10 @@ const AdminPage = () => {
 								</button>
 							</div>
 							<nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-								{tabs.map((tab) => (
+								{accessibleTabs.map((tab) => (
 									<button
 										key={tab.id}
-										onClick={() => { setActiveTab(tab.id); setSidebarOpen(false); }}
+										onClick={() => { handleTabChange(tab.id); setSidebarOpen(false); }}
 										className={`admin-sidebar-link w-full text-left ${activeTab === tab.id ? "active" : ""}`}
 									>
 										<tab.icon className="w-4 h-4 flex-shrink-0" />
@@ -142,7 +178,7 @@ const AdminPage = () => {
 						<Menu className="w-5 h-5" />
 					</button>
 					<h1 className="text-base font-bold text-luxury-gold">
-						{tabs.find((t) => t.id === activeTab)?.label}
+						{accessibleTabs.find((t) => t.id === activeTab)?.label}
 					</h1>
 				</header>
 
@@ -155,7 +191,7 @@ const AdminPage = () => {
 						transition={{ duration: 0.2 }}
 						className="text-xl font-bold text-luxury-gold flex items-center gap-3"
 					>
-						{(() => { const t = tabs.find((t) => t.id === activeTab); return t ? <><t.icon className="w-5 h-5" />{t.label}</> : null; })()}
+						{(() => { const t = accessibleTabs.find((t) => t.id === activeTab); return t ? <><t.icon className="w-5 h-5" />{t.label}</> : null; })()}
 					</motion.h1>
 					<p className="text-xs text-gray-400">Watch E-commerce Admin 2026</p>
 				</header>

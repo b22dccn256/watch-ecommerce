@@ -52,7 +52,7 @@ export const useOrderStore = create((set) => ({
 			await axios.patch(`/orders/${orderId}/request-return`);
 			set(state => ({
 				orders: state.orders.map(o =>
-					o._id === orderId ? { ...o, status: 'returned' } : o
+					o._id === orderId ? { ...o, status: 'return_requested' } : o
 				)
 			}));
 			toast.success("Đã gửi yêu cầu trả hàng!");

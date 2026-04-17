@@ -8,7 +8,7 @@ import LoginPage from "./pages/LoginPage";
 import AdminPage from "./pages/AdminPage";
 import CatalogPage from "./pages/CatalogPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
-import ProfilePage from "./pages/ProfilePage";
+import AccountPages from "./pages/AccountPages";
 import CartPage from "./pages/CartPage";
 import PurchaseSuccessPage from "./pages/PurchaseSuccessPage";
 import PurchaseCancelPage from "./pages/PurchaseCancelPage";
@@ -60,7 +60,7 @@ function App() {
 	const { getCartItems } = useCartStore();
 	const { fetchWishlist, mergeWishlist, syncFromLocalStorage } = useWishlistStore();
 	const { theme } = useThemeStore();
-	const { isOpen, setIsOpen, compareItems } = useCompareStore();
+	const { isOpen, setIsOpen } = useCompareStore();
 	const { lang, currency } = useSettingsStore();
 
 	useEffect(() => {
@@ -127,7 +127,7 @@ function App() {
 				</div>
 			</div>
 
-			<div className='relative z-50 pt-20 min-h-screen flex flex-col'>
+			<div className='relative pt-20 min-h-screen flex flex-col'>
 				<Navbar />
 				{user && user.role !== "admin" && !user.emailVerified && (
 					<div className="mx-auto w-full max-w-screen-xl px-4 sm:px-6 md:px-8 py-3 bg-gradient-to-r from-amber-200 to-amber-300 border-b border-amber-400 text-amber-900 shadow-sm flex justify-between items-center gap-3">
@@ -170,7 +170,7 @@ function App() {
 							<Route path="/about" element={<AboutPage />} />
 							<Route path='/cart' element={privateRoute(<CartPage />)} />
 							<Route path='/checkout' element={privateRoute(<CheckoutPage />)} />
-							<Route path='/profile' element={privateRoute(<ProfilePage />)} />
+							<Route path='/profile' element={privateRoute(<AccountPages />)} />
 							<Route path='/wishlist' element={privateRoute(<WishlistPage />)} />
 						<Route path='/delivery-policy' element={<DeliveryPolicyPage />} />
 						<Route path='/warranty' element={<WarrantyPage />} />
@@ -209,20 +209,6 @@ function App() {
 			/>
 			<ChatBot />
 			<CompareModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
-
-			{/* Floating Compare Button */}
-			{compareItems.length > 0 && !isOpen && (
-				<button 
-					onClick={() => setIsOpen(true)}
-					className="fixed bottom-24 right-6 bg-emerald-600 dark:bg-yellow-400 text-white dark:text-black p-4 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.4)] dark:shadow-[0_0_20px_rgba(250,204,21,0.3)] hover:scale-110 transition flex items-center justify-center z-40"
-					title="So sánh sản phẩm"
-				>
-					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m16 16 3-8 3-8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
-					<span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white dark:border-[#0f0c08]">
-						{compareItems.length}
-					</span>
-				</button>
-			)}
 			</div>
 		</I18nContext.Provider>
 		</GlobalErrorBoundary>

@@ -21,7 +21,7 @@ const PolicyPageLayout = ({ children, title, description, activeId }) => {
 	];
 
 	return (
-		<div className="min-h-screen bg-[linear-gradient(180deg,#f8f5f0_0%,#ffffff_16%,#ffffff_100%)] dark:bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.08)_0%,rgba(15,12,8,1)_45%,rgba(10,10,10,1)_100%)] pt-28 pb-20">
+		<div className="min-h-screen bg-[linear-gradient(180deg,#f8f5f0_0%,#ffffff_18%,#ffffff_100%)] dark:bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.08)_0%,rgba(15,12,8,1)_45%,rgba(10,10,10,1)_100%)] pb-20">
 
 			<div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
 				{/* Breadcrumbs */}
@@ -31,15 +31,19 @@ const PolicyPageLayout = ({ children, title, description, activeId }) => {
 					<span className="text-luxury-gold font-medium">{title}</span>
 				</nav>
 
-				<div className="mb-10 rounded-[2rem] editorial-surface px-6 py-6 md:px-8 md:py-8 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.35)]">
-					<p className="hero-kicker text-xs font-semibold text-luxury-gold mb-3">Support / policy hub</p>
-					<h1 className="hero-title text-3xl md:text-5xl text-gray-900 dark:text-white mb-3">{title}</h1>
-					<p className="max-w-3xl text-sm md:text-base text-gray-600 dark:text-luxury-text-muted leading-relaxed">{description}</p>
+				<div className="mb-8 grid gap-4 rounded-[2rem] editorial-surface px-5 py-5 md:grid-cols-[1.15fr_0.85fr] md:px-7 md:py-6 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.35)]">
+					<div>
+						<p className="hero-kicker text-xs font-semibold text-luxury-gold mb-2">Support / policy hub</p>
+						<p className="text-sm md:text-base text-gray-600 dark:text-luxury-text-muted leading-relaxed">{description}</p>
+					</div>
+					<div className="md:justify-self-end md:text-right">
+						<h1 className="hero-title text-3xl md:text-5xl text-gray-900 dark:text-white leading-tight">{title}</h1>
+					</div>
 				</div>
 
-				<div className="flex flex-col lg:flex-row gap-12">
+				<div className="flex flex-col lg:flex-row gap-10">
 					{/* Sidebar Navigation */}
-					<aside className="w-full lg:w-80 shrink-0">
+					<aside className="w-full lg:w-72 shrink-0">
 						<div className="sticky top-28 space-y-4 rounded-[2rem] border border-black/5 dark:border-luxury-border bg-white/90 dark:bg-luxury-darker/90 p-4 shadow-[0_24px_80px_-45px_rgba(0,0,0,0.35)] backdrop-blur-md">
 							<h3 className="text-[11px] uppercase tracking-[0.24em] text-gray-500 dark:text-luxury-text-muted font-bold mb-4 px-3">Hỗ trợ nhanh</h3>
 							{menuItems.map((item) => {
@@ -81,7 +85,7 @@ const PolicyPageLayout = ({ children, title, description, activeId }) => {
 					</aside>
 
 					{/* Main Content Area */}
-					<main className="flex-1 rounded-[2rem] border border-black/5 dark:border-luxury-border bg-white/95 dark:bg-luxury-darker/95 p-5 md:p-8 shadow-[0_24px_80px_-45px_rgba(0,0,0,0.35)] backdrop-blur-sm">
+					<main className="flex-1 rounded-[2rem] border border-black/5 dark:border-luxury-border bg-white/95 dark:bg-luxury-darker/95 p-5 md:px-10 md:py-9 shadow-[0_24px_80px_-45px_rgba(0,0,0,0.35)] backdrop-blur-sm">
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}

@@ -1,6 +1,6 @@
 // routes/order.route.js
 import express from "express";
-import { protectRoute, adminRoute, optionalRoute } from "../middleware/auth.middleware.js";
+import { protectRoute, managementRoute, optionalRoute } from "../middleware/auth.middleware.js";
 import {
     getAllOrders,
     updateOrderStatus,
@@ -22,13 +22,13 @@ router.get("/track/:trackingToken", getOrderTracking);
 router.post("/lookup", lookupOrder);
 
 // Route cho admin: Lấy tất cả đơn hàng (thống kê doanh thu, lọc theo status)
-router.get("/", protectRoute, adminRoute, getAllOrders);
+router.get("/", protectRoute, managementRoute, getAllOrders);
 
 // Route cho admin: Cập nhật status đơn hàng (ví dụ: từ paid → shipped)
-router.patch("/:id/status", protectRoute, adminRoute, updateOrderStatus);
+router.patch("/:id/status", protectRoute, managementRoute, updateOrderStatus);
 
 // Route cho admin: Cập nhật chi tiết đơn hàng (ghi chú, carrier, refund, etc.)
-router.patch("/:id/details", protectRoute, adminRoute, updateOrderDetails);
+router.patch("/:id/details", protectRoute, managementRoute, updateOrderDetails);
 
 // Route cho user: Xem đơn hàng của mình (phải đặt TRƯỚC /:id)
 router.get("/my-orders", (req, res, next) => {

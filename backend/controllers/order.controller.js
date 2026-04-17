@@ -9,15 +9,13 @@ export const requestReturnOrder = async (req, res) => {
         if (order.status !== "delivered") {
             return res.status(400).json({ message: "Chỉ có thể trả hàng khi đơn đã giao thành công" });
         }
-        order.status = "returned";
+        order.status = "return_requested";
         order.trackingEvents.push({
-            status: "returned",
+            status: "return_requested",
             message: "Khách hàng đã yêu cầu trả hàng.",
             timestamp: new Date(),
             updatedBy: req.user._id
         });
-        // Restore stock
-        await OrderService.restoreStock(order.products, null, order._id, "Yêu cầu trả hàng từ khách hàng");
         await order.save();
         // Email notify
         await emailQueue.add("order-status-update", {
@@ -25,7 +23,7 @@ export const requestReturnOrder = async (req, res) => {
             subject: `Yêu cầu trả hàng cho đơn #${order.orderCode}`,
             order: {
                 orderCode: order.orderCode,
-                status: "returned",
+                status: "return_requested",
                 trackingToken: order.trackingToken
             }
         });
@@ -44,6 +42,24 @@ import OrderService from "../services/order.service.js";
 import mongoose from "mongoose";
 import crypto from "crypto";
 import { emailQueue } from "./mail.controller.js";
+
+const ORDER_STATUS_TRANSITIONS = {
+    pending: ["awaiting_verification", "confirmed", "cancelled"],
+    awaiting_verification: ["confirmed", "cancelled"],
+    confirmed: ["processing", "cancelled"],
+    processing: ["shipped", "cancelled"],
+    shipped: ["delivered"],
+    delivered: ["return_requested"],
+    return_requested: ["returned", "delivered"],
+    returned: [],
+    cancelled: [],
+};
+
+const canTransitionOrderStatus = (fromStatus, toStatus) => {
+    if (fromStatus === toStatus) return true;
+    const allowedTargets = ORDER_STATUS_TRANSITIONS[fromStatus] || [];
+    return allowedTargets.includes(toStatus);
+};
 
 // Ensure order products are always returned with product details (name/image etc.)
 const ensureOrderProductsPopulated = async (order) => {
@@ -150,7 +166,23 @@ export const updateOrderStatus = async (req, res) => {
 
         if (!order) return res.status(404).json({ message: "Order not found" });
 
+        if (!status) {
+            return res.status(400).json({ message: "Thiếu trạng thái cần cập nhật" });
+        }
+
+        const validStatuses = Object.keys(ORDER_STATUS_TRANSITIONS);
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ message: "Trạng thái đơn hàng không hợp lệ" });
+        }
+
         const oldStatus = order.status;
+
+        if (!canTransitionOrderStatus(oldStatus, status)) {
+            return res.status(400).json({
+                message: `Không thể chuyển trạng thái từ ${oldStatus} sang ${status}`,
+            });
+        }
+
         order.status = status;
 
         order.trackingEvents.push({
@@ -243,7 +275,8 @@ export const getOrderById = async (req, res) => {
         if (!order) return res.status(404).json({ message: "Order not found" });
 
         const isOwner = order.user && req.user && order.user._id.toString() === req.user._id.toString();
-        if (req.user.role !== "admin" && !isOwner) {
+        const isManager = ["admin", "staff"].includes(req.user.role);
+        if (!isManager && !isOwner) {
             return res.status(403).json({ message: "Access denied" });
         }
 

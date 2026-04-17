@@ -21,12 +21,21 @@ export const getLowStockProducts = async (req, res) => {
 export const adjustStock = async (req, res) => {
     try {
         const { productId, action, quantity, note } = req.body;
+        const parsedQuantity = Number(quantity);
 
         if (!["IN", "OUT", "ADJUST"].includes(action)) {
             return res.status(400).json({ message: "Action phải là IN, OUT hoặc ADJUST" });
         }
-        if (!quantity || quantity === 0) {
-            return res.status(400).json({ message: "Số lượng không hợp lệ" });
+        if (!Number.isInteger(parsedQuantity)) {
+            return res.status(400).json({ message: "Số lượng phải là số nguyên" });
+        }
+
+        if ((action === "IN" || action === "OUT") && parsedQuantity <= 0) {
+            return res.status(400).json({ message: "Số lượng nhập/xuất phải lớn hơn 0" });
+        }
+
+        if (action === "ADJUST" && parsedQuantity < 0) {
+            return res.status(400).json({ message: "Tồn kho điều chỉnh không được âm" });
         }
 
         const product = await Product.findById(productId);
@@ -35,22 +44,22 @@ export const adjustStock = async (req, res) => {
         }
 
         // Kiểm tra nếu trừ đi bị âm
-        if (action === "OUT" && product.stock - quantity < 0) {
+        if (action === "OUT" && product.stock - parsedQuantity < 0) {
             return res.status(400).json({ message: "Tồn kho không đủ để xuất" });
         }
 
         let actualDelta = 0;
         if (action === "IN") {
-            product.stock += quantity;
-            actualDelta = quantity;
+            product.stock += parsedQuantity;
+            actualDelta = parsedQuantity;
         } else if (action === "OUT") {
-            product.stock -= quantity;
-            actualDelta = -quantity;
+            product.stock -= parsedQuantity;
+            actualDelta = -parsedQuantity;
         } else if (action === "ADJUST") {
             // quantity is the new Absolute Stock.
             // Delta is newStock - oldStock
-            actualDelta = quantity - product.stock;
-            product.stock = quantity;
+            actualDelta = parsedQuantity - product.stock;
+            product.stock = parsedQuantity;
         }
 
         await product.save();

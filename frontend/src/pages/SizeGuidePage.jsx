@@ -63,7 +63,7 @@ const SizeGuidePage = () => {
 						{recommendation && (
 							<div className="bg-white/5 border border-white/10 rounded-2xl p-6 animate-luxury-fade-in">
 								<div className="flex items-start gap-4">
-									<CheckCircle2 className="text-emerald-500 w-6 h-6 mt-1" />
+									<CheckCircle2 className="text-luxury-gold w-6 h-6 mt-1" />
 									<div>
 										<p className="text-luxury-gold uppercase text-xs tracking-widest font-bold mb-2">Gợi ý dành cho bạn</p>
 										<h3 className="text-3xl font-bold mb-3">Đường kính: {recommendation.dial}</h3>

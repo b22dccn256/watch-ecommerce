@@ -27,7 +27,7 @@ const PeopleAlsoBought = () => {
 
 	return (
 		<div className='mt-10'>
-			<h3 className='text-lg md:text-xl font-semibold text-emerald-600 dark:text-emerald-400'>CÓ THỂ BẠN CŨNG THÍCH</h3>
+			<h3 className='hero-title text-lg md:text-xl font-semibold text-primary'>Có thể bạn cũng thích</h3>
 			<div className='mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4'>
 				{recommendations.map((product) => (
 					<Link
@@ -45,7 +45,7 @@ const PeopleAlsoBought = () => {
 						<div className='p-3 md:p-4 space-y-1.5'>
 							<p className='text-[10px] uppercase tracking-[0.24em] text-gray-400 dark:text-gray-500'>Đồng hồ luxury</p>
 							<h4 className='text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug'>{product.name}</h4>
-							<p className='text-[11px] text-emerald-600 dark:text-emerald-400'>Bảo hành quốc tế 5 năm</p>
+							<p className='text-[11px] text-secondary'>Bảo hành quốc tế 5 năm</p>
 							<p className='text-sm font-bold text-luxury-gold'>{product.price?.toLocaleString("vi-VN")} ₫</p>
 						</div>
 					</Link>

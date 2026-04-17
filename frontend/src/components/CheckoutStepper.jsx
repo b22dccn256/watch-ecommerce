@@ -9,13 +9,13 @@ const CheckoutStepper = ({ currentStep }) => {
 	];
 
 	return (
-		<div className="w-full py-6 md:py-10 mb-4 bg-gray-50 dark:bg-black/50 border-b border-gray-200 dark:border-gray-800">
+		<div className="w-full py-6 md:py-10 mb-4 bg-surface-soft border-b border-black/8 dark:border-white/8">
 			<div className="max-w-4xl mx-auto px-4">
 				<div className="flex items-center justify-between relative">
 					{/* Progress Line */}
-					<div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[2px] bg-gray-200 dark:bg-gray-800 -z-10"></div>
+					<div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[2px] bg-black/12 dark:bg-white/12 -z-10"></div>
 					<div 
-						className="absolute left-0 top-1/2 -translate-y-1/2 h-[2px] bg-emerald-500 dark:bg-yellow-400 -z-10 transition-all duration-500 ease-in-out"
+						className="absolute left-0 top-1/2 -translate-y-1/2 h-[2px] bg-[color:var(--color-gold)] -z-10 transition-all duration-500 ease-in-out"
 						style={{ width: `${(currentStep - 1) / (steps.length - 1) * 100}%` }}
 					></div>
 
@@ -25,17 +25,17 @@ const CheckoutStepper = ({ currentStep }) => {
 						const isClickable = step.id < currentStep && step.link;
 
 						const StepContent = () => (
-							<div className="flex flex-col items-center gap-3 bg-gray-50 dark:bg-black/50 px-2 group">
+							<div className="flex flex-col items-center gap-3 bg-surface-soft px-2 group">
 								<div 
 									className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center font-bold text-sm md:text-base transition-colors duration-300 shadow-sm
-									${isCompleted ? 'bg-emerald-500 dark:bg-yellow-400 text-white dark:text-black border-2 border-emerald-500 dark:border-yellow-400' 
-									: isActive ? 'bg-white dark:bg-black text-emerald-600 dark:text-yellow-400 border-2 border-emerald-500 dark:border-yellow-400' 
-									: 'bg-white dark:bg-black text-gray-400 border-2 border-gray-200 dark:border-gray-800'}`}
+									${isCompleted ? 'bg-[color:var(--color-gold)] text-black border-2 border-[color:var(--color-gold)]' 
+									: isActive ? 'bg-surface text-[color:var(--color-gold)] border-2 border-[color:var(--color-gold)]' 
+									: 'bg-surface text-muted border-2 border-black/10 dark:border-white/10'}`}
 								>
 									{isCompleted ? <Check className="w-5 h-5 md:w-6 md:h-6" /> : step.id}
 								</div>
 								<span className={`text-xs md:text-sm font-bold uppercase tracking-widest text-center
-									${isCompleted || isActive ? 'text-gray-900 dark:text-white' : 'text-gray-400'}`}>
+									${isCompleted || isActive ? 'text-gray-900 dark:text-white' : 'text-secondary'}`}>
 									{step.title}
 								</span>
 							</div>
@@ -48,7 +48,7 @@ const CheckoutStepper = ({ currentStep }) => {
 										<StepContent />
 									</Link>
 								) : (
-									<div className={isActive ? "" : "opacity-50"}>
+										<div>
 										<StepContent />
 									</div>
 								)}
