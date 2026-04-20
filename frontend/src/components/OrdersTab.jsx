@@ -7,14 +7,14 @@ import { toast } from "react-hot-toast";
 const STATUS_OPTIONS = ["pending", "awaiting_verification", "confirmed", "processing", "shipped", "delivered", "return_requested", "returned", "cancelled"];
 const STATUS_COLORS = {
     pending: "text-yellow-400 bg-yellow-400/10",
-    awaiting_verification: "text-amber-400 bg-amber-400/10",
-    confirmed: "text-blue-400 bg-blue-400/10",
-    processing: "text-orange-400 bg-orange-400/10",
-    shipped: "text-purple-400 bg-purple-400/10",
-    delivered: "text-emerald-400 bg-emerald-400/10",
-    return_requested: "text-pink-400 bg-pink-400/10",
-    returned: "text-red-400 bg-red-400/10",
-    cancelled: "text-gray-400 bg-gray-400/10",
+    awaiting_verification: "text-orange-300 bg-orange-300/10",
+    confirmed: "text-amber-300 bg-amber-300/10",
+    processing: "text-orange-300 bg-orange-300/10",
+    shipped: "text-[color:var(--color-gold-soft)] bg-[color:var(--color-gold-soft)]/10",
+    delivered: "text-[color:var(--color-gold)] bg-[color:var(--color-gold)]/12",
+    return_requested: "text-[color:var(--color-danger)] bg-[color:var(--color-danger)]/10",
+    returned: "text-[color:var(--color-danger)] bg-[color:var(--color-danger)]/10",
+    cancelled: "text-muted bg-black/5 dark:bg-white/5",
 };
 
 const STATUS_LABELS = {
@@ -198,11 +198,96 @@ const OrdersTab = () => {
     const handlePrintInvoice = () => {
         const printArea = document.getElementById("order-invoice-print-area");
         if (!printArea) return;
-        const originalContents = document.body.innerHTML;
-        document.body.innerHTML = printArea.innerHTML;
-        window.print();
-        document.body.innerHTML = originalContents;
-        window.location.reload();
+
+        const orderCode = selectedOrder?.orderCode || selectedOrder?._id?.substring(0, 8) || "N/A";
+        const printWindow = window.open("", "_blank", "width=860,height=1000");
+        if (!printWindow) {
+            toast.error("Trình duyệt đã chặn popup. Vui lòng cho phép popup để in hóa đơn.");
+            return;
+        }
+
+        printWindow.document.write(`<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hóa đơn #${orderCode}</title>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Base ── */
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13px;
+      color: #111;
+      background: #fff;
+      padding: 40px 48px;
+    }
+
+    /* ── Header / Logo ── */
+    .text-center { text-align: center; }
+    .mb-8 { margin-bottom: 32px; }
+    .text-3xl { font-size: 24px; }
+    .font-bold { font-weight: 700; }
+    .uppercase { text-transform: uppercase; }
+    .tracking-widest { letter-spacing: 0.2em; }
+    .text-sm { font-size: 12px; }
+
+    /* ── Info grid (flex justify-between) ── */
+    .flex { display: flex; }
+    .justify-between { justify-content: space-between; }
+    .text-right { text-align: right; }
+    .border-b-2 { border-bottom: 2px solid #111; }
+    .border-black { border-color: #111; }
+    .pb-4 { padding-bottom: 16px; }
+    .mb-4 { margin-bottom: 16px; }
+    p { margin-bottom: 4px; line-height: 1.5; }
+
+    /* ── Product table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+    th, td { padding: 10px 8px; }
+    thead tr { border-bottom: 2px solid #111; }
+    tbody tr { border-bottom: 1px solid #d1d5db; }
+    th { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .text-center { text-align: center; }
+    .py-2 { padding-top: 8px; padding-bottom: 8px; }
+    .py-3 { padding-top: 12px; padding-bottom: 12px; }
+
+    /* ── Totals ── */
+    .flex.justify-end { justify-content: flex-end; }
+    .mt-6 { margin-top: 24px; }
+    .border-t-2 { border-top: 2px solid #111; }
+    .pt-2 { padding-top: 8px; }
+    .min-w-\\[300px\\] { min-width: 300px; }
+    .text-lg { font-size: 16px; }
+    .text-sm.italic { font-size: 12px; font-style: italic; }
+    .mt-1 { margin-top: 4px; }
+    .mt-2 { margin-top: 8px; }
+
+    /* ── Footer ── */
+    .mt-16 { margin-top: 64px; }
+
+    /* ── Print media ── */
+    @media print {
+      body { padding: 20px 28px; }
+      @page { margin: 1cm; }
+    }
+  </style>
+</head>
+<body>${printArea.innerHTML}</body>
+</html>`);
+
+        printWindow.document.close();
+        printWindow.focus();
+        // Small delay to ensure styles are applied before printing
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 250);
     };
 
     const stats = [
@@ -431,7 +516,7 @@ const OrdersTab = () => {
                                 </div>
 
                                 <div>
-                                    <h3 className="text-sm font-bold text-emerald-500 uppercase tracking-wider mb-4 border-b border-gray-100 dark:border-luxury-border/50 pb-2">Thanh toán</h3>
+                                    <h3 className="text-sm font-bold text-[color:var(--color-gold)] uppercase tracking-wider mb-4 border-b border-gray-100 dark:border-luxury-border/50 pb-2">Thanh toán</h3>
                                     <div className="space-y-3 text-sm">
                                         <div className="flex justify-between">
                                             <span className="text-gray-500 dark:text-luxury-text-muted">Phương thức:</span>
@@ -439,13 +524,13 @@ const OrdersTab = () => {
                                         </div>
                                         <div className="flex justify-between items-center">
                                             <span className="text-gray-500 dark:text-luxury-text-muted">Trạng thái TT:</span>
-                                            <span className={`px-2 py-1 rounded text-[10px] font-bold ${selectedOrder.paymentStatus === "paid" ? "text-emerald-500 dark:text-emerald-400 bg-emerald-500/10" : "text-yellow-600 dark:text-yellow-400 bg-yellow-400/10"}`}>
+                                            <span className={`px-2 py-1 rounded text-[10px] font-bold ${selectedOrder.paymentStatus === "paid" ? "text-[color:var(--color-gold)] bg-[color:var(--color-gold)]/10" : "text-yellow-600 dark:text-yellow-400 bg-yellow-400/10"}`}>
                                                 {selectedOrder.paymentStatus === "paid" ? "ĐÃ THANH TOÁN" : "CHƯA THANH TOÁN"}
                                             </span>
                                         </div>
                                         <div className="flex justify-between items-center bg-gray-50 dark:bg-luxury-darker p-3 rounded-lg border border-gray-200 dark:border-luxury-border">
                                             <span className="text-gray-700 dark:text-gray-300 font-bold">Tổng tiền thu:</span>
-                                            <span className="font-bold text-lg text-emerald-600 dark:text-emerald-400">
+                                            <span className="font-bold text-lg text-[color:var(--color-gold)]">
                                                 {selectedOrder.currency === "USD"
                                                     ? "$" + selectedOrder.totalAmount?.toLocaleString()
                                                     : selectedOrder.totalAmount?.toLocaleString("vi-VN") + " ₫"}
@@ -458,7 +543,7 @@ const OrdersTab = () => {
                             {/* Phân vùng 2: Cập nhật Backend & Trạng thái */}
                             <div className="space-y-6">
                                 <div>
-                                    <h3 className="text-sm font-bold text-blue-500 uppercase tracking-wider mb-4 border-b border-gray-100 dark:border-luxury-border/50 pb-2 flex items-center gap-2">
+                                    <h3 className="text-sm font-bold text-[color:var(--color-gold)] uppercase tracking-wider mb-4 border-b border-gray-100 dark:border-luxury-border/50 pb-2 flex items-center gap-2">
                                         <PenTool className="w-4 h-4" /> Vận Hành Hệ Thống
                                     </h3>
                                     <div className="space-y-4">
