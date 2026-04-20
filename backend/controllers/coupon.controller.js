@@ -35,3 +35,28 @@ export const validateCoupon = async (req, res) => {
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
 };
+
+export const getAllCoupons = async (req, res) => {
+	try {
+		const startOfToday = new Date();
+		startOfToday.setHours(0, 0, 0, 0);
+
+		const coupons = await Coupon.find().sort({ createdAt: -1 });
+
+		const couponsWithStats = coupons.map(coupon => {
+			const usedToday = coupon.usageHistory ? coupon.usageHistory.filter(
+				h => new Date(h.usedAt) >= startOfToday
+			).length : 0;
+
+			return {
+				...coupon.toObject(),
+				usedToday
+			};
+		});
+
+		res.json(couponsWithStats);
+	} catch (error) {
+		console.error("Error in getAllCoupons:", error.message);
+		res.status(500).json({ message: "Server error" });
+	}
+};

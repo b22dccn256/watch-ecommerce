@@ -372,7 +372,15 @@ const createNonStripeOrder = async (req, res, paymentMethod) => {
         await newOrder.save({ session });
 
         if (coupon) {
-            coupon.isActive = false;
+            coupon.usedCount = (coupon.usedCount || 0) + 1;
+            coupon.usageHistory.push({
+                usedAt: new Date(),
+                orderId: newOrderId,
+                userId: req.user?._id
+            });
+            if (coupon.maxUses > 0 && coupon.usedCount >= coupon.maxUses) {
+                coupon.isActive = false;
+            }
             await coupon.save({ session });
         }
 
