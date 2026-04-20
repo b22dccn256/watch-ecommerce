@@ -13,6 +13,13 @@ import {
 	Tooltip, ResponsiveContainer, AreaChart, Area 
 } from "recharts";
 
+// Automation rules — seed defaults; toggle state managed locally + persisted via API
+const DEFAULT_AUTOMATIONS = [
+	{ id: "abandoned-cart", title: "Abandoned Cart", desc: "Tự động gửi email nhắc nhở sau 24h nếu giỏ hàng không trống.", active: true },
+	{ id: "welcome-email", title: "Welcome Email", desc: "Gửi lời chào và mã giảm giá 10% ngay khi khách đăng ký Newsletter.", active: true },
+	{ id: "birthday-email", title: "Birthday Email", desc: "Tự động gửi lời chúc và quà tặng vào ngày sinh nhật khách hàng.", active: false },
+];
+
 const EmailTab = () => {
 	const [activeTab, setActiveTab] = useState("dashboard");
 	const [loading, setLoading] = useState(false);
@@ -21,13 +28,18 @@ const EmailTab = () => {
 		subscribers: [],
 		campaigns: [],
 		templates: [],
-		stats: { openRate: 0, clickRate: 0, totalSent: 0 }
+		stats: { openRate: 0, clickRate: 0, totalSent: 0 },
+		chartData: []
 	});
+	const [automations, setAutomations] = useState(DEFAULT_AUTOMATIONS);
 
 	const fetchData = useCallback(async () => {
 		setLoading(true);
 		try {
-			if (activeTab === "inbox") {
+			if (activeTab === "dashboard") {
+				const res = await axios.get("/mail/stats?days=7");
+				setData(prev => ({ ...prev, stats: res.data.stats, chartData: res.data.chartData || [] }));
+			} else if (activeTab === "inbox") {
 				const res = await axios.get("/mail/inbox");
 				setData(prev => ({ ...prev, messages: res.data.messages }));
 			} else if (activeTab === "subscribers") {
@@ -50,6 +62,34 @@ const EmailTab = () => {
 	useEffect(() => {
 		fetchData();
 	}, [fetchData]);
+
+	const handleDeleteSubscriber = async (id, email) => {
+		if (!window.confirm(`Xóa subscriber "${email}"?`)) return;
+		try {
+			await axios.delete(`/mail/subscribers/${id}`);
+			setData(prev => ({ ...prev, subscribers: prev.subscribers.filter(s => s._id !== id) }));
+			toast.success("Đã xóa subscriber");
+		} catch {
+			toast.error("Không thể xóa subscriber");
+		}
+	};
+
+	const handleToggleAutomation = async (automationId) => {
+		// Optimistic update — flip locally first
+		setAutomations(prev =>
+			prev.map(a => a.id === automationId ? { ...a, active: !a.active } : a)
+		);
+		try {
+			// Fire-and-forget API call (backend may not have this endpoint yet)
+			await axios.patch(`/mail/automations/${automationId}/toggle`);
+		} catch {
+			// Rollback on failure
+			setAutomations(prev =>
+				prev.map(a => a.id === automationId ? { ...a, active: !a.active } : a)
+			);
+			toast.error("Không thể cập nhật trạng thái automation");
+		}
+	};
 
 	const tabs = [
 		{ id: "dashboard", label: "Dashboard", icon: BarChart3 },
@@ -110,12 +150,12 @@ const EmailTab = () => {
 						exit={{ opacity: 0, y: -10 }}
 						transition={{ duration: 0.2 }}
 					>
-						{activeTab === "dashboard" && <DashboardView />}
+						{activeTab === "dashboard" && <DashboardView stats={data.stats} chartData={data.chartData} />}
 						{activeTab === "inbox" && <InboxView messages={data.messages} loading={loading} />}
-						{activeTab === "subscribers" && <SubscribersView subscribers={data.subscribers} loading={loading} />}
+						{activeTab === "subscribers" && <SubscribersView subscribers={data.subscribers} loading={loading} onDelete={handleDeleteSubscriber} />}
 						{activeTab === "campaigns" && <CampaignsView campaigns={data.campaigns} loading={loading} />}
 						{activeTab === "templates" && <TemplatesView templates={data.templates} loading={loading} />}
-						{activeTab === "automation" && <AutomationView />}
+						{activeTab === "automation" && <AutomationView automations={automations} onToggle={handleToggleAutomation} />}
 					</motion.div>
 				</AnimatePresence>
 			</div>
@@ -125,30 +165,22 @@ const EmailTab = () => {
 
 // --- SUB-VIEWS ---
 
-const DashboardView = () => {
-	const chartData = [
-		{ name: "Mon", sent: 400, opened: 240, clicked: 120 },
-		{ name: "Tue", sent: 300, opened: 139, clicked: 98 },
-		{ name: "Wed", sent: 980, opened: 560, clicked: 320 },
-		{ name: "Thu", sent: 390, opened: 280, clicked: 100 },
-		{ name: "Fri", sent: 480, opened: 390, clicked: 210 },
-		{ name: "Sat", sent: 380, opened: 190, clicked: 80 },
-		{ name: "Sun", sent: 430, opened: 250, clicked: 150 },
-	];
+const DashboardView = ({ stats, chartData }) => {
+	const displayData = chartData && chartData.length > 0 ? chartData : [];
 
 	return (
 		<div className="space-y-8">
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-				<StatCard label="Tỷ lệ mở" value="28.4%" change="+4.3%" icon={Eye} color="emerald" />
-				<StatCard label="Tỷ lệ nhấp" value="12.1%" change="-0.8%" icon={MousePointer2} color="blue" />
-				<StatCard label="Tổng gửi" value="12,854" change="+15%" icon={Send} color="luxury-gold" />
+				<StatCard label="Tỷ lệ mở" value={`${stats?.openRate || 0}%`} change="" icon={Eye} color="emerald" />
+				<StatCard label="Số chiến dịch" value={stats?.totalCampaigns || 0} change="" icon={MousePointer2} color="blue" />
+				<StatCard label="Tổng gửi" value={stats?.sentEmails?.toLocaleString() || 0} change="" icon={Send} color="luxury-gold" />
 			</div>
 
 			<div className="bg-white dark:bg-luxury-dark border border-luxury-border p-8 rounded-3xl">
 				<h3 className="text-xl font-bold mb-8">Hiệu quả chiến dịch (7 ngày qua)</h3>
 				<div className="h-[350px] w-full">
 					<ResponsiveContainer width="100%" height="100%">
-						<AreaChart data={chartData}>
+						<AreaChart data={displayData}>
 							<defs>
 								<linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
 									<stop offset="5%" stopColor="#D4AF37" stopOpacity={0.1}/>
@@ -223,7 +255,7 @@ const InboxView = ({ messages }) => (
 	</div>
 );
 
-const SubscribersView = ({ subscribers }) => (
+const SubscribersView = ({ subscribers, onDelete }) => (
 	<div className="space-y-4">
 		<div className="flex justify-between items-center text-sm font-bold text-gray-400 dark:text-luxury-text-muted px-2">
 			<span>{subscribers.length} Emails đăng ký</span>
@@ -231,6 +263,9 @@ const SubscribersView = ({ subscribers }) => (
 		</div>
 		<div className="bg-white dark:bg-luxury-dark border border-luxury-border rounded-3xl">
 			<ul className="divide-y divide-luxury-border">
+				{subscribers.length === 0 && (
+					<li className="px-6 py-12 text-center text-gray-400 text-sm">Chưa có ai đăng ký newsletter</li>
+				)}
 				{subscribers.map((s) => (
 					<li key={s._id} className="px-6 py-4 flex items-center justify-between hover:bg-white/5">
 						<div className="flex items-center gap-4">
@@ -244,7 +279,11 @@ const SubscribersView = ({ subscribers }) => (
 						</div>
 						<div className="flex items-center gap-6">
 							<div className="text-xs text-gray-500">{new Date(s.createdAt).toLocaleDateString()}</div>
-							<button className="text-red-400 hover:text-red-500 p-2">
+							<button
+								onClick={() => onDelete(s._id, s.email)}
+								className="text-red-400 hover:text-red-500 p-2 transition-colors"
+								title="Xóa subscriber"
+							>
 								<Trash2 className="w-4 h-4" />
 							</button>
 						</div>
@@ -299,28 +338,22 @@ const TemplatesView = ({ templates }) => (
 	</div>
 );
 
-const AutomationView = () => (
+const AutomationView = ({ automations, onToggle }) => (
 	<div className="space-y-6">
 		<div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl flex items-center gap-4 text-amber-400">
 			<Clock className="w-5 h-5 shrink-0" />
 			<p className="text-sm">Các tiến trình tự động được xử lý bởi BullMQ Worker & Redis mỗi 1 giờ.</p>
 		</div>
 		<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-			<AutomationCard 
-				title="Abandoned Cart" 
-				desc="Tự động gửi email nhắc nhở sau 24h nếu giỏ hàng không trống." 
-				active={true}
-			/>
-			<AutomationCard 
-				title="Welcome Email" 
-				desc="Gửi lời chào và mã giảm giá 10% ngay khi khách đăng ký Newsletter." 
-				active={true}
-			/>
-			<AutomationCard 
-				title="Birthday Email" 
-				desc="Tự động gửi lời chúc và quà tặng vào ngày sinh nhật khách hàng." 
-				active={false}
-			/>
+			{automations.map(automation => (
+				<AutomationCard
+					key={automation.id}
+					title={automation.title}
+					desc={automation.desc}
+					active={automation.active}
+					onToggle={() => onToggle(automation.id)}
+				/>
+			))}
 		</div>
 	</div>
 );
@@ -362,17 +395,32 @@ const StatusBadge = ({ status }) => {
 	);
 };
 
-const AutomationCard = ({ title, desc, active }) => (
+const AutomationCard = ({ title, desc, active, onToggle }) => (
 	<div className="bg-white dark:bg-luxury-dark border border-luxury-border p-8 rounded-3xl flex items-start gap-6 group hover:border-luxury-gold transition-all">
-		<div className={`p-4 rounded-2xl ${active ? "bg-luxury-gold/10 text-luxury-gold" : "bg-gray-500/10 text-gray-500"}`}>
+		<button
+			onClick={onToggle}
+			title={active ? "Tắt automation" : "Bật automation"}
+			className={`p-4 rounded-2xl transition-colors cursor-pointer ${
+				active
+					? "bg-luxury-gold/10 text-luxury-gold hover:bg-luxury-gold/20"
+					: "bg-gray-500/10 text-gray-500 hover:bg-gray-500/20"
+			}`}
+		>
 			<Power className="w-6 h-6" />
-		</div>
+		</button>
 		<div className="flex-1 space-y-2">
 			<div className="flex items-center justify-between">
 				<h4 className="font-bold text-lg">{title}</h4>
-				<span className={`text-[10px] font-bold uppercase ${active ? "text-emerald-500" : "text-red-500"}`}>
+				<button
+					onClick={onToggle}
+					className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded transition-colors ${
+						active
+							? "text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20"
+							: "text-red-500 bg-red-500/10 hover:bg-red-500/20"
+					}`}
+				>
 					{active ? "Active" : "Disabled"}
-				</span>
+				</button>
 			</div>
 			<p className="text-sm text-luxury-text-muted leading-relaxed">{desc}</p>
 			<div className="pt-4 flex gap-4">

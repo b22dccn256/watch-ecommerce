@@ -26,18 +26,57 @@ export const injectVariables = (html, vars) => {
 // 1. Dashboard Stats
 export const getMailStats = async (req, res) => {
 	try {
+		const days = parseInt(req.query.days) || 7;
+		const startDate = new Date();
+		startDate.setDate(startDate.getDate() - days);
+
 		const totalSubscribers = await NewsletterSubscription.countDocuments({ isSubscribed: true });
 		const totalCampaigns = await MailCampaign.countDocuments();
 		const recentLogs = await EmailLog.find().sort({ createdAt: -1 }).limit(10);
+		const sentEmails = await EmailLog.countDocuments({ status: "sent" });
 		
+		const totalOpened = await EmailLog.countDocuments({ openedAt: { $exists: true, $not: { $size: 0 } } });
+		const openRate = sentEmails > 0 ? ((totalOpened / sentEmails) * 100).toFixed(1) : 0;
+
 		const stats = {
 			totalSubscribers,
 			totalCampaigns,
-			sentEmails: await EmailLog.countDocuments({ status: "sent" }),
-			openRate: 0 // Placeholder
+			sentEmails,
+			openRate
 		};
-		
-		res.json({ stats, recentLogs });
+
+		const dailyAggregates = await EmailLog.aggregate([
+			{ $match: { createdAt: { $gte: startDate } } },
+			{
+				$group: {
+					_id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+					sent: { $sum: 1 },
+					opened: { $sum: { $cond: [{ $gt: [{ $size: { $ifNull: ["$openedAt", []] } }, 0] }, 1, 0] } },
+					clicked: { $sum: { $cond: [{ $gt: [{ $size: { $ifNull: ["$clickedLinks", []] } }, 0] }, 1, 0] } }
+				}
+			}
+		]);
+
+		const chartDataMap = {};
+		for (let i = days - 1; i >= 0; i--) {
+			const d = new Date();
+			d.setDate(d.getDate() - i);
+			const dateStr = d.toISOString().split("T")[0];
+			const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
+			chartDataMap[dateStr] = { name: dayName, sent: 0, opened: 0, clicked: 0 };
+		}
+
+		dailyAggregates.forEach(agg => {
+			if (chartDataMap[agg._id]) {
+				chartDataMap[agg._id].sent = agg.sent;
+				chartDataMap[agg._id].opened = agg.opened;
+				chartDataMap[agg._id].clicked = agg.clicked;
+			}
+		});
+
+		const chartData = Object.values(chartDataMap);
+
+		res.json({ stats, recentLogs, chartData });
 	} catch (error) {
 		res.status(500).json({ message: error.message });
 	}
