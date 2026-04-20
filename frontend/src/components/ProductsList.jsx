@@ -1,13 +1,15 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
 	Trash, Star, Search, ChevronLeft, ChevronRight,
-	Package, FileSpreadsheet, PlusCircle, X, CheckSquare, Square, Trash2, Megaphone, Eye, AlertTriangle
+	Package, FileSpreadsheet, PlusCircle, X, CheckSquare, Square, Trash2, Megaphone, Eye, AlertTriangle, Pencil
 } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
 import CreateProductForm from "./CreateProductForm";
+import EditProductForm from "./EditProductForm";
 
 const PAGE_SIZE = 10;
 
@@ -57,13 +59,21 @@ const CampaignPickerModal = ({ selectedIds, onClose, onSuccess }) => (
 );
 
 const ProductsList = () => {
-	const { deleteProduct, toggleFeaturedProduct, products, fetchAllProducts } = useProductStore();
+	const { deleteProduct, toggleFeaturedProduct, products, totalPages: storeTotalPages, currentPage: storeCurrentPage, totalCount, fetchProductsAdminPaginated, fetchAllProducts, loading } = useProductStore();
+	const [searchParams, setSearchParams] = useSearchParams();
+	
+	const urlPage = parseInt(searchParams.get("page")) || 1;
+	const urlSearch = searchParams.get("search") || "";
+	const urlSort = searchParams.get("sort") || "name_asc";
+
 	const importInputRef = useRef(null);
 	const previewInputRef = useRef(null);
-	const [search, setSearch] = useState("");
-	const [currentPage, setCurrentPage] = useState(1);
-	const [sortBy, setSortBy] = useState("name");
+	const [search, setSearch] = useState(urlSearch);
+	const [debouncedSearch, setDebouncedSearch] = useState(urlSearch);
+	const [currentPage, setCurrentPage] = useState(urlPage);
+	const [sortBy, setSortBy] = useState(urlSort);
 	const [showCreateModal, setShowCreateModal] = useState(false);
+	const [editingProduct, setEditingProduct] = useState(null); // product object being edited
 	const [importPreview, setImportPreview] = useState(null); // { total, preview, message }
 	const [previewFile, setPreviewFile] = useState(null); // store the file for confirmed import
 	const [importConfirming, setImportConfirming] = useState(false);
@@ -73,30 +83,38 @@ const ProductsList = () => {
 	const [bulkDeleting, setBulkDeleting] = useState(false);
 	const [showCampaignPicker, setShowCampaignPicker] = useState(false);
 
-	// Search + sort
-	const filtered = useMemo(() => {
-		const q = search.toLowerCase().trim();
-		let list = (products || []).filter(
-			(p) =>
-				!q ||
-				p.name?.toLowerCase().includes(q) ||
-				(typeof p.brand === "string" ? p.brand : p.brand?.name || "").toLowerCase().includes(q) ||
-				p.category?.toLowerCase().includes(q)
-		);
-		list = [...list].sort((a, b) => {
-			if (sortBy === "price") return (b.price || 0) - (a.price || 0);
-			if (sortBy === "createdAt") return new Date(b.createdAt) - new Date(a.createdAt);
-			if (sortBy === "stock") return (b.stock || 0) - (a.stock || 0);
-			return (a.name || "").localeCompare(b.name || "");
-		});
-		return list;
-	}, [products, search, sortBy]);
+	// Debounce search
+	useEffect(() => {
+		const handler = setTimeout(() => {
+			setDebouncedSearch(search);
+		}, 500);
+		return () => clearTimeout(handler);
+	}, [search]);
 
-	// Pagination
-	const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-	const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+	// Fetch data when params change
+	useEffect(() => {
+		const params = new URLSearchParams(searchParams);
+		if (currentPage > 1) params.set("page", currentPage);
+		else params.delete("page");
 
-	const handleSearch = (e) => { setSearch(e.target.value); setCurrentPage(1); };
+		if (debouncedSearch) params.set("search", debouncedSearch);
+		else params.delete("search");
+
+		if (sortBy !== "name_asc") params.set("sort", sortBy);
+		else params.delete("sort");
+
+		setSearchParams(params, { replace: true });
+
+		fetchProductsAdminPaginated({ page: currentPage, limit: PAGE_SIZE, search: debouncedSearch, sort: sortBy });
+	}, [currentPage, debouncedSearch, sortBy]);
+
+	const paginated = products || [];
+	const totalPages = storeTotalPages || 1;
+
+	const handleSearch = (e) => { 
+		setSearch(e.target.value); 
+		setCurrentPage(1); 
+	};
 
 	// Bulk select helpers
 	const currentPageIds = paginated.map((p) => p._id);
@@ -158,6 +176,7 @@ const ProductsList = () => {
 			setImportPreview(null);
 			setPreviewFile(null);
 			fetchAllProducts();
+			fetchProductsAdminPaginated({ page: currentPage, limit: PAGE_SIZE, search: debouncedSearch, sort: sortBy });
 		} catch (error) {
 			toast.error(error.response?.data?.message || "Lỗi khi import", { id: toastId });
 		} finally {
@@ -175,6 +194,7 @@ const ProductsList = () => {
 			const res = await axios.post("/products/import", formData, { headers: { "Content-Type": "multipart/form-data" } });
 			toast.success(`Thành công: ${res.data.success}, Thất bại: ${res.data.failed}`, { id: toastId, duration: 5000 });
 			fetchAllProducts();
+			fetchProductsAdminPaginated({ page: currentPage, limit: PAGE_SIZE, search: debouncedSearch, sort: sortBy });
 		} catch (error) {
 			toast.error(error.response?.data?.message || "Lỗi khi nhập file Excel", { id: toastId });
 		}
@@ -264,17 +284,19 @@ const ProductsList = () => {
 					<input ref={importInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleFileImport} />
 
 					<span className="text-gray-500 dark:text-gray-400 text-xs whitespace-nowrap hidden md:inline">
-						{filtered.length}/{products?.length || 0} SP
+						{totalCount || 0} SP
 					</span>
 					<select
 						value={sortBy}
 						onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
 						className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold transition"
 					>
-						<option value="name">Tên A-Z</option>
-						<option value="price">Giá cao nhất</option>
-						<option value="stock">Tồn kho cao nhất</option>
-						<option value="createdAt">Mới nhất</option>
+						<option value="name_asc">Tên A-Z</option>
+						<option value="name_desc">Tên Z-A</option>
+						<option value="price_desc">Giá cao nhất</option>
+						<option value="price_asc">Giá thấp nhất</option>
+						<option value="newest">Mới nhất</option>
+						<option value="best_selling">Bán chạy nhất</option>
 					</select>
 				</div>
 			</div>
@@ -307,7 +329,21 @@ const ProductsList = () => {
 							</tr>
 						</thead>
 						<tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
-							{paginated.length === 0 ? (
+							{loading ? (
+								Array(8).fill(0).map((_, i) => (
+									<tr key={`skeleton-${i}`} className="animate-pulse">
+										<td className="px-3 py-3"><div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
+										<td className="px-4 py-3"><div className="flex gap-3 items-center"><div className="w-11 h-11 bg-gray-200 dark:bg-gray-700 rounded-lg"></div><div className="space-y-2"><div className="w-24 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div><div className="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded"></div></div></div></td>
+										<td className="px-4 py-3"><div className="w-20 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
+										<td className="px-4 py-3"><div className="w-16 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
+										<td className="px-4 py-3"><div className="w-12 h-4 bg-gray-200 dark:bg-gray-700 rounded-full"></div></td>
+										<td className="px-4 py-3"><div className="w-10 h-4 bg-gray-200 dark:bg-gray-700 rounded-full"></div></td>
+										<td className="px-4 py-3"><div className="w-24 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
+										<td className="px-4 py-3"><div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-lg"></div></td>
+										<td className="px-4 py-3"><div className="flex gap-1"><div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-lg"></div><div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-lg"></div></div></td>
+									</tr>
+								))
+							) : paginated.length === 0 ? (
 								<tr>
 									<td colSpan="9" className="text-center py-16 text-gray-400 dark:text-gray-500">
 										<Package className="w-12 h-12 mx-auto mb-3 opacity-20" />
@@ -372,13 +408,22 @@ const ProductsList = () => {
 												</button>
 											</td>
 											<td className="px-4 py-3 whitespace-nowrap">
-												<button
-													onClick={() => deleteProduct(product._id)}
-													className="p-1.5 text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors"
-													title="Xóa sản phẩm"
-												>
-													<Trash className="h-3.5 w-3.5" />
-												</button>
+												<div className="flex items-center gap-1">
+													<button
+														onClick={() => setEditingProduct(product)}
+														className="p-1.5 text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg transition-colors"
+														title="Chỉnh sửa sản phẩm"
+													>
+														<Pencil className="h-3.5 w-3.5" />
+													</button>
+													<button
+														onClick={() => deleteProduct(product._id)}
+														className="p-1.5 text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors"
+														title="Xóa sản phẩm"
+													>
+														<Trash className="h-3.5 w-3.5" />
+													</button>
+												</div>
 											</td>
 										</tr>
 									);
@@ -392,7 +437,7 @@ const ProductsList = () => {
 				{totalPages > 1 && (
 					<div className="px-5 py-3 bg-gray-50 dark:bg-gray-700 flex items-center justify-between border-t border-gray-100 dark:border-gray-600">
 						<p className="text-xs text-gray-500 dark:text-gray-400">
-							Trang {currentPage}/{totalPages} • {filtered.length} sản phẩm
+							Trang {currentPage}/{totalPages} • {totalCount || 0} sản phẩm
 						</p>
 						<div className="flex items-center gap-1">
 							<button
@@ -450,6 +495,45 @@ const ProductsList = () => {
 							</div>
 							<div className="p-6 overflow-y-auto max-h-[75vh] custom-scrollbar">
 								<CreateProductForm onSuccess={() => { setShowCreateModal(false); fetchAllProducts(); }} />
+							</div>
+						</motion.div>
+					</div>
+				)}
+			</AnimatePresence>
+
+			{/* ── Edit Product Modal ────────────────── */}
+			<AnimatePresence>
+				{editingProduct && (
+					<div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-12 bg-black/60 backdrop-blur-sm overflow-y-auto">
+						<motion.div
+							initial={{ opacity: 0, scale: 0.96, y: 12 }}
+							animate={{ opacity: 1, scale: 1, y: 0 }}
+							exit={{ opacity: 0, scale: 0.96, y: 12 }}
+							transition={{ duration: 0.2 }}
+							className="relative bg-white dark:bg-luxury-darker border border-gray-100 dark:border-luxury-border shadow-2xl rounded-2xl w-full max-w-4xl mb-8"
+						>
+							<div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-luxury-border">
+								<div>
+									<h2 className="text-xl font-bold text-gray-900 dark:text-luxury-gold flex items-center gap-2">
+										<Pencil className="w-5 h-5" /> Chỉnh Sửa Sản Phẩm
+									</h2>
+									<p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate max-w-sm">
+										{editingProduct.name}
+									</p>
+								</div>
+								<button
+									onClick={() => setEditingProduct(null)}
+									className="p-2 bg-gray-100 dark:bg-luxury-border text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white rounded-full transition"
+								>
+									<X className="w-4 h-4" />
+								</button>
+							</div>
+							<div className="p-6 overflow-y-auto max-h-[75vh] custom-scrollbar">
+								<EditProductForm
+									product={editingProduct}
+									onClose={() => setEditingProduct(null)}
+									onSuccess={() => setEditingProduct(null)}
+								/>
 							</div>
 						</motion.div>
 					</div>

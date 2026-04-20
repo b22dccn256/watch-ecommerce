@@ -4,7 +4,9 @@ import axios from "../lib/axios";
 
 export const useProductStore = create((set, get) => ({
 	products: [],
+	allProducts: [],
 	brands: [],
+	categories: [],
 	loading: false,
 
 	fetchBrands: async () => {
@@ -13,6 +15,15 @@ export const useProductStore = create((set, get) => ({
 			set({ brands: res.data });
 		} catch (error) {
 			console.log("Error fetching brands", error);
+		}
+	},
+
+	fetchCategories: async () => {
+		try {
+			const res = await axios.get("/categories?tree=false");
+			set({ categories: res.data });
+		} catch (error) {
+			console.log("Error fetching categories", error);
 		}
 	},
 
@@ -31,14 +42,50 @@ export const useProductStore = create((set, get) => ({
 			set({ loading: false });
 		}
 	},
+	updateProduct: async (productId, productData) => {
+		set({ loading: true });
+		try {
+			const res = await axios.put(`/products/${productId}`, productData);
+			set((prevState) => ({
+				products: prevState.products.map((p) =>
+					p._id === productId ? { ...p, ...res.data } : p
+				),
+				loading: false,
+			}));
+			toast.success("Cập nhật sản phẩm thành công");
+		} catch (error) {
+			toast.error(error.response?.data?.error || "Lỗi khi cập nhật sản phẩm");
+			set({ loading: false });
+		}
+	},
 	fetchAllProducts: async () => {
 		set({ loading: true });
 		try {
 			const response = await axios.get("/products");
-			set({ products: response.data.products, loading: false });
+			set({ allProducts: response.data.products || response.data, loading: false });
 		} catch (error) {
 			set({ error: "Failed to fetch products", loading: false });
-			toast.error(error.response.data.error || "Failed to fetch products");
+			toast.error(error.response?.data?.error || "Failed to fetch products");
+		}
+	},
+	fetchProductsAdminPaginated: async ({ page = 1, limit = 12, search = "", category = "", sort = "" }) => {
+		set({ loading: true });
+		try {
+			let url = `/products?page=${page}&limit=${limit}`;
+			if (search) url += `&q=${encodeURIComponent(search)}`;
+			if (category) url += `&category=${encodeURIComponent(category)}`;
+			if (sort) url += `&sort=${encodeURIComponent(sort)}`;
+
+			const response = await axios.get(url);
+			set({ 
+				products: response.data.products, 
+				totalPages: response.data.totalPages || 1,
+				currentPage: response.data.currentPage || page,
+				loading: false 
+			});
+		} catch (error) {
+			set({ loading: false });
+			toast.error(error.response?.data?.error || "Lỗi khi lấy danh sách sản phẩm.");
 		}
 	},
 	fetchProductsByCategory: async (category) => {

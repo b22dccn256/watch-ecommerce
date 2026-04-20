@@ -8,7 +8,7 @@ const PAGE_SIZE = 8;
 
 const InventoryTab = () => {
     const { lowStockProducts, fetchLowStockProducts, adjustStock, fetchProductLogs, inventoryLogs, loading } = useInventoryStore();
-    const { products } = useProductStore();
+    const { allProducts: products, fetchAllProducts } = useProductStore();
     const [selectedProduct, setSelectedProduct] = useState("");
     const [showAdjustModal, setShowAdjustModal] = useState(false);
     const [showLogsModal, setShowLogsModal] = useState(false);
@@ -24,7 +24,8 @@ const InventoryTab = () => {
 
     useEffect(() => {
         fetchLowStockProducts();
-    }, [fetchLowStockProducts]);
+        fetchAllProducts();
+    }, [fetchLowStockProducts, fetchAllProducts]);
 
     const filteredProducts = useMemo(() => {
         const q = search.toLowerCase().trim();

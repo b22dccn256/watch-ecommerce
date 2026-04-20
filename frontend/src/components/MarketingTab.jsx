@@ -7,7 +7,7 @@ import axios from "../lib/axios";
 
 const MarketingTab = () => {
     const { campaigns, fetchCampaigns, createCampaign, toggleCampaignStatus, deleteCampaign } = useCampaignStore();
-    const { products } = useProductStore();
+    const { allProducts: products, fetchAllProducts } = useProductStore();
     const bannerInputRef = useRef(null);
 
     const [formData, setFormData] = useState({
@@ -27,7 +27,8 @@ const MarketingTab = () => {
     useEffect(() => {
         fetchCampaigns();
         fetchBanners();
-    }, [fetchCampaigns]);
+        fetchAllProducts();
+    }, [fetchCampaigns, fetchAllProducts]);
 
     const fetchBanners = async () => {
         setBannersLoading(true);
@@ -237,6 +238,14 @@ const MarketingTab = () => {
                             <option value="Entire Catalog">Toàn bộ danh mục</option>
                             <option value="Đồng hồ Nam">Đồng hồ Nam</option>
                             <option value="Đồng hồ Nữ">Đồng hồ Nữ</option>
+                            <option value="Đồng hồ Đôi">Đồng hồ Đôi</option>
+                            <option value="Phụ kiện">Phụ kiện</option>
+                            <option value="Cơ Tự Động (Automatic)">Cơ Tự Động (Automatic)</option>
+                            <option value="Cơ Lên Cót Tay (Hand-wound)">Cơ Lên Cót Tay (Hand-wound)</option>
+                            <option value="Bộ Máy Pin (Quartz)">Bộ Máy Pin (Quartz)</option>
+                            <option value="Năng Lượng Ánh Sáng (Solar)">Năng Lượng Ánh Sáng (Solar)</option>
+                            <option value="Đồng Hồ Điện Tử (Digital)">Đồng Hồ Điện Tử (Digital)</option>
+                            <option value="Đồng Hồ Thông Minh (Smartwatch)">Đồng Hồ Thông Minh (Smartwatch)</option>
                         </select>
                     </div>
 
