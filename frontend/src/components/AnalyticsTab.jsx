@@ -124,8 +124,8 @@ const AnalyticsTab = () => {
 				/>
 			</div>
 
-			{/* KPI Row 2: AOV, Orders Paid */}
-			<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+			{/* KPI Row 2: AOV, Orders Paid, Conversion Rate */}
+			<div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
 				<div className="bg-white dark:bg-gray-800/60 rounded-xl p-5 border border-gray-100 dark:border-transparent shadow flex items-center gap-4">
 					<div className="p-3 rounded-full bg-gradient-to-br from-pink-500 to-rose-700">
 						<TrendingUp className="w-5 h-5 text-white" />
@@ -142,6 +142,30 @@ const AnalyticsTab = () => {
 					<div>
 						<p className="text-xs text-gray-500 dark:text-gray-400">Đơn đã thanh toán</p>
 						<p className="text-xl font-bold text-gray-900 dark:text-white">{analyticsData.totalOrdersPlaced?.toLocaleString()} đơn</p>
+					</div>
+				</div>
+				<div className="bg-white dark:bg-gray-800/60 rounded-xl p-5 border border-gray-100 dark:border-transparent shadow flex items-center gap-4">
+					<div className="p-3 rounded-full bg-gradient-to-br from-emerald-500 to-green-700">
+						<TrendingUp className="w-5 h-5 text-white" />
+					</div>
+					<div>
+						<p className="text-xs text-gray-500 dark:text-gray-400">Tỷ lệ chuyển đổi</p>
+						{(() => {
+							const rate = analyticsData.conversionRate > 0 
+								? analyticsData.conversionRate 
+								: (analyticsData.totalSales > 0 ? (analyticsData.totalOrdersPlaced / analyticsData.totalSales) * 100 : 0);
+							
+							let colorCls = "text-gray-900 dark:text-white";
+							if (rate > 2) colorCls = "text-emerald-500";
+							else if (rate >= 1 && rate <= 2) colorCls = "text-yellow-500";
+							else if (rate < 1 && rate > 0) colorCls = "text-red-500";
+
+							return (
+								<p className={`text-xl font-bold ${colorCls}`}>
+									{rate > 0 ? `${rate.toFixed(2)}%` : "—"}
+								</p>
+							);
+						})()}
 					</div>
 				</div>
 			</div>
