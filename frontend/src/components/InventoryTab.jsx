@@ -71,6 +71,16 @@ const InventoryTab = () => {
 
     return (
         <div className="space-y-8">
+            {/* Thống kê Tổng quan */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border p-6 rounded-2xl shadow-sm">
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Tổng giá trị kho</p>
+                    <p className="text-3xl font-bold text-luxury-gold">
+                        {products?.reduce((sum, p) => sum + (p.stock * (p.costPrice || 0)), 0).toLocaleString("vi-VN")} ₫
+                    </p>
+                </div>
+            </div>
+
             {/* Low Stock Alerts */}
             <section className="bg-red-50/50 dark:bg-red-900/10 rounded-2xl p-6 border border-red-100 dark:border-red-900/30 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
@@ -79,7 +89,7 @@ const InventoryTab = () => {
                     Cảnh báo Tồn kho Thiếu Hụt
                 </h2>
                 {lowStockProducts.length === 0 ? (
-                    <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-lg w-fit">
+                    <p className="text-sm font-medium text-[color:var(--color-gold)] flex items-center gap-2 p-3 rounded-lg w-fit border border-[color:var(--color-gold)]/20 bg-[color:var(--color-gold)]/8">
                         Tất cả sản phẩm đều đang đạt mức tồn kho an toàn.
                     </p>
                 ) : (
@@ -174,7 +184,7 @@ const InventoryTab = () => {
                                         </td>
                                         <td className="px-5 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{p.brand?.name || p.brand}</td>
                                         <td className="px-5 py-3 whitespace-nowrap text-sm">
-                                            <span className={`px-2.5 py-1 rounded-md font-bold text-xs ${p.stock <= (p.lowStockThreshold || 5) ? 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400' : 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'}`}>
+                                            <span className={`px-2.5 py-1 rounded-md font-bold text-xs ${p.stock <= (p.lowStockThreshold || 5) ? 'stock-badge-out' : 'stock-badge-high'}`}>
                                                 {p.stock}
                                             </span>
                                         </td>
@@ -188,7 +198,7 @@ const InventoryTab = () => {
                                             </button>
                                             <button 
                                                 onClick={() => openLogs(p._id)} 
-                                                className="inline-flex items-center justify-center p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                                                className="inline-flex items-center justify-center p-2 bg-[color:var(--color-gold)]/10 text-[color:var(--color-gold)] rounded-lg hover:bg-[color:var(--color-gold)]/20 transition-colors"
                                                 title="Xem lịch sử"
                                             >
                                                 <BookOpen className="w-4 h-4" />
@@ -348,7 +358,7 @@ const InventoryTab = () => {
                                     {inventoryLogs.map(log => (
                                         <div key={log._id} className="p-3 bg-gray-50 dark:bg-luxury-darker rounded-lg border border-gray-100 dark:border-luxury-border text-sm">
                                             <div className="flex justify-between font-semibold mb-1">
-                                                <span className={log.action === "OUT" ? "text-red-500" : log.action === "IN" ? "text-green-500" : "text-blue-500"}>
+                                                <span className={log.action === "OUT" ? "text-[color:var(--color-danger)]" : log.action === "IN" ? "text-[color:var(--color-gold)]" : "text-secondary"}>
                                                     {log.action} ({log.quantity > 0 ? `+${log.quantity}` : log.quantity})
                                                 </span>
                                                 <span className="text-gray-400">{new Date(log.createdAt).toLocaleString()}</span>
