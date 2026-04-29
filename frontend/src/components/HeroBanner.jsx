@@ -74,7 +74,7 @@ const HeroBanner = ({ slogan }) => {
         >
           <p className="hero-kicker inline-flex items-center gap-2 text-[color:var(--color-gold)]">
             <Sparkles className="h-3.5 w-3.5" />
-            Curated watch house
+            Fine Timepieces · Global Maisons
           </p>
 
           <h1 className="heading-display max-w-2xl text-primary">
@@ -114,16 +114,16 @@ const HeroBanner = ({ slogan }) => {
           className="relative"
         >
           <div className="relative mx-auto max-w-[500px] lg:mr-0">
-            <div className="relative overflow-hidden rounded-[1.9rem] border border-black/10 bg-black shadow-[0_30px_100px_-38px_rgba(0,0,0,0.8)]">
+            <div className="group relative overflow-hidden rounded-[1.9rem] border border-black/10 bg-black shadow-[0_30px_100px_-38px_rgba(0,0,0,0.8)]">
               <img
                 src={activeBanner?.imageUrl || "/banner-2.jpg"}
                 alt={activeBanner?.title || "Luxury watch campaign"}
-                className="h-[440px] w-full object-cover sm:h-[510px]"
+                className="h-[440px] w-full object-cover transition-transform duration-[800ms] ease-out group-hover:scale-[1.04] sm:h-[520px]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/20 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 px-6 pb-7">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-white/75">Limited capsule</p>
-                <p className="hero-title mt-2 text-2xl text-white sm:text-3xl">Precision in Motion</p>
+                <p className="text-[9px] uppercase tracking-[0.3em] text-white/60">Limited capsule</p>
+                <p className="hero-title mt-2 text-2xl text-white sm:text-[1.75rem]">Permanence in Motion</p>
               </div>
             </div>
 

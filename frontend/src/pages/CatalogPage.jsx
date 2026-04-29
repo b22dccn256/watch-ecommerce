@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useParams, Link } from "react-router-dom";
 import { LayoutGrid, Grid3X3, X } from "lucide-react";
+import { motion } from "framer-motion";
 import { useProductStore } from "../stores/useProductStore";
+import { useStorefrontStore } from "../stores/useStorefrontStore";
 import ProductCard from "../components/ProductCard";
 import FilterSidebar from "../components/FilterSidebar";
 import { SkeletonProductCard } from "../components/SkeletonLoaders";
@@ -9,11 +11,25 @@ import { SkeletonProductCard } from "../components/SkeletonLoaders";
 const CatalogPage = () => {
 	const { category } = useParams();
 	const [searchParams, setSearchParams] = useSearchParams();
-	const [gridCols, setGridCols] = useState(4); // 3 or 4 columns
+	const { config, fetchConfig } = useStorefrontStore();
+	// B-01 Fix: default từ storeConfig.gridColumns, fallback về 4 nếu chưa load
+	const [gridCols, setGridCols] = useState(4);
 	const {
 		products, loading, totalPages, currentPage, sort, totalCount,
 		fetchFilteredProducts, setPage, setSearchTerm, setFilters, filters, setSort
 	} = useProductStore();
+
+	// B-01 Fix: Load storeConfig để lấy gridColumns mặc định
+	useEffect(() => {
+		fetchConfig();
+	}, [fetchConfig]);
+
+	// B-01 Fix: Sync gridCols khi config load xong (chỉ lần đầu)
+	useEffect(() => {
+		if (config?.gridColumns) {
+			setGridCols(Number(config.gridColumns));
+		}
+	}, [config?.gridColumns]);
 
 	// Đồng bộ URL params với store
 	useEffect(() => {
@@ -116,7 +132,7 @@ const CatalogPage = () => {
 				<div className="mb-8 rounded-[2rem] editorial-surface px-6 py-6 md:px-8 md:py-7 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.35)]">
 					<div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
 						<div className="space-y-4">
-							<p className="hero-kicker text-xs font-semibold text-luxury-gold">Catalog / Curated browse</p>
+							<p className="hero-kicker text-xs font-semibold text-luxury-gold">Bộ sưu tập · Tuyển chọn</p>
 							<h1 className="hero-title text-3xl md:text-5xl text-gray-900 leading-tight">
 								{category ? category : "Tất cả đồng hồ"}
 							</h1>
@@ -160,7 +176,7 @@ const CatalogPage = () => {
 
 						<div className="flex flex-wrap justify-between items-center mb-4 gap-3 rounded-[1.5rem] border border-black/5 dark:border-white/5 bg-white/85 dark:bg-white/5 px-4 py-4 shadow-sm">
 							<div>
-								<p className="hero-kicker text-[10px] font-semibold text-luxury-gold mb-2">Refined listing</p>
+								<p className="hero-kicker text-[10px] font-semibold text-luxury-gold mb-2">Danh mục sản phẩm</p>
 								<h2 className="heading-section text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
 									{category ? category : "Tất cả đồng hồ"}
 								</h2>
@@ -239,11 +255,22 @@ const CatalogPage = () => {
 								<p className="text-gray-500 max-w-md mx-auto">Thử điều chỉnh lại bộ lọc hoặc khoảng giá để tìm thấy chiếc đồng hồ ưng ý nhất của bạn.</p>
 							</div>
 						) : (
-							<div className={gridCols === 4 ? "product-grid-4" : "product-grid-3"}>
+							<motion.div
+								className={gridCols === 4 ? "product-grid-4" : "product-grid-3"}
+								initial="hidden"
+								whileInView="visible"
+								viewport={{ once: true, amount: 0.05 }}
+								variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.07 } } }}
+							>
 								{products.map((product) => (
-									<ProductCard key={product._id} product={product} />
+									<motion.div
+										key={product._id}
+										variants={{ hidden: { opacity: 0, y: 22 }, visible: { opacity: 1, y: 0, transition: { duration: 0.38 } } }}
+									>
+										<ProductCard product={product} />
+									</motion.div>
 								))}
-							</div>
+							</motion.div>
 						)}
 
 						{/* Phân trang */}

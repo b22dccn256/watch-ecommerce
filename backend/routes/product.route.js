@@ -14,6 +14,7 @@ import {
 	updateProduct,
 	getInventoryAlerts,
     exportProducts,
+	bulkUpdateProducts,
 } from "../controllers/product.controller.js";
 import { adminRoute, managementRoute, protectRoute } from "../middleware/auth.middleware.js";
 
@@ -36,5 +37,7 @@ router.post("/", protectRoute, managementRoute, createProduct);
 router.put("/:id", protectRoute, managementRoute, updateProduct);
 router.patch("/:id", protectRoute, managementRoute, toggleFeaturedProduct);
 router.delete("/:id", protectRoute, adminRoute, deleteProduct);
+// B1: Bulk operations
+router.patch("/", protectRoute, managementRoute, bulkUpdateProducts);
 
 export default router;

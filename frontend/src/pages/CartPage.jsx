@@ -6,7 +6,6 @@ import { useCartStore } from "../stores/useCartStore";
 import CartItem from "../components/CartItem";
 import OrderSummary from "../components/OrderSummary";
 import GiftCouponCard from "../components/GiftCouponCard";
-import PeopleAlsoBought from "../components/PeopleAlsoBought";
 import CheckoutStepper from "../components/CheckoutStepper";
 
 const EmptyState = () => (
@@ -107,9 +106,7 @@ const CartPage = () => {
                 ))}
               </div>
 
-              <div className="pt-4">
-                <PeopleAlsoBought />
-              </div>
+
             </section>
 
             <aside className="space-y-4 xl:sticky xl:top-24 xl:h-fit">

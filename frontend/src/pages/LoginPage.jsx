@@ -1,273 +1,302 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { LogIn, Mail, Lock, ArrowRight, Loader, ShieldCheck, RefreshCw, Facebook, Github } from "lucide-react";
 import { useUserStore } from "../stores/useUserStore";
 
+const EDITORIAL_IMAGE =
+  "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=1600&auto=format&fit=crop";
+
 const LoginPage = () => {
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const [otp, setOtp] = useState("");
-	const [step, setStep] = useState("login"); // "login" or "otp"
-	const [otpExpiry, setOtpExpiry] = useState(300); // 5 mins in seconds
-	const [resendCooldown, setResendCooldown] = useState(0);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState("login");
+  const [otpExpiry, setOtpExpiry] = useState(300);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
-	const { login, verifyOTP, resendOTP, loading } = useUserStore();
+  const { login, verifyOTP, resendOTP, loading } = useUserStore();
 
-	// Countdown for OTP validity
-	useEffect(() => {
-		let timer;
-		if (step === "otp" && otpExpiry > 0) {
-			timer = setInterval(() => {
-				setOtpExpiry((prev) => prev - 1);
-			}, 1000);
-		}
-		return () => clearInterval(timer);
-	}, [step, otpExpiry]);
+  useEffect(() => {
+    let timer;
+    if (step === "otp" && otpExpiry > 0) {
+      timer = setInterval(() => setOtpExpiry((p) => p - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [step, otpExpiry]);
 
-	// Countdown for Resend button
-	useEffect(() => {
-		let timer;
-		if (resendCooldown > 0) {
-			timer = setInterval(() => {
-				setResendCooldown((prev) => prev - 1);
-			}, 1000);
-		}
-		return () => clearInterval(timer);
-	}, [resendCooldown]);
+  useEffect(() => {
+    let timer;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => setResendCooldown((p) => p - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
-	const formatTime = (seconds) => {
-		const mins = Math.floor(seconds / 60);
-		const secs = seconds % 60;
-		return `${mins}:${secs.toString().padStart(2, "0")}`;
-	};
+  const fmt = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
 
-	const handleLoginSubmit = async (e) => {
-		e.preventDefault();
-		try {
-			const result = await login(email, password);
-			if (result === "OTP_REQUIRED") {
-				setStep("otp");
-				setOtpExpiry(300);
-				setResendCooldown(60);
-			}
-		} catch {
-			// Error handled in store
-		}
-	};
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const result = await login(email, password);
+      if (result === "OTP_REQUIRED") {
+        setStep("otp");
+        setOtpExpiry(300);
+        setResendCooldown(60);
+      }
+    } catch {}
+  };
 
-	const handleVerifySubmit = async (e) => {
-		e.preventDefault();
-		try {
-			await verifyOTP(email, otp);
-		} catch {
-			// Error handled in store
-		}
-	};
+  const handleVerifySubmit = async (e) => {
+    e.preventDefault();
+    try { await verifyOTP(email, otp); } catch {}
+  };
 
-	const handleResend = async () => {
-		if (resendCooldown > 0) return;
-		const success = await resendOTP(email);
-		if (success) {
-			setResendCooldown(60);
-			setOtpExpiry(300);
-			setOtp("");
-		}
-	};
+  const handleResend = async () => {
+    if (resendCooldown > 0) return;
+    const ok = await resendOTP(email);
+    if (ok) { setResendCooldown(60); setOtpExpiry(300); setOtp(""); }
+  };
 
-	return (
-		<div className='flex flex-col justify-center py-12 sm:px-6 lg:px-8'>
-			<motion.div
-				className='sm:mx-auto sm:w-full sm:max-w-md'
-				initial={{ opacity: 0, y: -20 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.8 }}
-			>
-				<h2 className='hero-title mt-6 text-center text-3xl text-primary'>
-					{step === "login" ? "Đăng nhập tài khoản" : "Xác thực quản trị viên (OTP)"}
-				</h2>
-				{step === "otp" && (
-					<p className='mt-2 text-center text-sm text-secondary'>
-						Mã xác thực quản trị viên đã được gửi đến email <b>{email}</b>
-					</p>
-				)}
-			</motion.div>
+  return (
+    <div className="flex min-h-screen">
 
-			<motion.div
-				className='mt-8 sm:mx-auto sm:w-full sm:max-w-md'
-				initial={{ opacity: 0, y: 20 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.8, delay: 0.2 }}
-			>
-				<div className='bg-surface py-8 px-4 shadow-xl border border-black/10 dark:border-white/10 sm:rounded-2xl sm:px-10'>
-					{step === "login" ? (
-						<form onSubmit={handleLoginSubmit} className='space-y-6'>
-							<div>
-								<label htmlFor='email' className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
-									Địa chỉ Email
-								</label>
-								<div className='mt-1 relative rounded-md shadow-sm'>
-									<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-										<Mail className='h-5 w-5 text-gray-400' aria-hidden='true' />
-									</div>
-									<input
-										   id='email'
-										   name='email'
-										   type='email'
-										   required
-										   value={email}
-										   onChange={(e) => setEmail(e.target.value)}
-										className='input-base block w-full pl-10'
-										placeholder='you@example.com'
-									/>
-								</div>
-							</div>
+      {/* ── Left — Editorial Panel ── */}
+      <div
+        className="relative hidden lg:flex lg:w-[46%] flex-col justify-between overflow-hidden p-14"
+        style={{ background: "#0d0c0a" }}
+      >
+        {/* Background image */}
+        <img
+          src={EDITORIAL_IMAGE}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover opacity-[0.22] mix-blend-luminosity"
+        />
+        {/* Gradient veil */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/65" />
 
-							<div>
-								<label htmlFor='password' className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
-									Mật khẩu
-								</label>
-								<div className='mt-1 relative rounded-md shadow-sm'>
-									<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-										<Lock className='h-5 w-5 text-gray-400' aria-hidden='true' />
-									</div>
-									<input
-										   id='password'
-										   name='password'
-										   type='password'
-										   required
-										   value={password}
-										   onChange={(e) => setPassword(e.target.value)}
-										className='input-base block w-full pl-10'
-										placeholder='••••••••'
-									/>
-								</div>
-							</div>
+        {/* Brand lockup */}
+        <div className="relative flex items-center gap-3">
+          <div className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-gold)]/40 bg-[color:var(--color-gold)]/14">
+            <span className="text-[10px] font-bold tracking-[0.08em] text-[color:var(--color-gold)]">LW</span>
+          </div>
+          <div>
+            <p className="text-sm font-bold tracking-[0.3em] text-white">LUXURY</p>
+            <p className="text-[9px] uppercase tracking-[0.36em] text-white/35">Watch Gallery</p>
+          </div>
+        </div>
 
-							<button
-								type='submit'
-								className='btn-base btn-primary h-11 w-full'
-								disabled={loading}
-							>
-								{loading ? (
-									<>
-										<Loader className='mr-2 h-5 w-5 animate-spin' aria-hidden='true' />
-										Đang xử lý...
-									</>
-								) : (
-									<>
-										<LogIn className='mr-2 h-5 w-5' aria-hidden='true' />
-										Đăng nhập
-									</>
-								)}
-							</button>
+        {/* Quote block */}
+        <div className="relative space-y-5">
+          <div className="h-px w-12 bg-[color:var(--color-gold)]/55" />
+          <blockquote className="font-serif text-[1.95rem] font-medium leading-[1.24] text-white/92">
+            "Thời gian là xa xỉ phẩm<br />duy nhất không thể mua
+            được —<br />nhưng bạn có thể đeo nó."
+          </blockquote>
+          <p className="text-[10px] uppercase tracking-[0.22em] text-white/35">
+            Luxury Watch Gallery · 2026
+          </p>
+        </div>
 
-							{/* Social Logins */}
-							<div className="mt-6">
-								<div className="relative">
-									<div className="absolute inset-0 flex items-center">
-										<div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-									</div>
-									<div className="relative flex justify-center text-sm">
-										<span className="px-2 bg-surface text-muted">Hoặc tiếp tục với</span>
-									</div>
-								</div>
+        {/* Bottom */}
+        <p className="relative text-[10px] uppercase tracking-[0.2em] text-white/20">
+          © 2026 · Hanoi · Vietnam
+        </p>
+      </div>
 
-								<div className="mt-6 grid grid-cols-3 gap-3">
-									<button onClick={() => window.location.href = "/api/auth/oauth/google"} type="button" className="w-full flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
-										<svg className="w-5 h-5" viewBox="0 0 24 24">
-											<path fill="#EA4335" d="M12.545,10.239v3.821h5.445c-0.231,1.139-1.317,3.33-5.445,3.33c-3.284,0-5.962-2.73-5.962-6.101s2.678-6.101,5.962-6.101c1.86,0,3.109,0.796,3.818,1.472l2.997-2.909c-1.782-1.636-4.085-2.617-6.816-2.617c-5.467,0-9.897,4.48-9.897,10.038s4.43,10.038,9.897,10.038c5.719,0,9.507-4.02,9.507-9.673c0-0.742-0.088-1.393-0.211-1.999H12.545z" />
-											<path fill="#34A853" d="M22.052,12.038c0-0.742-0.088-1.393-0.211-1.999H12.545v3.821h5.445c-0.231,1.139-1.317,3.33-5.445,3.33c-0.908,0-1.76-0.203-2.527-0.569l-2.674,2.028v0.015c1.442,1.339,3.396,2.152,5.201,2.152C17.771,22.076,22.052,18.056,22.052,12.038z" />
-											<path fill="#4A90E2" d="M12.545,8.156c1.86,0,3.109,0.796,3.818,1.472l2.997-2.909c-1.782-1.636-4.085-2.617-6.816-2.617C8.751,4.102,5.83,5.656,4.053,8.016l2.674,2.028C7.545,8.818,9.866,8.156,12.545,8.156z" />
-											<path fill="#FBBC05" d="M6.726,10.044c-0.187,0.612-0.291,1.267-0.291,1.956s0.104,1.344,0.291,1.956l-2.674,2.028C3.473,14.887,3.18,13.488,3.18,12s0.293-2.887,0.871-4.148L6.726,10.044z" />
-										</svg>
-									</button>
-									<button onClick={() => window.location.href = "/api/auth/oauth/facebook"} type="button" className="w-full flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
-										<Facebook className="w-5 h-5 text-blue-600" />
-									</button>
-									<button onClick={() => window.location.href = "/api/auth/oauth/github"} type="button" className="w-full flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
-										<Github className="w-5 h-5 text-gray-900 dark:text-gray-100" />
-									</button>
-								</div>
-							</div>
-						</form>
-					) : (
-						<form onSubmit={handleVerifySubmit} className='space-y-6'>
-							<div>
-								<label htmlFor='otp' className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
-									Nhập mã xác thực quản trị viên (OTP)
-								</label>
-								<div className='mt-1 relative rounded-md shadow-sm'>
-									<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-										<ShieldCheck className='h-5 w-5 text-gray-400' aria-hidden='true' />
-									</div>
-									   <input
-										   id='otp'
-										   name='otp'
-										   type='text'
-										   required
-										   maxLength={6}
-										   value={otp}
-										   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-										className='input-base block w-full pl-10'
-										placeholder='123456'
-									/>
-								</div>
-								<div className='mt-2 flex justify-between items-center text-xs'>
-										<span className={otpExpiry > 0 ? "text-muted" : "text-red-500"}>
-										{otpExpiry > 0 ? `Hết hạn sau: ${formatTime(otpExpiry)}` : "Mã đã hết hạn"}
-									</span>
-									<button
-										type='button'
-										onClick={handleResend}
-										disabled={resendCooldown > 0}
-											className='flex items-center text-[color:var(--color-gold)] hover:text-[color:var(--color-gold-soft)] disabled:text-gray-500 disabled:cursor-not-allowed transition-colors'
-									>
-										<RefreshCw className={`mr-1 h-3 w-3 ${resendCooldown > 0 ? "" : "hover:animate-spin"}`} />
-											{resendCooldown > 0 ? `Gửi lại sau ${resendCooldown}s` : "Gửi lại mã OTP"}
-									</button>
-								</div>
-							</div>
+      {/* ── Right — Form Panel ── */}
+      <div className="flex flex-1 items-center justify-center bg-[color:var(--color-bg)] px-6 py-20 sm:px-10">
+        <div className="w-full max-w-[360px]">
 
-							<button
-								type='submit'
-								className='btn-base btn-primary h-11 w-full'
-								disabled={loading || otpExpiry <= 0}
-							>
-								{loading ? (
-									<>
-										<Loader className='mr-2 h-5 w-5 animate-spin' aria-hidden='true' />
-										Đang xác thực...
-									</>
-								) : (
-									<>
-										<ShieldCheck className='mr-2 h-5 w-5' aria-hidden='true' />
-										Xác thực đăng nhập
-									</>
-								)}
-							</button>
+          {/* Mobile brand (hidden on lg) */}
+          <div className="mb-10 flex items-center gap-3 lg:hidden">
+            <div className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-gold)]/40 bg-[color:var(--color-gold)]/14">
+              <span className="text-[10px] font-bold tracking-[0.08em] text-[color:var(--color-gold)]">LW</span>
+            </div>
+            <div>
+              <p className="font-serif text-base tracking-[0.26em] text-primary">LUXURY</p>
+              <p className="text-[9px] uppercase tracking-[0.3em] text-muted">Watch Gallery</p>
+            </div>
+          </div>
 
-							<button
-								type='button'
-								onClick={() => setStep("login")}
-								className='w-full text-center text-sm text-muted hover:text-primary transition-colors'
-							>
-								Quay lại đăng nhập
-							</button>
-						</form>
-					)}
+          <AnimatePresence mode="wait">
+            {/* ── Login step ── */}
+            {step === "login" && (
+              <motion.div
+                key="login"
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -14 }}
+                transition={{ duration: 0.38 }}
+              >
+                {/* Heading */}
+                <div className="mb-8 space-y-1.5">
+                  <h1 className="font-serif text-[2rem] leading-tight text-primary">
+                    Chào mừng trở lại
+                  </h1>
+                  <p className="text-sm text-muted">Đăng nhập để tiếp tục hành trình của bạn</p>
+                </div>
 
-					{step === "login" && (
-						<p className='mt-8 text-center text-sm text-muted'>
-							Chưa có tài khoản?{" "}
-							<Link to='/signup' className='font-medium text-[color:var(--color-gold)] hover:text-[color:var(--color-gold-soft)]'>
-								Đăng ký ngay <ArrowRight className='inline h-4 w-4' />
-							</Link>
-						</p>
-					)}
-				</div>
-			</motion.div>
-		</div>
-	);
+                <form onSubmit={handleLoginSubmit} className="space-y-4">
+                  {/* Email */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="email" className="block text-[10px] uppercase tracking-[0.18em] text-secondary">
+                      Địa chỉ Email
+                    </label>
+                    <div className="relative">
+                      <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+                      <input
+                        id="email" type="email" required
+                        value={email} onChange={(e) => setEmail(e.target.value)}
+                        className="input-base h-11 rounded-lg pl-10"
+                        placeholder="you@example.com"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Password */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="password" className="block text-[10px] uppercase tracking-[0.18em] text-secondary">
+                      Mật khẩu
+                    </label>
+                    <div className="relative">
+                      <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+                      <input
+                        id="password" type="password" required
+                        value={password} onChange={(e) => setPassword(e.target.value)}
+                        className="input-base h-11 rounded-lg pl-10"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                  </div>
+
+                  <button type="submit" disabled={loading} className="btn-base btn-primary mt-1 h-11 w-full">
+                    {loading
+                      ? <><Loader className="mr-2 h-4 w-4 animate-spin" />Đang xử lý…</>
+                      : <><LogIn className="mr-2 h-4 w-4" />Đăng nhập</>}
+                  </button>
+                </form>
+
+                {/* Divider */}
+                <div className="my-6 flex items-center gap-4">
+                  <div className="flex-1 border-t border-[color:var(--color-border)]" />
+                  <span className="text-[10px] uppercase tracking-[0.16em] text-muted">hoặc</span>
+                  <div className="flex-1 border-t border-[color:var(--color-border)]" />
+                </div>
+
+                {/* Social Login — minimal line buttons */}
+                <div className="grid grid-cols-3 gap-2">
+                  {/* Google */}
+                  <button
+                    type="button"
+                    onClick={() => window.location.href = "/api/auth/oauth/google"}
+                    className="inline-flex h-11 items-center justify-center rounded-lg border border-[color:var(--color-border)] bg-surface transition-colors duration-300 hover:border-[color:var(--color-gold)] hover:bg-[color:var(--color-surface-2)]"
+                    aria-label="Google"
+                  >
+                    <svg className="h-4 w-4" viewBox="0 0 24 24">
+                      <path fill="#EA4335" d="M12.545,10.239v3.821h5.445c-0.231,1.139-1.317,3.33-5.445,3.33c-3.284,0-5.962-2.73-5.962-6.101s2.678-6.101,5.962-6.101c1.86,0,3.109,0.796,3.818,1.472l2.997-2.909c-1.782-1.636-4.085-2.617-6.816-2.617c-5.467,0-9.897,4.48-9.897,10.038s4.43,10.038,9.897,10.038c5.719,0,9.507-4.02,9.507-9.673c0-0.742-0.088-1.393-0.211-1.999H12.545z"/>
+                      <path fill="#34A853" d="M22.052,12.038c0-0.742-0.088-1.393-0.211-1.999H12.545v3.821h5.445c-0.231,1.139-1.317,3.33-5.445,3.33c-0.908,0-1.76-0.203-2.527-0.569l-2.674,2.028v0.015c1.442,1.339,3.396,2.152,5.201,2.152C17.771,22.076,22.052,18.056,22.052,12.038z"/>
+                      <path fill="#4A90E2" d="M12.545,8.156c1.86,0,3.109,0.796,3.818,1.472l2.997-2.909c-1.782-1.636-4.085-2.617-6.816-2.617C8.751,4.102,5.83,5.656,4.053,8.016l2.674,2.028C7.545,8.818,9.866,8.156,12.545,8.156z"/>
+                      <path fill="#FBBC05" d="M6.726,10.044c-0.187,0.612-0.291,1.267-0.291,1.956s0.104,1.344,0.291,1.956l-2.674,2.028C3.473,14.887,3.18,13.488,3.18,12s0.293-2.887,0.871-4.148L6.726,10.044z"/>
+                    </svg>
+                  </button>
+                  {/* Facebook */}
+                  <button
+                    type="button"
+                    onClick={() => window.location.href = "/api/auth/oauth/facebook"}
+                    className="inline-flex h-11 items-center justify-center rounded-lg border border-[color:var(--color-border)] bg-surface transition-colors duration-300 hover:border-[color:var(--color-gold)] hover:bg-[color:var(--color-surface-2)]"
+                    aria-label="Facebook"
+                  >
+                    <Facebook className="h-4 w-4 text-muted" />
+                  </button>
+                  {/* GitHub */}
+                  <button
+                    type="button"
+                    onClick={() => window.location.href = "/api/auth/oauth/github"}
+                    className="inline-flex h-11 items-center justify-center rounded-lg border border-[color:var(--color-border)] bg-surface transition-colors duration-300 hover:border-[color:var(--color-gold)] hover:bg-[color:var(--color-surface-2)]"
+                    aria-label="GitHub"
+                  >
+                    <Github className="h-4 w-4 text-muted" />
+                  </button>
+                </div>
+
+                <p className="mt-7 text-center text-sm text-muted">
+                  Chưa có tài khoản?{" "}
+                  <Link to="/signup" className="font-medium text-[color:var(--color-gold)] transition hover:underline">
+                    Đăng ký <ArrowRight className="inline h-3.5 w-3.5" />
+                  </Link>
+                </p>
+              </motion.div>
+            )}
+
+            {/* ── OTP step ── */}
+            {step === "otp" && (
+              <motion.div
+                key="otp"
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -14 }}
+                transition={{ duration: 0.38 }}
+              >
+                <div className="mb-8 space-y-1.5">
+                  <h1 className="font-serif text-[2rem] leading-tight text-primary">Xác thực danh tính</h1>
+                  <p className="text-sm text-muted">
+                    Mã OTP đã được gửi đến <span className="font-medium text-primary">{email}</span>
+                  </p>
+                </div>
+
+                <form onSubmit={handleVerifySubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label htmlFor="otp" className="block text-[10px] uppercase tracking-[0.18em] text-secondary">
+                      Mã xác thực Admin (OTP)
+                    </label>
+                    <div className="relative">
+                      <ShieldCheck className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+                      <input
+                        id="otp" type="text" required
+                        value={otp} onChange={(e) => setOtp(e.target.value)}
+                        className="input-base h-11 rounded-lg pl-10 font-mono tracking-[0.3em]"
+                        placeholder="000000"
+                        maxLength={6}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-muted">
+                    <span>Hết hạn sau: <strong className="text-primary">{fmt(otpExpiry)}</strong></span>
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      disabled={resendCooldown > 0}
+                      className="flex items-center gap-1 transition hover:text-[color:var(--color-gold)] disabled:opacity-40"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                      {resendCooldown > 0 ? `Gửi lại (${resendCooldown}s)` : "Gửi lại OTP"}
+                    </button>
+                  </div>
+
+                  <button type="submit" disabled={loading} className="btn-base btn-primary h-11 w-full">
+                    {loading
+                      ? <><Loader className="mr-2 h-4 w-4 animate-spin" />Đang xác thực…</>
+                      : <><ShieldCheck className="mr-2 h-4 w-4" />Xác nhận</>}
+                  </button>
+                </form>
+
+                <button
+                  type="button"
+                  onClick={() => setStep("login")}
+                  className="mt-5 block w-full text-center text-sm text-muted transition hover:text-primary"
+                >
+                  ← Quay lại đăng nhập
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  );
 };
+
 export default LoginPage;

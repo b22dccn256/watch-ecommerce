@@ -414,9 +414,28 @@ const OrdersTab = () => {
                                         </select>
                                     </td>
                                     <td className='px-6 py-6 text-right'>
-                                        <button onClick={() => openOrderDetails(order)} className='p-2 bg-gray-50 dark:bg-luxury-dark border rounded-lg text-gray-400 hover:text-luxury-gold transition-colors' title="Xem chi tiết / chỉnh sửa nhanh">
-                                            <Eye className='w-4 h-4' />
-                                        </button>
+                                        <div className='flex items-center justify-end gap-2'>
+                                            {/* B3: Quick approve — chuyển sang status tiếp theo */}
+                                            {(() => {
+                                                const nextMap = { pending: 'confirmed', confirmed: 'processing', processing: 'shipped' };
+                                                const nextLabels = { confirmed: '✓ XN', processing: '⚙ XL', shipped: '🚚 GH' };
+                                                const next = nextMap[order.status];
+                                                if (!next) return null;
+                                                return (
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); updateOrderStatus(order._id, next); }}
+                                                        disabled={updatingStatus}
+                                                        title={"Chuyển: " + STATUS_LABELS[next]}
+                                                        className='px-2 py-1 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-lg text-[10px] font-bold hover:bg-luxury-gold hover:text-luxury-dark transition disabled:opacity-40 whitespace-nowrap'
+                                                    >
+                                                        {nextLabels[next]}
+                                                    </button>
+                                                );
+                                            })()}
+                                            <button onClick={() => openOrderDetails(order)} className='p-2 bg-gray-50 dark:bg-luxury-dark border rounded-lg text-gray-400 hover:text-luxury-gold transition-colors' title="Xem chi tiết">
+                                                <Eye className='w-4 h-4' />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

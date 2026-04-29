@@ -12,7 +12,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: [['list'], ['html', { open: 'never' }]],
   webServer: {
-    command: 'npm run preview',
+    command: 'npm run dev -- --host',
     url: 'http://localhost:5173',
     reuseExistingServer: true,
     timeout: 120000,

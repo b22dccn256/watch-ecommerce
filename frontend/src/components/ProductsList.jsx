@@ -94,6 +94,7 @@ const ProductsList = () => {
 	// Fetch data when params change
 	useEffect(() => {
 		const params = new URLSearchParams(searchParams);
+		params.set("tab", "products");
 		if (currentPage > 1) params.set("page", currentPage);
 		else params.delete("page");
 
@@ -137,13 +138,31 @@ const ProductsList = () => {
 		if (!window.confirm(`Xóa ${selectedIds.size} sản phẩm đã chọn?`)) return;
 		setBulkDeleting(true);
 		try {
-			for (const id of selectedIds) await deleteProduct(id);
+			await axios.patch("/products", { action: "softDelete", ids: [...selectedIds] });
 			setSelectedIds(new Set());
 			toast.success(`Đã xóa ${selectedIds.size} sản phẩm`);
-		} catch {
-			toast.error("Có lỗi xảy ra khi xóa hàng loạt");
+			fetchProductsAdminPaginated({ page: currentPage, limit: PAGE_SIZE, search: debouncedSearch, sort: sortBy });
+		} catch (error) {
+			toast.error(error.response?.data?.message || "Có lỗi xảy ra khi xóa hàng loạt");
 		} finally {
 			setBulkDeleting(false);
+		}
+	};
+
+	// B1: Bulk price adjust
+	const handleBulkPriceAdjust = async () => {
+		if (!selectedIds.size) return;
+		const pct = prompt(`Điều chỉnh giá cho ${selectedIds.size} sản phẩm (nhập %, ví dụ -10 để giảm 10%):`); 
+		if (pct === null || pct === "") return;
+		if (isNaN(Number(pct))) { toast.error("Vui lòng nhập số hợp lệ"); return; }
+		const toastId = toast.loading("Đang điều chỉnh giá...");
+		try {
+			const res = await axios.patch("/products", { action: "adjustPrice", ids: [...selectedIds], value: Number(pct) });
+			toast.success(res.data.message, { id: toastId });
+			setSelectedIds(new Set());
+			fetchProductsAdminPaginated({ page: currentPage, limit: PAGE_SIZE, search: debouncedSearch, sort: sortBy });
+		} catch (error) {
+			toast.error(error.response?.data?.message || "Lỗi khi điều chỉnh giá", { id: toastId });
 		}
 	};
 
@@ -254,6 +273,12 @@ const ProductsList = () => {
 							>
 								<Trash2 className="w-3.5 h-3.5" />
 								Xóa ({selectedIds.size})
+							</button>
+							<button
+								onClick={handleBulkPriceAdjust}
+								className="flex items-center gap-1.5 px-3 py-2 bg-amber-500/20 border border-amber-500/50 text-amber-400 rounded-lg text-sm font-bold hover:bg-amber-500 hover:text-white transition"
+							>
+								± Giá ({selectedIds.size})
 							</button>
 							<button
 								onClick={() => setShowCampaignPicker(true)}

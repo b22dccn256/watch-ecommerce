@@ -63,7 +63,7 @@ const userSchema = new mongoose.Schema(
 		],
 		role: {
 			type: String,
-			enum: ["customer", "admin"],
+			enum: ["customer", "admin", "staff"],
 			default: "customer",
 		},
 		phone: {
@@ -100,6 +100,16 @@ const userSchema = new mongoose.Schema(
 		lastVerificationEmailSent: {
 			type: Date,
 			default: null,
+		},
+		// D2: Admin notes & tags
+		adminNotes: {
+			type: String,
+			default: "",
+		},
+		tags: {
+			type: [String],
+			default: [],
+			enum: { values: ["VIP", "Wholesale", "Problematic", "New", "Loyal"], message: "Tag không hợp lệ" },
 		},
 	},
 	{

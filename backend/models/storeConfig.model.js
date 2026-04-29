@@ -8,6 +8,12 @@ const storeConfigSchema = new mongoose.Schema(
 		},
 		gridColumns: {
 			type: Number,
+			enum: [3, 4, 5, 6],
+			default: 4,
+		},
+		featuredCount: {
+			type: Number,
+			enum: [4, 6, 8, 12],
 			default: 4,
 		},
 		heroSlogan: {

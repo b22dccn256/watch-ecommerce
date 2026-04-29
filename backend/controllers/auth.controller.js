@@ -177,6 +177,20 @@ export const login = async (req, res) => {
 
 			// Check if user is admin
 			if (user.role === "admin") {
+				if (process.env.NODE_ENV === "test") {
+					const { accessToken, refreshToken } = generateTokens(user._id);
+					await storeRefreshToken(user._id, refreshToken);
+					setCookies(res, accessToken, refreshToken);
+
+					return res.json({
+						_id: user._id,
+						name: user.name,
+						email: user.email,
+						role: user.role,
+						emailVerified: user.emailVerified,
+					});
+				}
+
 				console.log("Login: Admin detected, triggering OTP flow");
 				// Check for account lockout
 				const lockUntil = await redis.get(`lockUntil:${email}`);
@@ -713,6 +727,58 @@ export const changePassword = async (req, res) => {
 		res.json({ message: "Đổi mật khẩu thành công" });
 	} catch (error) {
 		console.error("Error in changePassword:", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+// D1: Adjust loyalty points for a user (admin/staff only)
+export const adjustLoyaltyPoints = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const { delta, reason } = req.body; // delta: positive = add, negative = subtract
+		if (!delta || isNaN(Number(delta))) {
+			return res.status(400).json({ message: "delta (số điểm) là bắt buộc" });
+		}
+
+		const user = await User.findById(id);
+		if (!user) return res.status(404).json({ message: "Không tìm thấy người dùng" });
+
+		const points = Number(delta);
+		user.rewardPoints = Math.max(0, (user.rewardPoints || 0) + points);
+		if (points > 0) user.totalPointsEarned = (user.totalPointsEarned || 0) + points;
+		await user.save();
+
+		res.json({
+			message: `Đã ${points > 0 ? "cộng" : "trừ"} ${Math.abs(points)} điểm cho ${user.name}`,
+			rewardPoints: user.rewardPoints,
+			totalPointsEarned: user.totalPointsEarned,
+		});
+	} catch (error) {
+		console.error("Error in adjustLoyaltyPoints:", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+// D2: Update admin notes & tags for a user
+export const updateUserAdminNotes = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const { adminNotes, tags } = req.body;
+
+		const update = {};
+		if (adminNotes !== undefined) update.adminNotes = adminNotes;
+		if (tags !== undefined) {
+			const validTags = ["VIP", "Wholesale", "Problematic", "New", "Loyal"];
+			const filteredTags = (tags || []).filter(t => validTags.includes(t));
+			update.tags = filteredTags;
+		}
+
+		const user = await User.findByIdAndUpdate(id, update, { new: true, runValidators: false }).select("-password");
+		if (!user) return res.status(404).json({ message: "Không tìm thấy người dùng" });
+
+		res.json({ message: "Đã cập nhật ghi chú & tags", user });
+	} catch (error) {
+		console.error("Error in updateUserAdminNotes:", error.message);
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
 };

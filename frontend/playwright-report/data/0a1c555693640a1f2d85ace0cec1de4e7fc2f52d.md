@@ -1,0 +1,374 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - banner [ref=e5]:
+      - generic [ref=e6]:
+        - link "LW LUXURY Watch Gallery" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e9]: LW
+          - generic [ref=e10]:
+            - paragraph [ref=e11]: LUXURY
+            - paragraph [ref=e12]: Watch Gallery
+        - navigation [ref=e13]:
+          - link "Trang chủ" [ref=e14] [cursor=pointer]:
+            - /url: /
+          - link "Bộ sưu tập" [ref=e15] [cursor=pointer]:
+            - /url: /catalog?reset=true
+          - link "Thương hiệu" [ref=e16] [cursor=pointer]:
+            - /url: /brands
+          - link "Về chúng tôi" [ref=e17] [cursor=pointer]:
+            - /url: /about
+        - generic [ref=e19]:
+          - textbox "Tìm đồng hồ" [ref=e20]
+          - img
+          - button [ref=e21] [cursor=pointer]:
+            - img [ref=e22]
+        - generic [ref=e25]:
+          - button "Đổi giao diện" [ref=e26] [cursor=pointer]:
+            - img [ref=e27]
+          - link "Yêu thích" [ref=e29] [cursor=pointer]:
+            - /url: /wishlist
+            - img [ref=e30]
+          - button "So sánh" [ref=e32] [cursor=pointer]:
+            - img [ref=e33]
+          - link "Đăng nhập" [ref=e37] [cursor=pointer]:
+            - /url: /login
+    - main [ref=e38]:
+      - generic [ref=e39]:
+        - generic [ref=e40]:
+          - generic [ref=e42]:
+            - generic [ref=e43]:
+              - generic [ref=e44]:
+                - paragraph [ref=e45]:
+                  - img [ref=e46]
+                  - text: Fine Timepieces · Global Maisons
+                - heading "Khám phá đồng hồ cao cấp làm nên đẳng cấp của bạn." [level=1] [ref=e48]
+                - paragraph [ref=e49]: Tuyển chọn đồng hồ cao cấp với trải nghiệm tinh gọn, rõ ràng và sang trọng.
+                - generic [ref=e50]:
+                  - link "Khám phá bộ sưu tập" [ref=e51] [cursor=pointer]:
+                    - /url: /catalog
+                    - text: Khám phá bộ sưu tập
+                    - img [ref=e52]
+                  - link "Xem thương hiệu" [ref=e54] [cursor=pointer]:
+                    - /url: /brands
+                - generic [ref=e55]:
+                  - button "Banner trước" [ref=e56] [cursor=pointer]:
+                    - img [ref=e57]
+                  - button "Banner sau" [ref=e59] [cursor=pointer]:
+                    - img [ref=e60]
+              - generic [ref=e64]:
+                - img "4523702" [ref=e65]
+                - generic [ref=e67]:
+                  - paragraph [ref=e68]: Limited capsule
+                  - paragraph [ref=e69]: Permanence in Motion
+            - generic [ref=e70]:
+              - button "Chọn banner 1" [ref=e71] [cursor=pointer]
+              - button "Chọn banner 2" [ref=e72] [cursor=pointer]
+              - button "Chọn banner 3" [ref=e73] [cursor=pointer]
+              - button "Chọn banner 4" [ref=e74] [cursor=pointer]
+          - generic [ref=e75]:
+            - generic [ref=e76]:
+              - generic [ref=e77]:
+                - paragraph [ref=e78]: Featured pieces
+                - heading "Tuyển chọn tinh hoa" [level=2] [ref=e79]
+              - link "Xem tất cả" [ref=e80] [cursor=pointer]:
+                - /url: /catalog
+                - text: Xem tất cả
+                - img [ref=e81]
+            - generic [ref=e83]:
+              - article [ref=e85] [cursor=pointer]:
+                - button "Audemars Piguet Diver 2 Thêm vào giỏ Yêu thích Xem nhanh" [ref=e86]:
+                  - img "Audemars Piguet Diver 2" [ref=e87]
+                  - generic [ref=e89]:
+                    - button "Thêm vào giỏ" [ref=e90]:
+                      - img [ref=e91]
+                      - text: Thêm vào giỏ
+                    - generic [ref=e94]:
+                      - button "Yêu thích" [ref=e95]:
+                        - img [ref=e96]
+                      - button "Xem nhanh" [ref=e98]:
+                        - img [ref=e99]
+                - generic [ref=e102]:
+                  - paragraph [ref=e103]: Audemars Piguet
+                  - heading "Audemars Piguet Diver 2" [level=3] [ref=e104]
+                  - generic [ref=e105]:
+                    - paragraph [ref=e107]: 440.750.000 đ
+                    - button "So sánh" [ref=e108]:
+                      - img [ref=e109]
+              - article [ref=e113] [cursor=pointer]:
+                - button "Rolex Diver 5 Thêm vào giỏ Yêu thích Xem nhanh" [ref=e114]:
+                  - img "Rolex Diver 5" [ref=e115]
+                  - generic [ref=e117]:
+                    - button "Thêm vào giỏ" [ref=e118]:
+                      - img [ref=e119]
+                      - text: Thêm vào giỏ
+                    - generic [ref=e122]:
+                      - button "Yêu thích" [ref=e123]:
+                        - img [ref=e124]
+                      - button "Xem nhanh" [ref=e126]:
+                        - img [ref=e127]
+                - generic [ref=e130]:
+                  - paragraph [ref=e131]: Rolex
+                  - heading "Rolex Diver 5" [level=3] [ref=e132]
+                  - generic [ref=e133]:
+                    - paragraph [ref=e135]: 425.730.000 đ
+                    - button "So sánh" [ref=e136]:
+                      - img [ref=e137]
+              - article [ref=e141] [cursor=pointer]:
+                - button "Rolex Aviator 21 Thêm vào giỏ Yêu thích Xem nhanh" [ref=e142]:
+                  - img "Rolex Aviator 21" [ref=e143]
+                  - generic [ref=e145]:
+                    - button "Thêm vào giỏ" [ref=e146]:
+                      - img [ref=e147]
+                      - text: Thêm vào giỏ
+                    - generic [ref=e150]:
+                      - button "Yêu thích" [ref=e151]:
+                        - img [ref=e152]
+                      - button "Xem nhanh" [ref=e154]:
+                        - img [ref=e155]
+                - generic [ref=e158]:
+                  - paragraph [ref=e159]: Rolex
+                  - heading "Rolex Aviator 21" [level=3] [ref=e160]
+                  - generic [ref=e161]:
+                    - paragraph [ref=e163]: 473.150.000 đ
+                    - button "So sánh" [ref=e164]:
+                      - img [ref=e165]
+              - article [ref=e169] [cursor=pointer]:
+                - button "Audemars Piguet Nautilus 46 Thêm vào giỏ Yêu thích Xem nhanh" [ref=e170]:
+                  - img "Audemars Piguet Nautilus 46" [ref=e171]
+                  - generic [ref=e173]:
+                    - button "Thêm vào giỏ" [ref=e174]:
+                      - img [ref=e175]
+                      - text: Thêm vào giỏ
+                    - generic [ref=e178]:
+                      - button "Yêu thích" [ref=e179]:
+                        - img [ref=e180]
+                      - button "Xem nhanh" [ref=e182]:
+                        - img [ref=e183]
+                - generic [ref=e186]:
+                  - paragraph [ref=e187]: Audemars Piguet
+                  - heading "Audemars Piguet Nautilus 46" [level=3] [ref=e188]
+                  - generic [ref=e189]:
+                    - paragraph [ref=e191]: 399.290.000 đ
+                    - button "So sánh" [ref=e192]:
+                      - img [ref=e193]
+          - generic [ref=e197]:
+            - generic [ref=e198]:
+              - paragraph [ref=e199]: Bảo hành quốc tế
+              - paragraph [ref=e200]: 5 năm toàn diện
+            - generic [ref=e201]:
+              - paragraph [ref=e202]: Giao hàng miễn phí
+              - paragraph [ref=e203]: Từ 2.000.000 ₫
+            - generic [ref=e204]:
+              - paragraph [ref=e205]: Đổi trả 30 ngày
+              - paragraph [ref=e206]: Không điều kiện
+          - generic [ref=e207]:
+            - generic [ref=e208]:
+              - generic [ref=e209]:
+                - paragraph [ref=e210]: Editorial story
+                - heading "Nhịp điệu sống cùng cơ khí chính xác" [level=2] [ref=e211]:
+                  - text: Nhịp điệu sống cùng
+                  - text: cơ khí chính xác
+                - paragraph [ref=e212]: "Bộ sưu tập được tuyển theo ngôn ngữ tinh gọn: tỷ lệ mặt số, hoàn thiện vỏ, độ mượt dây đeo và cảm giác đeo trong từng ngữ cảnh đời sống."
+              - link "Khám phá bộ sưu tập" [ref=e213] [cursor=pointer]:
+                - /url: /catalog
+            - generic [ref=e214]:
+              - img "Luxury watch lifestyle" [ref=e215]
+              - generic [ref=e217]:
+                - paragraph [ref=e218]: Quiet luxury
+                - paragraph [ref=e219]:
+                  - text: For Formal, For Daily,
+                  - text: For Legacy
+          - generic [ref=e221]:
+            - paragraph [ref=e223]:
+              - text: "\"Một chiếc đồng hồ không chỉ đo thời gian —"
+              - text: nó kể câu chuyện về người đeo nó."
+            - paragraph [ref=e225]: Luxury Watch Gallery · Hà Nội, Việt Nam
+        - generic [ref=e226]:
+          - heading "Sản phẩm Bán chạy" [level=2] [ref=e230]
+          - generic [ref=e231]:
+            - article [ref=e232] [cursor=pointer]:
+              - button "Citizen Series X 11 Thêm vào giỏ Yêu thích Xem nhanh" [ref=e233]:
+                - img "Citizen Series X 11" [ref=e234]
+                - generic [ref=e236]:
+                  - button "Thêm vào giỏ" [ref=e237]:
+                    - img [ref=e238]
+                    - text: Thêm vào giỏ
+                  - generic [ref=e241]:
+                    - button "Yêu thích" [ref=e242]:
+                      - img [ref=e243]
+                    - button "Xem nhanh" [ref=e245]:
+                      - img [ref=e246]
+              - generic [ref=e249]:
+                - paragraph [ref=e250]: Citizen
+                - heading "Citizen Series X 11" [level=3] [ref=e251]
+                - generic [ref=e252]:
+                  - paragraph [ref=e254]: 66.490.000 đ
+                  - button "So sánh" [ref=e255]:
+                    - img [ref=e256]
+            - article [ref=e259] [cursor=pointer]:
+              - button "Audemars Piguet Diver 2 Thêm vào giỏ Yêu thích Xem nhanh" [ref=e260]:
+                - img "Audemars Piguet Diver 2" [ref=e261]
+                - generic [ref=e263]:
+                  - button "Thêm vào giỏ" [ref=e264]:
+                    - img [ref=e265]
+                    - text: Thêm vào giỏ
+                  - generic [ref=e268]:
+                    - button "Yêu thích" [ref=e269]:
+                      - img [ref=e270]
+                    - button "Xem nhanh" [ref=e272]:
+                      - img [ref=e273]
+              - generic [ref=e276]:
+                - paragraph [ref=e277]: Audemars Piguet
+                - heading "Audemars Piguet Diver 2" [level=3] [ref=e278]
+                - generic [ref=e279]:
+                  - paragraph [ref=e281]: 440.750.000 đ
+                  - button "So sánh" [ref=e282]:
+                    - img [ref=e283]
+            - article [ref=e286] [cursor=pointer]:
+              - button "Rolex Diver 5 Thêm vào giỏ Yêu thích Xem nhanh" [ref=e287]:
+                - img "Rolex Diver 5" [ref=e288]
+                - generic [ref=e290]:
+                  - button "Thêm vào giỏ" [ref=e291]:
+                    - img [ref=e292]
+                    - text: Thêm vào giỏ
+                  - generic [ref=e295]:
+                    - button "Yêu thích" [ref=e296]:
+                      - img [ref=e297]
+                    - button "Xem nhanh" [ref=e299]:
+                      - img [ref=e300]
+              - generic [ref=e303]:
+                - paragraph [ref=e304]: Rolex
+                - heading "Rolex Diver 5" [level=3] [ref=e305]
+                - generic [ref=e306]:
+                  - paragraph [ref=e308]: 425.730.000 đ
+                  - button "So sánh" [ref=e309]:
+                    - img [ref=e310]
+            - article [ref=e313] [cursor=pointer]:
+              - button "Rolex Aviator 21 Thêm vào giỏ Yêu thích Xem nhanh" [ref=e314]:
+                - img "Rolex Aviator 21" [ref=e315]
+                - generic [ref=e317]:
+                  - button "Thêm vào giỏ" [ref=e318]:
+                    - img [ref=e319]
+                    - text: Thêm vào giỏ
+                  - generic [ref=e322]:
+                    - button "Yêu thích" [ref=e323]:
+                      - img [ref=e324]
+                    - button "Xem nhanh" [ref=e326]:
+                      - img [ref=e327]
+              - generic [ref=e330]:
+                - paragraph [ref=e331]: Rolex
+                - heading "Rolex Aviator 21" [level=3] [ref=e332]
+                - generic [ref=e333]:
+                  - paragraph [ref=e335]: 473.150.000 đ
+                  - button "So sánh" [ref=e336]:
+                    - img [ref=e337]
+        - button [ref=e341] [cursor=pointer]:
+          - img [ref=e343]
+    - contentinfo [ref=e346]:
+      - generic [ref=e347]:
+        - generic [ref=e348]:
+          - generic [ref=e349]:
+            - img [ref=e350]
+            - text: Miễn phí giao hàng từ 2.000.000 đ
+          - generic [ref=e355]:
+            - img [ref=e356]
+            - text: Bảo mật thanh toán 100%
+        - generic [ref=e359]:
+          - generic [ref=e360]:
+            - generic [ref=e361]:
+              - generic [ref=e362]: LW
+              - generic [ref=e363]:
+                - paragraph [ref=e364]: LUXURY
+                - paragraph [ref=e365]: Watch Gallery
+            - paragraph [ref=e366]: Tuyển chọn đồng hồ cao cấp từ những thương hiệu danh tiếng, kết hợp trải nghiệm mua sắm tinh gọn và dịch vụ hậu mãi chuyên nghiệp.
+            - generic [ref=e367]:
+              - link "Facebook" [ref=e368] [cursor=pointer]:
+                - /url: https://www.facebook.com/HocvienPTIT
+                - img [ref=e369]
+              - link "Instagram" [ref=e371] [cursor=pointer]:
+                - /url: https://www.instagram.com/gdgoc.ptit/
+                - img [ref=e372]
+              - link "X" [ref=e375] [cursor=pointer]:
+                - /url: https://x.com/elonmusk
+                - img [ref=e376]
+              - link "YouTube" [ref=e378] [cursor=pointer]:
+                - /url: https://www.youtube.com/@dhcstech
+                - img [ref=e379]
+          - generic [ref=e382]:
+            - heading "Danh mục" [level=3] [ref=e383]
+            - list [ref=e384]:
+              - listitem [ref=e385]:
+                - link "Đồng hồ nam" [ref=e386] [cursor=pointer]:
+                  - /url: /category/men
+              - listitem [ref=e387]:
+                - link "Đồng hồ nữ" [ref=e388] [cursor=pointer]:
+                  - /url: /category/women
+              - listitem [ref=e389]:
+                - link "Luxury" [ref=e390] [cursor=pointer]:
+                  - /url: /category/luxury
+              - listitem [ref=e391]:
+                - link "Thể thao" [ref=e392] [cursor=pointer]:
+                  - /url: /category/sport
+              - listitem [ref=e393]:
+                - link "Thương hiệu" [ref=e394] [cursor=pointer]:
+                  - /url: /brands
+          - generic [ref=e395]:
+            - heading "Hỗ trợ" [level=3] [ref=e396]
+            - list [ref=e397]:
+              - listitem [ref=e398]:
+                - link "Về chúng tôi" [ref=e399] [cursor=pointer]:
+                  - /url: /about
+              - listitem [ref=e400]:
+                - link "Chính sách giao hàng" [ref=e401] [cursor=pointer]:
+                  - /url: /delivery-policy
+              - listitem [ref=e402]:
+                - link "Đổi trả và bảo hành" [ref=e403] [cursor=pointer]:
+                  - /url: /warranty
+              - listitem [ref=e404]:
+                - link "Hướng dẫn chọn size" [ref=e405] [cursor=pointer]:
+                  - /url: /size-guide
+              - listitem [ref=e406]:
+                - link "Tra cứu đơn hàng" [ref=e407] [cursor=pointer]:
+                  - /url: /order-lookup
+              - listitem [ref=e408]:
+                - link "Liên hệ" [ref=e409] [cursor=pointer]:
+                  - /url: /contact
+          - generic [ref=e410]:
+            - heading "Liên hệ" [level=3] [ref=e411]
+            - generic [ref=e412]:
+              - paragraph [ref=e413]:
+                - img [ref=e414]
+                - text: 123 Đường ABC, Quận 1, TP.HCM
+              - paragraph [ref=e417]:
+                - img [ref=e418]
+                - text: 1900 XXX XXX
+              - paragraph [ref=e420]:
+                - img [ref=e421]
+                - text: info@luxurywatch.vn
+              - paragraph [ref=e424]:
+                - img [ref=e425]
+                - text: "Thứ 2 đến Chủ nhật: 09:00 - 21:00"
+            - generic [ref=e428]:
+              - paragraph [ref=e429]: Nhận ưu đãi mới
+              - generic [ref=e430]:
+                - textbox "Email của bạn" [ref=e431]
+                - button [ref=e432] [cursor=pointer]:
+                  - img [ref=e433]
+        - generic [ref=e435]:
+          - paragraph [ref=e436]: © 2026 Luxury Watch. All rights reserved.
+          - generic [ref=e437]:
+            - img [ref=e438]
+            - img [ref=e440]
+            - img [ref=e443]
+          - generic [ref=e446]:
+            - link "Chính sách bảo mật" [ref=e447] [cursor=pointer]:
+              - /url: /privacy-policy
+            - generic [ref=e448]: "|"
+            - link "Điều khoản" [ref=e449] [cursor=pointer]:
+              - /url: /terms
+  - button [ref=e451] [cursor=pointer]:
+    - img [ref=e453]
+```

@@ -14,7 +14,6 @@ export default {
 					'gold-light': '#e8c547', // Light gold (hover)
 					'text-light': '#e8e8e8', // Light text
 					'text-muted': '#8b8b8b', // Muted gray
-					'accent': '#2e5f4a',    // Emerald accent
 				}
 			},
 			fontFamily: {

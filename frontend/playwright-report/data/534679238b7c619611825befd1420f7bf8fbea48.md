@@ -1,0 +1,192 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - banner [ref=e5]:
+      - generic [ref=e6]:
+        - link "LW LUXURY Watch Gallery" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e9]: LW
+          - generic [ref=e10]:
+            - paragraph [ref=e11]: LUXURY
+            - paragraph [ref=e12]: Watch Gallery
+        - navigation [ref=e13]:
+          - link "Trang chủ" [ref=e14] [cursor=pointer]:
+            - /url: /
+          - link "Bộ sưu tập" [ref=e15] [cursor=pointer]:
+            - /url: /catalog?reset=true
+          - link "Thương hiệu" [ref=e16] [cursor=pointer]:
+            - /url: /brands
+          - link "Về chúng tôi" [ref=e17] [cursor=pointer]:
+            - /url: /about
+        - generic [ref=e19]:
+          - textbox "Tìm đồng hồ" [ref=e20]
+          - img
+          - button [ref=e21] [cursor=pointer]:
+            - img [ref=e22]
+        - generic [ref=e25]:
+          - button "Đổi giao diện" [ref=e26] [cursor=pointer]:
+            - img [ref=e27]
+          - link "Yêu thích" [ref=e29] [cursor=pointer]:
+            - /url: /wishlist
+            - img [ref=e30]
+          - button "So sánh" [ref=e32] [cursor=pointer]:
+            - img [ref=e33]
+          - link "Đăng nhập" [ref=e39] [cursor=pointer]:
+            - /url: /login
+    - main [ref=e40]:
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - img [ref=e43]
+          - generic [ref=e45]:
+            - generic [ref=e47]: LW
+            - generic [ref=e48]:
+              - paragraph [ref=e49]: LUXURY
+              - paragraph [ref=e50]: Watch Gallery
+          - generic [ref=e51]:
+            - blockquote [ref=e53]:
+              - text: "\"Thời gian là xa xỉ phẩm"
+              - text: duy nhất không thể mua được —
+              - text: nhưng bạn có thể đeo nó."
+            - paragraph [ref=e54]: Luxury Watch Gallery · 2026
+          - paragraph [ref=e55]: © 2026 · Hanoi · Vietnam
+        - generic [ref=e58]:
+          - generic [ref=e59]:
+            - heading "Chào mừng trở lại" [level=1] [ref=e60]
+            - paragraph [ref=e61]: Đăng nhập để tiếp tục hành trình của bạn
+          - generic [ref=e62]:
+            - generic [ref=e63]:
+              - generic [ref=e64]: Địa chỉ Email
+              - generic [ref=e65]:
+                - img
+                - textbox "Địa chỉ Email" [ref=e66]:
+                  - /placeholder: you@example.com
+            - generic [ref=e67]:
+              - generic [ref=e68]: Mật khẩu
+              - generic [ref=e69]:
+                - img
+                - textbox "Mật khẩu" [ref=e70]:
+                  - /placeholder: ••••••••
+            - button "Đăng nhập" [ref=e71] [cursor=pointer]:
+              - img [ref=e72]
+              - text: Đăng nhập
+          - generic [ref=e78]: hoặc
+          - generic [ref=e80]:
+            - button "Google" [ref=e81] [cursor=pointer]:
+              - img [ref=e82]
+            - button "Facebook" [ref=e87] [cursor=pointer]:
+              - img [ref=e88]
+            - button "GitHub" [ref=e90] [cursor=pointer]:
+              - img [ref=e91]
+          - paragraph [ref=e94]:
+            - text: Chưa có tài khoản?
+            - link "Đăng ký" [ref=e95] [cursor=pointer]:
+              - /url: /signup
+              - text: Đăng ký
+              - img [ref=e96]
+    - contentinfo [ref=e99]:
+      - generic [ref=e100]:
+        - generic [ref=e101]:
+          - generic [ref=e102]:
+            - img [ref=e103]
+            - text: Miễn phí giao hàng từ 2.000.000 đ
+          - generic [ref=e109]:
+            - img [ref=e110]
+            - text: Bảo mật thanh toán 100%
+        - generic [ref=e113]:
+          - generic [ref=e114]:
+            - generic [ref=e115]:
+              - generic [ref=e116]: LW
+              - generic [ref=e117]:
+                - paragraph [ref=e118]: LUXURY
+                - paragraph [ref=e119]: Watch Gallery
+            - paragraph [ref=e120]: Tuyển chọn đồng hồ cao cấp từ những thương hiệu danh tiếng, kết hợp trải nghiệm mua sắm tinh gọn và dịch vụ hậu mãi chuyên nghiệp.
+            - generic [ref=e121]:
+              - link "Facebook" [ref=e122] [cursor=pointer]:
+                - /url: https://www.facebook.com/HocvienPTIT
+                - img [ref=e123]
+              - link "Instagram" [ref=e125] [cursor=pointer]:
+                - /url: https://www.instagram.com/gdgoc.ptit/
+                - img [ref=e126]
+              - link "X" [ref=e130] [cursor=pointer]:
+                - /url: https://x.com/elonmusk
+                - img [ref=e131]
+              - link "YouTube" [ref=e133] [cursor=pointer]:
+                - /url: https://www.youtube.com/@dhcstech
+                - img [ref=e134]
+          - generic [ref=e137]:
+            - heading "Danh mục" [level=3] [ref=e138]
+            - list [ref=e139]:
+              - listitem [ref=e140]:
+                - link "Đồng hồ nam" [ref=e141] [cursor=pointer]:
+                  - /url: /category/men
+              - listitem [ref=e142]:
+                - link "Đồng hồ nữ" [ref=e143] [cursor=pointer]:
+                  - /url: /category/women
+              - listitem [ref=e144]:
+                - link "Luxury" [ref=e145] [cursor=pointer]:
+                  - /url: /category/luxury
+              - listitem [ref=e146]:
+                - link "Thể thao" [ref=e147] [cursor=pointer]:
+                  - /url: /category/sport
+              - listitem [ref=e148]:
+                - link "Thương hiệu" [ref=e149] [cursor=pointer]:
+                  - /url: /brands
+          - generic [ref=e150]:
+            - heading "Hỗ trợ" [level=3] [ref=e151]
+            - list [ref=e152]:
+              - listitem [ref=e153]:
+                - link "Về chúng tôi" [ref=e154] [cursor=pointer]:
+                  - /url: /about
+              - listitem [ref=e155]:
+                - link "Chính sách giao hàng" [ref=e156] [cursor=pointer]:
+                  - /url: /delivery-policy
+              - listitem [ref=e157]:
+                - link "Đổi trả và bảo hành" [ref=e158] [cursor=pointer]:
+                  - /url: /warranty
+              - listitem [ref=e159]:
+                - link "Hướng dẫn chọn size" [ref=e160] [cursor=pointer]:
+                  - /url: /size-guide
+              - listitem [ref=e161]:
+                - link "Tra cứu đơn hàng" [ref=e162] [cursor=pointer]:
+                  - /url: /order-lookup
+              - listitem [ref=e163]:
+                - link "Liên hệ" [ref=e164] [cursor=pointer]:
+                  - /url: /contact
+          - generic [ref=e165]:
+            - heading "Liên hệ" [level=3] [ref=e166]
+            - generic [ref=e167]:
+              - paragraph [ref=e168]:
+                - img [ref=e169]
+                - text: 123 Đường ABC, Quận 1, TP.HCM
+              - paragraph [ref=e172]:
+                - img [ref=e173]
+                - text: 1900 XXX XXX
+              - paragraph [ref=e175]:
+                - img [ref=e176]
+                - text: info@luxurywatch.vn
+              - paragraph [ref=e179]:
+                - img [ref=e180]
+                - text: "Thứ 2 đến Chủ nhật: 09:00 - 21:00"
+            - generic [ref=e183]:
+              - paragraph [ref=e184]: Nhận ưu đãi mới
+              - generic [ref=e185]:
+                - textbox "Email của bạn" [ref=e186]
+                - button [ref=e187] [cursor=pointer]:
+                  - img [ref=e188]
+        - generic [ref=e191]:
+          - paragraph [ref=e192]: © 2026 Luxury Watch. All rights reserved.
+          - generic [ref=e193]:
+            - img [ref=e194]
+            - img [ref=e197]
+            - img [ref=e200]
+          - generic [ref=e203]:
+            - link "Chính sách bảo mật" [ref=e204] [cursor=pointer]:
+              - /url: /privacy-policy
+            - generic [ref=e205]: "|"
+            - link "Điều khoản" [ref=e206] [cursor=pointer]:
+              - /url: /terms
+  - button [ref=e208] [cursor=pointer]:
+    - img [ref=e210]
+```

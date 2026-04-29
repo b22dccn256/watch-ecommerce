@@ -34,3 +34,19 @@ export const createBrand = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 };
+
+export const deleteBrand = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const brand = await Brand.findById(id);
+        if (!brand) return res.status(404).json({ message: "Brand not found" });
+
+        brand.isActive = false;
+        await brand.save();
+
+        res.json({ message: "Brand deleted" });
+    } catch (error) {
+        console.error("Error in deleteBrand:", error.message);
+        res.status(500).json({ message: "Server error" });
+    }
+};

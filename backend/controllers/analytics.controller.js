@@ -200,3 +200,95 @@ export const sendTestEmail = async (req, res) => {
 		res.status(500).json({ message: "Không thể gửi email test", error: error.message });
 	}
 };
+
+// C3: P&L Report — Revenue vs Cost vs Gross Profit
+export const getProfitLoss = async (req, res) => {
+	try {
+		const days = parseInt(req.query.days) || 30;
+		const endDate = new Date();
+		const startDate = new Date();
+		startDate.setDate(endDate.getDate() - days + 1);
+		startDate.setHours(0, 0, 0, 0);
+
+		// Aggregate: unwind products, lookup costPrice from Product collection
+		const plData = await Order.aggregate([
+			{
+				$match: {
+					paymentStatus: "paid",
+					createdAt: { $gte: startDate, $lte: endDate },
+				},
+			},
+			{ $unwind: "$products" },
+			{
+				$lookup: {
+					from: "products",
+					localField: "products.product",
+					foreignField: "_id",
+					as: "productInfo",
+				},
+			},
+			{ $unwind: { path: "$productInfo", preserveNullAndEmptyArrays: true } },
+			{
+				$group: {
+					_id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: "Asia/Ho_Chi_Minh" } },
+					revenue: { $sum: { $multiply: ["$products.price", "$products.quantity"] } },
+					cogs: {
+						$sum: {
+							$multiply: [
+								{ $ifNull: ["$productInfo.costPrice", { $multiply: ["$products.price", 0.6] }] }, // fallback: 60% of price
+								"$products.quantity",
+							],
+						},
+					},
+					orderCount: { $addToSet: "$_id" },
+				},
+			},
+			{ $sort: { _id: 1 } },
+			{
+				$project: {
+					date: "$_id",
+					revenue: 1,
+					cogs: 1,
+					grossProfit: { $subtract: ["$revenue", "$cogs"] },
+					margin: {
+						$cond: [
+							{ $gt: ["$revenue", 0] },
+							{ $multiply: [{ $divide: [{ $subtract: ["$revenue", "$cogs"] }, "$revenue"] }, 100] },
+							0,
+						],
+					},
+					orders: { $size: "$orderCount" },
+				},
+			},
+		]);
+
+		// Fill missing dates
+		const dateArray = getDatesInRange(startDate, endDate);
+		const filled = dateArray.map((date) => {
+			const found = plData.find((d) => d._id === date) || plData.find((d) => d.date === date);
+			return {
+				name: formatDateLabel(date),
+				date,
+				revenue: found?.revenue || 0,
+				cogs: found?.cogs || 0,
+				grossProfit: found?.grossProfit || 0,
+				margin: found ? Math.round(found.margin * 10) / 10 : 0,
+				orders: found?.orders || 0,
+			};
+		});
+
+		// Totals summary
+		const totalRevenue = filled.reduce((s, d) => s + d.revenue, 0);
+		const totalCogs = filled.reduce((s, d) => s + d.cogs, 0);
+		const totalGrossProfit = totalRevenue - totalCogs;
+		const totalMargin = totalRevenue > 0 ? Math.round((totalGrossProfit / totalRevenue) * 1000) / 10 : 0;
+
+		res.json({
+			summary: { totalRevenue, totalCogs, totalGrossProfit, totalMargin, days },
+			daily: filled,
+		});
+	} catch (error) {
+		console.error("Error in getProfitLoss:", error);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};

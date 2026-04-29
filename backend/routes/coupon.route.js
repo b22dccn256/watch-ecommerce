@@ -1,11 +1,14 @@
 import express from "express";
 import { protectRoute, adminRoute } from "../middleware/auth.middleware.js";
-import { getCoupon, validateCoupon, getAllCoupons } from "../controllers/coupon.controller.js";
+import { getCoupon, validateCoupon, getAllCoupons, createCoupon, deleteCoupon, toggleCoupon } from "../controllers/coupon.controller.js";
 
 const router = express.Router();
 
 // Admin routes
 router.get("/", protectRoute, adminRoute, getAllCoupons);
+router.post("/", protectRoute, adminRoute, createCoupon);
+router.delete("/:id", protectRoute, adminRoute, deleteCoupon);
+router.patch("/:id/toggle", protectRoute, adminRoute, toggleCoupon);
 
 // User routes
 router.get("/user", protectRoute, getCoupon);

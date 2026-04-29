@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeftRight, Heart, Minus, Plus, Share2, ShieldCheck, ShoppingBag, Star, Truck } from "lucide-react";
+import { ArrowLeftRight, Heart, Minus, Plus, Share2, ShieldCheck, ShoppingBag, Truck } from "lucide-react";
 import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
 import toast from "react-hot-toast";
@@ -13,7 +13,6 @@ import { useCompareStore } from "../stores/useCompareStore";
 import { useUserStore } from "../stores/useUserStore";
 import axios from "../lib/axios";
 import ProductCard from "../components/ProductCard";
-import PeopleAlsoBought from "../components/PeopleAlsoBought";
 import { SkeletonProductDetail } from "../components/SkeletonLoaders";
 import Input from "../components/ui/Input";
 
@@ -58,13 +57,29 @@ const ProductDetailPage = () => {
     document.title = `${currentProduct.name} | Luxury Watch`;
 
     axios
-      .get(`/products?category=${encodeURIComponent(currentProduct.category || "")}&limit=8`)
+      .get(`/products?category=${encodeURIComponent(currentProduct.category || "")}&limit=16`)
       .then((res) => {
-        const list = (res.data.products || []).filter((item) => item._id !== currentProduct._id).slice(0, 4);
-        setRelatedProducts(list);
+        const all = (res.data.products || []).filter((item) => item._id !== currentProduct._id);
+        const priceMin = currentProduct.price * 0.6;
+        const priceMax = currentProduct.price * 1.4;
+        // Primary: same category + price within ±40%
+        const priceFiltered = all
+          .filter((item) => item.price >= priceMin && item.price <= priceMax)
+          .slice(0, 4);
+        // Fallback: if fewer than 2 price-matched, use category-only
+        setRelatedProducts(priceFiltered.length >= 2 ? priceFiltered : all.slice(0, 4));
       })
       .catch(() => setRelatedProducts([]));
   }, [currentProduct]);
+
+  const hasWristOptions = currentProduct?.wristSizeOptions?.length > 0;
+
+  const activeStock = useMemo(() => {
+    if (!currentProduct) return 0;
+    if (!hasWristOptions) return currentProduct.stock;
+    const selected = currentProduct.wristSizeOptions.find((item) => item.size === selectedWristOption);
+    return selected ? selected.stock : 0;
+  }, [currentProduct, hasWristOptions, selectedWristOption]);
 
   if (loading || !currentProduct) {
     return <SkeletonProductDetail />;
@@ -83,13 +98,7 @@ const ProductDetailPage = () => {
     ? Math.round(((currentProduct.originalPrice - currentProduct.price) / currentProduct.originalPrice) * 100)
     : 0;
 
-  const hasWristOptions = currentProduct.wristSizeOptions?.length > 0;
 
-  const activeStock = useMemo(() => {
-    if (!hasWristOptions) return currentProduct.stock;
-    const selected = currentProduct.wristSizeOptions.find((item) => item.size === selectedWristOption);
-    return selected ? selected.stock : 0;
-  }, [currentProduct.stock, currentProduct.wristSizeOptions, hasWristOptions, selectedWristOption]);
 
   const specsRows = [
     ["Loại máy", currentProduct.specs?.movement?.type],
@@ -179,16 +188,9 @@ const ProductDetailPage = () => {
 
           <section className="lg:col-span-6">
             <div className="space-y-6 rounded-[1.8rem] border border-black/10 bg-surface p-6 shadow-md dark:border-white/10 sm:p-8">
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[color:var(--color-gold)]">{brand}</p>
                 <h1 className="hero-title text-4xl leading-tight text-primary sm:text-5xl">{currentProduct.name}</h1>
-                <div className="flex items-center gap-2 text-sm text-muted">
-                  <div className="flex items-center gap-1 text-[color:var(--color-gold)]">
-                    <Star className="h-4 w-4 fill-current" />
-                    <span className="font-semibold">{currentProduct.averageRating?.toFixed(1) || "5.0"}</span>
-                  </div>
-                  <span>({currentProduct.reviewsCount || 0} đánh giá)</span>
-                </div>
               </div>
 
               <div className="space-y-1">
@@ -374,26 +376,27 @@ const ProductDetailPage = () => {
           </AnimatePresence>
         </section>
 
-        <section>
-          <div className="mb-4 flex items-end justify-between">
-            <h2 className="hero-title text-2xl">Sản phẩm tương tự</h2>
-            <Link to="/catalog" className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary transition hover:text-[color:var(--color-gold)]">
-              Xem tất cả
-            </Link>
-          </div>
-
-          {relatedProducts.length > 0 ? (
+        {relatedProducts.length > 0 && (
+          <section className="pt-4 pb-8">
+            <div className="mb-8 flex items-end justify-between">
+              <div>
+                <p className="hero-kicker text-[color:var(--color-gold)]">Cùng đẳng cấp</p>
+                <h2 className="heading-section mt-2 text-2xl">Khám phá thêm</h2>
+              </div>
+              <Link
+                to="/catalog"
+                className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary transition hover:text-[color:var(--color-gold)]"
+              >
+                Xem tất cả
+              </Link>
+            </div>
             <div className="product-grid-4">
               {relatedProducts.map((product) => (
                 <ProductCard key={product._id} product={product} />
               ))}
             </div>
-          ) : (
-            <p className="text-sm text-muted">Không có sản phẩm tương tự.</p>
-          )}
-        </section>
-
-        <PeopleAlsoBought />
+          </section>
+        )}
       </div>
     </div>
   );

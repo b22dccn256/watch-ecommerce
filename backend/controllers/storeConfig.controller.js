@@ -17,7 +17,7 @@ export const getConfig = async (req, res) => {
 // Admin updates storefront config
 export const updateConfig = async (req, res) => {
 	try {
-        const updatableFields = ["homeLayout", "gridColumns", "heroSlogan", "bestSellerTitle", "flashSaleTitle", "showChatBot"];
+        const updatableFields = ["homeLayout", "gridColumns", "featuredCount", "heroSlogan", "bestSellerTitle", "flashSaleTitle", "showChatBot"];
         
         let config = await StoreConfig.findOne();
         if (!config) {

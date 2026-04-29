@@ -34,8 +34,8 @@ const CheckoutStepper = ({ currentStep }) => {
 								>
 									{isCompleted ? <Check className="w-5 h-5 md:w-6 md:h-6" /> : step.id}
 								</div>
-								<span className={`text-xs md:text-sm font-bold uppercase tracking-widest text-center
-									${isCompleted || isActive ? 'text-gray-900 dark:text-white' : 'text-secondary'}`}>
+								<span className={`text-xs md:text-sm font-bold uppercase tracking-[0.12em] text-center
+									${isCompleted || isActive ? 'text-primary' : 'text-secondary'}`}>
 									{step.title}
 								</span>
 							</div>

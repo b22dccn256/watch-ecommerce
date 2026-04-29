@@ -601,3 +601,60 @@ async function updateFeaturedProductsCache() {
 		console.log("error in update cache function");
 	}
 }
+
+// B1: Bulk operations — adjustPrice | toggleFeatured | softDelete
+export const bulkUpdateProducts = async (req, res) => {
+	try {
+		const { action, ids, value } = req.body;
+		if (!action || !ids || !Array.isArray(ids) || ids.length === 0) {
+			return res.status(400).json({ message: "action và ids[] là bắt buộc" });
+		}
+
+		const validIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
+		if (validIds.length === 0) return res.status(400).json({ message: "Không có ID hợp lệ" });
+
+		let result;
+		if (action === "adjustPrice") {
+			// value = % (e.g. -10 for -10%)
+			const pct = Number(value);
+			if (isNaN(pct)) return res.status(400).json({ message: "value phải là số %" });
+			const products = await Product.find({ _id: { $in: validIds }, deletedAt: null });
+			const bulkOps = products.map(p => ({
+				updateOne: {
+					filter: { _id: p._id },
+					update: { $set: { price: Math.max(0, Math.round(p.price * (1 + pct / 100))) } },
+				}
+			}));
+			result = await Product.bulkWrite(bulkOps, { runValidators: false });
+			return res.json({ message: `Đã điều chỉnh giá ${pct > 0 ? "+" : ""}${pct}% cho ${result.modifiedCount} sản phẩm` });
+		}
+
+		if (action === "toggleFeatured") {
+			// Toggle featured status for each product
+			const products = await Product.find({ _id: { $in: validIds }, deletedAt: null });
+			const bulkOps = products.map(p => ({
+				updateOne: {
+					filter: { _id: p._id },
+					update: { $set: { isFeatured: !p.isFeatured } },
+				}
+			}));
+			result = await Product.bulkWrite(bulkOps, { runValidators: false });
+			await updateFeaturedProductsCache();
+			return res.json({ message: `Đã toggle nổi bật cho ${result.modifiedCount} sản phẩm` });
+		}
+
+		if (action === "softDelete") {
+			result = await Product.updateMany(
+				{ _id: { $in: validIds }, deletedAt: null },
+				{ $set: { deletedAt: new Date(), isActive: false } },
+				{ runValidators: false }
+			);
+			return res.json({ message: `Đã xóa ${result.modifiedCount} sản phẩm` });
+		}
+
+		return res.status(400).json({ message: `Action '${action}' không hợp lệ` });
+	} catch (error) {
+		console.log("Error in bulkUpdateProducts:", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};

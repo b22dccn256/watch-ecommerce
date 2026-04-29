@@ -14,7 +14,7 @@ export const useProductStore = create((set, get) => ({
 			const res = await axios.get("/brands");
 			set({ brands: res.data });
 		} catch (error) {
-			console.log("Error fetching brands", error);
+			console.error("Error fetching brands", error);
 		}
 	},
 
@@ -23,7 +23,7 @@ export const useProductStore = create((set, get) => ({
 			const res = await axios.get("/categories?tree=false");
 			set({ categories: res.data });
 		} catch (error) {
-			console.log("Error fetching categories", error);
+			console.error("Error fetching categories", error);
 		}
 	},
 
@@ -134,7 +134,7 @@ export const useProductStore = create((set, get) => ({
 			set({ products: response.data, loading: false });
 		} catch (error) {
 			set({ error: "Failed to fetch products", loading: false });
-			console.log("Error fetching featured products:", error);
+			console.error("Error fetching featured products:", error);
 		}
 	},
 	searchTerm: "",

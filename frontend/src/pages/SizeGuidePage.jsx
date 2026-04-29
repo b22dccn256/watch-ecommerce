@@ -48,7 +48,7 @@ const SizeGuidePage = () => {
 									value={wristSize}
 									onChange={(e) => setWristSize(e.target.value)}
 									placeholder="Chu vi cổ tay (cm)..."
-									className="w-full bg-white/5 border border-white/10 rounded-xl px-6 py-4 text-luxury-dark focus:outline-none focus:border-luxury-gold transition-all"
+									className="w-full bg-white/5 border border-white/10 rounded-xl pl-6 pr-12 py-4 text-luxury-dark focus:outline-none focus:border-luxury-gold transition-all"
 								/>
 								<span className="absolute right-4 top-1/2 -translate-y-1/2 text-luxury-gold font-bold">cm</span>
 							</div>

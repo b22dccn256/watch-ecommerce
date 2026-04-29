@@ -2,15 +2,6 @@ import { useEffect, useState, useRef } from "react";
 import { PlusCircle, Loader, ImagePlus, Tag, DollarSign, X, Plus } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
 
-const categories = [
-	"Cơ Tự Động (Automatic)",
-	"Cơ Lên Cót Tay (Hand-wound)",
-	"Bộ Máy Pin (Quartz)",
-	"Năng Lượng Ánh Sáng (Solar)",
-	"Đồng Hồ Điện Tử (Digital)",
-	"Đồng Hồ Thông Minh (Smartwatch)",
-];
-
 const machineTypes = [
 	{ value: "Mechanical", label: "Cơ lên cót" },
 	{ value: "Quartz", label: "Bộ máy pin" },
@@ -40,11 +31,12 @@ const CreateProductForm = ({ onSuccess }) => {
 	const [dragOver, setDragOver] = useState(false);
 	const fileInputRef = useRef(null);
 
-	const { createProduct, loading, brands, fetchBrands } = useProductStore();
+	const { createProduct, loading, brands, fetchBrands, categories, fetchCategories } = useProductStore();
 
 	useEffect(() => {
 		fetchBrands();
-	}, [fetchBrands]);
+		fetchCategories();
+	}, [fetchBrands, fetchCategories]);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -63,7 +55,7 @@ const CreateProductForm = ({ onSuccess }) => {
 			setNewProduct({ name: "", description: "", price: "", originalPrice: "", category: "", image: "", stock: "", brand: "", type: "", wristSizeOptions: [] });
 			if (onSuccess) onSuccess();
 		} catch {
-			console.log("error creating a product");
+			console.error("error creating a product");
 		}
 	};
 
@@ -132,10 +124,16 @@ const CreateProductForm = ({ onSuccess }) => {
 							onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })}
 							className={inputCls}
 						>
-							<option value="">Chọn thương hiệu</option>
-							{Array.isArray(brands) && brands.map((b) => (
-								<option key={b._id} value={b._id}>{b.name}</option>
-							))}
+							{brands?.length === 0 ? (
+								<option value="">Đang tải thương hiệu...</option>
+							) : (
+								<>
+									<option value="">Chọn thương hiệu</option>
+									{brands?.map((b) => (
+										<option key={b._id} value={b._id}>{b.name}</option>
+									))}
+								</>
+							)}
 						</select>
 					</div>
 
@@ -235,8 +233,16 @@ const CreateProductForm = ({ onSuccess }) => {
 							onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
 							className={inputCls}
 						>
-							<option value="">Chọn danh mục</option>
-							{categories.map((c) => <option key={c} value={c}>{c}</option>)}
+							{categories?.length === 0 ? (
+								<option value="">Đang tải danh mục...</option>
+							) : (
+								<>
+									<option value="">Chọn danh mục</option>
+									{categories?.map((c) => (
+										<option key={c._id} value={c._id}>{c.name}</option>
+									))}
+								</>
+							)}
 						</select>
 					</div>
 
