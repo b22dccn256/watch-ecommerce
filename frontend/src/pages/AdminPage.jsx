@@ -3,7 +3,7 @@ import {
 	Megaphone, ShieldCheck, Archive, Menu, X, Watch, LayoutTemplate, Tag, MessageSquare, Layers,
 	AlertTriangle, Clock, CheckCircle, Search, Bell
 } from "lucide-react";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "../lib/axios";
@@ -70,23 +70,35 @@ const AdminPage = () => {
 	const [notifications, setNotifications] = useState([]);
 	const [notifOpen, setNotifOpen] = useState(false);
 	const [notifCount, setNotifCount] = useState(0);
+	const tasksFetchRef = useRef({ promise: null, lastFetched: 0 });
+	const notifFetchRef = useRef({ promise: null, lastFetched: 0 });
 
 	useEffect(() => { fetchAllProducts(); }, [fetchAllProducts]);
 
 	// B4: Fetch Today's Tasks counters (polling every 60s)
 	const fetchTasks = useCallback(async () => {
-		try {
-			const [ordersRes, inventoryRes] = await Promise.allSettled([
-				axios.get("/orders?status=pending&limit=1"),
-				axios.get("/products/inventory/alerts?limit=1"),
-			]);
-			setTasks({
-				pendingOrders: ordersRes.status === "fulfilled" ? (ordersRes.value.data?.pagination?.totalOrders || 0) : 0,
-				lowStock: inventoryRes.status === "fulfilled" ? (inventoryRes.value.data?.totalAlerts || 0) : 0,
-				pendingReviews: 0,
-				unansweredQuestions: 0,
+		const now = Date.now();
+		const fetchState = tasksFetchRef.current;
+		if (fetchState.promise) return fetchState.promise;
+		if (now - fetchState.lastFetched < 5000) return;
+
+		fetchState.promise = Promise.allSettled([
+			axios.get("/orders?status=pending&limit=1"),
+			axios.get("/products/inventory/alerts?limit=1"),
+		])
+			.then(([ordersRes, inventoryRes]) => {
+				setTasks({
+					pendingOrders: ordersRes.status === "fulfilled" ? (ordersRes.value.data?.pagination?.totalOrders || 0) : 0,
+					lowStock: inventoryRes.status === "fulfilled" ? (inventoryRes.value.data?.totalAlerts || 0) : 0,
+					pendingReviews: 0,
+					unansweredQuestions: 0,
+				});
+			})
+			.finally(() => {
+				fetchState.lastFetched = Date.now();
+				fetchState.promise = null;
 			});
-		} catch {}
+		return fetchState.promise;
 	}, []);
 
 	useEffect(() => {
@@ -117,31 +129,41 @@ const AdminPage = () => {
 
 	// B2: Fetch notifications — polling 30s
 	const fetchNotifications = useCallback(async () => {
-		try {
-			const [ordersRes, inventoryRes] = await Promise.allSettled([
-				axios.get("/orders?status=pending&limit=5"),
-				axios.get("/products/inventory/alerts?limit=3"),
-			]);
-			const notifs = [];
-			if (ordersRes.status === "fulfilled") {
-				(ordersRes.value.data?.orders || []).slice(0, 5).forEach(o => notifs.push({
-					id: o._id, type: "order",
-					title: "Đơn hàng mới chờ xử lý",
-					desc: "#" + (o.orderCode || o._id?.slice(0, 8).toUpperCase()) + " — " + (o.shippingDetails?.fullName || ""),
-					time: o.createdAt, tab: "orders",
-				}));
-			}
-			if (inventoryRes.status === "fulfilled") {
-				(inventoryRes.value.data?.products || []).slice(0, 3).forEach(p => notifs.push({
-					id: "inv_" + p._id, type: "inventory",
-					title: "Hàng sắp hết kho",
-					desc: (p.name || "Sản phẩm") + " — còn " + p.stock + " cái",
-					time: new Date().toISOString(), tab: "inventory",
-				}));
-			}
-			setNotifications(notifs);
-			setNotifCount(notifs.length);
-		} catch {}
+		const now = Date.now();
+		const fetchState = notifFetchRef.current;
+		if (fetchState.promise) return fetchState.promise;
+		if (now - fetchState.lastFetched < 5000) return;
+
+		fetchState.promise = Promise.allSettled([
+			axios.get("/orders?status=pending&limit=5"),
+			axios.get("/products/inventory/alerts?limit=3"),
+		])
+			.then(([ordersRes, inventoryRes]) => {
+				const notifs = [];
+				if (ordersRes.status === "fulfilled") {
+					(ordersRes.value.data?.orders || []).slice(0, 5).forEach(o => notifs.push({
+						id: o._id, type: "order",
+						title: "Đơn hàng mới chờ xử lý",
+						desc: "#" + (o.orderCode || o._id?.slice(0, 8).toUpperCase()) + " — " + (o.shippingDetails?.fullName || ""),
+						time: o.createdAt, tab: "orders",
+					}));
+				}
+				if (inventoryRes.status === "fulfilled") {
+					(inventoryRes.value.data?.products || []).slice(0, 3).forEach(p => notifs.push({
+						id: "inv_" + p._id, type: "inventory",
+						title: "Hàng sắp hết kho",
+						desc: (p.name || "Sản phẩm") + " — còn " + p.stock + " cái",
+						time: new Date().toISOString(), tab: "inventory",
+					}));
+				}
+				setNotifications(notifs);
+				setNotifCount(notifs.length);
+			})
+			.finally(() => {
+				fetchState.lastFetched = Date.now();
+				fetchState.promise = null;
+			});
+		return fetchState.promise;
 	}, []);
 
 	useEffect(() => {

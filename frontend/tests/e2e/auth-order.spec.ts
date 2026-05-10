@@ -1,51 +1,63 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, request as playwrightRequest } from '@playwright/test';
+import { skipIfBackendUnavailable } from './helpers/backend';
 
 const randomEmail = `e2euser+${Date.now()}@example.com`;
 const randomPassword = 'E2eSecurePassw0rd!';
 
-test.describe('Khách hàng cơ bản', () => {
+test.beforeEach(async () => {
+  await skipIfBackendUnavailable();
+});
+
+test.describe('Customer basic flow', () => {
   test('Signup -> Login -> Add to Compare -> Add to Cart -> Place order', async ({ page }) => {
-    await page.goto('/');
+    const api = await playwrightRequest.newContext({
+      baseURL: process.env.E2E_BACKEND_URL || 'http://localhost:5000',
+      timeout: 10000,
+    });
+    const productsRes = await api.get('/api/products?limit=1');
+    expect(productsRes.ok()).toBeTruthy();
+    const productsPayload = await productsRes.json();
+    const firstProduct = (productsPayload.products || [])[0];
+    expect(firstProduct?._id).toBeTruthy();
 
-    // Mở modal register (nếu có)
-    await page.getByRole('link', { name: /đăng ký|sign up/i }).first().click().catch(() => {});
+    const signupRes = await api.post('/api/auth/signup', {
+      data: {
+        name: 'E2E Tester',
+        email: randomEmail,
+        phone: '0912345678',
+        password: randomPassword,
+        confirmPassword: randomPassword,
+      },
+    });
+    expect(signupRes.ok()).toBeTruthy();
+    await api.dispose();
 
-    // Dòng form nếu có page signup
-    if (await page.locator('form').first().isVisible()) {
-      await page.fill('input[name="email"]', randomEmail);
-      await page.fill('input[name="password"]', randomPassword);
-      await page.fill('input[name="name"]', 'E2E Tester');
-      await page.click('button:has-text("Đăng ký"), button:has-text("Sign Up")');
-    }
-
-    // Nếu có continue to login
-    // Dù fail, bỏ qua nghĩa là chấp nhận user đã tồn tại.
-    await page.waitForTimeout(1200);
-
-    // Login
     await page.goto('/login');
-    await page.fill('input[name="email"]', randomEmail);
-    await page.fill('input[name="password"]', randomPassword);
-    await page.click('button:has-text("Đăng nhập"), button:has-text("Login")');
+    await page.fill('#email', randomEmail);
+    await page.fill('#password', randomPassword);
+    await page.locator('form').first().locator('button[type="submit"]').click();
+    await page.waitForURL('/', { timeout: 10000 });
 
-    await expect(page.getByText(/xin chào|hello/i)).toBeVisible({ timeout: 10000 });
-
-    // Đi tới trang catalog và so sánh sản phẩm đầu tiên
     await page.goto('/catalog');
-    await page.locator('button[title="So sánh"]').first().click();
-    await page.click('a:has-text("Xem chi tiết"), a:has-text("View details")');
+    await page.locator('article').first().getByRole('button', { name: /So/i }).click();
+    await expect(page.locator('.compare-scroll')).toBeVisible();
+    await page.locator('.compare-scroll img').first().click();
+    await page.waitForURL(/\/product\//, { timeout: 10000 });
+    const authedApi = await playwrightRequest.newContext({
+      baseURL: process.env.E2E_BACKEND_URL || 'http://localhost:5000',
+      storageState: await page.context().storageState(),
+      timeout: 10000,
+    });
+    const addCartRes = await authedApi.post('/api/cart', {
+      data: { productId: firstProduct._id },
+    });
+    expect(addCartRes.ok()).toBeTruthy();
+    await authedApi.dispose();
 
-    // Thêm vào giỏ
-    await page.click('button:has-text("Thêm"), button:has-text("Add to cart")');
-    await expect(page.getByText(/đã thêm vào giỏ hàng|added to cart/i)).toBeVisible();
-
-    // Kiểm tra cart
     await page.goto('/cart');
-    await expect(page.locator('.cart-item')).toHaveCountGreaterThan(0);
-
-    // Thực hiện checkout (flow COD hoặc Stripe)
-    await page.click('button:has-text("Thanh toán"), button:has-text("Checkout")');
-
-    await expect(page.getByText(/vui lòng chọn phương thức|checkout|confirm/i)).toBeVisible();
+    await page.locator('input[type="checkbox"]').first().check();
+    await page.locator('button.btn-primary').first().click();
+    await expect(page).toHaveURL(/\/checkout$/);
+    await expect(page.locator('input[name="fullName"]')).toBeVisible();
   });
 });

@@ -29,13 +29,23 @@ const UsersTab = () => {
 	const [showLogDetail, setShowLogDetail] = useState(null);
 	const menuRef = useRef(null);
 	const searchRef = useRef(search);
+	const usersFetchRef = useRef({ promise: null, lastKey: "", lastFetched: 0 });
+	const logsFetchRef = useRef({ promise: null, lastKey: "", lastFetched: 0 });
 
 	useEffect(() => {
 		searchRef.current = search;
 	}, [search]);
 
 	const fetchUsers = useCallback(async (page, role, keyword) => {
+		const key = `${page}|${role}|${keyword}`;
+		const now = Date.now();
+		const fetchState = usersFetchRef.current;
+		if (fetchState.promise && fetchState.lastKey === key) return fetchState.promise;
+		if (fetchState.lastKey === key && now - fetchState.lastFetched < 1000) return;
+
 		setLoading(true);
+		fetchState.lastKey = key;
+		fetchState.promise = (async () => {
 		try {
 			const res = await axios.get("/auth/users", {
 				params: {
@@ -58,12 +68,24 @@ const UsersTab = () => {
 			setUsers([]);
 			setPagination({ currentPage: 1, totalPages: 1, totalUsers: 0, limit: 10 });
 		} finally {
+			fetchState.lastFetched = Date.now();
+			fetchState.promise = null;
 			setLoading(false);
 		}
+		})();
+		return fetchState.promise;
 	}, []);
 
 	const fetchAuditLogs = useCallback(async (page) => {
+		const key = `${page}`;
+		const now = Date.now();
+		const fetchState = logsFetchRef.current;
+		if (fetchState.promise && fetchState.lastKey === key) return fetchState.promise;
+		if (fetchState.lastKey === key && now - fetchState.lastFetched < 1000) return;
+
 		setLogsLoading(true);
+		fetchState.lastKey = key;
+		fetchState.promise = (async () => {
 		try {
 			const res = await axios.get("/auth/audit-logs", {
 				params: {
@@ -83,8 +105,12 @@ const UsersTab = () => {
 			setAuditLogs([]);
 			setLogsPagination({ currentPage: 1, totalPages: 1, totalLogs: 0, limit: 10 });
 		} finally {
+			fetchState.lastFetched = Date.now();
+			fetchState.promise = null;
 			setLogsLoading(false);
 		}
+		})();
+		return fetchState.promise;
 	}, []);
 
 	useEffect(() => {

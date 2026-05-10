@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowRight, Sparkles } from "lucide-react";
@@ -8,8 +8,11 @@ import axios from "../lib/axios";
 const HeroBanner = ({ slogan }) => {
   const [heroBanners, setHeroBanners] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const hasFetchedRef = useRef(false);
 
   useEffect(() => {
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
     let mounted = true;
 
     const fetchHeroBanner = async () => {

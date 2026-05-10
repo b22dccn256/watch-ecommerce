@@ -25,10 +25,12 @@ axiosInstance.interceptors.response.use(
 		const originalRequest = error.config;
 		
 		// Whitelist logic
-		const whitelistUrls = ["/auth/refresh-token", "/auth/login", "/auth/logout"];
-		const isWhitelisted = whitelistUrls.some((url) => originalRequest.url.includes(url));
+		const whitelistUrls = ["/auth/refresh-token", "/auth/login", "/auth/logout", "/auth/profile"];
+		const requestUrl = originalRequest?.url || "";
+		const isWhitelisted = whitelistUrls.some((url) => requestUrl.includes(url));
+		const shouldSkipRefresh = Boolean(originalRequest?.skipRefresh);
 
-		if (error.response?.status === 401 && !originalRequest._retry && !isWhitelisted) {
+		if (error.response?.status === 401 && !originalRequest?._retry && !isWhitelisted && !shouldSkipRefresh) {
 			if (isRefreshing) {
 				return new Promise((resolve, reject) => {
 					failedQueue.push({ resolve, reject });

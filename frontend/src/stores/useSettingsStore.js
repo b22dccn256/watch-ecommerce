@@ -1,9 +1,9 @@
-import { create } from 'zustand';
+import { createWithEqualityFn } from "zustand/traditional";
 
 const defaultLang = localStorage.getItem('lang') || 'vi';
 const defaultCurrency = localStorage.getItem('currency') || 'vnd';
 
-export const useSettingsStore = create((set) => ({
+export const useSettingsStore = createWithEqualityFn((set) => ({
   lang: defaultLang,
   currency: defaultCurrency,
   setLang: (lang) => {

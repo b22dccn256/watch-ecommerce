@@ -1,33 +1,49 @@
-import { create } from "zustand";
+import { createWithEqualityFn } from "zustand/traditional";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
 
-export const useCouponStore = create((set, get) => ({
+const FETCH_TTL_MS = 60000;
+const fetchState = { promise: null, lastFetched: 0 };
+
+export const useCouponStore = createWithEqualityFn((set, get) => ({
 	coupons: [],
 	loading: false,
 
-	fetchCoupons: async () => {
+	fetchCoupons: async (force = false) => {
+		const now = Date.now();
+		if (!force && get().coupons.length > 0 && now - fetchState.lastFetched < FETCH_TTL_MS) {
+			return get().coupons;
+		}
+		if (fetchState.promise) return fetchState.promise;
 		set({ loading: true });
-		try {
-			const res = await axios.get("/coupons");
-			set({ coupons: res.data.coupons || res.data || [], loading: false });
-		} catch (error) {
-			console.error("Lỗi khi tải coupons:", error);
-			// Mock data if backend is not ready to avoid empty screen
-			if (error.response?.status === 404) {
-				set({ 
-					coupons: [
+		fetchState.promise = axios
+			.get("/coupons")
+			.then((res) => {
+				const nextCoupons = res.data.coupons || res.data || [];
+				set({ coupons: nextCoupons, loading: false });
+				fetchState.lastFetched = Date.now();
+				return nextCoupons;
+			})
+			.catch((error) => {
+				console.error("Lỗi khi tải coupons:", error);
+				// Mock data if backend is not ready to avoid empty screen
+				if (error.response?.status === 404) {
+					const fallback = [
 						{ _id: "1", code: "WELCOME10", type: "percent", discountValue: 10, minOrderAmount: 0, usedCount: 15, maxUses: 100, expirationDate: new Date(Date.now() + 864000000).toISOString(), isActive: true },
 						{ _id: "2", code: "TET2026", type: "fixed", discountValue: 500000, minOrderAmount: 2000000, usedCount: 200, maxUses: 200, expirationDate: new Date(Date.now() - 864000000).toISOString(), isActive: false },
-					],
-					loading: false 
-				});
-				toast.error("Backend chưa có endpoint GET /coupons. Đang hiển thị dữ liệu mẫu.");
-			} else {
+					];
+					set({ coupons: fallback, loading: false });
+					toast.error("Backend chưa có endpoint GET /coupons. Đang hiển thị dữ liệu mẫu.");
+					return fallback;
+				}
 				set({ loading: false });
 				toast.error(error.response?.data?.message || "Không thể tải danh sách coupon");
-			}
-		}
+				return get().coupons;
+			})
+			.finally(() => {
+				fetchState.promise = null;
+			});
+		return fetchState.promise;
 	},
 
 	createCoupon: async (couponData) => {

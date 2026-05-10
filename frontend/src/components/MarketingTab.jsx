@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Plus, Image as ImageIcon, Trash2, Power } from "lucide-react";
 import { useCampaignStore } from "../stores/useCampaignStore";
 import { useProductStore } from "../stores/useProductStore";
@@ -23,25 +23,36 @@ const MarketingTab = () => {
     const [banners, setBanners] = useState([]);
     const [bannersLoading, setBannersLoading] = useState(false);
     const [creating, setCreating] = useState(false);
+    const bannersFetchRef = useRef({ promise: null, lastFetched: 0 });
+
+    const fetchBanners = useCallback(async (force = false) => {
+        const now = Date.now();
+        const fetchState = bannersFetchRef.current;
+        if (!force && fetchState.promise) return fetchState.promise;
+        if (!force && now - fetchState.lastFetched < 30000 && banners.length > 0) return;
+
+        setBannersLoading(true);
+        fetchState.promise = (async () => {
+            try {
+                const res = await axios.get("/banners");
+                setBanners(res.data);
+            } catch (error) {
+                console.error("Error fetching banners:", error);
+                toast.error("Không thể tải danh sách banner");
+            } finally {
+                fetchState.lastFetched = Date.now();
+                fetchState.promise = null;
+                setBannersLoading(false);
+            }
+        })();
+        return fetchState.promise;
+    }, [banners.length]);
 
     useEffect(() => {
         fetchCampaigns();
-        fetchBanners();
         fetchAllProducts();
-    }, [fetchCampaigns, fetchAllProducts]);
-
-    const fetchBanners = async () => {
-        setBannersLoading(true);
-        try {
-            const res = await axios.get("/banners");
-            setBanners(res.data);
-        } catch (error) {
-            console.error("Error fetching banners:", error);
-            toast.error("Không thể tải danh sách banner");
-        } finally {
-            setBannersLoading(false);
-        }
-    };
+        fetchBanners();
+    }, [fetchCampaigns, fetchAllProducts, fetchBanners]);
 
     // ─── Campaign handlers ────────────────────────────────────────────────
     const handleCreate = async () => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
 	Mail, Send, MousePointer2, Plus,
@@ -32,10 +32,18 @@ const EmailTab = () => {
 		chartData: []
 	});
 	const [automations, setAutomations] = useState(DEFAULT_AUTOMATIONS);
+	const fetchStateRef = useRef({});
 
 	const fetchData = useCallback(async () => {
+		const tabState = fetchStateRef.current[activeTab] || { promise: null, lastFetched: 0 };
+		fetchStateRef.current[activeTab] = tabState;
+		const now = Date.now();
+		if (tabState.promise) return tabState.promise;
+		if (now - tabState.lastFetched < 15000) return;
+
 		setLoading(true);
-		try {
+		tabState.promise = (async () => {
+			try {
 			if (activeTab === "dashboard") {
 				const res = await axios.get("/mail/stats?days=7");
 				setData(prev => ({ ...prev, stats: res.data.stats, chartData: res.data.chartData || [] }));
@@ -52,11 +60,15 @@ const EmailTab = () => {
 				const res = await axios.get("/mail/templates");
 				setData(prev => ({ ...prev, templates: res.data.templates }));
 			}
-		} catch (error) {
-			console.error("Fetch error:", error);
-		} finally {
-			setLoading(false);
-		}
+			} catch (error) {
+				console.error("Fetch error:", error);
+			} finally {
+				tabState.lastFetched = Date.now();
+				setLoading(false);
+				fetchStateRef.current[activeTab].promise = null;
+			}
+		})();
+		return tabState.promise;
 	}, [activeTab]);
 
 	useEffect(() => {
@@ -179,7 +191,7 @@ const DashboardView = ({ stats, chartData }) => {
 			<div className="bg-white dark:bg-luxury-dark border border-luxury-border p-8 rounded-3xl">
 				<h3 className="text-xl font-bold mb-8">Hiệu quả chiến dịch (7 ngày qua)</h3>
 				<div className="h-[350px] w-full">
-					<ResponsiveContainer width="100%" height="100%">
+					<ResponsiveContainer width="100%" height={350}>
 						<AreaChart data={displayData}>
 							<defs>
 								<linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">

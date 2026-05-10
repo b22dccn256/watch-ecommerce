@@ -1,11 +1,11 @@
-import { create } from "zustand";
+import { createWithEqualityFn } from "zustand/traditional";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { useCartStore } from "./useCartStore";
 import { useWishlistStore } from "./useWishlistStore";
 import { useCompareStore } from "./useCompareStore";
 
-export const useUserStore = create((set, get) => ({
+export const useUserStore = createWithEqualityFn((set, get) => ({
 	user: null,
 	loading: false,
 	checkingAuth: true,
@@ -127,7 +127,7 @@ export const useUserStore = create((set, get) => ({
 	checkAuth: async () => {
 		set({ checkingAuth: true });
 		try {
-			const response = await axios.get("/auth/profile");
+			const response = await axios.get("/auth/profile", { skipRefresh: true });
 			set({ user: response.data, checkingAuth: false });
 		} catch (error) {
 			console.error(error.message);

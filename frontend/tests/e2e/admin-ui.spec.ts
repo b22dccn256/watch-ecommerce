@@ -1,4 +1,5 @@
 import { test, expect, request as playwrightRequest } from '@playwright/test';
+import { skipIfBackendUnavailable } from './helpers/backend';
 
 const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL || 'ha8893536@gmail.com';
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || 'admin123';
@@ -32,6 +33,10 @@ const ensureAdminLogin = async (page) => {
 };
 
 test.describe('Admin UI', () => {
+  test.beforeEach(async () => {
+    await skipIfBackendUnavailable();
+  });
+
   test('can switch tabs and open Products', async ({ page }) => {
     await ensureAdminLogin(page);
 

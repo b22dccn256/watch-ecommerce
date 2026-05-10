@@ -50,6 +50,7 @@ const AnalyticsTab = () => {
 	const [plData, setPlData] = useState(null); // C3: P&L
 	const chartRef = useRef(null);
 	const [chartReady, setChartReady] = useState(false);
+	const fetchStateRef = useRef({ promise: null, lastFetched: 0, lastDays: null });
 
 	useEffect(() => {
 		const observer = new ResizeObserver((entries) => {
@@ -62,8 +63,14 @@ const AnalyticsTab = () => {
 
 	useEffect(() => {
 		const fetchAnalyticsData = async () => {
+			const now = Date.now();
+			const fetchState = fetchStateRef.current;
+			if (fetchState.promise) return fetchState.promise;
+			if (fetchState.lastDays === days && now - fetchState.lastFetched < 15000) return;
+
 			setIsLoading(true);
-			try {
+			fetchState.promise = (async () => {
+				try {
 				// C1: Fetch current + previous period in parallel
 				const [currentRes, prevRes, topRes, bottomRes] = await Promise.allSettled([
 					axios.get(`/analytics?days=${days}`),
@@ -114,11 +121,16 @@ const AnalyticsTab = () => {
 					const plRes = await axios.get(`/analytics/pl?days=${days}`);
 					setPlData(plRes.data);
 				} catch {}
-			} catch (error) {
-				console.error("Error fetching analytics data:", error);
-			} finally {
-				setIsLoading(false);
-			}
+				} catch (error) {
+					console.error("Error fetching analytics data:", error);
+				} finally {
+					fetchState.lastFetched = Date.now();
+					fetchState.lastDays = days;
+					fetchState.promise = null;
+					setIsLoading(false);
+				}
+			})();
+			return fetchState.promise;
 		};
 
 		fetchAnalyticsData();

@@ -1,4 +1,5 @@
 import { test, expect, request as playwrightRequest } from '@playwright/test';
+import { skipIfBackendUnavailable } from './helpers/backend';
 
 const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL || 'ha8893536@gmail.com';
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || 'admin123';
@@ -24,6 +25,10 @@ const loginAsAdmin = async (api) => {
 };
 
 test.describe('Admin API', () => {
+  test.beforeEach(async () => {
+    await skipIfBackendUnavailable();
+  });
+
   test('protected route rejects without auth', async () => {
     const api = await playwrightRequest.newContext({ baseURL: BACKEND_URL });
     const res = await api.get('/api/analytics/pl?days=7');

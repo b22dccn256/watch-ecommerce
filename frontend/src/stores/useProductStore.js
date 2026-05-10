@@ -1,30 +1,67 @@
-import { create } from "zustand";
+import { createWithEqualityFn } from "zustand/traditional";
 import toast from "react-hot-toast";
 import axios from "../lib/axios";
 
-export const useProductStore = create((set, get) => ({
+const FETCH_TTL_MS = 60000;
+const fetchState = {
+	brands: { promise: null, lastFetched: 0 },
+	categories: { promise: null, lastFetched: 0 },
+	allProducts: { promise: null, lastFetched: 0 },
+	featured: { promise: null, lastFetched: 0 },
+	adminPage: { promise: null, lastKey: "", lastFetched: 0 },
+};
+
+export const useProductStore = createWithEqualityFn((set, get) => ({
 	products: [],
 	allProducts: [],
 	brands: [],
 	categories: [],
 	loading: false,
 
-	fetchBrands: async () => {
-		try {
-			const res = await axios.get("/brands");
-			set({ brands: res.data });
-		} catch (error) {
-			console.error("Error fetching brands", error);
+	fetchBrands: async (force = false) => {
+		const now = Date.now();
+		if (!force && get().brands.length > 0 && now - fetchState.brands.lastFetched < FETCH_TTL_MS) {
+			return get().brands;
 		}
+		if (fetchState.brands.promise) return fetchState.brands.promise;
+		fetchState.brands.promise = axios
+			.get("/brands")
+			.then((res) => {
+				set({ brands: res.data });
+				fetchState.brands.lastFetched = Date.now();
+				return res.data;
+			})
+			.catch((error) => {
+				console.error("Error fetching brands", error);
+				return get().brands;
+			})
+			.finally(() => {
+				fetchState.brands.promise = null;
+			});
+		return fetchState.brands.promise;
 	},
 
-	fetchCategories: async () => {
-		try {
-			const res = await axios.get("/categories?tree=false");
-			set({ categories: res.data });
-		} catch (error) {
-			console.error("Error fetching categories", error);
+	fetchCategories: async (force = false) => {
+		const now = Date.now();
+		if (!force && get().categories.length > 0 && now - fetchState.categories.lastFetched < FETCH_TTL_MS) {
+			return get().categories;
 		}
+		if (fetchState.categories.promise) return fetchState.categories.promise;
+		fetchState.categories.promise = axios
+			.get("/categories?tree=false")
+			.then((res) => {
+				set({ categories: res.data });
+				fetchState.categories.lastFetched = Date.now();
+				return res.data;
+			})
+			.catch((error) => {
+				console.error("Error fetching categories", error);
+				return get().categories;
+			})
+			.finally(() => {
+				fetchState.categories.promise = null;
+			});
+		return fetchState.categories.promise;
 	},
 
 	setProducts: (products) => set({ products }),
@@ -58,18 +95,40 @@ export const useProductStore = create((set, get) => ({
 			set({ loading: false });
 		}
 	},
-	fetchAllProducts: async () => {
-		set({ loading: true });
-		try {
-			const response = await axios.get("/products");
-			set({ allProducts: response.data.products || response.data, loading: false });
-		} catch (error) {
-			set({ error: "Failed to fetch products", loading: false });
-			toast.error(error.response?.data?.error || "Failed to fetch products");
+	fetchAllProducts: async (force = false) => {
+		const now = Date.now();
+		if (!force && get().allProducts.length > 0 && now - fetchState.allProducts.lastFetched < FETCH_TTL_MS) {
+			return get().allProducts;
 		}
+		if (fetchState.allProducts.promise) return fetchState.allProducts.promise;
+		set({ loading: true });
+		fetchState.allProducts.promise = axios
+			.get("/products")
+			.then((response) => {
+				const nextProducts = response.data.products || response.data;
+				set({ allProducts: nextProducts, loading: false });
+				fetchState.allProducts.lastFetched = Date.now();
+				return nextProducts;
+			})
+			.catch((error) => {
+				set({ error: "Failed to fetch products", loading: false });
+				toast.error(error.response?.data?.error || "Failed to fetch products");
+				return get().allProducts;
+			})
+			.finally(() => {
+				fetchState.allProducts.promise = null;
+			});
+		return fetchState.allProducts.promise;
 	},
 	fetchProductsAdminPaginated: async ({ page = 1, limit = 12, search = "", category = "", sort = "" }) => {
+		const key = `${page}|${limit}|${search}|${category}|${sort}`;
+		const now = Date.now();
+		if (fetchState.adminPage.promise && fetchState.adminPage.lastKey === key) return;
+		if (fetchState.adminPage.lastKey === key && now - fetchState.adminPage.lastFetched < 1000) return;
+
 		set({ loading: true });
+		fetchState.adminPage.lastKey = key;
+		fetchState.adminPage.promise = (async () => {
 		try {
 			let url = `/products?page=${page}&limit=${limit}`;
 			if (search) url += `&q=${encodeURIComponent(search)}`;
@@ -86,7 +145,11 @@ export const useProductStore = create((set, get) => ({
 		} catch (error) {
 			set({ loading: false });
 			toast.error(error.response?.data?.error || "Lỗi khi lấy danh sách sản phẩm.");
+		} finally {
+			fetchState.adminPage.lastFetched = Date.now();
+			fetchState.adminPage.promise = null;
 		}
+		})();
 	},
 	fetchProductsByCategory: async (category) => {
 		set({ loading: true });
@@ -127,15 +190,29 @@ export const useProductStore = create((set, get) => ({
 			toast.error(error.response.data.error || "Failed to update product");
 		}
 	},
-	fetchFeaturedProducts: async () => {
-		set({ loading: true });
-		try {
-			const response = await axios.get("/products/featured");
-			set({ products: response.data, loading: false });
-		} catch (error) {
-			set({ error: "Failed to fetch products", loading: false });
-			console.error("Error fetching featured products:", error);
+	fetchFeaturedProducts: async (force = false) => {
+		const now = Date.now();
+		if (!force && now - fetchState.featured.lastFetched < FETCH_TTL_MS) {
+			return get().products;
 		}
+		if (fetchState.featured.promise) return fetchState.featured.promise;
+		set({ loading: true });
+		fetchState.featured.promise = axios
+			.get("/products/featured")
+			.then((response) => {
+				set({ products: response.data, loading: false });
+				fetchState.featured.lastFetched = Date.now();
+				return response.data;
+			})
+			.catch((error) => {
+				set({ error: "Failed to fetch products", loading: false });
+				console.error("Error fetching featured products:", error);
+				return get().products;
+			})
+			.finally(() => {
+				fetchState.featured.promise = null;
+			});
+		return fetchState.featured.promise;
 	},
 	searchTerm: "",
 	filters: {

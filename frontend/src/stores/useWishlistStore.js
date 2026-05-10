@@ -1,8 +1,8 @@
-import { create } from "zustand";
+import { createWithEqualityFn } from "zustand/traditional";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 
-export const useWishlistStore = create((set, get) => ({
+export const useWishlistStore = createWithEqualityFn((set, get) => ({
 	wishlist: [],
 	loading: false,
 

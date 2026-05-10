@@ -1,9 +1,11 @@
-import { create } from "zustand";
+import { createWithEqualityFn } from "zustand/traditional";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { useUserStore } from "./useUserStore";
 
-export const useCartStore = create((set, get) => ({
+const couponFetchState = { promise: null, lastFetched: 0 };
+
+export const useCartStore = createWithEqualityFn((set, get) => ({
 	cart: [],
 	selectedItems: JSON.parse(localStorage.getItem("watch_selected_items") || "[]"), // stores unique cartItemIds
 	coupon: null,
@@ -67,13 +69,28 @@ export const useCartStore = create((set, get) => ({
 		}
 	},
 
-	getMyCoupon: async () => {
-		try {
-			const response = await axios.get("/coupons");
-			set({ coupon: response.data });
-		} catch (error) {
-			console.error("Error fetching coupon:", error);
-		}
+	getMyCoupon: async (force = false) => {
+		const now = Date.now();
+		if (!force && couponFetchState.promise) return couponFetchState.promise;
+		if (!force && now - couponFetchState.lastFetched < 30000) return;
+
+		couponFetchState.promise = axios
+			.get("/coupons")
+			.then((response) => {
+				set({ coupon: response.data });
+				couponFetchState.lastFetched = Date.now();
+				return response.data;
+			})
+			.catch((error) => {
+				console.error("Error fetching coupon:", error);
+				couponFetchState.lastFetched = Date.now();
+				return get().coupon;
+			})
+			.finally(() => {
+				couponFetchState.promise = null;
+			});
+
+		return couponFetchState.promise;
 	},
 	applyCoupon: async (code) => {
 		try {

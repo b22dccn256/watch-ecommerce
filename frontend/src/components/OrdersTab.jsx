@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { Eye, XCircle, Download, ShieldCheck, AlertCircle, Search, Printer, Save, DollarSign, PenTool, StickyNote, ChevronLeft, ChevronRight } from "lucide-react";
 import axios from "../lib/axios";
@@ -30,6 +30,22 @@ const STATUS_LABELS = {
 };
 
 const FILTER_TABS = ["Tất cả", ...STATUS_OPTIONS];
+const STATUS_TRANSITIONS = {
+    pending: ["awaiting_verification", "confirmed", "cancelled"],
+    awaiting_verification: ["confirmed", "cancelled"],
+    confirmed: ["processing", "cancelled"],
+    processing: ["shipped", "cancelled"],
+    shipped: ["delivered"],
+    delivered: ["return_requested"],
+    return_requested: ["returned", "delivered"],
+    returned: [],
+    cancelled: [],
+};
+
+const getAllowedStatusOptions = (currentStatus) => {
+    const allowed = new Set([currentStatus, ...(STATUS_TRANSITIONS[currentStatus] || [])]);
+    return STATUS_OPTIONS.filter((status) => allowed.has(status));
+};
 
 const OrdersTab = () => {
     const [orders, setOrders] = useState([]);
@@ -43,6 +59,7 @@ const OrdersTab = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [totalOrders, setTotalOrders] = useState(0);
     const [globalStats, setGlobalStats] = useState({ pendingCount: 0, returnedCount: 0, totalOrders: 0 });
+    const fetchStateRef = useRef({ promise: null, lastKey: "", lastFetched: 0 });
     
     // Form states cho Modal Chi tiết
     const [detailsForm, setDetailsForm] = useState({
@@ -54,7 +71,15 @@ const OrdersTab = () => {
     });
 
     const fetchOrders = useCallback(async (query = "", page = 1, status = "Tất cả") => {
+        const key = `${query}|${page}|${status}`;
+        const now = Date.now();
+        const fetchState = fetchStateRef.current;
+        if (fetchState.promise && fetchState.lastKey === key) return fetchState.promise;
+        if (fetchState.lastKey === key && now - fetchState.lastFetched < 1000) return;
+
         setLoading(true);
+        fetchState.lastKey = key;
+        fetchState.promise = (async () => {
         try {
             let url = `/orders?page=${page}&limit=10`;
             if (query) url += `&search=${encodeURIComponent(query)}`;
@@ -70,8 +95,12 @@ const OrdersTab = () => {
             console.error("Failed to fetch orders", error);
             toast.error("Không thể tải danh sách đơn hàng");
         } finally {
+            fetchState.lastFetched = Date.now();
+            fetchState.promise = null;
             setLoading(false);
         }
+        })();
+        return fetchState.promise;
     }, []);
 
     useEffect(() => {
@@ -103,6 +132,12 @@ const OrdersTab = () => {
     };
 
     const updateOrderStatus = async (orderId, newStatus) => {
+        const current = orders.find((o) => o._id === orderId)?.status || selectedOrder?.status;
+        const allowedStatuses = getAllowedStatusOptions(current);
+        if (!allowedStatuses.includes(newStatus)) {
+            toast.error("Không thể chuyển trạng thái này theo quy trình");
+            return;
+        }
         setUpdatingStatus(true);
         try {
             await axios.patch(`/orders/${orderId}/status`, { status: newStatus });
@@ -408,7 +443,7 @@ const OrdersTab = () => {
                                             disabled={updatingStatus}
                                             className={`min-w-[150px] px-3 py-2 rounded-full text-[10px] font-bold border transition ${STATUS_COLORS[order.status]} bg-transparent disabled:opacity-50`}
                                         >
-                                            {STATUS_OPTIONS.map((status) => (
+                                            {getAllowedStatusOptions(order.status).map((status) => (
                                                 <option key={status} value={status}>{STATUS_LABELS[status]}</option>
                                             ))}
                                         </select>
@@ -652,7 +687,7 @@ const OrdersTab = () => {
                                             disabled={updatingStatus}
                                             className="flex-1 bg-white dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border rounded-xl px-4 py-3 text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold transition disabled:opacity-50"
                                         >
-                                            {STATUS_OPTIONS.map(s => (
+                                            {getAllowedStatusOptions(selectedOrder.status).map((s) => (
                                                 <option key={s} value={s}>{STATUS_LABELS[s]}</option>
                                             ))}
                                         </select>

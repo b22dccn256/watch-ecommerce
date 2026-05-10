@@ -11,12 +11,20 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: [['list'], ['html', { open: 'never' }]],
-  webServer: {
-    command: 'npm run dev -- --host',
-    url: 'http://localhost:5173',
-    reuseExistingServer: true,
-    timeout: 120000,
-  },
+  webServer: [
+    {
+      command: 'node ../scripts/mock-e2e-server.js',
+      url: 'http://localhost:5000/api/settings',
+      reuseExistingServer: true,
+      timeout: 120000,
+    },
+    {
+      command: 'npm run dev -- --host',
+      url: 'http://localhost:5173',
+      reuseExistingServer: true,
+      timeout: 120000,
+    },
+  ],
   use: {
     baseURL: 'http://localhost:5173',
     actionTimeout: 5000,
