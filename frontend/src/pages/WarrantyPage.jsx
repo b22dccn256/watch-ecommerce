@@ -1,18 +1,18 @@
-import PolicyPageLayout from "../components/PolicyPageLayout";
+﻿import PolicyPageLayout from "../components/PolicyPageLayout";
 import { ShieldCheck, RotateCcw, PenTool, CheckCircle } from "lucide-react";
 
 const WarrantyPage = () => {
 	const steps = [
-		{ title: "Liên hệ", desc: "Gọi Hotline hoặc gửi yêu cầu online.", icon: ShieldCheck },
-		{ title: "Gửi hàng", desc: "Đội vận chuyển đến lấy hàng tận nơi miễn phí.", icon: RotateCcw },
-		{ title: "Kiểm tra", desc: "Kỹ thuật viên kiểm tra bằng máy đo chuyên dụng.", icon: PenTool },
-		{ title: "Hoàn tất", desc: "Sửa chữa hoặc đổi mới sản phẩm cho khách.", icon: CheckCircle },
+		{ title: "LiĂªn há»‡", desc: "Gá»i Hotline hoáº·c gá»­i yĂªu cáº§u online.", icon: ShieldCheck },
+		{ title: "Gá»­i hĂ ng", desc: "Äá»™i váº­n chuyá»ƒn Ä‘áº¿n láº¥y hĂ ng táº­n nÆ¡i miá»…n phĂ­.", icon: RotateCcw },
+		{ title: "Kiá»ƒm tra", desc: "Ká»¹ thuáº­t viĂªn kiá»ƒm tra báº±ng mĂ¡y Ä‘o chuyĂªn dá»¥ng.", icon: PenTool },
+		{ title: "HoĂ n táº¥t", desc: "Sá»­a chá»¯a hoáº·c Ä‘á»•i má»›i sáº£n pháº©m cho khĂ¡ch.", icon: CheckCircle },
 	];
 
 	return (
 		<PolicyPageLayout 
-			title="Đổi trả & Bảo hành" 
-			description="Chính sách bảo hành 5 năm tiêu chuẩn toàn cầu và quy trình đổi trả linh hoạt của Luxury Watch Store."
+			title="Äá»•i tráº£ & Báº£o hĂ nh" 
+			description="ChĂ­nh sĂ¡ch báº£o hĂ nh 5 nÄƒm tiĂªu chuáº©n toĂ n cáº§u vĂ  quy trĂ¬nh Ä‘á»•i tráº£ linh hoáº¡t cá»§a Luxury Watch Store."
 			activeId="warranty"
 		>
 			<section className="space-y-10">
@@ -20,15 +20,15 @@ const WarrantyPage = () => {
 					<p className="hero-kicker text-[10px] font-semibold text-luxury-gold mb-3">Coverage</p>
 					<h2 className="hero-title text-2xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
 						<ShieldCheck className="w-8 h-8" />
-						Đặc quyền Bảo hành 5 Năm
+						Äáº·c quyá»n Báº£o hĂ nh 5 NÄƒm
 					</h2>
 					<p className="text-gray-600 dark:text-luxury-text-muted leading-relaxed">
-						Mọi chiếc đồng hồ được bán ra tại Luxury Watch Store đều đi kèm gói <span className="font-bold">Bảo hành Vàng 5 năm</span>. Gói bảo hành này bao gồm cả các lỗi do người dùng (như rơi vỡ, vào nước) trong năm đầu tiên sử dụng.
+						Má»i chiáº¿c Ä‘á»“ng há»“ Ä‘Æ°á»£c bĂ¡n ra táº¡i Luxury Watch Store Ä‘á»u Ä‘i kĂ¨m gĂ³i <span className="font-bold">Báº£o hĂ nh VĂ ng 5 nÄƒm</span>. GĂ³i báº£o hĂ nh nĂ y bao gá»“m cáº£ cĂ¡c lá»—i do ngÆ°á»i dĂ¹ng (nhÆ° rÆ¡i vá»¡, vĂ o nÆ°á»›c) trong nÄƒm Ä‘áº§u tiĂªn sá»­ dá»¥ng.
 					</p>
 				</div>
 
 				<div className="border-l border-black/10 dark:border-white/10 pl-5 md:pl-8">
-					<h3 className="hero-title text-xl font-semibold mb-6 text-gray-900 dark:text-white">Quy trình Đổi trả & Bảo hành</h3>
+					<h3 className="hero-title text-xl font-semibold mb-6 text-gray-900 dark:text-white">Quy trĂ¬nh Äá»•i tráº£ & Báº£o hĂ nh</h3>
 					<div className="relative flex flex-col md:flex-row justify-between items-start gap-8">
 						{steps.map((step, index) => (
 							<div key={index} className="flex-1 flex flex-col items-center text-center group">
@@ -46,22 +46,22 @@ const WarrantyPage = () => {
 				</div>
 
 				<div className="space-y-6">
-					<h3 className="hero-title text-xl font-semibold text-gray-900 dark:text-white">Chính sách Đổi trả</h3>
+					<h3 className="hero-title text-xl font-semibold text-gray-900 dark:text-white">ChĂ­nh sĂ¡ch Äá»•i tráº£</h3>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 						<div className="p-4 border border-luxury-border rounded-2xl bg-white/60 dark:bg-white/5">
-							<p className="font-semibold text-gray-900 dark:text-white mb-1">Đổi mới 30 ngày</p>
-							<p className="text-sm text-gray-600 dark:text-gray-400">Nếu lỗi phát sinh từ nhà sản xuất, khách hàng được đổi sản phẩm mới cùng model.</p>
+							<p className="font-semibold text-gray-900 dark:text-white mb-1">Äá»•i má»›i 30 ngĂ y</p>
+							<p className="text-sm text-gray-600 dark:text-gray-400">Náº¿u lá»—i phĂ¡t sinh tá»« nhĂ  sáº£n xuáº¥t, khĂ¡ch hĂ ng Ä‘Æ°á»£c Ä‘á»•i sáº£n pháº©m má»›i cĂ¹ng model.</p>
 						</div>
 						<div className="p-4 border border-luxury-border rounded-2xl bg-white/60 dark:bg-white/5">
-							<p className="font-semibold text-gray-900 dark:text-white mb-1">Hoàn tiền 100%</p>
-							<p className="text-sm text-gray-600 dark:text-gray-400">Trong vòng 7 ngày đầu nếu quý khách không hài lòng về trải nghiệm (sản phẩm phải còn seal).</p>
+							<p className="font-semibold text-gray-900 dark:text-white mb-1">HoĂ n tiá»n 100%</p>
+							<p className="text-sm text-gray-600 dark:text-gray-400">Trong vĂ²ng 7 ngĂ y Ä‘áº§u náº¿u quĂ½ khĂ¡ch khĂ´ng hĂ i lĂ²ng vá» tráº£i nghiá»‡m (sáº£n pháº©m pháº£i cĂ²n seal).</p>
 						</div>
 					</div>
 				</div>
 
 				<div className="border-t border-luxury-border pt-8">
 					<p className="text-sm text-luxury-text-muted italic">
-						* Lưu ý: Chính sách này không áp dụng cho các sản phẩm trong chương trình thanh lý hoặc có ghi chú riêng biệt tại thời điểm mua hàng.
+						* LÆ°u Ă½: ChĂ­nh sĂ¡ch nĂ y khĂ´ng Ă¡p dá»¥ng cho cĂ¡c sáº£n pháº©m trong chÆ°Æ¡ng trĂ¬nh thanh lĂ½ hoáº·c cĂ³ ghi chĂº riĂªng biá»‡t táº¡i thá»i Ä‘iá»ƒm mua hĂ ng.
 					</p>
 				</div>
 			</section>
@@ -70,3 +70,4 @@ const WarrantyPage = () => {
 };
 
 export default WarrantyPage;
+

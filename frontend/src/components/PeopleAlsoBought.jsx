@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
@@ -14,7 +14,7 @@ const PeopleAlsoBought = () => {
 				const res = await axios.get("/products/recommendations");
 				setRecommendations(res.data);
 			} catch (error) {
-				toast.error(error.response?.data?.message || "Lỗi khi tải danh sách sản phẩm gợi ý");
+				toast.error(error.response?.data?.message || "Lá»—i khi táº£i danh sĂ¡ch sáº£n pháº©m gá»£i Ă½");
 			} finally {
 				setIsLoading(false);
 			}
@@ -27,7 +27,7 @@ const PeopleAlsoBought = () => {
 
 	return (
 		<div className='mt-10'>
-			<h3 className='hero-title text-lg md:text-xl font-semibold text-primary'>Có thể bạn cũng thích</h3>
+			<h3 className='hero-title text-lg md:text-xl font-semibold text-primary'>CĂ³ thá»ƒ báº¡n cÅ©ng thĂ­ch</h3>
 			<div className='mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4'>
 				{recommendations.map((product) => (
 					<Link
@@ -43,10 +43,10 @@ const PeopleAlsoBought = () => {
 							/>
 						</div>
 						<div className='p-3 md:p-4 space-y-1.5'>
-							<p className='text-[10px] uppercase tracking-[0.24em] text-gray-400 dark:text-gray-500'>Đồng hồ luxury</p>
+							<p className='text-[10px] uppercase tracking-[0.24em] text-gray-400 dark:text-gray-500'>Äá»“ng há»“ luxury</p>
 							<h4 className='text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug'>{product.name}</h4>
-							<p className='text-[11px] text-secondary'>Bảo hành quốc tế 5 năm</p>
-							<p className='text-sm font-bold text-luxury-gold'>{product.price?.toLocaleString("vi-VN")} ₫</p>
+							<p className='text-[11px] text-secondary'>Báº£o hĂ nh quá»‘c táº¿ 5 nÄƒm</p>
+							<p className='text-sm font-bold text-luxury-gold'>{product.price?.toLocaleString("vi-VN")} â‚«</p>
 						</div>
 					</Link>
 				))}
@@ -55,3 +55,4 @@ const PeopleAlsoBought = () => {
 	);
 };
 export default PeopleAlsoBought;
+

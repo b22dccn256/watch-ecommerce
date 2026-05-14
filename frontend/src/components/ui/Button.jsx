@@ -1,4 +1,4 @@
-import { cn } from "../../lib/cn";
+﻿import { cn } from "../../lib/cn";
 
 const sizeClasses = {
 	sm: "h-9 px-3.5 text-xs",
@@ -41,3 +41,4 @@ const Button = ({
 };
 
 export default Button;
+

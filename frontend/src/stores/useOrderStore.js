@@ -1,4 +1,4 @@
-import { createWithEqualityFn } from "zustand/traditional";
+﻿import { createWithEqualityFn } from "zustand/traditional";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 
@@ -14,8 +14,13 @@ export const useOrderStore = createWithEqualityFn((set) => ({
 			const res = await axios.get("/orders/my-orders");
 			set({ orders: res.data, loading: false });
 		} catch (error) {
-			set({ loading: false });
-			toast.error(error.response?.data?.message || "Lỗi khi tải đơn hàng");
+			set({ loading: false, orders: [] });
+			const status = error.response?.status;
+			if (status === 401) {
+				toast.error("Vui lĂ²ng Ä‘Äƒng nháº­p láº¡i Ä‘á»ƒ xem Ä‘Æ¡n hĂ ng cá»§a báº¡n");
+				return;
+			}
+			toast.error(error.response?.data?.message || "Lá»—i khi táº£i Ä‘Æ¡n hĂ ng");
 		}
 	},
 
@@ -27,7 +32,7 @@ export const useOrderStore = createWithEqualityFn((set) => ({
 		} catch (error) {
 			set({
 				loading: false,
-				error: error.response?.data?.message || "Không tìm thấy thông tin đơn hàng"
+				error: error.response?.data?.message || "KhĂ´ng tĂ¬m tháº¥y thĂ´ng tin Ä‘Æ¡n hĂ ng"
 			});
 		}
 	},
@@ -40,10 +45,10 @@ export const useOrderStore = createWithEqualityFn((set) => ({
 					o._id === orderId ? { ...o, status: 'cancelled' } : o
 				)
 			}));
-			toast.success("Đã hủy đơn hàng thành công!");
+			toast.success("ÄĂ£ há»§y Ä‘Æ¡n hĂ ng thĂ nh cĂ´ng!");
 			return true;
 		} catch (error) {
-			toast.error(error.response?.data?.message || "Không thể hủy đơn hàng này");
+			toast.error(error.response?.data?.message || "KhĂ´ng thá»ƒ há»§y Ä‘Æ¡n hĂ ng nĂ y");
 			return false;
 		}
 	},
@@ -55,11 +60,12 @@ export const useOrderStore = createWithEqualityFn((set) => ({
 					o._id === orderId ? { ...o, status: 'return_requested' } : o
 				)
 			}));
-			toast.success("Đã gửi yêu cầu trả hàng!");
+			toast.success("ÄĂ£ gá»­i yĂªu cáº§u tráº£ hĂ ng!");
 			return true;
 		} catch (error) {
-			toast.error(error.response?.data?.message || "Không thể gửi yêu cầu trả hàng");
+			toast.error(error.response?.data?.message || "KhĂ´ng thá»ƒ gá»­i yĂªu cáº§u tráº£ hĂ ng");
 			return false;
 		}
 	},
 }));
+

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeftRight, Heart, Minus, Plus, Share2, ShieldCheck, ShoppingBag, Truck } from "lucide-react";
@@ -17,9 +17,9 @@ import { SkeletonProductDetail } from "../components/SkeletonLoaders";
 import Input from "../components/ui/Input";
 
 const tabItems = [
-  { id: "description", label: "Mô tả" },
-  { id: "specs", label: "Thông số" },
-  { id: "policy", label: "Chính sách" },
+  { id: "description", label: "MĂ´ táº£" },
+  { id: "specs", label: "ThĂ´ng sá»‘" },
+  { id: "policy", label: "ChĂ­nh sĂ¡ch" },
 ];
 
 const ProductDetailPage = () => {
@@ -62,7 +62,7 @@ const ProductDetailPage = () => {
         const all = (res.data.products || []).filter((item) => item._id !== currentProduct._id);
         const priceMin = currentProduct.price * 0.6;
         const priceMax = currentProduct.price * 1.4;
-        // Primary: same category + price within ±40%
+        // Primary: same category + price within Â±40%
         const priceFiltered = all
           .filter((item) => item.price >= priceMin && item.price <= priceMax)
           .slice(0, 4);
@@ -101,22 +101,22 @@ const ProductDetailPage = () => {
 
 
   const specsRows = [
-    ["Loại máy", currentProduct.specs?.movement?.type],
+    ["Loáº¡i mĂ¡y", currentProduct.specs?.movement?.type],
     ["Caliber", currentProduct.specs?.movement?.caliber],
-    ["Dự trữ cót", currentProduct.specs?.movement?.powerReserve],
-    ["Đường kính", currentProduct.specs?.case?.diameter],
-    ["Độ dày", currentProduct.specs?.case?.thickness],
-    ["Chất liệu vỏ", currentProduct.specs?.case?.material],
-    ["Chất liệu dây", currentProduct.specs?.strap?.material],
-    ["Chống nước", currentProduct.specs?.waterResistance],
+    ["Dá»± trá»¯ cĂ³t", currentProduct.specs?.movement?.powerReserve],
+    ["ÄÆ°á»ng kĂ­nh", currentProduct.specs?.case?.diameter],
+    ["Äá»™ dĂ y", currentProduct.specs?.case?.thickness],
+    ["Cháº¥t liá»‡u vá»", currentProduct.specs?.case?.material],
+    ["Cháº¥t liá»‡u dĂ¢y", currentProduct.specs?.strap?.material],
+    ["Chá»‘ng nÆ°á»›c", currentProduct.specs?.waterResistance],
   ].filter(([, value]) => Boolean(value));
 
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      toast.success("Đã sao chép đường dẫn sản phẩm");
+      toast.success("ÄĂ£ sao chĂ©p Ä‘Æ°á»ng dáº«n sáº£n pháº©m");
     } catch {
-      toast.error("Không thể sao chép đường dẫn");
+      toast.error("KhĂ´ng thá»ƒ sao chĂ©p Ä‘Æ°á»ng dáº«n");
     }
   };
 
@@ -132,18 +132,18 @@ const ProductDetailPage = () => {
     };
 
     addToCart(payload);
-    toast.success("Đã thêm vào giỏ hàng");
+    toast.success("ÄĂ£ thĂªm vĂ o giá» hĂ ng");
   };
 
   return (
-    <div className="min-h-screen pb-14 pt-24">
+    <div className="min-h-screen pb-28 md:pb-14 pt-24">
       <div className="mx-auto max-w-7xl space-y-10 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-muted">
-          <Link to="/" className="transition hover:text-primary">Trang chủ</Link>
+          <Link to="/" className="transition hover:text-primary">Trang chá»§</Link>
           <span>/</span>
           <Link to="/catalog" className="transition hover:text-primary">{category}</Link>
           <span>/</span>
-          <span className="text-[color:var(--color-gold)]">Chi tiết</span>
+          <span className="text-[color:var(--color-gold)]">Chi tiáº¿t</span>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-12 xl:gap-12">
@@ -164,7 +164,7 @@ const ProductDetailPage = () => {
                     )}
                     {activeStock <= 0 && (
                       <span className="rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
-                        Hết hàng
+                        Háº¿t hĂ ng
                       </span>
                     )}
                   </div>
@@ -194,18 +194,18 @@ const ProductDetailPage = () => {
               </div>
 
               <div className="space-y-1">
-                <p className="price-display text-4xl">{currentProduct.price.toLocaleString("vi-VN")} đ</p>
+                <p className="price-display text-4xl">{currentProduct.price.toLocaleString("vi-VN")} Ä‘</p>
                 {currentProduct.originalPrice && (
-                  <p className="price-original text-lg">{currentProduct.originalPrice.toLocaleString("vi-VN")} đ</p>
+                  <p className="price-original text-lg">{currentProduct.originalPrice.toLocaleString("vi-VN")} Ä‘</p>
                 )}
-                <p className="text-sm text-muted">Đã bao gồm VAT. Bảo hành quốc tế 5 năm.</p>
+                <p className="text-sm text-muted">ÄĂ£ bao gá»“m VAT. Báº£o hĂ nh quá»‘c táº¿ 5 nÄƒm.</p>
               </div>
 
               <p className="text-sm leading-relaxed text-secondary sm:text-base">{currentProduct.description}</p>
 
               {currentProduct.colors?.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">Màu sắc</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">MĂ u sáº¯c</p>
                   <div className="flex flex-wrap gap-2">
                     {currentProduct.colors.map((color) => (
                       <button
@@ -223,7 +223,7 @@ const ProductDetailPage = () => {
 
               {currentProduct.sizes?.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">Kích thước</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">KĂ­ch thÆ°á»›c</p>
                   <div className="flex flex-wrap gap-2">
                     {currentProduct.sizes.map((size) => (
                       <button
@@ -241,7 +241,7 @@ const ProductDetailPage = () => {
 
               {hasWristOptions && (
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">Tùy chọn cổ tay</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">TĂ¹y chá»n cá»• tay</p>
                   <div className="flex flex-wrap gap-2">
                     {currentProduct.wristSizeOptions.map((option) => (
                       <button
@@ -260,17 +260,17 @@ const ProductDetailPage = () => {
 
               {!hasWristOptions && (
                 <Input
-                  label="Chu vi cổ tay (mm)"
+                  label="Chu vi cá»• tay (mm)"
                   name="wrist-size"
                   value={wristSize}
                   onChange={(event) => setWristSize(event.target.value)}
-                  placeholder="Ví dụ: 165"
-                  hint="Tùy chọn này dùng cho dịch vụ cắt dây miễn phí"
+                  placeholder="VĂ­ dá»¥: 165"
+                  hint="TĂ¹y chá»n nĂ y dĂ¹ng cho dá»‹ch vá»¥ cáº¯t dĂ¢y miá»…n phĂ­"
                 />
               )}
 
               <div className="flex items-center gap-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">Số lượng</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">Sá»‘ lÆ°á»£ng</p>
                 <div className="inline-flex items-center rounded-full border border-black/10 bg-[color:var(--color-surface-2)] p-1 dark:border-white/10">
                   <button type="button" onClick={() => setQuantity((value) => Math.max(1, value - 1))} className="btn-base btn-ghost h-8 w-8 rounded-full p-0">
                     <Minus className="h-3.5 w-3.5" />
@@ -290,25 +290,25 @@ const ProductDetailPage = () => {
                   className="btn-base btn-primary h-12"
                 >
                   <ShoppingBag className="h-4 w-4" />
-                  {activeStock > 0 ? "Thêm vào giỏ hàng" : "Tạm hết hàng"}
+                  {activeStock > 0 ? "ThĂªm vĂ o giá» hĂ ng" : "Táº¡m háº¿t hĂ ng"}
                 </button>
 
-                <button type="button" onClick={() => toggleWishlist(currentProduct, !!user)} className="btn-base btn-secondary h-12 w-12 rounded-full p-0" aria-label="Yêu thích">
+                <button type="button" onClick={() => toggleWishlist(currentProduct, !!user)} className="btn-base btn-secondary h-12 w-12 rounded-full p-0" aria-label="YĂªu thĂ­ch">
                   <Heart className={`h-4 w-4 ${isWishlisted ? "fill-current text-[color:var(--color-gold)]" : ""}`} />
                 </button>
-                <button type="button" onClick={() => addToCompare(currentProduct)} className="btn-base btn-secondary h-12 w-12 rounded-full p-0" aria-label="So sánh">
+                <button type="button" onClick={() => addToCompare(currentProduct)} className="btn-base btn-secondary h-12 w-12 rounded-full p-0" aria-label="So sĂ¡nh">
                   <ArrowLeftRight className="h-4 w-4" />
                 </button>
-                <button type="button" onClick={handleShare} className="btn-base btn-outline h-12 w-12 rounded-full p-0" aria-label="Chia sẻ">
+                <button type="button" onClick={handleShare} className="btn-base btn-outline h-12 w-12 rounded-full p-0" aria-label="Chia sáº»">
                   <Share2 className="h-4 w-4" />
                 </button>
               </div>
 
               <div className="grid grid-cols-2 gap-3 border-t border-black/8 pt-5 dark:border-white/8 sm:grid-cols-4">
-                <div className="rounded-xl bg-surface-soft p-3 text-center text-xs text-secondary"><ShieldCheck className="mx-auto mb-1 h-4 w-4 text-[color:var(--color-gold)]" />Bảo hành 5 năm</div>
-                <div className="rounded-xl bg-surface-soft p-3 text-center text-xs text-secondary"><Truck className="mx-auto mb-1 h-4 w-4 text-[color:var(--color-gold)]" />Giao hàng toàn quốc</div>
-                <div className="rounded-xl bg-surface-soft p-3 text-center text-xs text-secondary">Trả góp 0%</div>
-                <div className="rounded-xl bg-surface-soft p-3 text-center text-xs text-secondary">Đổi trả 30 ngày</div>
+                <div className="rounded-xl bg-surface-soft p-3 text-center text-xs text-secondary"><ShieldCheck className="mx-auto mb-1 h-4 w-4 text-[color:var(--color-gold)]" />Báº£o hĂ nh 5 nÄƒm</div>
+                <div className="rounded-xl bg-surface-soft p-3 text-center text-xs text-secondary"><Truck className="mx-auto mb-1 h-4 w-4 text-[color:var(--color-gold)]" />Giao hĂ ng toĂ n quá»‘c</div>
+                <div className="rounded-xl bg-surface-soft p-3 text-center text-xs text-secondary">Tráº£ gĂ³p 0%</div>
+                <div className="rounded-xl bg-surface-soft p-3 text-center text-xs text-secondary">Äá»•i tráº£ 30 ngĂ y</div>
               </div>
             </div>
           </section>
@@ -351,7 +351,7 @@ const ProductDetailPage = () => {
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-muted">Chưa có thông số chi tiết.</p>
+                    <p className="text-sm text-muted">ChÆ°a cĂ³ thĂ´ng sá»‘ chi tiáº¿t.</p>
                   )}
                 </div>
               )}
@@ -359,16 +359,16 @@ const ProductDetailPage = () => {
               {activeTab === "policy" && (
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div className="rounded-xl border border-black/8 bg-surface-soft p-4 text-sm text-secondary dark:border-white/8">
-                    <p className="font-semibold text-primary">Vận chuyển</p>
-                    <p className="mt-2">Miễn phí toàn quốc cho mọi đơn hàng, hỗ trợ giao nhanh tại các thành phố lớn.</p>
+                    <p className="font-semibold text-primary">Váº­n chuyá»ƒn</p>
+                    <p className="mt-2">Miá»…n phĂ­ toĂ n quá»‘c cho má»i Ä‘Æ¡n hĂ ng, há»— trá»£ giao nhanh táº¡i cĂ¡c thĂ nh phá»‘ lá»›n.</p>
                   </div>
                   <div className="rounded-xl border border-black/8 bg-surface-soft p-4 text-sm text-secondary dark:border-white/8">
-                    <p className="font-semibold text-primary">Đổi trả</p>
-                    <p className="mt-2">Đổi hoặc trả trong 7 đến 30 ngày tùy tình trạng sản phẩm và chính sách bảo hành.</p>
+                    <p className="font-semibold text-primary">Äá»•i tráº£</p>
+                    <p className="mt-2">Äá»•i hoáº·c tráº£ trong 7 Ä‘áº¿n 30 ngĂ y tĂ¹y tĂ¬nh tráº¡ng sáº£n pháº©m vĂ  chĂ­nh sĂ¡ch báº£o hĂ nh.</p>
                   </div>
                   <div className="rounded-xl border border-black/8 bg-surface-soft p-4 text-sm text-secondary dark:border-white/8">
-                    <p className="font-semibold text-primary">Bảo hành</p>
-                    <p className="mt-2">Bảo hành quốc tế 5 năm, hỗ trợ kiểm tra và bảo dưỡng định kỳ tại hệ thống cửa hàng.</p>
+                    <p className="font-semibold text-primary">Báº£o hĂ nh</p>
+                    <p className="mt-2">Báº£o hĂ nh quá»‘c táº¿ 5 nÄƒm, há»— trá»£ kiá»ƒm tra vĂ  báº£o dÆ°á»¡ng Ä‘á»‹nh ká»³ táº¡i há»‡ thá»‘ng cá»­a hĂ ng.</p>
                   </div>
                 </div>
               )}
@@ -380,14 +380,14 @@ const ProductDetailPage = () => {
           <section className="pt-4 pb-8">
             <div className="mb-8 flex items-end justify-between">
               <div>
-                <p className="hero-kicker text-[color:var(--color-gold)]">Cùng đẳng cấp</p>
-                <h2 className="heading-section mt-2 text-2xl">Khám phá thêm</h2>
+                <p className="hero-kicker text-[color:var(--color-gold)]">CĂ¹ng Ä‘áº³ng cáº¥p</p>
+                <h2 className="heading-section mt-2 text-2xl">KhĂ¡m phĂ¡ thĂªm</h2>
               </div>
               <Link
                 to="/catalog"
                 className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary transition hover:text-[color:var(--color-gold)]"
               >
-                Xem tất cả
+                Xem táº¥t cáº£
               </Link>
             </div>
             <div className="product-grid-4">
@@ -398,8 +398,28 @@ const ProductDetailPage = () => {
           </section>
         )}
       </div>
+
+      {/* Mobile Sticky CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-surface border-t border-black/10 dark:border-white/10 p-3 shadow-[0_-8px_20px_rgba(0,0,0,0.04)] md:hidden">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold truncate text-primary">{currentProduct.name}</p>
+            <p className="text-xs font-bold text-[color:var(--color-gold)]">{currentProduct.price.toLocaleString("vi-VN")} Ä‘</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            disabled={activeStock <= 0}
+            className="btn-base btn-primary h-11 px-5 shrink-0 shadow-lg shadow-black/20"
+          >
+            <ShoppingBag className="h-4 w-4" />
+            {activeStock > 0 ? "ThĂªm vĂ o giá»" : "Háº¿t hĂ ng"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
 
 export default ProductDetailPage;
+

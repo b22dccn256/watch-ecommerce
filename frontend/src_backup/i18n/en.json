@@ -1,0 +1,13 @@
+{
+  "welcome": "Welcome",
+  "cart": "Cart",
+  "wishlist": "Wishlist",
+  "compare": "Compare",
+  "checkout": "Checkout",
+  "order_summary": "Order Summary",
+  "subtotal": "Subtotal",
+  "savings": "Savings",
+  "total": "Total",
+  "currency_vnd": "₫",
+  "currency_usd": "$"
+}

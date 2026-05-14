@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Eye, Heart, ShoppingBag, ArrowLeftRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -52,15 +52,15 @@ const ProductCard = ({ product }) => {
     event.stopPropagation();
     if (isOutOfStock) return;
     if (!user) {
-      toast.error("Vui lòng đăng nhập để thêm vào giỏ hàng", { id: "login" });
+      toast.error("Vui lĂ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ thĂªm vĂ o giá» hĂ ng", { id: "login" });
       return;
     }
     try {
       setIsAdding(true);
       await addToCart(product);
-      toast.success("Đã thêm vào giỏ hàng");
+      toast.success("ÄĂ£ thĂªm vĂ o giá» hĂ ng");
     } catch {
-      toast.error("Không thể thêm vào giỏ hàng");
+      toast.error("KhĂ´ng thá»ƒ thĂªm vĂ o giá» hĂ ng");
     } finally {
       setIsAdding(false);
     }
@@ -73,7 +73,7 @@ const ProductCard = ({ product }) => {
         transition={{ type: "spring", stiffness: 220, damping: 26 }}
         className="group relative cursor-pointer"
       >
-        {/* ── Image Block ── */}
+        {/* â”€â”€ Image Block â”€â”€ */}
         <div
           role="button"
           tabIndex={0}
@@ -92,16 +92,16 @@ const ProductCard = ({ product }) => {
               imageReady ? "opacity-100 group-hover:scale-[1.06]" : "opacity-0"
             }`}
           />
-          {!imageReady && <div className="animate-shimmer absolute inset-0" />}
+          {!imageReady && <div className="skeleton-shimmer skeleton-shimmer-premium absolute inset-0" />}
 
           {/* Dark vignette on hover */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent opacity-0 transition-opacity duration-[500ms] group-hover:opacity-100" />
 
-          {/* Badges — top left */}
+          {/* Badges â€” top left */}
           <div className="absolute left-3 top-3 z-20 flex gap-1.5">
             {discountPercent > 0 && (
               <span className="rounded-[3px] border border-white/20 bg-black/80 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-white">
-                −{discountPercent}%
+                âˆ’{discountPercent}%
               </span>
             )}
             {product.isNew && (
@@ -115,12 +115,12 @@ const ProductCard = ({ product }) => {
           {isOutOfStock && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/45 backdrop-blur-[2px]">
               <span className="rounded-[3px] border border-white/30 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.22em] text-white">
-                Tạm hết hàng
+                Táº¡m háº¿t hĂ ng
               </span>
             </div>
           )}
 
-          {/* Hover action bar — bottom of image */}
+          {/* Hover action bar â€” bottom of image */}
           <div className="card-reveal absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between px-3 pb-4">
             {/* Add to cart CTA */}
             <button
@@ -130,7 +130,7 @@ const ProductCard = ({ product }) => {
               className="flex items-center gap-2 rounded-[4px] border border-white/25 bg-black/65 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-white backdrop-blur-sm transition-colors duration-300 hover:border-[color:var(--color-gold)] hover:bg-[color:var(--color-gold)] hover:text-black disabled:opacity-50"
             >
               <ShoppingBag className="h-3 w-3" />
-              {isAdding ? "…" : "Thêm vào giỏ"}
+              {isAdding ? "â€¦" : "ThĂªm vĂ o giá»"}
             </button>
 
             {/* Icon actions */}
@@ -139,7 +139,7 @@ const ProductCard = ({ product }) => {
                 type="button"
                 onClick={(e) => { e.stopPropagation(); toggleWishlist(product, !!user); }}
                 className="inline-flex h-8 w-8 items-center justify-center rounded-[4px] border border-white/25 bg-black/65 text-white backdrop-blur-sm transition hover:bg-white hover:text-black"
-                aria-label="Yêu thích"
+                aria-label="YĂªu thĂ­ch"
               >
                 <Heart className={`h-3.5 w-3.5 ${isWishlisted ? "fill-current text-[color:var(--color-gold)]" : ""}`} />
               </button>
@@ -155,12 +155,12 @@ const ProductCard = ({ product }) => {
           </div>
         </div>
 
-        {/* ── Info Block ── */}
+        {/* â”€â”€ Info Block â”€â”€ */}
         <div className="pt-4 space-y-2">
           {/* Brand kicker */}
           <p className="text-[9px] font-semibold uppercase tracking-[0.34em] text-muted">{brand}</p>
 
-          {/* Product name — Serif */}
+          {/* Product name â€” Serif */}
           <h3
             onClick={openDetail}
             className="font-serif text-[1.0625rem] leading-snug text-primary line-clamp-2 transition-colors duration-300 hover:text-[color:var(--color-gold)]"
@@ -172,16 +172,16 @@ const ProductCard = ({ product }) => {
           <div className="flex items-end justify-between pt-0.5">
             <div>
               <p className="text-[1.25rem] font-light tracking-[-0.03em] text-primary">
-                {product.price?.toLocaleString("vi-VN")} đ
+                {product.price?.toLocaleString("vi-VN")} Ä‘
               </p>
               {product.originalPrice && (
                 <p className="text-[11px] text-muted line-through">
-                  {product.originalPrice?.toLocaleString("vi-VN")} đ
+                  {product.originalPrice?.toLocaleString("vi-VN")} Ä‘
                 </p>
               )}
             </div>
 
-            {/* Compare icon — minimal */}
+            {/* Compare icon â€” minimal */}
             <button
               type="button"
               onClick={(e) => {
@@ -189,7 +189,7 @@ const ProductCard = ({ product }) => {
                 isCompared ? removeFromCompare(product._id) : addToCompare(product);
               }}
               className="mb-0.5 text-muted transition-colors duration-300 hover:text-[color:var(--color-gold)]"
-              aria-label="So sánh"
+              aria-label="So sĂ¡nh"
             >
               <ArrowLeftRight className={`h-4 w-4 ${isCompared ? "text-[color:var(--color-gold)]" : ""}`} />
             </button>
@@ -197,7 +197,7 @@ const ProductCard = ({ product }) => {
         </div>
       </motion.article>
 
-      {/* ── Quick View Modal ── */}
+      {/* â”€â”€ Quick View Modal â”€â”€ */}
       <AnimatePresence>
         {showQuickView && (
           <motion.div
@@ -223,7 +223,7 @@ const ProductCard = ({ product }) => {
                   onClick={() => setShowQuickView(false)}
                   className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full border border-black/20 bg-white/85 text-primary text-lg leading-none"
                 >
-                  ×
+                  Ă—
                 </button>
               </div>
 
@@ -234,10 +234,10 @@ const ProductCard = ({ product }) => {
                   <h3 className="font-serif text-2xl leading-tight text-primary">{product.name}</h3>
                   <p className="text-sm leading-relaxed text-secondary line-clamp-4">
                     {product.description ||
-                      "Mẫu đồng hồ được tuyển chọn với tiêu chí độ hoàn thiện cao, tỷ lệ cân đối và khả năng đeo thoải mái."}
+                      "Máº«u Ä‘á»“ng há»“ Ä‘Æ°á»£c tuyá»ƒn chá»n vá»›i tiĂªu chĂ­ Ä‘á»™ hoĂ n thiá»‡n cao, tá»· lá»‡ cĂ¢n Ä‘á»‘i vĂ  kháº£ nÄƒng Ä‘eo thoáº£i mĂ¡i."}
                   </p>
                   <p className="text-3xl font-light tracking-[-0.03em] text-primary">
-                    {product.price?.toLocaleString("vi-VN")} đ
+                    {product.price?.toLocaleString("vi-VN")} Ä‘
                   </p>
                 </div>
                 <button
@@ -247,7 +247,7 @@ const ProductCard = ({ product }) => {
                   className="btn-base btn-primary h-11 w-full"
                 >
                   <ShoppingBag className="h-4 w-4" />
-                  {isAdding ? "Đang thêm…" : isOutOfStock ? "Tạm hết hàng" : "Thêm vào giỏ hàng"}
+                  {isAdding ? "Äang thĂªmâ€¦" : isOutOfStock ? "Táº¡m háº¿t hĂ ng" : "ThĂªm vĂ o giá» hĂ ng"}
                 </button>
               </div>
             </motion.div>
@@ -259,3 +259,4 @@ const ProductCard = ({ product }) => {
 };
 
 export default ProductCard;
+

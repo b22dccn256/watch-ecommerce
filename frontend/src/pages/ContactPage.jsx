@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import PolicyPageLayout from "../components/PolicyPageLayout";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import axios from "../lib/axios";
@@ -25,7 +25,7 @@ const ContactPage = () => {
 			toast.success(res.data.message);
 			setFormData({ name: "", email: "", phone: "", subject: "", message: "", _honeypot: "" });
 		} catch (error) {
-			toast.error(error.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại sau.");
+			toast.error(error.response?.data?.message || "CĂ³ lá»—i xáº£y ra, vui lĂ²ng thá»­ láº¡i sau.");
 		} finally {
 			setLoading(false);
 		}
@@ -33,8 +33,8 @@ const ContactPage = () => {
 
 	return (
 		<PolicyPageLayout 
-			title="Liên hệ chúng tôi" 
-			description="Kết nối với đội ngũ chuyên gia của Luxury Watch Store để được tư vấn và hỗ trợ tận tâm nhất."
+			title="LiĂªn há»‡ chĂºng tĂ´i" 
+			description="Káº¿t ná»‘i vá»›i Ä‘á»™i ngÅ© chuyĂªn gia cá»§a Luxury Watch Store Ä‘á»ƒ Ä‘Æ°á»£c tÆ° váº¥n vĂ  há»— trá»£ táº­n tĂ¢m nháº¥t."
 			activeId="contact"
 		>
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
@@ -42,9 +42,9 @@ const ContactPage = () => {
 				<div className="space-y-8 rounded-[2rem] border border-black/5 dark:border-white/5 bg-white/85 dark:bg-white/5 p-6 md:p-8 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.35)]">
 					<div className="space-y-4">
 						<p className="hero-kicker text-xs font-semibold text-luxury-gold">Concierge</p>
-						<h2 className="hero-title text-2xl font-bold text-gray-900 dark:text-white">Gửi lời nhắn cho chúng tôi</h2>
+						<h2 className="hero-title text-2xl font-bold text-gray-900 dark:text-white">Gá»­i lá»i nháº¯n cho chĂºng tĂ´i</h2>
 						<p className="text-luxury-text-muted text-sm leading-relaxed">
-							Chúng tôi luôn sẵn lòng lắng nghe và giải đáp mọi thắc mắc của quý khách. Phản hồi sẽ được gửi qua email của bạn trong vòng 24 giờ làm việc.
+							ChĂºng tĂ´i luĂ´n sáºµn lĂ²ng láº¯ng nghe vĂ  giáº£i Ä‘Ă¡p má»i tháº¯c máº¯c cá»§a quĂ½ khĂ¡ch. Pháº£n há»“i sáº½ Ä‘Æ°á»£c gá»­i qua email cá»§a báº¡n trong vĂ²ng 24 giá» lĂ m viá»‡c.
 						</p>
 					</div>
 
@@ -60,14 +60,14 @@ const ContactPage = () => {
 
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div className="space-y-1">
-								<label className="text-xs font-bold uppercase tracking-wider text-gray-500">Họ và tên *</label>
+								<label className="text-xs font-bold uppercase tracking-wider text-gray-500">Há» vĂ  tĂªn *</label>
 								<input
 									type="text"
 									required
 									value={formData.name}
 									onChange={(e) => setFormData({...formData, name: e.target.value})}
 									className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-luxury-border rounded-2xl px-4 py-3 text-sm focus:border-luxury-gold outline-none transition"
-									placeholder="Nguyễn Văn A"
+									placeholder="Nguyá»…n VÄƒn A"
 								/>
 							</div>
 							<div className="space-y-1">
@@ -84,29 +84,29 @@ const ContactPage = () => {
 						</div>
 
 						<div className="space-y-1">
-							<label className="text-xs font-bold uppercase tracking-wider text-gray-500">Chủ đề</label>
+							<label className="text-xs font-bold uppercase tracking-wider text-gray-500">Chá»§ Ä‘á»</label>
 							<select
 								value={formData.subject}
 								onChange={(e) => setFormData({...formData, subject: e.target.value})}
 								className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-luxury-border rounded-2xl px-4 py-3 text-sm focus:border-luxury-gold outline-none transition"
 							>
-								<option value="">Chọn chủ đề...</option>
-								<option value="Tư vấn sản phẩm">Tư vấn sản phẩm</option>
-								<option value="Hỗ trợ đơn hàng">Hỗ trợ đơn hàng</option>
-								<option value="Bảo hành & Đổi trả">Bảo hành & Đổi trả</option>
-								<option value="Góp ý dịch vụ">Góp ý dịch vụ</option>
+								<option value="">Chá»n chá»§ Ä‘á»...</option>
+								<option value="TÆ° váº¥n sáº£n pháº©m">TÆ° váº¥n sáº£n pháº©m</option>
+								<option value="Há»— trá»£ Ä‘Æ¡n hĂ ng">Há»— trá»£ Ä‘Æ¡n hĂ ng</option>
+								<option value="Báº£o hĂ nh & Äá»•i tráº£">Báº£o hĂ nh & Äá»•i tráº£</option>
+								<option value="GĂ³p Ă½ dá»‹ch vá»¥">GĂ³p Ă½ dá»‹ch vá»¥</option>
 							</select>
 						</div>
 
 						<div className="space-y-1">
-							<label className="text-xs font-bold uppercase tracking-wider text-gray-500">Lời nhắn *</label>
+							<label className="text-xs font-bold uppercase tracking-wider text-gray-500">Lá»i nháº¯n *</label>
 							<textarea
 								required
 								rows={5}
 								value={formData.message}
 								onChange={(e) => setFormData({...formData, message: e.target.value})}
 								className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-luxury-border rounded-2xl px-4 py-3 text-sm focus:border-luxury-gold outline-none transition resize-none"
-								placeholder="Bạn cần chúng tôi hỗ trợ điều gì?"
+								placeholder="Báº¡n cáº§n chĂºng tĂ´i há»— trá»£ Ä‘iá»u gĂ¬?"
 							></textarea>
 						</div>
 
@@ -115,9 +115,9 @@ const ContactPage = () => {
 							disabled={loading}
 							className="w-full bg-luxury-gold text-luxury-dark font-bold py-4 rounded-2xl hover:bg-white hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-xl disabled:opacity-50"
 						>
-							{loading ? "ĐANG GỬI..." : (
+							{loading ? "ÄANG Gá»¬I..." : (
 								<>
-									GỬI TIN NHẮN 
+									Gá»¬I TIN NHáº®N 
 									<Send className="w-4 h-4" />
 								</>
 							)}
@@ -129,7 +129,7 @@ const ContactPage = () => {
 				<div className="space-y-12 lg:pl-10">
 					<div className="space-y-8">
 						<p className="hero-kicker text-xs font-semibold text-luxury-gold">Direct access</p>
-						<h2 className="hero-title text-2xl font-bold text-gray-900 dark:text-white">Thông tin liên lạc</h2>
+						<h2 className="hero-title text-2xl font-bold text-gray-900 dark:text-white">ThĂ´ng tin liĂªn láº¡c</h2>
 						
 						<div className="flex items-start gap-6 group">
 							<div className="bg-luxury-gold/10 p-4 rounded-2xl text-luxury-gold transition group-hover:bg-luxury-gold group-hover:text-luxury-dark">
@@ -138,7 +138,7 @@ const ContactPage = () => {
 							<div>
 								<p className="text-xs font-bold uppercase text-luxury-gold mb-1">Hotline 24/7</p>
 								<p className="text-lg font-bold">1900 8888</p>
-								<p className="text-xs text-gray-400 mt-1">Hỗ trợ kỹ thuật: 1900 9999</p>
+								<p className="text-xs text-gray-400 mt-1">Há»— trá»£ ká»¹ thuáº­t: 1900 9999</p>
 							</div>
 						</div>
 
@@ -147,9 +147,9 @@ const ContactPage = () => {
 								<Mail className="w-6 h-6" />
 							</div>
 							<div>
-								<p className="text-xs font-bold uppercase text-luxury-gold mb-1">Email Phản Hồi</p>
+								<p className="text-xs font-bold uppercase text-luxury-gold mb-1">Email Pháº£n Há»“i</p>
 								<p className="text-lg font-bold">support@watchstore.com</p>
-								<p className="text-xs text-gray-400 mt-1">Hợp tác: business@watchstore.com</p>
+								<p className="text-xs text-gray-400 mt-1">Há»£p tĂ¡c: business@watchstore.com</p>
 							</div>
 						</div>
 
@@ -158,9 +158,9 @@ const ContactPage = () => {
 								<MapPin className="w-6 h-6" />
 							</div>
 							<div>
-								<p className="text-xs font-bold uppercase text-luxury-gold mb-1">Trung Tâm Trưng Bày</p>
+								<p className="text-xs font-bold uppercase text-luxury-gold mb-1">Trung TĂ¢m TrÆ°ng BĂ y</p>
 								<p className="text-lg font-bold">123 Luxury Tower, Q1, TP. HCM</p>
-								<p className="text-xs text-gray-400 mt-1">Chi nhánh HN: 456 Watch Plaza, Cầu Giấy</p>
+								<p className="text-xs text-gray-400 mt-1">Chi nhĂ¡nh HN: 456 Watch Plaza, Cáº§u Giáº¥y</p>
 							</div>
 						</div>
 					</div>
@@ -180,3 +180,4 @@ const ContactPage = () => {
 };
 
 export default ContactPage;
+

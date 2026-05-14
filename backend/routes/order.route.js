@@ -7,6 +7,7 @@ import {
     updateOrderDetails,
     getOrderById,
     getMyOrders,
+    cancelOrder,
     createCODOrder,
     createQROrder,
     confirmQRPayment,
@@ -31,16 +32,14 @@ router.patch("/:id/status", protectRoute, managementRoute, updateOrderStatus);
 router.patch("/:id/details", protectRoute, managementRoute, updateOrderDetails);
 
 // Route cho user: Xem đơn hàng của mình (phải đặt TRƯỚC /:id)
-router.get("/my-orders", (req, res, next) => {
-    if (!req.cookies.accessToken && !req.cookies.refreshToken) {
-        return res.json([]);
-    }
-    protectRoute(req, res, next);
-}, getMyOrders);
+router.get("/my-orders", protectRoute, getMyOrders);
 
 
 // User yêu cầu trả hàng (sau khi đã giao)
 router.patch("/:id/request-return", protectRoute, requestReturnOrder);
+
+// User hủy đơn hàng khi còn hợp lệ
+router.patch("/:id/cancel", protectRoute, cancelOrder);
 
 // Route cho user/admin: Xem chi tiết 1 đơn hàng (kiểm tra thanh toán)
 router.get("/:id", protectRoute, getOrderById);

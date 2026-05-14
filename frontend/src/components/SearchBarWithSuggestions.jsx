@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useProductStore } from "../stores/useProductStore";
 import { useNavigate } from "react-router-dom";
 
@@ -43,13 +43,13 @@ const SearchBarWithSuggestions = () => {
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     onFocus={() => setShowSuggestions(true)}
-                    placeholder="Tìm kiếm đồng hồ... (ví dụ: Rolex Daytona)"
+                    placeholder="TĂ¬m kiáº¿m Ä‘á»“ng há»“... (vĂ­ dá»¥: Rolex Daytona)"
                     className="w-full bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-yellow-900 focus:border-yellow-400 text-gray-900 dark:text-white pl-6 pr-12 py-5 rounded-2xl text-lg placeholder-gray-400"
                 />
-                <button onClick={handleSearchClick} className="absolute right-6 top-1/2 -translate-y-1/2 text-yellow-400">🔎</button>
+                <button onClick={handleSearchClick} className="absolute right-6 top-1/2 -translate-y-1/2 text-yellow-400">đŸ”</button>
             </div>
 
-            {/* Dropdown gợi ý */}
+            {/* Dropdown gá»£i Ă½ */}
             {showSuggestions && suggestions.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-yellow-900 rounded-2xl overflow-hidden shadow-2xl z-50">
                     {suggestions.slice(0, 5).map((item) => (
@@ -66,7 +66,7 @@ const SearchBarWithSuggestions = () => {
                                 </div>
                             </div>
                             <div className="text-yellow-400 font-semibold">
-                                {item.price.toLocaleString("vi-VN")}đ
+                                {item.price.toLocaleString("vi-VN")}Ä‘
                             </div>
                         </div>
                     ))}

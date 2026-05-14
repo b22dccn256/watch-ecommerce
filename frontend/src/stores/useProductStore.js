@@ -1,4 +1,4 @@
-import { createWithEqualityFn } from "zustand/traditional";
+﻿import { createWithEqualityFn } from "zustand/traditional";
 import toast from "react-hot-toast";
 import axios from "../lib/axios";
 
@@ -89,9 +89,9 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 				),
 				loading: false,
 			}));
-			toast.success("Cập nhật sản phẩm thành công");
+			toast.success("Cáº­p nháº­t sáº£n pháº©m thĂ nh cĂ´ng");
 		} catch (error) {
-			toast.error(error.response?.data?.error || "Lỗi khi cập nhật sản phẩm");
+			toast.error(error.response?.data?.error || "Lá»—i khi cáº­p nháº­t sáº£n pháº©m");
 			set({ loading: false });
 		}
 	},
@@ -144,7 +144,7 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 			});
 		} catch (error) {
 			set({ loading: false });
-			toast.error(error.response?.data?.error || "Lỗi khi lấy danh sách sản phẩm.");
+			toast.error(error.response?.data?.error || "Lá»—i khi láº¥y danh sĂ¡ch sáº£n pháº©m.");
 		} finally {
 			fetchState.adminPage.lastFetched = Date.now();
 			fetchState.adminPage.promise = null;
@@ -239,7 +239,7 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 	setSort: (newSort) => set({ sort: newSort, currentPage: 1 }), // Reset page when sort changes
 	setPage: (page) => set({ currentPage: page }),
 
-	// Fetch sản phẩm có lọc + phân trang + sắp xếp
+	// Fetch sáº£n pháº©m cĂ³ lá»c + phĂ¢n trang + sáº¯p xáº¿p
 	fetchFilteredProducts: async (extraParams = {}) => {
 		set({ loading: true });
 		const { searchTerm, filters, currentPage, sort } = get();
@@ -273,12 +273,12 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 				loading: false,
 			});
 		} catch {
-			toast.error("Lỗi tải sản phẩm");
+			toast.error("Lá»—i táº£i sáº£n pháº©m");
 			set({ loading: false });
 		}
 	},
 
-	// Auto-suggest (gợi ý khi gõ)
+	// Auto-suggest (gá»£i Ă½ khi gĂµ)
 	getSuggestions: async (query) => {
 		if (!query || query.length < 2) {
 			set({ suggestions: [] });
@@ -292,7 +292,7 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 		}
 	},
 
-	// Chi tiết sản phẩm
+	// Chi tiáº¿t sáº£n pháº©m
 	currentProduct: null,
 
 	fetchProductById: async (id) => {
@@ -301,8 +301,9 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 			const res = await axios.get(`/products/${id}`);
 			set({ currentProduct: res.data, loading: false });
 		} catch {
-			toast.error("Không tìm thấy sản phẩm");
+			toast.error("KhĂ´ng tĂ¬m tháº¥y sáº£n pháº©m");
 			set({ loading: false });
 		}
 	},
 }));
+

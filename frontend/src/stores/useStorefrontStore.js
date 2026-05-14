@@ -1,4 +1,4 @@
-import { createWithEqualityFn } from "zustand/traditional";
+﻿import { createWithEqualityFn } from "zustand/traditional";
 import toast from "react-hot-toast";
 import axios from "../lib/axios";
 
@@ -24,7 +24,7 @@ export const useStorefrontStore = createWithEqualityFn((set, get) => ({
 				return res.data;
 			})
 			.catch((error) => {
-				set({ error: error.response?.data?.message || "Lỗi tải cấu hình", loading: false });
+				set({ error: error.response?.data?.message || "Lá»—i táº£i cáº¥u hĂ¬nh", loading: false });
 				return get().config;
 			})
 			.finally(() => {
@@ -38,10 +38,11 @@ export const useStorefrontStore = createWithEqualityFn((set, get) => ({
 		try {
 			const res = await axios.put("/settings", newConfig);
 			set({ config: res.data, loading: false });
-			toast.success("Cập nhật giao diện thành công!");
+			toast.success("Cáº­p nháº­t giao diá»‡n thĂ nh cĂ´ng!");
 		} catch (error) {
-			toast.error(error.response?.data?.message || "Lỗi cập nhật cấu hình");
+			toast.error(error.response?.data?.message || "Lá»—i cáº­p nháº­t cáº¥u hĂ¬nh");
 			set({ loading: false });
 		}
 	},
 }));
+

@@ -1,4 +1,4 @@
-import { cn } from "../../lib/cn";
+﻿import { cn } from "../../lib/cn";
 
 const toneStyles = {
 	neutral: "bg-white/90 text-gray-700 border border-black/10",
@@ -23,3 +23,4 @@ const ProductBadge = ({ tone = "neutral", className, children }) => {
 };
 
 export default ProductBadge;
+

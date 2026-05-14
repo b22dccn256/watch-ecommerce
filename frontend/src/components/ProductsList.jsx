@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+﻿import { useState, useMemo, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -10,15 +10,18 @@ import axios from "../lib/axios";
 import toast from "react-hot-toast";
 import CreateProductForm from "./CreateProductForm";
 import EditProductForm from "./EditProductForm";
+import ConfirmModal from "./ConfirmModal";
+import { SkeletonTableRow } from "./SkeletonLoaders";
+import InputModal from "./InputModal";
 
 const PAGE_SIZE = 10;
 
 // Stock badge helper
 const StockBadge = ({ stock }) => {
-	if (stock === undefined || stock === null) return <span className="text-gray-400 text-xs">—</span>;
-	if (stock <= 0) return <span className="stock-badge-out px-2 py-0.5 rounded-full text-xs font-semibold">Hết hàng</span>;
-	if (stock <= 5) return <span className="stock-badge-low px-2 py-0.5 rounded-full text-xs font-semibold">Còn {stock}</span>;
-	return <span className="stock-badge-high px-2 py-0.5 rounded-full text-xs font-semibold">Còn {stock}</span>;
+	if (stock === undefined || stock === null) return <span className="text-gray-400 text-xs">â€”</span>;
+	if (stock <= 0) return <span className="stock-badge-out px-2 py-0.5 rounded-full text-xs font-semibold">Háº¿t hĂ ng</span>;
+	if (stock <= 5) return <span className="stock-badge-low px-2 py-0.5 rounded-full text-xs font-semibold">CĂ²n {stock}</span>;
+	return <span className="stock-badge-high px-2 py-0.5 rounded-full text-xs font-semibold">CĂ²n {stock}</span>;
 };
 
 const CampaignPickerModal = ({ selectedIds, onClose, onSuccess }) => (
@@ -36,22 +39,22 @@ const CampaignPickerModal = ({ selectedIds, onClose, onSuccess }) => (
 			className="w-full max-w-md rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl p-6"
 			onClick={(e) => e.stopPropagation()}
 		>
-			<h3 className="text-lg font-bold text-gray-900 dark:text-white">Gán chiến dịch</h3>
+			<h3 className="text-lg font-bold text-gray-900 dark:text-white">GĂ¡n chiáº¿n dá»‹ch</h3>
 			<p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-				Đã chọn {selectedIds.length} sản phẩm. Tính năng chọn chiến dịch đang được hoàn thiện.
+				ÄĂ£ chá»n {selectedIds.length} sáº£n pháº©m. TĂ­nh nÄƒng chá»n chiáº¿n dá»‹ch Ä‘ang Ä‘Æ°á»£c hoĂ n thiá»‡n.
 			</p>
 			<div className="mt-5 flex justify-end gap-3">
 				<button
 					onClick={onClose}
 					className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-200"
 				>
-					Đóng
+					ÄĂ³ng
 				</button>
 				<button
 					onClick={onSuccess}
 					className="px-4 py-2 rounded-lg bg-luxury-gold text-luxury-dark font-semibold"
 				>
-					Xác nhận
+					XĂ¡c nháº­n
 				</button>
 			</div>
 		</motion.div>
@@ -82,6 +85,9 @@ const ProductsList = () => {
 	const [selectedIds, setSelectedIds] = useState(new Set());
 	const [bulkDeleting, setBulkDeleting] = useState(false);
 	const [showCampaignPicker, setShowCampaignPicker] = useState(false);
+	const [showPriceAdjustModal, setShowPriceAdjustModal] = useState(false);
+	const [priceAdjustCount, setPriceAdjustCount] = useState(0);
+	const [priceAdjustConfig, setPriceAdjustConfig] = useState(null);
 
 	// Debounce search
 	useEffect(() => {
@@ -107,10 +113,29 @@ const ProductsList = () => {
 		setSearchParams(params, { replace: true });
 
 		fetchProductsAdminPaginated({ page: currentPage, limit: PAGE_SIZE, search: debouncedSearch, sort: sortBy });
-	}, [currentPage, debouncedSearch, sortBy]);
+	}, [currentPage, debouncedSearch, sortBy, fetchProductsAdminPaginated, searchParams, setSearchParams]);
 
 	const paginated = products || [];
 	const totalPages = storeTotalPages || 1;
+
+	// deep-link focus: open product edit when ?focus=<id> is present
+	useEffect(() => {
+		const focus = searchParams.get('focus');
+		if (!focus) return;
+		// try find in current page
+		const local = paginated.find(p => p._id === focus || p.slug === focus);
+		if (local) {
+			setEditingProduct(local);
+			return;
+		}
+		// otherwise fetch
+		(async () => {
+			try {
+				const res = await axios.get(`/products/${encodeURIComponent(focus)}`);
+				if (res?.data) setEditingProduct(res.data);
+			} catch (e) { /* ignore */ }
+		})();
+	}, [searchParams, paginated]);
 
 	const handleSearch = (e) => { 
 		setSearch(e.target.value); 
@@ -133,37 +158,113 @@ const ProductsList = () => {
 		setSelectedIds((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 	};
 
-	const handleBulkDelete = async () => {
+	const [confirmConfig, setConfirmConfig] = useState(null);
+
+	const handleBulkDelete = () => {
 		if (!selectedIds.size) return;
-		if (!window.confirm(`Xóa ${selectedIds.size} sản phẩm đã chọn?`)) return;
-		setBulkDeleting(true);
-		try {
-			await axios.patch("/products", { action: "softDelete", ids: [...selectedIds] });
-			setSelectedIds(new Set());
-			toast.success(`Đã xóa ${selectedIds.size} sản phẩm`);
-			fetchProductsAdminPaginated({ page: currentPage, limit: PAGE_SIZE, search: debouncedSearch, sort: sortBy });
-		} catch (error) {
-			toast.error(error.response?.data?.message || "Có lỗi xảy ra khi xóa hàng loạt");
-		} finally {
-			setBulkDeleting(false);
-		}
+		setConfirmConfig({
+			title: `XĂ³a ${selectedIds.size} sáº£n pháº©m`,
+			message: `Báº¡n sáº¯p xĂ³a ${selectedIds.size} sáº£n pháº©m. Thao tĂ¡c nĂ y sáº½ khĂ´ng thá»ƒ khĂ´i phá»¥c.`,
+			variant: "danger",
+			confirmLabel: "XĂ³a",
+			onConfirm: async () => {
+				setBulkDeleting(true);
+				try {
+					await axios.patch("/products", { action: "softDelete", ids: [...selectedIds] });
+					setSelectedIds(new Set());
+					toast.success(`ÄĂ£ xĂ³a ${selectedIds.size} sáº£n pháº©m`);
+					fetchProductsAdminPaginated({ page: currentPage, limit: PAGE_SIZE, search: debouncedSearch, sort: sortBy });
+				} catch (error) {
+					toast.error(error.response?.data?.message || "CĂ³ lá»—i xáº£y ra khi xĂ³a hĂ ng loáº¡t");
+				} finally {
+					setBulkDeleting(false);
+				}
+			}
+		});
 	};
 
-	// B1: Bulk price adjust
+	// B1: Bulk price adjust (improved: preview, percent or absolute, threshold confirm)
+	const parseAdjust = (v) => {
+		if (v === null || v === undefined) return null;
+		const s = String(v).trim();
+		if (!s) return null;
+		if (s.endsWith('%')) {
+			const num = parseFloat(s.slice(0, -1));
+			if (isNaN(num)) return null;
+			return { type: 'percent', value: num };
+		}
+		const num = Number(s);
+		if (!isNaN(num)) return { type: 'absolute', value: num };
+		return null;
+	};
+
 	const handleBulkPriceAdjust = async () => {
 		if (!selectedIds.size) return;
-		const pct = prompt(`Điều chỉnh giá cho ${selectedIds.size} sản phẩm (nhập %, ví dụ -10 để giảm 10%):`); 
-		if (pct === null || pct === "") return;
-		if (isNaN(Number(pct))) { toast.error("Vui lòng nhập số hợp lệ"); return; }
-		const toastId = toast.loading("Đang điều chỉnh giá...");
-		try {
-			const res = await axios.patch("/products", { action: "adjustPrice", ids: [...selectedIds], value: Number(pct) });
-			toast.success(res.data.message, { id: toastId });
-			setSelectedIds(new Set());
-			fetchProductsAdminPaginated({ page: currentPage, limit: PAGE_SIZE, search: debouncedSearch, sort: sortBy });
-		} catch (error) {
-			toast.error(error.response?.data?.message || "Lỗi khi điều chỉnh giá", { id: toastId });
+		setPriceAdjustCount(selectedIds.size);
+		setPriceAdjustConfig({
+			title: `Điều chỉnh giá cho ${selectedIds.size} sản phẩm`,
+			message: "Nhập phần trăm (ví dụ -10% để giảm 10%) hoặc giá trị tuyệt đối (ví dụ -100000 để giảm 100k).",
+			label: "Phần trăm (%) hoặc giá trị (VND)",
+			confirmLabel: "Áp dụng",
+			onConfirm: handleConfirmPriceAdjust,
+			type: 'text',
+			preview: (val) => {
+				const samples = paginated.filter(p => selectedIds.has(p._id)).slice(0,3);
+				if (!samples.length) return <div className="text-xs text-gray-500">Không có mẫu hiển thị</div>;
+				const parsed = parseAdjust(val);
+				return (
+					<div>
+						<p className="font-medium">Xem trước ({samples.length} mẫu)</p>
+						<ul className="mt-2 space-y-1 text-xs text-gray-700">
+							{samples.map(s => {
+								const newPrice = parsed ? (parsed.type === 'percent' ? Math.round(s.price * (1 + parsed.value/100)) : Math.round(s.price + parsed.value)) : '—';
+								return <li key={s._id}>{s.name} — {s.price?.toLocaleString?.('vi-VN') || s.price} → {typeof newPrice === 'number' ? newPrice.toLocaleString('vi-VN') : newPrice} đ</li>
+							})}
+						</ul>
+					</div>
+				);
+			}
+		});
+		setShowPriceAdjustModal(true);
+	};
+
+	const handleConfirmPriceAdjust = async (value) => {
+		if (value === null || value === "") return;
+		const parsed = parseAdjust(value);
+		if (!parsed) { toast.error("Vui lòng nhập định dạng hợp lệ (ví dụ -10% hoặc 10000)"); return; }
+
+		const samples = paginated.filter(p => selectedIds.has(p._id)).slice(0,5);
+		let maxPct = 0;
+		samples.forEach(s => {
+			const newPrice = parsed.type === 'percent' ? Math.round(s.price * (1 + parsed.value/100)) : Math.round(s.price + parsed.value);
+			const pct = s.price ? Math.abs((newPrice - s.price) / s.price) * 100 : 0;
+			if (pct > maxPct) maxPct = pct;
+		});
+
+		const doPerform = async () => {
+			const toastId = toast.loading("Đang điều chỉnh giá...");
+			try {
+				const res = await axios.patch("/products", { action: "adjustPrice", ids: [...selectedIds], value });
+				toast.success(res.data.message || `Đã điều chỉnh giá cho ${selectedIds.size} sản phẩm`, { id: toastId });
+				setSelectedIds(new Set());
+				fetchProductsAdminPaginated({ page: currentPage, limit: PAGE_SIZE, search: debouncedSearch, sort: sortBy });
+			} catch (error) {
+				toast.error(error.response?.data?.message || "Lỗi khi điều chỉnh giá", { id: toastId });
+			}
+		};
+
+		if (maxPct > 30 || (parsed.type === 'absolute' && Math.abs(parsed.value) > 1000000)) {
+			setConfirmConfig({
+				title: `Xác nhận điều chỉnh giá lớn`,
+				message: `Thao tác này có thể thay đổi tới khoảng ${Math.round(maxPct)}% trên các sản phẩm mẫu. Bạn có chắc muốn tiếp tục?`,
+				variant: 'danger',
+				confirmLabel: 'Xác nhận thay đổi',
+				onConfirm: doPerform,
+			});
+			return;
 		}
+
+		await doPerform();
 	};
 
 	const handleFilePreview = async (e) => {
@@ -172,13 +273,13 @@ const ProductsList = () => {
 		setPreviewFile(file);
 		const formData = new FormData();
 		formData.append("file", file);
-		const toastId = toast.loading("Đang đọc file Excel...");
+		const toastId = toast.loading("Äang Ä‘á»c file Excel...");
 		try {
 			const res = await axios.post("/products/import/preview", formData, { headers: { "Content-Type": "multipart/form-data" } });
 			setImportPreview(res.data);
-			toast.success(`Đọc được ${res.data.total} dòng. Kiểm tra trước khi import.`, { id: toastId });
+			toast.success(`Äá»c Ä‘Æ°á»£c ${res.data.total} dĂ²ng. Kiá»ƒm tra trÆ°á»›c khi import.`, { id: toastId });
 		} catch (error) {
-			toast.error(error.response?.data?.message || "Lỗi khi đọc file", { id: toastId });
+			toast.error(error.response?.data?.message || "Lá»—i khi Ä‘á»c file", { id: toastId });
 		}
 		e.target.value = "";
 	};
@@ -188,16 +289,16 @@ const ProductsList = () => {
 		setImportConfirming(true);
 		const formData = new FormData();
 		formData.append("file", previewFile);
-		const toastId = toast.loading("Đang import...");
+		const toastId = toast.loading("Äang import...");
 		try {
 			const res = await axios.post("/products/import", formData, { headers: { "Content-Type": "multipart/form-data" } });
-			toast.success(`Thành công: ${res.data.success} sản phẩm`, { id: toastId, duration: 5000 });
+			toast.success(`ThĂ nh cĂ´ng: ${res.data.success} sáº£n pháº©m`, { id: toastId, duration: 5000 });
 			setImportPreview(null);
 			setPreviewFile(null);
 			fetchAllProducts();
 			fetchProductsAdminPaginated({ page: currentPage, limit: PAGE_SIZE, search: debouncedSearch, sort: sortBy });
 		} catch (error) {
-			toast.error(error.response?.data?.message || "Lỗi khi import", { id: toastId });
+			toast.error(error.response?.data?.message || "Lá»—i khi import", { id: toastId });
 		} finally {
 			setImportConfirming(false);
 		}
@@ -208,20 +309,20 @@ const ProductsList = () => {
 		if (!file) return;
 		const formData = new FormData();
 		formData.append("file", file);
-		const toastId = toast.loading("Đang nhập dữ liệu từ Excel...");
+		const toastId = toast.loading("Äang nháº­p dá»¯ liá»‡u tá»« Excel...");
 		try {
 			const res = await axios.post("/products/import", formData, { headers: { "Content-Type": "multipart/form-data" } });
-			toast.success(`Thành công: ${res.data.success}, Thất bại: ${res.data.failed}`, { id: toastId, duration: 5000 });
+			toast.success(`ThĂ nh cĂ´ng: ${res.data.success}, Tháº¥t báº¡i: ${res.data.failed}`, { id: toastId, duration: 5000 });
 			fetchAllProducts();
 			fetchProductsAdminPaginated({ page: currentPage, limit: PAGE_SIZE, search: debouncedSearch, sort: sortBy });
 		} catch (error) {
-			toast.error(error.response?.data?.message || "Lỗi khi nhập file Excel", { id: toastId });
+			toast.error(error.response?.data?.message || "Lá»—i khi nháº­p file Excel", { id: toastId });
 		}
 		e.target.value = "";
 	};
 
 	const handleFileExport = async () => {
-		const toastId = toast.loading("Đang xuất dữ liệu ra Excel...");
+		const toastId = toast.loading("Äang xuáº¥t dá»¯ liá»‡u ra Excel...");
 		try {
 			const res = await axios.get("/products/export", { responseType: "blob" });
 			const url = window.URL.createObjectURL(new Blob([res.data]));
@@ -231,32 +332,33 @@ const ProductsList = () => {
 			document.body.appendChild(link);
 			link.click();
 			link.parentNode.removeChild(link);
-			toast.success("Xuất file thành công", { id: toastId });
+			toast.success("Xuáº¥t file thĂ nh cĂ´ng", { id: toastId });
 		} catch {
-			toast.error("Lỗi khi xuất file Excel", { id: toastId });
+			toast.error("Lá»—i khi xuáº¥t file Excel", { id: toastId });
 		}
 	};
 
 	return (
 		<div className="space-y-4">
-			{/* ── Toolbar ──────────────────────────── */}
+			<ConfirmModal config={confirmConfig} onClose={() => setConfirmConfig(null)} />
+			{/* â”€â”€ Toolbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
 			<div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
 				<div className="flex items-center gap-3">
 					<h2 className="text-xl font-bold text-gray-900 dark:text-luxury-gold flex items-center gap-2 hidden md:flex">
-						<Package className="w-5 h-5 text-luxury-gold" /> Sản Phẩm
+						<Package className="w-5 h-5 text-luxury-gold" /> Sáº£n Pháº©m
 					</h2>
 					<button
 						onClick={() => setShowCreateModal(true)}
 						className="flex items-center gap-2 px-4 py-2 bg-luxury-gold text-luxury-dark rounded-lg text-sm font-bold shadow hover:bg-yellow-500 transition"
 					>
-						<PlusCircle className="w-4 h-4" /> Thêm mới
+						<PlusCircle className="w-4 h-4" /> ThĂªm má»›i
 					</button>
 				</div>
 				<div className="relative flex-1 max-w-sm w-full">
 					<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
 					<input
 						type="text"
-						placeholder="Tìm tên, thương hiệu, danh mục..."
+						placeholder="TĂ¬m tĂªn, thÆ°Æ¡ng hiá»‡u, danh má»¥c..."
 						value={search}
 						onChange={handleSearch}
 						className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-luxury-gold transition"
@@ -272,20 +374,20 @@ const ProductsList = () => {
 								className="flex items-center gap-1.5 px-3 py-2 bg-red-500/20 border border-red-500/50 text-red-400 rounded-lg text-sm font-bold hover:bg-red-600 hover:text-white transition"
 							>
 								<Trash2 className="w-3.5 h-3.5" />
-								Xóa ({selectedIds.size})
+								XĂ³a ({selectedIds.size})
 							</button>
 							<button
 								onClick={handleBulkPriceAdjust}
 								className="flex items-center gap-1.5 px-3 py-2 bg-amber-500/20 border border-amber-500/50 text-amber-400 rounded-lg text-sm font-bold hover:bg-amber-500 hover:text-white transition"
 							>
-								± Giá ({selectedIds.size})
+								Â± GiĂ¡ ({selectedIds.size})
 							</button>
 							<button
 								onClick={() => setShowCampaignPicker(true)}
 								className="flex items-center gap-1.5 px-3 py-2 bg-purple-600/20 border border-purple-500/50 text-purple-400 rounded-lg text-sm font-bold hover:bg-purple-600 hover:text-white transition"
 							>
 								<Megaphone className="w-3.5 h-3.5" />
-								Áp dụng chiến dịch ({selectedIds.size})
+								Ăp dá»¥ng chiáº¿n dá»‹ch ({selectedIds.size})
 							</button>
 						</>
 					)}
@@ -294,14 +396,14 @@ const ProductsList = () => {
 						className="flex items-center gap-1.5 px-3 py-2 bg-blue-600/20 border border-blue-500/50 text-blue-400 rounded-lg text-sm font-bold hover:bg-blue-600 hover:text-white transition"
 					>
 						<FileSpreadsheet className="w-3.5 h-3.5" />
-						<span className="hidden md:inline">Xuất Excel</span>
+						<span className="hidden md:inline">Xuáº¥t Excel</span>
 					</button>
 					<button
 						onClick={() => previewInputRef.current?.click()} // Use new ref for preview
 						className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600/20 border border-emerald-500/50 text-emerald-400 rounded-lg text-sm font-bold hover:bg-emerald-600 hover:text-white transition"
 					>
 						<FileSpreadsheet className="w-3.5 h-3.5" />
-						<span className="hidden md:inline">Nhập Excel</span>
+						<span className="hidden md:inline">Nháº­p Excel</span>
 					</button>
 					<input ref={previewInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleFilePreview} /> {/* New input for preview */}
 					{/* The original importInputRef and handleFileImport are now effectively for a direct import,
@@ -316,17 +418,17 @@ const ProductsList = () => {
 						onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
 						className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold transition"
 					>
-						<option value="name_asc">Tên A-Z</option>
-						<option value="name_desc">Tên Z-A</option>
-						<option value="price_desc">Giá cao nhất</option>
-						<option value="price_asc">Giá thấp nhất</option>
-						<option value="newest">Mới nhất</option>
-						<option value="best_selling">Bán chạy nhất</option>
+						<option value="name_asc">TĂªn A-Z</option>
+						<option value="name_desc">TĂªn Z-A</option>
+						<option value="price_desc">GiĂ¡ cao nháº¥t</option>
+						<option value="price_asc">GiĂ¡ tháº¥p nháº¥t</option>
+						<option value="newest">Má»›i nháº¥t</option>
+						<option value="best_selling">BĂ¡n cháº¡y nháº¥t</option>
 					</select>
 				</div>
 			</div>
 
-			{/* ── Table ────────────────────────────── */}
+			{/* â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
 			<motion.div
 				className="bg-white dark:bg-gray-800 shadow-xl dark:shadow-none rounded-xl overflow-hidden border border-gray-100 dark:border-transparent"
 				initial={{ opacity: 0, y: 16 }}
@@ -343,42 +445,32 @@ const ProductsList = () => {
 										{allPageSelected ? <CheckSquare className="w-4 h-4 text-luxury-gold" /> : <Square className="w-4 h-4" />}
 									</button>
 								</th>
-								<th className="px-4 py-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sản phẩm</th>
-								<th className="px-4 py-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Thương hiệu</th>
-								<th className="px-4 py-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Giá</th>
-								<th className="px-4 py-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Bộ máy</th>
-								<th className="px-4 py-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tồn kho</th>
-								<th className="px-4 py-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Danh mục</th>
-								<th className="px-4 py-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nổi bật</th>
+								<th className="px-4 py-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sáº£n pháº©m</th>
+								<th className="px-4 py-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">ThÆ°Æ¡ng hiá»‡u</th>
+								<th className="px-4 py-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">GiĂ¡</th>
+								<th className="px-4 py-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Bá»™ mĂ¡y</th>
+								<th className="px-4 py-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tá»“n kho</th>
+								<th className="px-4 py-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Danh má»¥c</th>
+								<th className="px-4 py-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Ná»•i báº­t</th>
 								<th className="px-4 py-3 w-12"></th>
 							</tr>
 						</thead>
 						<tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
 							{loading ? (
-								Array(8).fill(0).map((_, i) => (
-									<tr key={`skeleton-${i}`} className="animate-pulse">
-										<td className="px-3 py-3"><div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
-										<td className="px-4 py-3"><div className="flex gap-3 items-center"><div className="w-11 h-11 bg-gray-200 dark:bg-gray-700 rounded-lg"></div><div className="space-y-2"><div className="w-24 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div><div className="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded"></div></div></div></td>
-										<td className="px-4 py-3"><div className="w-20 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
-										<td className="px-4 py-3"><div className="w-16 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
-										<td className="px-4 py-3"><div className="w-12 h-4 bg-gray-200 dark:bg-gray-700 rounded-full"></div></td>
-										<td className="px-4 py-3"><div className="w-10 h-4 bg-gray-200 dark:bg-gray-700 rounded-full"></div></td>
-										<td className="px-4 py-3"><div className="w-24 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
-										<td className="px-4 py-3"><div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-lg"></div></td>
-										<td className="px-4 py-3"><div className="flex gap-1"><div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-lg"></div><div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-lg"></div></div></td>
-									</tr>
+								Array.from({ length: 8 }).map((_, i) => (
+									<SkeletonTableRow key={`skeleton-${i}`} />
 								))
 							) : paginated.length === 0 ? (
 								<tr>
 									<td colSpan="9" className="text-center py-16 text-gray-400 dark:text-gray-500">
 										<Package className="w-12 h-12 mx-auto mb-3 opacity-20" />
-										<p className="font-medium">{search ? `Không tìm thấy "${search}"` : "Chưa có sản phẩm nào"}</p>
-										<p className="text-xs mt-1 opacity-60">Thêm sản phẩm đầu tiên bằng nút &quot;Thêm mới&quot;</p>
+										<p className="font-medium">{search ? `KhĂ´ng tĂ¬m tháº¥y "${search}"` : "ChÆ°a cĂ³ sáº£n pháº©m nĂ o"}</p>
+										<p className="text-xs mt-1 opacity-60">ThĂªm sáº£n pháº©m Ä‘áº§u tiĂªn báº±ng nĂºt &quot;ThĂªm má»›i&quot;</p>
 									</td>
 								</tr>
 							) : (
 								paginated.map((product) => {
-									const brandName = typeof product.brand === "string" ? product.brand : product.brand?.name || "—";
+									const brandName = typeof product.brand === "string" ? product.brand : product.brand?.name || "â€”";
 									const isSelected = selectedIds.has(product._id);
 									return (
 										<tr
@@ -406,14 +498,14 @@ const ProductsList = () => {
 											</td>
 											<td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">{brandName}</td>
 											<td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-luxury-gold">
-												{product.price?.toLocaleString("vi-VN")} ₫
+												{product.price?.toLocaleString("vi-VN")} â‚«
 											</td>
 											<td className="px-4 py-3 whitespace-nowrap">
 												{product.type ? (
 													<span className="px-2 py-0.5 bg-luxury-gold/10 text-luxury-gold text-[10px] font-semibold rounded-full border border-luxury-gold/20">
 														{product.type}
 													</span>
-												) : <span className="text-gray-400 text-xs">—</span>}
+												) : <span className="text-gray-400 text-xs">â€”</span>}
 											</td>
 											<td className="px-4 py-3 whitespace-nowrap">
 												<StockBadge stock={product.stock} />
@@ -427,7 +519,7 @@ const ProductsList = () => {
 												<button
 													onClick={() => toggleFeaturedProduct(product._id)}
 													className={`p-1.5 rounded-lg transition-colors ${product.isFeatured ? "bg-yellow-400 text-gray-900 shadow-sm" : "bg-gray-100 dark:bg-gray-600 text-gray-400 hover:bg-yellow-500 hover:text-white"}`}
-													title={product.isFeatured ? "Bỏ nổi bật" : "Đặt nổi bật"}
+													title={product.isFeatured ? "Bá» ná»•i báº­t" : "Äáº·t ná»•i báº­t"}
 												>
 													<Star className="h-3.5 w-3.5" />
 												</button>
@@ -437,14 +529,14 @@ const ProductsList = () => {
 													<button
 														onClick={() => setEditingProduct(product)}
 														className="p-1.5 text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg transition-colors"
-														title="Chỉnh sửa sản phẩm"
+														title="Chá»‰nh sá»­a sáº£n pháº©m"
 													>
 														<Pencil className="h-3.5 w-3.5" />
 													</button>
 													<button
 														onClick={() => deleteProduct(product._id)}
 														className="p-1.5 text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors"
-														title="Xóa sản phẩm"
+														title="XĂ³a sáº£n pháº©m"
 													>
 														<Trash className="h-3.5 w-3.5" />
 													</button>
@@ -462,7 +554,7 @@ const ProductsList = () => {
 				{totalPages > 1 && (
 					<div className="px-5 py-3 bg-gray-50 dark:bg-gray-700 flex items-center justify-between border-t border-gray-100 dark:border-gray-600">
 						<p className="text-xs text-gray-500 dark:text-gray-400">
-							Trang {currentPage}/{totalPages} • {totalCount || 0} sản phẩm
+							Trang {currentPage}/{totalPages} â€¢ {totalCount || 0} sáº£n pháº©m
 						</p>
 						<div className="flex items-center gap-1">
 							<button
@@ -496,7 +588,7 @@ const ProductsList = () => {
 				)}
 			</motion.div>
 
-			{/* ── Create Product Modal ─────────────── */}
+			{/* â”€â”€ Create Product Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
 			<AnimatePresence>
 				{showCreateModal && (
 					<div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-12 bg-black/60 backdrop-blur-sm overflow-y-auto">
@@ -509,7 +601,7 @@ const ProductsList = () => {
 						>
 							<div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-luxury-border">
 								<h2 className="text-xl font-bold text-gray-900 dark:text-luxury-gold flex items-center gap-2">
-									<PlusCircle className="w-5 h-5" /> Thêm Sản Phẩm Mới
+									<PlusCircle className="w-5 h-5" /> ThĂªm Sáº£n Pháº©m Má»›i
 								</h2>
 								<button
 									onClick={() => setShowCreateModal(false)}
@@ -526,7 +618,7 @@ const ProductsList = () => {
 				)}
 			</AnimatePresence>
 
-			{/* ── Edit Product Modal ────────────────── */}
+			{/* â”€â”€ Edit Product Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
 			<AnimatePresence>
 				{editingProduct && (
 					<div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-12 bg-black/60 backdrop-blur-sm overflow-y-auto">
@@ -540,7 +632,7 @@ const ProductsList = () => {
 							<div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-luxury-border">
 								<div>
 									<h2 className="text-xl font-bold text-gray-900 dark:text-luxury-gold flex items-center gap-2">
-										<Pencil className="w-5 h-5" /> Chỉnh Sửa Sản Phẩm
+										<Pencil className="w-5 h-5" /> Chá»‰nh Sá»­a Sáº£n Pháº©m
 									</h2>
 									<p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate max-w-sm">
 										{editingProduct.name}
@@ -565,7 +657,7 @@ const ProductsList = () => {
 				)}
 			</AnimatePresence>
 
-			{/* ── Import Preview Modal ─────────────── */}
+			{/* â”€â”€ Import Preview Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
 			<AnimatePresence>
 				{importPreview && (
 					<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
@@ -578,9 +670,9 @@ const ProductsList = () => {
 							<div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700">
 								<div>
 									<h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-										<Eye className="w-5 h-5 text-emerald-500" /> Xem trước Import Excel
+										<Eye className="w-5 h-5 text-emerald-500" /> Xem trÆ°á»›c Import Excel
 									</h2>
-									<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{importPreview.message} (Hiển thị tối đa 50 dòng đầu)</p>
+									<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{importPreview.message} (Hiá»ƒn thá»‹ tá»‘i Ä‘a 50 dĂ²ng Ä‘áº§u)</p>
 								</div>
 								<button onClick={() => { setImportPreview(null); setPreviewFile(null); }} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">
 									<X className="w-4 h-4 text-gray-500" />
@@ -590,27 +682,27 @@ const ProductsList = () => {
 								<table className="w-full text-xs text-left">
 									<thead>
 										<tr className="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-											<th className="px-3 py-2">Dòng</th>
-											<th className="px-3 py-2">Tên sản phẩm</th>
-											<th className="px-3 py-2">Thương hiệu</th>
-											<th className="px-3 py-2">Danh mục</th>
-											<th className="px-3 py-2 text-right">Giá</th>
-											<th className="px-3 py-2 text-right">Tồn kho</th>
-											<th className="px-3 py-2">Trạng thái</th>
+											<th className="px-3 py-2">DĂ²ng</th>
+											<th className="px-3 py-2">TĂªn sáº£n pháº©m</th>
+											<th className="px-3 py-2">ThÆ°Æ¡ng hiá»‡u</th>
+											<th className="px-3 py-2">Danh má»¥c</th>
+											<th className="px-3 py-2 text-right">GiĂ¡</th>
+											<th className="px-3 py-2 text-right">Tá»“n kho</th>
+											<th className="px-3 py-2">Tráº¡ng thĂ¡i</th>
 										</tr>
 									</thead>
 									<tbody className="divide-y divide-gray-100 dark:divide-gray-700">
 										{importPreview.preview.map((row) => (
 											<tr key={row.row} className={row.validation !== "OK" ? "bg-red-50 dark:bg-red-900/20" : ""}>
 												<td className="px-3 py-2 text-gray-400">{row.row}</td>
-												<td className="px-3 py-2 font-medium text-gray-900 dark:text-white">{row.name || <span className="text-red-400">—</span>}</td>
+												<td className="px-3 py-2 font-medium text-gray-900 dark:text-white">{row.name || <span className="text-red-400">â€”</span>}</td>
 												<td className="px-3 py-2 text-gray-600 dark:text-gray-300">{row.brand}</td>
 												<td className="px-3 py-2 text-gray-600 dark:text-gray-300">{row.category}</td>
-												<td className="px-3 py-2 text-right font-semibold text-emerald-600 dark:text-emerald-400">{Number(row.price).toLocaleString("vi-VN")} ₫</td>
+												<td className="px-3 py-2 text-right font-semibold text-emerald-600 dark:text-emerald-400">{Number(row.price).toLocaleString("vi-VN")} â‚«</td>
 												<td className="px-3 py-2 text-right">{row.stock}</td>
 												<td className="px-3 py-2">
 													{row.validation === "OK"
-														? <span className="text-emerald-500 font-semibold">✓</span>
+														? <span className="text-emerald-500 font-semibold">âœ“</span>
 														: <span className="text-red-400 flex items-center gap-1"><AlertTriangle className="w-3 h-3" />{row.validation}</span>}
 												</td>
 											</tr>
@@ -619,20 +711,20 @@ const ProductsList = () => {
 								</table>
 							</div>
 							<div className="p-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between gap-3">
-								<p className="text-sm text-gray-500">Tổng: <strong className="text-gray-900 dark:text-white">{importPreview.total}</strong> sản phẩm sẽ được xử lý</p>
+								<p className="text-sm text-gray-500">Tá»•ng: <strong className="text-gray-900 dark:text-white">{importPreview.total}</strong> sáº£n pháº©m sáº½ Ä‘Æ°á»£c xá»­ lĂ½</p>
 								<div className="flex gap-3">
 									<button
 										onClick={() => { setImportPreview(null); setPreviewFile(null); }}
 										className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium transition"
 									>
-										Hủy
+										Há»§y
 									</button>
 									<button
 										onClick={handleConfirmedImport}
 										disabled={importConfirming}
 										className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition disabled:opacity-60 flex items-center gap-2"
 									>
-										{importConfirming ? <><span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin flex-shrink-0" />Đang lưu...</> : "✓ Xác nhận Import"}
+										{importConfirming ? <><span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin flex-shrink-0" />Äang lÆ°u...</> : "âœ“ XĂ¡c nháº­n Import"}
 									</button>
 								</div>
 							</div>
@@ -641,7 +733,7 @@ const ProductsList = () => {
 				)}
 			</AnimatePresence>
 
-			{/* ── Campaign Picker Modal ─────────────── */}
+			{/* â”€â”€ Campaign Picker Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
 			<AnimatePresence>
 				{showCampaignPicker && (
 					<CampaignPickerModal
@@ -651,8 +743,19 @@ const ProductsList = () => {
 					/>
 				)}
 			</AnimatePresence>
+
+				{/* Price Adjust Input Modal */}
+				<AnimatePresence>
+					{showPriceAdjustModal && (
+						<InputModal
+							config={priceAdjustConfig}
+							onClose={() => { setShowPriceAdjustModal(false); setPriceAdjustConfig(null); }}
+						/>
+					)}
+				</AnimatePresence>
 		</div>
 	);
 };
 
 export default ProductsList;
+

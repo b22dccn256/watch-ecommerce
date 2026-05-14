@@ -1,9 +1,10 @@
-import { useState, useMemo, useEffect } from "react";
+﻿import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Layers, PlusCircle, Trash2, Edit2, Check, X, ShieldCheck, MapPin, Grid, AlertTriangle, CornerDownRight, ImagePlus } from "lucide-react";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
 import { useProductStore } from "../stores/useProductStore";
+import { confirmToast } from "../lib/confirmToast";
 
 const CatalogTab = () => {
 	const [activeSection, setActiveSection] = useState("brands"); 
@@ -35,35 +36,36 @@ const CatalogTab = () => {
 		setLoading(true);
 		try {
 			await axios.post("/brands", brandForm);
-			toast.success("Tạo thương hiệu thành công!");
+			toast.success("Táº¡o thÆ°Æ¡ng hiá»‡u thĂ nh cĂ´ng!");
 			setShowBrandModal(false);
 			fetchBrands();
 			setBrandForm({ name: "", description: "", isAuthorizedDealer: true, logo: "" });
 		} catch (error) {
-			toast.error(error.response?.data?.message || "Lỗi khi tạo thương hiệu");
+			toast.error(error.response?.data?.message || "Lá»—i khi táº¡o thÆ°Æ¡ng hiá»‡u");
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	const deleteBrand = async (brandId, brandName) => {
+	const deleteBrand = (brandId, brandName) => {
 		const productsUsing = products.filter(p => typeof p.brand === 'object' ? p.brand?._id === brandId : p.brand === brandId);
 		if (productsUsing.length > 0) {
-			toast.error(`Cảnh báo: Có ${productsUsing.length} sản phẩm đang dùng thương hiệu này. Không thể xóa!`);
+			toast.error(`Cáº£nh bĂ¡o: CĂ³ ${productsUsing.length} sáº£n pháº©m Ä‘ang dĂ¹ng thÆ°Æ¡ng hiá»‡u nĂ y. KhĂ´ng thá»ƒ xĂ³a!`);
 			return;
 		}
-		if (!window.confirm(`Bạn có chắc muốn xóa thương hiệu ${brandName}?`)) return;
-		setLoading(true);
-		try {
-			await axios.delete(`/brands/${brandId}`);
-			toast.success("Đã xóa thương hiệu");
-			fetchBrands();
-		} catch (error) {
-			// Mocking frontend deletion if backend doesn't support
-			toast.error("Endpoint DELETE /brands/:id có thể chưa sẵn sàng.");
-		} finally {
-			setLoading(false);
-		}
+		confirmToast(`Báº¡n cĂ³ cháº¯c muá»‘n xĂ³a thÆ°Æ¡ng hiá»‡u ${brandName}?`, async () => {
+			setLoading(true);
+			try {
+				await axios.delete(`/brands/${brandId}`);
+				toast.success("ÄĂ£ xĂ³a thÆ°Æ¡ng hiá»‡u");
+				fetchBrands();
+			} catch (error) {
+				// Mocking frontend deletion if backend doesn't support
+				toast.error("Endpoint DELETE /brands/:id cĂ³ thá»ƒ chÆ°a sáºµn sĂ ng.");
+			} finally {
+				setLoading(false);
+			}
+		});
 	};
 
 	// CATEGORY LOGIC
@@ -82,29 +84,30 @@ const CatalogTab = () => {
 				parentCategory: catForm.parentCategory || null,
                 slug: catForm.slug || generateSlug(catForm.name)
 			});
-			toast.success("Tạo danh mục thành công!");
+			toast.success("Táº¡o danh má»¥c thĂ nh cĂ´ng!");
 			setShowCatModal(false);
 			fetchCategories();
 			setCatForm({ name: "", parentCategory: "", image: "", slug: "" });
 		} catch (error) {
-			toast.error(error.response?.data?.message || "Lỗi khi tạo danh mục");
+			toast.error(error.response?.data?.message || "Lá»—i khi táº¡o danh má»¥c");
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	const deleteCategory = async (catId, catName) => {
-		if (!window.confirm(`Xóa danh mục ${catName}?`)) return;
-		setLoading(true);
-		try {
-			await axios.delete(`/categories/${catId}`);
-			toast.success("Đã xóa danh mục");
-			fetchCategories();
-		} catch (error) {
-			toast.error(error.response?.data?.message || "Lỗi xóa danh mục");
-		} finally {
-			setLoading(false);
-		}
+	const deleteCategory = (catId, catName) => {
+		confirmToast(`XĂ³a danh má»¥c ${catName}?`, async () => {
+			setLoading(true);
+			try {
+				await axios.delete(`/categories/${catId}`);
+				toast.success("ÄĂ£ xĂ³a danh má»¥c");
+				fetchCategories();
+			} catch (error) {
+				toast.error(error.response?.data?.message || "Lá»—i xĂ³a danh má»¥c");
+			} finally {
+				setLoading(false);
+			}
+		});
 	};
 
 	// Categorize the categories for Tree View simulation
@@ -129,27 +132,27 @@ const CatalogTab = () => {
 				<div className="space-y-1">
 					<h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
 						<Layers className="text-luxury-gold w-8 h-8" />
-						Danh mục & Thương hiệu
+						Danh má»¥c & ThÆ°Æ¡ng hiá»‡u
 					</h1>
 					<p className="text-gray-500 dark:text-luxury-text-muted text-sm">
-						Quản lý Master Data cho kho hàng: thương hiệu đối tác, cấu trúc cây danh mục.
+						Quáº£n lĂ½ Master Data cho kho hĂ ng: thÆ°Æ¡ng hiá»‡u Ä‘á»‘i tĂ¡c, cáº¥u trĂºc cĂ¢y danh má»¥c.
 					</p>
 				</div>
                 <button 
 					onClick={() => activeSection === "brands" ? setShowBrandModal(true) : setShowCatModal(true)}
 					className="flex items-center gap-2 px-6 py-3 bg-luxury-gold text-luxury-dark rounded-xl text-sm font-bold hover:bg-white transition-all shadow-lg hover:-translate-y-0.5"
 				>
-					<PlusCircle className="w-4 h-4" /> THÊM {activeSection === "brands" ? "THƯƠNG HIỆU" : "DANH MỤC"}
+					<PlusCircle className="w-4 h-4" /> THĂM {activeSection === "brands" ? "THÆ¯Æ NG HIá»†U" : "DANH Má»¤C"}
 				</button>
 			</div>
 
 			<div className="flex gap-2 border-b border-gray-100 dark:border-luxury-border pb-px">
 				<button onClick={() => setActiveSection("brands")} className={`px-6 py-4 text-sm font-bold border-b-2 transition-all relative ${activeSection === "brands" ? "border-luxury-gold text-luxury-gold" : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-white"}`}>
-					Thương Hiệu ({brands?.length || 0})
+					ThÆ°Æ¡ng Hiá»‡u ({brands?.length || 0})
 					{activeSection === "brands" && <motion.div layoutId="catLine" className="absolute bottom-0 left-0 right-0 h-0.5 bg-luxury-gold" />}
 				</button>
 				<button onClick={() => setActiveSection("categories")} className={`px-6 py-4 text-sm font-bold border-b-2 transition-all relative ${activeSection === "categories" ? "border-luxury-gold text-luxury-gold" : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-white"}`}>
-					Cấu Trúc Danh Mục ({categories?.length || 0})
+					Cáº¥u TrĂºc Danh Má»¥c ({categories?.length || 0})
 					{activeSection === "categories" && <motion.div layoutId="catLine" className="absolute bottom-0 left-0 right-0 h-0.5 bg-luxury-gold" />}
 				</button>
 			</div>
@@ -157,7 +160,7 @@ const CatalogTab = () => {
             {/* --- BRANDS VIEW --- */}
 			{activeSection === "brands" && (
 				<motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-					{brands?.length === 0 && <p className="text-gray-500 col-span-full">Chưa có thương hiệu nào.</p>}
+					{brands?.length === 0 && <p className="text-gray-500 col-span-full">ChÆ°a cĂ³ thÆ°Æ¡ng hiá»‡u nĂ o.</p>}
 					{brands?.map(brand => (
 						<div key={brand._id} className="bg-white dark:bg-luxury-dark rounded-2xl border border-gray-100 dark:border-luxury-border overflow-hidden hover:shadow-xl transition flex flex-col group">
 							<div className="h-32 bg-gray-50 dark:bg-black/20 flex items-center justify-center p-6 relative">
@@ -175,9 +178,9 @@ const CatalogTab = () => {
 							<div className="p-5 flex-1 flex flex-col">
                                 <div className="flex justify-between items-start mb-2 mt-auto">
 								    <h3 className="font-bold text-lg text-gray-900 dark:text-white truncate">{brand.name}</h3>
-                                    {brand.isAuthorizedDealer && <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 mt-1" title="Đại lý ủy quyền" />}
+                                    {brand.isAuthorizedDealer && <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 mt-1" title="Äáº¡i lĂ½ á»§y quyá»n" />}
                                 </div>
-								<p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 flex-1">{brand.description || "Chưa có mô tả"}</p>
+								<p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 flex-1">{brand.description || "ChÆ°a cĂ³ mĂ´ táº£"}</p>
                                 <div className="text-[10px] uppercase font-bold tracking-widest text-luxury-gold pt-3 border-t border-gray-100 dark:border-luxury-border flex justify-between items-center">
                                     <span>{new Date(brand.createdAt).toLocaleDateString("vi-VN")}</span>
                                 </div>
@@ -191,7 +194,7 @@ const CatalogTab = () => {
 			{activeSection === "categories" && (
 				<motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                     <div className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border rounded-xl p-6">
-                        {categoryTree.length === 0 && <p className="text-gray-500 text-center py-8">Chưa có danh mục nào.</p>}
+                        {categoryTree.length === 0 && <p className="text-gray-500 text-center py-8">ChÆ°a cĂ³ danh má»¥c nĂ o.</p>}
                         
                         <div className="space-y-2">
                             {categoryTree.map(parentCat => (
@@ -205,7 +208,7 @@ const CatalogTab = () => {
                                             <div>
                                                 <p className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                                     {parentCat.name}
-                                                    {!parentCat.isActive && <span className="text-[10px] bg-red-100 text-red-500 px-2 py-0.5 rounded">Tạm ẩn</span>}
+                                                    {!parentCat.isActive && <span className="text-[10px] bg-red-100 text-red-500 px-2 py-0.5 rounded">Táº¡m áº©n</span>}
                                                 </p>
                                                 <p className="text-xs text-gray-400 font-mono">/{parentCat.slug}</p>
                                             </div>
@@ -245,14 +248,14 @@ const CatalogTab = () => {
 							className="w-full max-w-lg bg-white dark:bg-luxury-darker border border-gray-100 dark:border-luxury-border rounded-xl shadow-2xl p-6"
 							onClick={e => e.stopPropagation()}
 						>
-							<h3 className="text-xl font-bold mb-6 text-luxury-gold flex gap-2"><PlusCircle className="w-6 h-6" /> Tạo Thương Hiệu</h3>
+							<h3 className="text-xl font-bold mb-6 text-luxury-gold flex gap-2"><PlusCircle className="w-6 h-6" /> Táº¡o ThÆ°Æ¡ng Hiá»‡u</h3>
 							<form onSubmit={submitBrand} className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tên thương hiệu *</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">TĂªn thÆ°Æ¡ng hiá»‡u *</label>
                                     <input required type="text" value={brandForm.name} onChange={e => setBrandForm({...brandForm, name: e.target.value})} className="w-full bg-gray-50 dark:bg-luxury-dark border-gray-200 dark:border-luxury-border rounded-lg px-4 py-2 border text-sm" placeholder="VD: Rolex" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Logo / Biểu tượng URL</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Logo / Biá»ƒu tÆ°á»£ng URL</label>
                                     <div className="flex gap-4 items-center">
                                         <div className="w-16 h-16 border rounded bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
                                             {brandForm.logo ? <img src={brandForm.logo} className="w-full object-contain" /> : <ImagePlus className="w-6 h-6 text-gray-400"/>}
@@ -261,16 +264,16 @@ const CatalogTab = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Mô tả (Tùy chọn)</label>
-                                    <textarea rows={3} value={brandForm.description} onChange={e => setBrandForm({...brandForm, description: e.target.value})} className="w-full bg-gray-50 dark:bg-luxury-dark border-gray-200 dark:border-luxury-border rounded-lg px-4 py-2 border text-sm" placeholder="Về lịch sử..." />
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">MĂ´ táº£ (TĂ¹y chá»n)</label>
+                                    <textarea rows={3} value={brandForm.description} onChange={e => setBrandForm({...brandForm, description: e.target.value})} className="w-full bg-gray-50 dark:bg-luxury-dark border-gray-200 dark:border-luxury-border rounded-lg px-4 py-2 border text-sm" placeholder="Vá» lá»‹ch sá»­..." />
                                 </div>
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input type="checkbox" checked={brandForm.isAuthorizedDealer} onChange={e => setBrandForm({...brandForm, isAuthorizedDealer: e.target.checked})} className="accent-luxury-gold w-4 h-4" />
-                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Đại lý ủy quyền chính hãng (Authorized Dealer)</span>
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Äáº¡i lĂ½ á»§y quyá»n chĂ­nh hĂ£ng (Authorized Dealer)</span>
                                 </label>
 								<div className="flex justify-end gap-3 mt-6 pt-6 border-t dark:border-luxury-border">
-									<button type="button" onClick={() => setShowBrandModal(false)} className="px-4 py-2 border rounded-lg text-sm font-bold">Hủy</button>
-									<button type="submit" disabled={loading} className="px-6 py-2 bg-luxury-gold text-luxury-dark rounded-lg text-sm font-bold shadow-md hover:bg-yellow-500">{loading ? "Đang xử lý..." : "Lưu thương hiệu"}</button>
+									<button type="button" onClick={() => setShowBrandModal(false)} className="px-4 py-2 border rounded-lg text-sm font-bold">Há»§y</button>
+									<button type="submit" disabled={loading} className="px-6 py-2 bg-luxury-gold text-luxury-dark rounded-lg text-sm font-bold shadow-md hover:bg-yellow-500">{loading ? "Äang xá»­ lĂ½..." : "LÆ°u thÆ°Æ¡ng hiá»‡u"}</button>
 								</div>
 							</form>
 						</motion.div>
@@ -286,11 +289,11 @@ const CatalogTab = () => {
 							className="w-full max-w-lg bg-white dark:bg-luxury-darker border border-gray-100 dark:border-luxury-border rounded-xl shadow-2xl p-6"
 							onClick={e => e.stopPropagation()}
 						>
-							<h3 className="text-xl font-bold mb-6 text-luxury-gold flex gap-2"><PlusCircle className="w-6 h-6" /> Tạo Danh Mục</h3>
+							<h3 className="text-xl font-bold mb-6 text-luxury-gold flex gap-2"><PlusCircle className="w-6 h-6" /> Táº¡o Danh Má»¥c</h3>
 							<form onSubmit={submitCategory} className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tên danh mục *</label>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">TĂªn danh má»¥c *</label>
                                         <input required type="text" value={catForm.name} onChange={e => {
                                             setCatForm({...catForm, name: e.target.value, slug: generateSlug(e.target.value) });
                                         }} className="w-full bg-gray-50 dark:bg-luxury-dark border-gray-200 dark:border-luxury-border rounded-lg px-4 py-2 border text-sm" placeholder="VD: Dress Watches" />
@@ -301,16 +304,16 @@ const CatalogTab = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Danh mục cha</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Danh má»¥c cha</label>
                                     <select value={catForm.parentCategory} onChange={e => setCatForm({...catForm, parentCategory: e.target.value})} className="w-full bg-gray-50 dark:bg-luxury-dark border-gray-200 dark:border-luxury-border rounded-lg px-4 py-2 border text-sm">
-                                        <option value="">-- Không có (Danh mục gốc) --</option>
+                                        <option value="">-- KhĂ´ng cĂ³ (Danh má»¥c gá»‘c) --</option>
                                         {categories?.filter(c => !c.parentCategory).map(c => (
                                             <option key={c._id} value={c._id}>{c.name}</option>
                                         ))}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Ảnh Icon</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">áº¢nh Icon</label>
                                     <div className="flex gap-4 items-center">
                                         <div className="w-12 h-12 border rounded bg-gray-100 flex items-center justify-center shrink-0">
                                             {catForm.image ? <img src={catForm.image} className="w-full object-cover" /> : <Grid className="w-5 h-5 text-gray-400"/>}
@@ -320,8 +323,8 @@ const CatalogTab = () => {
                                 </div>
 
 								<div className="flex justify-end gap-3 mt-6 pt-6 border-t dark:border-luxury-border">
-									<button type="button" onClick={() => setShowCatModal(false)} className="px-4 py-2 border rounded-lg text-sm font-bold">Hủy</button>
-									<button type="submit" disabled={loading} className="px-6 py-2 bg-luxury-gold text-luxury-dark rounded-lg text-sm font-bold shadow-md hover:bg-yellow-500">{loading ? "Đang xử lý..." : "Lưu danh mục"}</button>
+									<button type="button" onClick={() => setShowCatModal(false)} className="px-4 py-2 border rounded-lg text-sm font-bold">Há»§y</button>
+									<button type="submit" disabled={loading} className="px-6 py-2 bg-luxury-gold text-luxury-dark rounded-lg text-sm font-bold shadow-md hover:bg-yellow-500">{loading ? "Äang xá»­ lĂ½..." : "LÆ°u danh má»¥c"}</button>
 								</div>
 							</form>
 						</motion.div>
@@ -333,3 +336,4 @@ const CatalogTab = () => {
 };
 
 export default CatalogTab;
+

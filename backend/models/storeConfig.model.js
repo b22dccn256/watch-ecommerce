@@ -4,6 +4,10 @@ const storeConfigSchema = new mongoose.Schema(
 	{
 		homeLayout: {
 			type: [String],
+			// A.7 Fix: homeLayout may contain "chatbot" section, but showChatBot is the MASTER switch.
+			// If showChatBot=false, the chatbot section in homeLayout is ignored by the frontend.
+			// If showChatBot=true but "chatbot" is not in homeLayout, chatbot is still hidden.
+			// BOTH conditions must be true for chatbot to show: showChatBot=true AND "chatbot" in homeLayout.
 			default: ["hero", "flashSale", "bestSeller", "chatbot"],
 		},
 		gridColumns: {
@@ -28,6 +32,8 @@ const storeConfigSchema = new mongoose.Schema(
 			type: String,
 			default: "Ưu Đãi Đặc Biệt",
 		},
+		// A.7: showChatBot is the MASTER toggle for chatbot visibility.
+		// chatbot section in homeLayout controls POSITION/ORDER only.
 		showChatBot: {
 			type: Boolean,
 			default: true,

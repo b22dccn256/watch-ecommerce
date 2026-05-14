@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+﻿import { useEffect, useState, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle, AlertCircle, ShoppingBag, ArrowRight } from "lucide-react";
 import { useCartStore } from "../stores/useCartStore";
@@ -9,7 +9,7 @@ import { SkeletonPageShell } from "../components/SkeletonLoaders";
 const PaymentReturnPage = ({ method }) => {
     const [searchParams] = useSearchParams();
     const [status, setStatus] = useState("loading"); // "loading", "success", "failed"
-    const [message, setMessage] = useState("Đang xử lý kết quả giao dịch...");
+    const [message, setMessage] = useState("Äang xá»­ lĂ½ káº¿t quáº£ giao dá»‹ch...");
     const { clearSelectedCart } = useCartStore();
     const processedRef = useRef(false);
 
@@ -42,25 +42,25 @@ const PaymentReturnPage = ({ method }) => {
 
                 if (!verification) {
                     setStatus("failed");
-                    setMessage("Không thể xác minh giao dịch từ hệ thống.");
+                    setMessage("KhĂ´ng thá»ƒ xĂ¡c minh giao dá»‹ch tá»« há»‡ thá»‘ng.");
                     return;
                 }
 
                 if (verification.status === "success") {
                     clearSelectedCart();
                     setStatus("success");
-                    setMessage("Giao dịch thành công! Đơn hàng của bạn đang được chuẩn bị.");
+                    setMessage("Giao dá»‹ch thĂ nh cĂ´ng! ÄÆ¡n hĂ ng cá»§a báº¡n Ä‘ang Ä‘Æ°á»£c chuáº©n bá»‹.");
                 } else if (verification.status === "pending") {
                     setStatus("failed");
-                    setMessage("Thanh toán đang được đối soát. Vui lòng kiểm tra lại sau trong mục theo dõi đơn hàng.");
+                    setMessage("Thanh toĂ¡n Ä‘ang Ä‘Æ°á»£c Ä‘á»‘i soĂ¡t. Vui lĂ²ng kiá»ƒm tra láº¡i sau trong má»¥c theo dĂµi Ä‘Æ¡n hĂ ng.");
                 } else {
                     setStatus("failed");
-                    setMessage(verification.message || "Giao dịch không thành công. Vui lòng thử lại.");
+                    setMessage(verification.message || "Giao dá»‹ch khĂ´ng thĂ nh cĂ´ng. Vui lĂ²ng thá»­ láº¡i.");
                 }
             } catch (error) {
                 console.error("Error processing return:", error);
                 setStatus("failed");
-                const msg = error?.response?.data?.message || "Lỗi xử lý kết quả thanh toán.";
+                const msg = error?.response?.data?.message || "Lá»—i xá»­ lĂ½ káº¿t quáº£ thanh toĂ¡n.";
                 setMessage(msg);
             }
         };
@@ -87,11 +87,11 @@ const PaymentReturnPage = ({ method }) => {
                     <div className="w-20 h-20 bg-[color:var(--color-gold)]/15 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircle className="w-10 h-10 text-[color:var(--color-gold)]" />
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Thanh Toán Thành Công</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Thanh ToĂ¡n ThĂ nh CĂ´ng</h1>
                     <p className="text-gray-500 dark:text-gray-400 mb-8">{message}</p>
                     <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl mb-8">
                         <p className="text-sm text-gray-600 dark:text-gray-300">
-                            Chúng tôi đã gửi email xác nhận cùng biên lai chi tiết đến hòm thư của bạn.
+                            ChĂºng tĂ´i Ä‘Ă£ gá»­i email xĂ¡c nháº­n cĂ¹ng biĂªn lai chi tiáº¿t Ä‘áº¿n hĂ²m thÆ° cá»§a báº¡n.
                         </p>
                     </div>
                     <div className="flex flex-col gap-3">
@@ -99,7 +99,7 @@ const PaymentReturnPage = ({ method }) => {
                             to="/catalog"
                             className="btn-base btn-primary h-11 w-full"
                         >
-                            Tiếp tục mua sắm <ShoppingBag className="w-4 h-4" />
+                            Tiáº¿p tá»¥c mua sáº¯m <ShoppingBag className="w-4 h-4" />
                         </Link>
                     </div>
                 </div>
@@ -113,14 +113,14 @@ const PaymentReturnPage = ({ method }) => {
                 <div className="w-20 h-20 bg-black/10 dark:bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6">
                     <AlertCircle className="w-10 h-10 text-[color:var(--color-gold)]" />
                 </div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Thanh Toán Thất Bại</h1>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Thanh ToĂ¡n Tháº¥t Báº¡i</h1>
                 <p className="text-gray-500 dark:text-gray-400 mb-8">{message}</p>
                 <div className="flex flex-col gap-3">
                     <Link
                         to="/cart"
                         className="w-full bg-gray-900 dark:bg-gray-700 hover:bg-black dark:hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-xl transition duration-300 flex items-center justify-center gap-2"
                     >
-                        Quay lại Giỏ hàng <ArrowRight className="w-4 h-4" />
+                        Quay láº¡i Giá» hĂ ng <ArrowRight className="w-4 h-4" />
                     </Link>
                 </div>
             </div>
@@ -129,3 +129,4 @@ const PaymentReturnPage = ({ method }) => {
 };
 
 export default PaymentReturnPage;
+

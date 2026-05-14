@@ -1,10 +1,10 @@
-/**
+﻿/**
  * SkeletonLoaders.jsx
- * Tập trung tất cả skeleton loading components vào một file.
- * Dùng CSS animation shimmer thay vì chỉ animate-pulse để trông premium hơn.
+ * Táº­p trung táº¥t cáº£ skeleton loading components vĂ o má»™t file.
+ * DĂ¹ng CSS animation shimmer thay vĂ¬ chá»‰ animate-pulse Ä‘á»ƒ trĂ´ng premium hÆ¡n.
  */
 
-// ── Base shimmer keyframe (inject 1 lần vào DOM) ─────────────────────────────
+// â”€â”€ Base shimmer keyframe (inject 1 láº§n vĂ o DOM) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const ShimmerStyle = () => (
 	<style>{`
 		@keyframes shimmer {
@@ -41,7 +41,7 @@ const ShimmerStyle = () => (
 	`}</style>
 );
 
-// ── 1. ProductCard Skeleton (dùng cho CatalogPage, FeaturedProducts) ──────────
+// â”€â”€ 1. ProductCard Skeleton (dĂ¹ng cho CatalogPage, FeaturedProducts) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const SkeletonProductCard = () => (
 	<div className="group relative flex flex-col h-full w-full overflow-hidden rounded-3xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-[0_16px_50px_-30px_rgba(0,0,0,0.35)]">
 		{/* Image placeholder */}
@@ -68,7 +68,7 @@ export const SkeletonProductCard = () => (
 	</div>
 );
 
-// ── 2. CartItem Skeleton (dùng cho CartPage) ──────────────────────────────────
+// â”€â”€ 2. CartItem Skeleton (dĂ¹ng cho CartPage) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const SkeletonCartItem = () => (
 	<div className="rounded-2xl border p-4 md:p-6 border-gray-200/80 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-[0_16px_50px_-30px_rgba(0,0,0,0.35)]">
 		<div className="flex flex-col md:flex-row gap-6 items-center">
@@ -100,7 +100,7 @@ export const SkeletonCartItem = () => (
 	</div>
 );
 
-// ── 3. ProductsTable Row Skeleton (dùng cho Admin ProductsList) ───────────────
+// â”€â”€ 3. ProductsTable Row Skeleton (dĂ¹ng cho Admin ProductsList) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const SkeletonTableRow = () => (
 	<tr>
 		<td className="px-6 py-4">
@@ -117,7 +117,7 @@ export const SkeletonTableRow = () => (
 	</tr>
 );
 
-// ── 4. OrderSummary Skeleton (sidebar giỏ hàng) ───────────────────────────────
+// â”€â”€ 4. OrderSummary Skeleton (sidebar giá» hĂ ng) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const SkeletonOrderSummary = () => (
 	<div className="rounded-2xl border p-6 border-gray-200/80 dark:border-gray-700 bg-white dark:bg-gray-800 space-y-4 shadow-[0_16px_50px_-30px_rgba(0,0,0,0.35)]">
 		<div className="h-6 w-1/2 rounded-full bg-gray-200 dark:bg-zinc-700 skeleton-shimmer skeleton-shimmer-premium" />
@@ -131,7 +131,7 @@ export const SkeletonOrderSummary = () => (
 	</div>
 );
 
-// ── 5. Generic page shell skeleton ───────────────────────────────────────────
+// â”€â”€ 5. Generic page shell skeleton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const SkeletonPageShell = ({ rows = 4 }) => (
 	<div className="min-h-screen pt-28 pb-16 px-4">
 		<div className="max-w-6xl mx-auto space-y-6">
@@ -146,7 +146,7 @@ export const SkeletonPageShell = ({ rows = 4 }) => (
 	</div>
 );
 
-// ── 6. Product detail skeleton ───────────────────────────────────────────────
+// â”€â”€ 6. Product detail skeleton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const SkeletonProductDetail = () => (
 	<div className="min-h-screen pt-24 pb-12 px-4 md:px-6">
 		<div className="max-w-7xl mx-auto space-y-5">
@@ -173,5 +173,6 @@ export const SkeletonProductDetail = () => (
 	</div>
 );
 
-// ── Injector: export ShimmerStyle để mount 1 lần ở App level ─────────────────
+// â”€â”€ Injector: export ShimmerStyle Ä‘á»ƒ mount 1 láº§n á»Ÿ App level â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export { ShimmerStyle };
+

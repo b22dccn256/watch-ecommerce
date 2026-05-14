@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+﻿import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
 	Mail, Send, MousePointer2, Plus,
@@ -7,17 +7,19 @@ import {
 	ChevronRight
 } from "lucide-react";
 import axios from "../lib/axios";
+import { confirmToast } from "../lib/confirmToast";
 import { toast } from "react-hot-toast";
+import DOMPurify from "dompurify"; // FIX B1: import DOMPurify for safe HTML rendering
 import { 
 	XAxis, YAxis, CartesianGrid,
 	Tooltip, ResponsiveContainer, AreaChart, Area 
 } from "recharts";
 
-// Automation rules — seed defaults; toggle state managed locally + persisted via API
+// Automation rules â€” seed defaults; toggle state managed locally + persisted via API
 const DEFAULT_AUTOMATIONS = [
-	{ id: "abandoned-cart", title: "Abandoned Cart", desc: "Tự động gửi email nhắc nhở sau 24h nếu giỏ hàng không trống.", active: true },
-	{ id: "welcome-email", title: "Welcome Email", desc: "Gửi lời chào và mã giảm giá 10% ngay khi khách đăng ký Newsletter.", active: true },
-	{ id: "birthday-email", title: "Birthday Email", desc: "Tự động gửi lời chúc và quà tặng vào ngày sinh nhật khách hàng.", active: false },
+	{ id: "abandoned-cart", title: "Abandoned Cart", desc: "Tá»± Ä‘á»™ng gá»­i email nháº¯c nhá»Ÿ sau 24h náº¿u giá» hĂ ng khĂ´ng trá»‘ng.", active: true },
+	{ id: "welcome-email", title: "Welcome Email", desc: "Gá»­i lá»i chĂ o vĂ  mĂ£ giáº£m giĂ¡ 10% ngay khi khĂ¡ch Ä‘Äƒng kĂ½ Newsletter.", active: true },
+	{ id: "birthday-email", title: "Birthday Email", desc: "Tá»± Ä‘á»™ng gá»­i lá»i chĂºc vĂ  quĂ  táº·ng vĂ o ngĂ y sinh nháº­t khĂ¡ch hĂ ng.", active: false },
 ];
 
 const EmailTab = () => {
@@ -75,19 +77,20 @@ const EmailTab = () => {
 		fetchData();
 	}, [fetchData]);
 
-	const handleDeleteSubscriber = async (id, email) => {
-		if (!window.confirm(`Xóa subscriber "${email}"?`)) return;
-		try {
-			await axios.delete(`/mail/subscribers/${id}`);
-			setData(prev => ({ ...prev, subscribers: prev.subscribers.filter(s => s._id !== id) }));
-			toast.success("Đã xóa subscriber");
-		} catch {
-			toast.error("Không thể xóa subscriber");
-		}
+	const handleDeleteSubscriber = (id, email) => {
+		confirmToast(`XĂ³a subscriber "${email}"?`, async () => {
+			try {
+				await axios.delete(`/mail/subscribers/${id}`);
+				setData(prev => ({ ...prev, subscribers: prev.subscribers.filter(s => s._id !== id) }));
+				toast.success("ÄĂ£ xĂ³a subscriber");
+			} catch {
+				toast.error("KhĂ´ng thá»ƒ xĂ³a subscriber");
+			}
+		});
 	};
 
 	const handleToggleAutomation = async (automationId) => {
-		// Optimistic update — flip locally first
+		// Optimistic update â€” flip locally first
 		setAutomations(prev =>
 			prev.map(a => a.id === automationId ? { ...a, active: !a.active } : a)
 		);
@@ -99,17 +102,17 @@ const EmailTab = () => {
 			setAutomations(prev =>
 				prev.map(a => a.id === automationId ? { ...a, active: !a.active } : a)
 			);
-			toast.error("Không thể cập nhật trạng thái automation");
+			toast.error("KhĂ´ng thá»ƒ cáº­p nháº­t tráº¡ng thĂ¡i automation");
 		}
 	};
 
 	const tabs = [
 		{ id: "dashboard", label: "Dashboard", icon: BarChart3 },
-		{ id: "inbox", label: "Hộp thư đến", icon: Inbox },
-		{ id: "subscribers", label: "Người đăng ký", icon: Users },
-		{ id: "campaigns", label: "Chiến dịch", icon: Send },
-		{ id: "templates", label: "Mẫu Email", icon: FileCode },
-		{ id: "automation", label: "Tự động hóa", icon: Settings },
+		{ id: "inbox", label: "Há»™p thÆ° Ä‘áº¿n", icon: Inbox },
+		{ id: "subscribers", label: "NgÆ°á»i Ä‘Äƒng kĂ½", icon: Users },
+		{ id: "campaigns", label: "Chiáº¿n dá»‹ch", icon: Send },
+		{ id: "templates", label: "Máº«u Email", icon: FileCode },
+		{ id: "automation", label: "Tá»± Ä‘á»™ng hĂ³a", icon: Settings },
 	];
 
 	return (
@@ -119,15 +122,15 @@ const EmailTab = () => {
 				<div className="space-y-1">
 					<h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
 						<Mail className="text-luxury-gold w-8 h-8" />
-						Quản lý Email & Marketing
+						Quáº£n lĂ½ Email & Marketing
 					</h1>
-					<p className="text-gray-500 dark:text-luxury-text-muted text-sm">Hệ thống gửi tin và chăm sóc khách hàng tự động.</p>
+					<p className="text-gray-500 dark:text-luxury-text-muted text-sm">Há»‡ thá»‘ng gá»­i tin vĂ  chÄƒm sĂ³c khĂ¡ch hĂ ng tá»± Ä‘á»™ng.</p>
 				</div>
 				<button 
-					onClick={() => toast.success("Feature coming soon: New Template Builder")}
+					onClick={() => toast("TĂ­nh nÄƒng Ä‘ang phĂ¡t triá»ƒn: New Template Builder", { icon: "â³" })}
 					className="flex items-center gap-2 px-6 py-3 bg-luxury-gold text-luxury-dark rounded-xl text-sm font-bold hover:bg-white hover:scale-105 transition-all shadow-lg"
 				>
-					<Plus className="w-4 h-4" /> TẠO MỚI
+					<Plus className="w-4 h-4" /> Táº O Má»I
 				</button>
 			</div>
 
@@ -183,13 +186,13 @@ const DashboardView = ({ stats, chartData }) => {
 	return (
 		<div className="space-y-8">
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-				<StatCard label="Tỷ lệ mở" value={`${stats?.openRate || 0}%`} change="" icon={Eye} color="emerald" />
-				<StatCard label="Số chiến dịch" value={stats?.totalCampaigns || 0} change="" icon={MousePointer2} color="blue" />
-				<StatCard label="Tổng gửi" value={stats?.sentEmails?.toLocaleString() || 0} change="" icon={Send} color="luxury-gold" />
+				<StatCard label="Tá»· lá»‡ má»Ÿ" value={`${stats?.openRate || 0}%`} change="" icon={Eye} color="emerald" />
+				<StatCard label="Sá»‘ chiáº¿n dá»‹ch" value={stats?.totalCampaigns || 0} change="" icon={MousePointer2} color="blue" />
+				<StatCard label="Tá»•ng gá»­i" value={stats?.sentEmails?.toLocaleString() || 0} change="" icon={Send} color="luxury-gold" />
 			</div>
 
 			<div className="bg-white dark:bg-luxury-dark border border-luxury-border p-8 rounded-3xl">
-				<h3 className="text-xl font-bold mb-8">Hiệu quả chiến dịch (7 ngày qua)</h3>
+				<h3 className="text-xl font-bold mb-8">Hiá»‡u quáº£ chiáº¿n dá»‹ch (7 ngĂ y qua)</h3>
 				<div className="h-[350px] w-full">
 					<ResponsiveContainer width="100%" height={350}>
 						<AreaChart data={displayData}>
@@ -222,11 +225,11 @@ const InboxView = ({ messages }) => (
 		<table className="w-full text-left">
 			<thead className="bg-gray-50 dark:bg-white/5 border-b border-luxury-border">
 				<tr>
-					<th className="px-6 py-4 text-xs font-bold uppercase text-gray-400">Khách hàng</th>
-					<th className="px-6 py-4 text-xs font-bold uppercase text-gray-400">Chủ đề</th>
-					<th className="px-6 py-4 text-xs font-bold uppercase text-gray-400">Ngày</th>
-					<th className="px-6 py-4 text-xs font-bold uppercase text-gray-400">Trạng thái</th>
-					<th className="px-6 py-4 text-xs font-bold uppercase text-gray-400 text-right">Hành động</th>
+					<th className="px-6 py-4 text-xs font-bold uppercase text-gray-400">KhĂ¡ch hĂ ng</th>
+					<th className="px-6 py-4 text-xs font-bold uppercase text-gray-400">Chá»§ Ä‘á»</th>
+					<th className="px-6 py-4 text-xs font-bold uppercase text-gray-400">NgĂ y</th>
+					<th className="px-6 py-4 text-xs font-bold uppercase text-gray-400">Tráº¡ng thĂ¡i</th>
+					<th className="px-6 py-4 text-xs font-bold uppercase text-gray-400 text-right">HĂ nh Ä‘á»™ng</th>
 				</tr>
 			</thead>
 			<tbody className="divide-y divide-luxury-border">
@@ -252,14 +255,22 @@ const InboxView = ({ messages }) => (
 							</span>
 						</td>
 						<td className="px-6 py-4 text-right">
-							<button className="p-2 hover:bg-luxury-gold/20 rounded-lg text-luxury-gold transition">
+							<button
+								onClick={async () => {
+									try {
+										await axios.patch(`/mail/inbox/${m._id}/read`);
+										toast.success("ÄĂ£ Ä‘Ă¡nh dáº¥u Ä‘Ă£ Ä‘á»c");
+									} catch { toast.error("KhĂ´ng thá»ƒ cáº­p nháº­t"); }
+								}} // FIX C5: was missing onClick handler
+								className="p-2 hover:bg-luxury-gold/20 rounded-lg text-luxury-gold transition"
+							>
 								<Eye className="w-4 h-4" />
 							</button>
 						</td>
 					</tr>
 				)) : (
 					<tr>
-						<td colSpan="5" className="px-6 py-20 text-center text-gray-500 italic">Hộp thư trống</td>
+						<td colSpan="5" className="px-6 py-20 text-center text-gray-500 italic">Há»™p thÆ° trá»‘ng</td>
 					</tr>
 				)}
 			</tbody>
@@ -269,14 +280,18 @@ const InboxView = ({ messages }) => (
 
 const SubscribersView = ({ subscribers, onDelete }) => (
 	<div className="space-y-4">
-		<div className="flex justify-between items-center text-sm font-bold text-gray-400 dark:text-luxury-text-muted px-2">
-			<span>{subscribers.length} Emails đăng ký</span>
-			<button className="text-luxury-gold hover:underline">Xuất file CSV</button>
+			<div className="flex justify-between items-center text-sm font-bold text-gray-400 dark:text-luxury-text-muted px-2">
+			<span>{subscribers.length} Emails Ä‘Äƒng kĂ½</span>
+			{/* FIX C6: was missing onClick handler */}
+			<button
+				onClick={() => window.open("/api/mail/subscribers/export", "_blank")}
+				className="text-luxury-gold hover:underline"
+			>Xuáº¥t file CSV</button>
 		</div>
 		<div className="bg-white dark:bg-luxury-dark border border-luxury-border rounded-3xl">
 			<ul className="divide-y divide-luxury-border">
 				{subscribers.length === 0 && (
-					<li className="px-6 py-12 text-center text-gray-400 text-sm">Chưa có ai đăng ký newsletter</li>
+					<li className="px-6 py-12 text-center text-gray-400 text-sm">ChÆ°a cĂ³ ai Ä‘Äƒng kĂ½ newsletter</li>
 				)}
 				{subscribers.map((s) => (
 					<li key={s._id} className="px-6 py-4 flex items-center justify-between hover:bg-white/5">
@@ -286,7 +301,7 @@ const SubscribersView = ({ subscribers, onDelete }) => (
 							</div>
 							<div>
 								<div className="font-bold">{s.email}</div>
-								<div className="text-[10px] uppercase tracking-widest text-gray-500">Nguồn: {s.source}</div>
+								<div className="text-[10px] uppercase tracking-widest text-gray-500">Nguá»“n: {s.source}</div>
 							</div>
 						</div>
 						<div className="flex items-center gap-6">
@@ -294,7 +309,7 @@ const SubscribersView = ({ subscribers, onDelete }) => (
 							<button
 								onClick={() => onDelete(s._id, s.email)}
 								className="text-red-400 hover:text-red-500 p-2 transition-colors"
-								title="Xóa subscriber"
+								title="XĂ³a subscriber"
 							>
 								<Trash2 className="w-4 h-4" />
 							</button>
@@ -319,14 +334,21 @@ const CampaignsView = ({ campaigns }) => (
 				</div>
 				
 				<div className="grid grid-cols-3 gap-2 py-4 border-y border-luxury-border">
-					<MiniStat label="Gửi" value={c.stats.sent} />
-					<MiniStat label="Mở" value={c.stats.opened} />
-					<MiniStat label="Nhấp" value={c.stats.clicked} />
+					<MiniStat label="Gá»­i" value={c.stats.sent} />
+					<MiniStat label="Má»Ÿ" value={c.stats.opened} />
+					<MiniStat label="Nháº¥p" value={c.stats.clicked} />
 				</div>
 
 				<div className="flex gap-3">
-					<button className="flex-1 py-2 bg-luxury-gold text-luxury-dark rounded-lg text-xs font-bold hover:bg-white transition">Thống kê</button>
-					<button className="flex-1 py-2 border border-luxury-border rounded-lg text-xs font-bold hover:bg-white/5 transition">Sao chép</button>
+					{/* FIX C11: add onClick to previously-stub campaign buttons */}
+					<button
+						onClick={() => toast("Thá»‘ng kĂª chi tiáº¿t Ä‘ang phĂ¡t triá»ƒn", { icon: "đŸ“" })}
+						className="flex-1 py-2 bg-luxury-gold text-luxury-dark rounded-lg text-xs font-bold hover:bg-white transition"
+					>Thá»‘ng kĂª</button>
+					<button
+						onClick={() => { navigator.clipboard?.writeText(c._id); toast.success("ÄĂ£ sao chĂ©p ID chiáº¿n dá»‹ch"); }}
+						className="flex-1 py-2 border border-luxury-border rounded-lg text-xs font-bold hover:bg-white/5 transition"
+					>Sao chĂ©p</button>
 				</div>
 			</div>
 		))}
@@ -341,7 +363,11 @@ const TemplatesView = ({ templates }) => (
 					<div className="absolute inset-0 bg-transparent group-hover:bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
 						<button className="bg-luxury-gold text-luxury-dark px-4 py-2 rounded-lg font-bold text-xs">Preview</button>
 					</div>
-					<div className="p-4 scale-50 origin-top text-[8px] opacity-40 select-none" dangerouslySetInnerHTML={{ __html: t.htmlContent }} />
+				<div className="p-4 scale-50 origin-top text-[8px] opacity-40 select-none"
+					dangerouslySetInnerHTML={{
+						// FIX B1: sanitize htmlContent with DOMPurify before rendering
+						__html: DOMPurify.sanitize(t.htmlContent || "", { USE_PROFILES: { html: true } })
+					}} />
 				</div>
 				<h5 className="font-bold text-center">{t.name}</h5>
 				<p className="text-[10px] text-gray-500 text-center uppercase tracking-widest">{t.category}</p>
@@ -354,7 +380,7 @@ const AutomationView = ({ automations, onToggle }) => (
 	<div className="space-y-6">
 		<div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl flex items-center gap-4 text-amber-400">
 			<Clock className="w-5 h-5 shrink-0" />
-			<p className="text-sm">Các tiến trình tự động được xử lý bởi BullMQ Worker & Redis mỗi 1 giờ.</p>
+			<p className="text-sm">CĂ¡c tiáº¿n trĂ¬nh tá»± Ä‘á»™ng Ä‘Æ°á»£c xá»­ lĂ½ bá»Ÿi BullMQ Worker & Redis má»—i 1 giá».</p>
 		</div>
 		<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 			{automations.map(automation => (
@@ -372,10 +398,17 @@ const AutomationView = ({ automations, onToggle }) => (
 
 // --- HELPER COMPONENTS ---
 
-const StatCard = ({ label, value, change, icon: Icon, color }) => (
+const StatCard = ({ label, value, change, icon: Icon, color }) => {
+	const colorMap = {
+		emerald: "bg-emerald-500/10 text-emerald-500",
+		blue: "bg-blue-500/10 text-blue-500",
+		"luxury-gold": "bg-luxury-gold/10 text-luxury-gold",
+	};
+	const colorClasses = colorMap[color] || "bg-gray-100 text-gray-500";
+	return (
 	<div className="bg-white dark:bg-luxury-dark border border-luxury-border p-8 rounded-3xl shadow-xl hover:scale-105 transition-all">
 		<div className="flex items-center justify-between mb-6">
-			<div className={`p-4 rounded-2xl bg-${color}-500/10 text-${color}-500`}>
+			<div className={`p-4 rounded-2xl ${colorClasses}`}>
 				<Icon className="w-6 h-6" />
 			</div>
 			<span className={`${change.startsWith("+") ? "text-emerald-500" : "text-red-500"} font-bold text-sm`}>{change}</span>
@@ -383,7 +416,8 @@ const StatCard = ({ label, value, change, icon: Icon, color }) => (
 		<span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 block">{label}</span>
 		<div className="text-4xl font-bold">{value}</div>
 	</div>
-);
+	);
+};
 
 const MiniStat = ({ label, value }) => (
 	<div className="text-center">
@@ -411,7 +445,7 @@ const AutomationCard = ({ title, desc, active, onToggle }) => (
 	<div className="bg-white dark:bg-luxury-dark border border-luxury-border p-8 rounded-3xl flex items-start gap-6 group hover:border-luxury-gold transition-all">
 		<button
 			onClick={onToggle}
-			title={active ? "Tắt automation" : "Bật automation"}
+			title={active ? "Táº¯t automation" : "Báº­t automation"}
 			className={`p-4 rounded-2xl transition-colors cursor-pointer ${
 				active
 					? "bg-luxury-gold/10 text-luxury-gold hover:bg-luxury-gold/20"
@@ -423,21 +457,19 @@ const AutomationCard = ({ title, desc, active, onToggle }) => (
 		<div className="flex-1 space-y-2">
 			<div className="flex items-center justify-between">
 				<h4 className="font-bold text-lg">{title}</h4>
-				<button
-					onClick={onToggle}
-					className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded transition-colors ${
-						active
-							? "text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20"
-							: "text-red-500 bg-red-500/10 hover:bg-red-500/20"
-					}`}
-				>
+				{/* FIX C12: badge is display-only; removed onClick to fix double-toggle bug */}
+				<span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+					active
+						? "text-emerald-500 bg-emerald-500/10"
+						: "text-red-500 bg-red-500/10"
+				}`}>
 					{active ? "Active" : "Disabled"}
-				</button>
+				</span>
 			</div>
 			<p className="text-sm text-luxury-text-muted leading-relaxed">{desc}</p>
 			<div className="pt-4 flex gap-4">
 				<button className="text-xs font-bold text-luxury-gold flex items-center gap-1 group-hover:gap-2 transition-all">
-					Cấu hình <ChevronRight className="w-3 h-3" />
+					Cáº¥u hĂ¬nh <ChevronRight className="w-3 h-3" />
 				</button>
 			</div>
 		</div>
@@ -445,3 +477,4 @@ const AutomationCard = ({ title, desc, active, onToggle }) => (
 );
 
 export default EmailTab;
+

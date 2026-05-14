@@ -1,4 +1,4 @@
-import { createWithEqualityFn } from "zustand/traditional";
+﻿import { createWithEqualityFn } from "zustand/traditional";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { useUserStore } from "./useUserStore";
@@ -146,7 +146,7 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 			localStorage.removeItem("watch_cart");
 		} else {
 			try {
-				// Xóa giỏ hàng trên server (không cần productId = xóa toàn bộ)
+				// XĂ³a giá» hĂ ng trĂªn server (khĂ´ng cáº§n productId = xĂ³a toĂ n bá»™)
 				await axios.delete("/cart", { data: {} });
 			} catch (error) {
 				console.error("clearCart server error:", error.message);
@@ -163,7 +163,7 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 		const newQuantity = existingItem ? existingItem.quantity + 1 : 1;
 
 		if (product.stock < newQuantity) {
-			return toast.error(`Sản phẩm này chỉ còn ${product.stock} cái trong kho`);
+			return toast.error(`Sáº£n pháº©m nĂ y chá»‰ cĂ²n ${product.stock} cĂ¡i trong kho`);
 		}
 
 		if (!user) {
@@ -190,7 +190,7 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 				get().calculateTotals();
 			}
 			
-			toast.success("Đã thêm vào giỏ hàng!");
+			toast.success("ÄĂ£ thĂªm vĂ o giá» hĂ ng!");
 			return;
 		}
 
@@ -201,7 +201,7 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 				selectedColor: product.selectedColor || null,
 				selectedSize: product.selectedSize || null,
 			});
-			toast.success("Đã thêm vào giỏ hàng!");
+			toast.success("ÄĂ£ thĂªm vĂ o giá» hĂ ng!");
 
 			set((prevState) => {
 				const existingItem = prevState.cart.find((item) => prevState.getUniqueId(item) === uniqueId);
@@ -243,7 +243,7 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 			localStorage.setItem("watch_cart", JSON.stringify(newCart));
 			set({ cart: newCart });
 			get().calculateTotals();
-			toast.success("Đã xóa sản phẩm khỏi giỏ hàng");
+			toast.success("ÄĂ£ xĂ³a sáº£n pháº©m khá»i giá» hĂ ng");
 			return;
 		}
 
@@ -251,9 +251,9 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 			await axios.delete(`/cart`, { data: { productId, wristSize, selectedColor, selectedSize } });
 			set((prevState) => ({ cart: prevState.cart.filter((item) => prevState.getUniqueId(item) !== uniqueId) }));
 			get().calculateTotals();
-			toast.success("Đã xóa sản phẩm khỏi giỏ hàng");
+			toast.success("ÄĂ£ xĂ³a sáº£n pháº©m khá»i giá» hĂ ng");
 		} catch (error) {
-			toast.error(error.response?.data?.message || "Không thể xóa sản phẩm khỏi giỏ hàng");
+			toast.error(error.response?.data?.message || "KhĂ´ng thá»ƒ xĂ³a sáº£n pháº©m khá»i giá» hĂ ng");
 		}
 	},
 	updateQuantity: async (productId, quantity, maxStock, wristSize, selectedColor = null, selectedSize = null) => {
@@ -263,7 +263,7 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 		}
 
 		if (maxStock !== undefined && quantity > maxStock) {
-			toast.error(`Sản phẩm này chỉ còn ${maxStock} cái trong kho`);
+			toast.error(`Sáº£n pháº©m nĂ y chá»‰ cĂ²n ${maxStock} cĂ¡i trong kho`);
 			return;
 		}
 
@@ -347,7 +347,7 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 			set({ cart: newCart });
 			syncSelectedItems(get().selectedItems);
 			get().calculateTotals();
-			toast.success("Đã cập nhật thuộc tính sản phẩm");
+			toast.success("ÄĂ£ cáº­p nháº­t thuá»™c tĂ­nh sáº£n pháº©m");
 			return;
 		}
 
@@ -363,9 +363,9 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 			await get().getCartItems();
 			syncSelectedItems(get().selectedItems);
 			get().calculateTotals();
-			toast.success("Đã cập nhật thuộc tính sản phẩm");
+			toast.success("ÄĂ£ cáº­p nháº­t thuá»™c tĂ­nh sáº£n pháº©m");
 		} catch (error) {
-			toast.error(error.response?.data?.message || "Không thể cập nhật thuộc tính");
+			toast.error(error.response?.data?.message || "KhĂ´ng thá»ƒ cáº­p nháº­t thuá»™c tĂ­nh");
 		}
 	},
 	calculateTotals: (city = "") => {
@@ -379,14 +379,14 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 			total = subtotal - discount;
 		}
 
-		// --- Phí vận chuyển động theo Tỉnh / Thành phố ---
-		const FREE_SHIP_THRESHOLD = 5_000_000; // Miễn phí ship nếu đơn > 5tr
-		const BIG_CITY_FEE = 30_000; // Hà Nội và TP.HCM
-		const OTHER_PROVINCE_FEE = 50_000; // Tỉnh khác
+		// --- PhĂ­ váº­n chuyá»ƒn Ä‘á»™ng theo Tá»‰nh / ThĂ nh phá»‘ ---
+		const FREE_SHIP_THRESHOLD = 5_000_000; // Miá»…n phĂ­ ship náº¿u Ä‘Æ¡n > 5tr
+		const BIG_CITY_FEE = 30_000; // HĂ  Ná»™i vĂ  TP.HCM
+		const OTHER_PROVINCE_FEE = 50_000; // Tá»‰nh khĂ¡c
 
 		const BIG_CITIES = [
-			"hà nội", "ha noi", "hn",
-			"hồ chí minh", "ho chi minh", "hcm", "tp.hcm", "tp hcm", "sài gòn", "sai gon"
+			"hĂ  ná»™i", "ha noi", "hn",
+			"há»“ chĂ­ minh", "ho chi minh", "hcm", "tp.hcm", "tp hcm", "sĂ i gĂ²n", "sai gon"
 		];
 
 		const hasPhysicalItems = selectedCart.length > 0;
@@ -394,11 +394,11 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 
 		if (hasPhysicalItems) {
 			if (total >= FREE_SHIP_THRESHOLD) {
-				shippingFee = 0; // Miễn phí
+				shippingFee = 0; // Miá»…n phĂ­
 			} else if (!city || BIG_CITIES.includes(city.toLowerCase().trim())) {
-				shippingFee = BIG_CITY_FEE; // Hà Nội / HCM (hoặc chưa nhập)
+				shippingFee = BIG_CITY_FEE; // HĂ  Ná»™i / HCM (hoáº·c chÆ°a nháº­p)
 			} else {
-				shippingFee = OTHER_PROVINCE_FEE; // Tỉnh khác
+				shippingFee = OTHER_PROVINCE_FEE; // Tá»‰nh khĂ¡c
 			}
 		}
 
@@ -419,3 +419,4 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 		});
 	},
 }));
+

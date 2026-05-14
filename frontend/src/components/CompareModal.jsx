@@ -1,4 +1,4 @@
-import { X, Trash2, ShieldCheck, Scale } from "lucide-react";
+﻿import { X, Trash2, ShieldCheck, Scale } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCompareStore } from "../stores/useCompareStore";
 import { useCartStore } from "../stores/useCartStore";
@@ -41,7 +41,7 @@ const CompareModal = ({ isOpen, onClose }) => {
 						<div className="flex items-center justify-between px-5 py-4 border-b border-black/8 dark:border-white/8 bg-surface-soft rounded-t-[1.8rem]">
 							<h2 className="text-xl font-semibold flex items-center gap-2 text-primary">
 								<Scale className="w-6 h-6 text-[color:var(--color-gold)]" />
-								So sánh sản phẩm ({compareItems.length}/3)
+								So sĂ¡nh sáº£n pháº©m ({compareItems.length}/3)
 							</h2>
 							<div className="flex items-center gap-4">
 								{compareItems.length > 0 && (
@@ -49,7 +49,7 @@ const CompareModal = ({ isOpen, onClose }) => {
 										onClick={clearCompare}
 										className="text-sm font-medium text-secondary hover:bg-black/5 dark:hover:bg-white/10 px-3 py-1.5 rounded-lg transition"
 									>
-										Xóa tất cả
+										XĂ³a táº¥t cáº£
 									</button>
 								)}
 								<button
@@ -66,15 +66,15 @@ const CompareModal = ({ isOpen, onClose }) => {
 							{compareItems.length === 0 ? (
 								<div className="flex flex-col items-center justify-center h-full py-12 text-muted">
 									<Scale className="w-14 h-14 mb-3 opacity-20" />
-									<p className="text-base">Bạn chưa có sản phẩm nào trong danh sách so sánh.</p>
-									<button onClick={onClose} className="mt-6 font-bold text-[color:var(--color-gold)] hover:underline">Tiếp tục mua sắm</button>
+									<p className="text-base">Báº¡n chÆ°a cĂ³ sáº£n pháº©m nĂ o trong danh sĂ¡ch so sĂ¡nh.</p>
+									<button onClick={onClose} className="mt-6 font-bold text-[color:var(--color-gold)] hover:underline">Tiáº¿p tá»¥c mua sáº¯m</button>
 								</div>
 							) : (
 								<div className="min-w-[680px] sm:min-w-[780px]">
 									{/* Products Row */}
 									<div className="grid grid-cols-4 gap-4 sticky top-0 bg-surface z-10 pb-4 border-b border-black/8 dark:border-white/8">
 										<div className="col-span-1 bg-surface-soft p-3.5 rounded-2xl border border-black/8 dark:border-white/8 min-h-[320px] flex items-start">
-											<div className="text-muted font-semibold tracking-[0.04em]">TỔNG QUAN</div>
+											<div className="text-muted font-semibold tracking-[0.04em]">Tá»”NG QUAN</div>
 										</div>
 										{compareSlots.map((item, index) => (
 											<div key={item?._id || `empty-slot-${index}`} className="col-span-1 relative group bg-surface-soft p-3.5 rounded-2xl border border-black/8 dark:border-white/8 hover:border-[color:var(--color-gold)]/40 transition min-h-[320px] flex flex-col">
@@ -96,14 +96,14 @@ const CompareModal = ({ isOpen, onClose }) => {
 															}}
 															className="btn-base btn-primary h-9 w-full mt-auto"
 														>
-															Thêm vào giỏ
+															ThĂªm vĂ o giá»
 														</button>
 													</>
 												) : (
 													<div className="m-auto text-center">
 														<div className="mx-auto mb-3 h-14 w-14 rounded-full border border-dashed border-black/20 dark:border-white/20 bg-surface" />
-														<p className="text-xs uppercase tracking-[0.18em] text-muted">Ô trống</p>
-														<p className="mt-1 text-sm text-secondary">Thêm sản phẩm để so sánh</p>
+														<p className="text-xs uppercase tracking-[0.18em] text-muted">Ă” trá»‘ng</p>
+														<p className="mt-1 text-sm text-secondary">ThĂªm sáº£n pháº©m Ä‘á»ƒ so sĂ¡nh</p>
 													</div>
 												)}
 											</div>
@@ -113,11 +113,11 @@ const CompareModal = ({ isOpen, onClose }) => {
 									{/* Specs Rows */}
 									<div className="mt-6 rounded-2xl border border-black/8 dark:border-white/8 bg-surface-soft/45 overflow-hidden text-sm">
 										<div className="grid grid-cols-4 gap-6 items-center px-4 py-4">
-											<div className="font-semibold text-muted">Mã sản phẩm</div>
+											<div className="font-semibold text-muted">MĂ£ sáº£n pháº©m</div>
 											{compareSlots.map((item, index) => <div className="font-medium" key={item?._id || `code-${index}`}>{item?._id?.slice(-6).toUpperCase() || "-"}</div>)}
 										</div>
 										<div className="grid grid-cols-4 gap-6 items-center border-t border-black/8 dark:border-white/8 px-4 py-4">
-											<div className="font-semibold text-muted">Bộ máy (Movement)</div>
+											<div className="font-semibold text-muted">Bá»™ mĂ¡y (Movement)</div>
 											{compareSlots.map((item, index) => (
 												<div key={item?._id || `movement-${index}`}>
 													{item ? <>{item.specs?.movement?.type || item.type || "-"} <br/><span className="text-gray-400 text-xs">{item.specs?.movement?.caliber}</span></> : "-"}
@@ -125,36 +125,36 @@ const CompareModal = ({ isOpen, onClose }) => {
 											))}
 										</div>
 										<div className="grid grid-cols-4 gap-6 items-center border-t border-black/8 dark:border-white/8 px-4 py-4">
-											<div className="font-semibold text-muted">Dự trữ năng lượng</div>
+											<div className="font-semibold text-muted">Dá»± trá»¯ nÄƒng lÆ°á»£ng</div>
 											{compareSlots.map((item, index) => <div key={item?._id || `reserve-${index}`}>{item?.specs?.movement?.powerReserve || "-"}</div>)}
 										</div>
 										<div className="grid grid-cols-4 gap-6 items-center border-t border-black/8 dark:border-white/8 px-4 py-4">
-											<div className="font-semibold text-muted">Kích thước vỏ</div>
+											<div className="font-semibold text-muted">KĂ­ch thÆ°á»›c vá»</div>
 											{compareSlots.map((item, index) => (
 												<div key={item?._id || `diameter-${index}`}>
-													{item ? <>{item.specs?.case?.diameter || "-"} <br/><span className="text-gray-400 text-xs">Độ dày: {item.specs?.case?.thickness || "-"}</span></> : "-"}
+													{item ? <>{item.specs?.case?.diameter || "-"} <br/><span className="text-gray-400 text-xs">Äá»™ dĂ y: {item.specs?.case?.thickness || "-"}</span></> : "-"}
 												</div>
 											))}
 										</div>
 										<div className="grid grid-cols-4 gap-6 items-center border-t border-black/8 dark:border-white/8 px-4 py-4">
-											<div className="font-semibold text-muted">Chất liệu vỏ</div>
+											<div className="font-semibold text-muted">Cháº¥t liá»‡u vá»</div>
 											{compareSlots.map((item, index) => <div key={item?._id || `case-${index}`}>{item?.specs?.case?.material || "-"}</div>)}
 										</div>
 										<div className="grid grid-cols-4 gap-6 items-center border-t border-black/8 dark:border-white/8 px-4 py-4">
-											<div className="font-semibold text-muted">Dây đeo</div>
+											<div className="font-semibold text-muted">DĂ¢y Ä‘eo</div>
 											{compareSlots.map((item, index) => <div key={item?._id || `strap-${index}`}>{item?.specs?.strap?.material || "-"}</div>)}
 										</div>
 										<div className="grid grid-cols-4 gap-6 items-center border-t border-black/8 dark:border-white/8 px-4 py-4">
-											<div className="font-semibold text-muted">Khóa</div>
+											<div className="font-semibold text-muted">KhĂ³a</div>
 											{compareSlots.map((item, index) => <div key={item?._id || `clasp-${index}`}>{item?.specs?.strap?.claspType || "-"}</div>)}
 										</div>
 										<div className="grid grid-cols-4 gap-6 items-center border-t border-black/8 dark:border-white/8 px-4 py-4">
-											<div className="font-semibold text-muted">Chống nước</div>
+											<div className="font-semibold text-muted">Chá»‘ng nÆ°á»›c</div>
 											{compareSlots.map((item, index) => <div key={item?._id || `water-${index}`}>{item?.specs?.waterResistance || "-"}</div>)}
 										</div>
 										<div className="grid grid-cols-4 gap-6 items-center border-t border-black/8 dark:border-white/8 px-4 py-4">
-											<div className="font-semibold text-muted">Bảo hành</div>
-											{compareSlots.map((item, index) => <div key={item?._id || `warranty-${index}`} className="flex items-center gap-1 text-secondary">{renderCell(item, <><ShieldCheck className="w-4 h-4 text-[color:var(--color-gold)]"/> 5 năm</>)}</div>)}
+											<div className="font-semibold text-muted">Báº£o hĂ nh</div>
+											{compareSlots.map((item, index) => <div key={item?._id || `warranty-${index}`} className="flex items-center gap-1 text-secondary">{renderCell(item, <><ShieldCheck className="w-4 h-4 text-[color:var(--color-gold)]"/> 5 nÄƒm</>)}</div>)}
 										</div>
 									</div>
 								</div>
@@ -168,3 +168,4 @@ const CompareModal = ({ isOpen, onClose }) => {
 };
 
 export default CompareModal;
+

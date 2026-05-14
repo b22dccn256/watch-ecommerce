@@ -1,4 +1,4 @@
-import { cn } from "../../lib/cn";
+﻿import { cn } from "../../lib/cn";
 
 const Input = ({
   as: Component = "input",
@@ -39,3 +39,4 @@ const Input = ({
 };
 
 export default Input;
+

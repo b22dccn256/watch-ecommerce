@@ -84,7 +84,7 @@ export const getAnalyticsData = async () => {
 		totalRevenue,
 		aov,
 		totalOrdersPlaced,
-		housrySalesData: hourlySalesData,
+		hourlySalesData,
 		paymentStats: paymentStats.map(s => ({
 			name: s._id === "stripe" ? "Stripe" : s._id === "qr" ? "VietQR" : s._id === "cod" ? "COD" : s._id === "vnpay" ? "VNPay" : s._id === "momo" ? "MoMo" : s._id === "zalopay" ? "ZaloPay" : s._id || "Khác",
 			value: s.revenue,
@@ -157,9 +157,21 @@ export const getAnalytics = async (req, res) => {
 		const analyticsData = await getAnalyticsData();
 		const dailySales = await getDailySalesData(startDate, endDate);
 
+		let prevDailySales = [];
+		if (req.query.includePrev === "true") {
+			const prevEndDate = new Date(startDate);
+			prevEndDate.setDate(prevEndDate.getDate() - 1);
+			prevEndDate.setHours(23, 59, 59, 999);
+			const prevStartDate = new Date(prevEndDate);
+			prevStartDate.setDate(prevStartDate.getDate() - days + 1);
+			prevStartDate.setHours(0, 0, 0, 0);
+			prevDailySales = await getDailySalesData(prevStartDate, prevEndDate);
+		}
+
 		res.status(200).json({
 			...analyticsData,
 			dailySales,
+			prevDailySales
 		});
 	} catch (error) {
 		console.error("Error fetching analytics data:", error);
@@ -262,10 +274,11 @@ export const getProfitLoss = async (req, res) => {
 			},
 		]);
 
-		// Fill missing dates
+		// FIX E4: After $project, field is always 'date', not '_id'. Use Map for O(1) lookup.
+		const plMap = new Map(plData.map((d) => [d.date, d]));
 		const dateArray = getDatesInRange(startDate, endDate);
 		const filled = dateArray.map((date) => {
-			const found = plData.find((d) => d._id === date) || plData.find((d) => d.date === date);
+			const found = plMap.get(date);
 			return {
 				name: formatDateLabel(date),
 				date,
@@ -276,6 +289,7 @@ export const getProfitLoss = async (req, res) => {
 				orders: found?.orders || 0,
 			};
 		});
+
 
 		// Totals summary
 		const totalRevenue = filled.reduce((s, d) => s + d.revenue, 0);

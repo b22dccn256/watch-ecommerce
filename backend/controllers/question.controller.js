@@ -38,3 +38,28 @@ export const createQuestion = async (req, res) => {
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
 };
+
+export const listAllQuestions = async (req, res) => {
+	try {
+		const answered = req.query.answered;
+		const filter = {};
+		if (answered === "false") {
+			filter.answer = { $exists: false };
+		} else if (answered === "true") {
+			filter.answer = { $exists: true };
+		}
+		
+		const limit = parseInt(req.query.limit) || 10;
+		const questions = await Question.find(filter)
+			.populate("user", "name email")
+			.populate("product", "name image")
+			.sort({ createdAt: -1 })
+			.limit(limit);
+		
+		const totalQuestions = await Question.countDocuments(filter);
+		
+		res.json({ questions, totalQuestions });
+	} catch (error) {
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};

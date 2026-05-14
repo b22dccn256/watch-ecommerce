@@ -1,4 +1,4 @@
-import { createWithEqualityFn } from "zustand/traditional";
+﻿import { createWithEqualityFn } from "zustand/traditional";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 
@@ -6,7 +6,7 @@ export const useWishlistStore = createWithEqualityFn((set, get) => ({
 	wishlist: [],
 	loading: false,
 
-	// Lấy danh sách yêu thích từ server hoặc LocalStorage
+	// Láº¥y danh sĂ¡ch yĂªu thĂ­ch tá»« server hoáº·c LocalStorage
 	fetchWishlist: async (isAuthenticated) => {
 		if (!isAuthenticated) {
 			const saved = localStorage.getItem("wishlist");
@@ -24,7 +24,7 @@ export const useWishlistStore = createWithEqualityFn((set, get) => ({
 		}
 	},
 
-	// Thêm/Xóa sản phẩm (Toggle)
+	// ThĂªm/XĂ³a sáº£n pháº©m (Toggle)
 	toggleWishlist: async (product, isAuthenticated) => {
 		const { wishlist } = get();
 		const isExisting = wishlist.some((item) => item._id === product._id);
@@ -38,7 +38,7 @@ export const useWishlistStore = createWithEqualityFn((set, get) => ({
 
 		if (!isAuthenticated) {
 			localStorage.setItem("wishlist", JSON.stringify(updatedWishlist));
-			toast.success(isExisting ? "Đã xóa khỏi yêu thích" : "Đã thêm vào yêu thích");
+			toast.success(isExisting ? "ÄĂ£ xĂ³a khá»i yĂªu thĂ­ch" : "ÄĂ£ thĂªm vĂ o yĂªu thĂ­ch");
 			return;
 		}
 
@@ -48,15 +48,15 @@ export const useWishlistStore = createWithEqualityFn((set, get) => ({
 			} else {
 				await axios.post("/wishlist", { productId: product._id });
 			}
-			toast.success(isExisting ? "Đã xóa khỏi yêu thích" : "Đã thêm vào yêu thích");
+			toast.success(isExisting ? "ÄĂ£ xĂ³a khá»i yĂªu thĂ­ch" : "ÄĂ£ thĂªm vĂ o yĂªu thĂ­ch");
 		} catch {
 			// Rollback if server fails
 			set({ wishlist: wishlist });
-			toast.error("Có lỗi xảy ra, vui lòng thử lại sau");
+			toast.error("CĂ³ lá»—i xáº£y ra, vui lĂ²ng thá»­ láº¡i sau");
 		}
 	},
 
-	// Hợp nhất Guest Wishlist sau khi đăng nhập
+	// Há»£p nháº¥t Guest Wishlist sau khi Ä‘Äƒng nháº­p
 	mergeWishlist: async () => {
 		const localWishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
 		if (localWishlist.length === 0) return;
@@ -78,7 +78,7 @@ export const useWishlistStore = createWithEqualityFn((set, get) => ({
 		}
 	},
 
-	// Đồng bộ giữa các tab
+	// Äá»“ng bá»™ giá»¯a cĂ¡c tab
 	syncFromLocalStorage: () => {
 		const saved = localStorage.getItem("wishlist");
 		set({ wishlist: saved ? JSON.parse(saved) : [] });
@@ -88,3 +88,4 @@ export const useWishlistStore = createWithEqualityFn((set, get) => ({
 		set({ wishlist: [], loading: false });
 	},
 }));
+

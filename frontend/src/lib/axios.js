@@ -1,8 +1,28 @@
-import axios from "axios";
+﻿import axios from "axios";
 
 const axiosInstance = axios.create({
 	baseURL: "/api",
 	withCredentials: true, // send cookies to the server
+});
+
+const readCookie = (name) => {
+	if (typeof document === "undefined") return null;
+	const value = document.cookie
+		.split("; ")
+		.find((entry) => entry.startsWith(`${name}=`));
+	return value ? decodeURIComponent(value.split("=").slice(1).join("=")) : null;
+};
+
+axiosInstance.interceptors.request.use((config) => {
+	const method = (config.method || "get").toLowerCase();
+	if (["post", "put", "patch", "delete"].includes(method)) {
+		const csrfToken = readCookie("csrfToken");
+		if (csrfToken) {
+			config.headers = config.headers || {};
+			config.headers["X-CSRF-Token"] = csrfToken;
+		}
+	}
+	return config;
 });
 
 let isRefreshing = false;
@@ -71,3 +91,4 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
+

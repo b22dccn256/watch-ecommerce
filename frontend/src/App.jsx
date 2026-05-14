@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster, toast } from "react-hot-toast";
 
@@ -25,6 +25,8 @@ import OrderLookupPage from "./pages/OrderLookupPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import BrandsPage from "./pages/BrandsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
@@ -132,18 +134,18 @@ function App() {
 				{user && user.role !== "admin" && !user.emailVerified && (
 					<div className="mx-auto w-full max-w-screen-xl px-4 sm:px-6 md:px-8 py-3 bg-gradient-to-r from-amber-200 to-amber-300 border-b border-amber-400 text-amber-900 shadow-sm flex justify-between items-center gap-3">
 						<div>
-							<p className="font-semibold">Email của bạn chưa được xác thực</p>
-							<p className="text-sm">Vui lòng kiểm tra email và click link xác thực để tránh bị hạn chế tạo đơn hàng.</p>
+							<p className="font-semibold">Email cá»§a báº¡n chÆ°a Ä‘Æ°á»£c xĂ¡c thá»±c</p>
+							<p className="text-sm">Vui lĂ²ng kiá»ƒm tra email vĂ  click link xĂ¡c thá»±c Ä‘á»ƒ trĂ¡nh bá»‹ háº¡n cháº¿ táº¡o Ä‘Æ¡n hĂ ng.</p>
 						</div>
 						<button
 							className={`px-4 py-2 rounded-md font-semibold ${resendLoading ? 'bg-gray-300 text-gray-700' : 'bg-amber-500 text-white hover:bg-amber-600'}`}
 							onClick={async () => {
 								try {
 									setResendLoading(true);
-									const res = await axios.post('/auth/resend-verification');
-									toast.success(res.data.message || 'Đã gửi lại email xác thực');
+									const res = await axios.post('/auth/resend-verification', { email: user.email });
+									toast.success(res.data.message || 'ÄĂ£ gá»­i láº¡i email xĂ¡c thá»±c');
 								} catch (err) {
-									const msg = err?.response?.data?.message || 'Gửi lại email xác thực thất bại';
+									const msg = err?.response?.data?.message || 'Gá»­i láº¡i email xĂ¡c thá»±c tháº¥t báº¡i';
 									toast.error(msg);
 								} finally {
 									setResendLoading(false);
@@ -151,7 +153,7 @@ function App() {
 							}}
 							disabled={resendLoading}
 						>
-							{resendLoading ? 'Đang gửi...' : 'Gửi lại email xác thực'}
+							{resendLoading ? 'Äang gá»­i...' : 'Gá»­i láº¡i email xĂ¡c thá»±c'}
 						</button>
 					</div>
 				)}
@@ -160,7 +162,9 @@ function App() {
 							<Route path='/' element={isVerifiedUser ? <HomePage /> : user ? <Navigate to='/verify-email' /> : <HomePage />} />
 							<Route path='/signup' element={!user ? <SignUpPage /> : <Navigate to='/' />} />
 							<Route path='/login' element={!user ? <LoginPage /> : <Navigate to='/' />} />
-							<Route path='/verify-email' element={<VerifyEmailPage />} />
+							<Route path='/verify-email/:token?' element={<VerifyEmailPage />} />
+							<Route path='/forgot-password' element={<ForgotPasswordPage />} />
+							<Route path='/reset-password/:token?' element={<ResetPasswordPage />} />
 							<Route
 								path='/secret-dashboard'
 								element={user?.role === "admin" || user?.role === "staff" ? <AdminPage /> : <Navigate to='/login' />}
@@ -216,3 +220,4 @@ function App() {
 }
 
 export default App;
+

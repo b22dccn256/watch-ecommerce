@@ -1,3 +1,14 @@
+// controllers/order.controller.js
+// FIX A1: Imports moved to top — ES Module best practice, prevents undefined references
+import Order from "../models/order.model.js";
+import Product from "../models/product.model.js";
+import Coupon from "../models/coupon.model.js";
+import User from "../models/user.model.js";
+import OrderService from "../services/order.service.js";
+import mongoose from "mongoose";
+import crypto from "crypto";
+import { emailQueue } from "./mail.controller.js";
+
 // User request return (after delivered)
 export const requestReturnOrder = async (req, res) => {
     try {
@@ -33,15 +44,36 @@ export const requestReturnOrder = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 };
-// controllers/order.controller.js
-import Order from "../models/order.model.js";
-import Product from "../models/product.model.js";
-import Coupon from "../models/coupon.model.js";
-import User from "../models/user.model.js";
-import OrderService from "../services/order.service.js";
-import mongoose from "mongoose";
-import crypto from "crypto";
-import { emailQueue } from "./mail.controller.js";
+
+export const cancelOrder = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order) return res.status(404).json({ message: "Order not found" });
+        if (!order.user || order.user.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: "Bạn không có quyền hủy đơn này" });
+        }
+        if (!["pending", "awaiting_verification", "confirmed"].includes(order.status)) {
+            return res.status(400).json({ message: "Chỉ có thể hủy đơn khi chưa được xử lý" });
+        }
+
+        await OrderService.restoreStock(order.products, null, order._id, "Khách hàng hủy đơn");
+        order.status = "cancelled";
+        order.paymentStatus = order.paymentStatus === "paid" ? "refunded" : "cancelled";
+        order.trackingEvents = order.trackingEvents || [];
+        order.trackingEvents.push({
+            status: "cancelled",
+            message: "Khách hàng đã hủy đơn hàng.",
+            timestamp: new Date(),
+            updatedBy: req.user._id,
+        });
+        await order.save();
+
+        res.json({ message: "Đã hủy đơn hàng" });
+    } catch (error) {
+        console.error("Error in cancelOrder:", error.message);
+        res.status(500).json({ message: "Server error" });
+    }
+};
 
 const ORDER_STATUS_TRANSITIONS = {
     pending: ["awaiting_verification", "confirmed", "cancelled"],
@@ -99,13 +131,17 @@ const ensureOrderProductsPopulated = async (order) => {
 
 export const getAllOrders = async (req, res) => {
     try {
-        const { status, startDate, endDate, search, page = 1, limit = 10 } = req.query;
+        const { status, startDate, endDate, search, page = 1, limit = 10, userId } = req.query; // FIX B5: add userId
+
         const skip = (parseInt(page) - 1) * parseInt(limit);
         
         const filter = {};
         if (status && status !== "Tất cả") filter.status = status;
         if (startDate) filter.createdAt = { $gte: new Date(startDate) };
         if (endDate) filter.createdAt = { ...filter.createdAt, $lte: new Date(endDate) };
+
+        // FIX B5: Support userId filter for UsersTab order history
+        if (userId && mongoose.Types.ObjectId.isValid(userId)) filter.user = userId;
 
         if (search) {
             const searchRegex = new RegExp(search, "i");
@@ -197,9 +233,19 @@ export const updateOrderStatus = async (req, res) => {
         } else if (status === "returned" && oldStatus !== "returned") {
             try {
                 await OrderService.restoreStock(order.products, null, order._id, "Trả hàng: " + (order.returnReason || "Không rõ lý do"));
+                // FIX D1: Set loyaltyPointsReversedAt BEFORE deducting to prevent double-deduct
+                // if restoreStock throws, we still mark it as reversed to avoid double deduct in block below
+                if (order.loyaltyPointsGranted > 0 && !order.loyaltyPointsReversedAt) {
+                    order.loyaltyPointsReversedAt = new Date(); // guard FIRST
+                    const user = await User.findById(order.user);
+                    if (user) {
+                        user.rewardPoints = Math.max(0, (user.rewardPoints || 0) - order.loyaltyPointsGranted);
+                        await user.save();
+                    }
+                    order.internalNotes = (order.internalNotes || "") + `\n[SYSTEM] Đã trừ ${order.loyaltyPointsGranted.toLocaleString()} điểm thưởng do đơn bị trả.`;
+                }
             } catch (restoreError) {
                 console.error("Error restoring stock for returned order:", restoreError.message);
-                // Ghi log vào order thay vì failed hoàn toàn
                 order.internalNotes = (order.internalNotes || "") + "\n[SYSTEM] Lỗi khi hoàn cộng tồn kho: " + restoreError.message;
             }
         }
@@ -212,8 +258,19 @@ export const updateOrderStatus = async (req, res) => {
             await User.findByIdAndUpdate(order.user, {
                 $inc: { rewardPoints: pointsToAdd, totalPointsEarned: pointsToAdd }
             });
-            // Log in order notes
+            order.loyaltyPointsGranted = pointsToAdd;
+            order.loyaltyPointsReversedAt = null;
             order.internalNotes = (order.internalNotes || "") + `\n[SYSTEM] Cộng ${pointsToAdd.toLocaleString()} điểm thưởng cho khách.`;
+            await order.save();
+        } else if (status === "refunded" && order.user && order.loyaltyPointsGranted > 0 && !order.loyaltyPointsReversedAt) {
+            // FIX D1: Only handle "refunded" here — "returned" is already handled above with stock restore
+            order.loyaltyPointsReversedAt = new Date();
+            const user = await User.findById(order.user);
+            if (user) {
+                user.rewardPoints = Math.max(0, (user.rewardPoints || 0) - order.loyaltyPointsGranted);
+                await user.save();
+            }
+            order.internalNotes = (order.internalNotes || "") + `\n[SYSTEM] Trừ ${order.loyaltyPointsGranted.toLocaleString()} điểm thưởng do đơn ${status}.`;
             await order.save();
         }
 
@@ -448,6 +505,11 @@ export const confirmQRPayment = async (req, res) => {
         const order = await Order.findById(id);
         if (!order) {
             return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+        }
+
+        // FIX E2: Guard against guest orders where order.user is null/undefined
+        if (!order.user) {
+            return res.status(403).json({ message: "Không thể xác nhận thanh toán cho đơn hàng khách vãng lai" });
         }
 
         if (order.user.toString() !== req.user._id.toString()) {

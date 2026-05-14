@@ -1,4 +1,4 @@
-import { Trash, ShoppingCart } from "lucide-react";
+﻿import { Trash, ShoppingCart } from "lucide-react";
 import { useCartStore } from "../stores/useCartStore";
 
 const WishlistItem = ({ item }) => {
@@ -13,7 +13,7 @@ const WishlistItem = ({ item }) => {
 
                 <div className='flex items-center justify-between md:order-3 md:justify-end'>
                     <div className='text-end md:w-32'>
-                        <p className='text-base font-bold text-emerald-400'>{item.price.toLocaleString("vi-VN")} ₫</p>
+                        <p className='text-base font-bold text-emerald-400'>{item.price.toLocaleString("vi-VN")} â‚«</p>
                     </div>
                 </div>
 
@@ -28,19 +28,19 @@ const WishlistItem = ({ item }) => {
                             className='inline-flex items-center text-sm font-medium text-red-400
 							 hover:text-red-300 hover:underline'
                             onClick={() => removeFromWishlist(item._id)}
-                            title='Xóa khỏi mua sau'
+                            title='XĂ³a khá»i mua sau'
                         >
                             <Trash className="w-4 h-4" />
-                            <span className='ml-1'>Xóa</span>
+                            <span className='ml-1'>XĂ³a</span>
                         </button>
                         <button
                             className='inline-flex items-center text-sm font-medium text-emerald-400
 							 hover:text-emerald-300 hover:underline'
                             onClick={() => moveToCartFromWishlist(item)}
-                            title='Chuyển lại vào giỏ hàng'
+                            title='Chuyá»ƒn láº¡i vĂ o giá» hĂ ng'
                         >
                             <ShoppingCart className="w-4 h-4" />
-                            <span className='ml-1'>Chuyển vào giỏ</span>
+                            <span className='ml-1'>Chuyá»ƒn vĂ o giá»</span>
                         </button>
                     </div>
                 </div>
@@ -50,3 +50,4 @@ const WishlistItem = ({ item }) => {
 };
 
 export default WishlistItem;
+

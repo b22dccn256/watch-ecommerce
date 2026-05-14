@@ -2,12 +2,12 @@ import express from "express";
 import { protectRoute, managementRoute } from "../middleware/auth.middleware.js";
 import { 
 	// Admin routes
-	getInbox, markContactRead, replyToContact,
-	getSubscribers, exportSubscribers,
+	getMailStats, getInbox, deleteMessage, markContactRead, replyToContact,
+	getSubscribers, exportSubscribers, deleteSubscriber,
 	getTemplates, createTemplate, updateTemplate,
 	getCampaigns, createCampaign, sendCampaignNow, scheduleCampaign,
 	// Public/Tracking routes
-	subscribeNewsletter, trackOpen, trackClick, unsubscribe
+	subscribeNewsletter, trackOpen, trackClick, unsubscribe, unsubscribeByToken
 } from "../controllers/mail.controller.js";
 import rateLimit from "express-rate-limit";
 
@@ -24,17 +24,23 @@ const trackingLimiter = rateLimit({
 router.post("/subscribe", trackingLimiter, subscribeNewsletter);
 router.get("/track/open/:logId", trackingLimiter, trackOpen);
 router.get("/track/click/:logId", trackingLimiter, trackClick);
+// C.4: Token-based unsubscribe (secure, no PII in URL)
+router.get("/unsubscribe/by-token/:token", trackingLimiter, unsubscribeByToken);
+// Legacy email-based unsubscribe kept for backward compatibility
 router.get("/unsubscribe/:email", trackingLimiter, unsubscribe);
 
 // --- Admin Protected Routes ---
+router.get("/stats", protectRoute, managementRoute, getMailStats);
 // Inbox
 router.get("/inbox", protectRoute, managementRoute, getInbox);
+router.delete("/inbox/:id", protectRoute, managementRoute, deleteMessage);
 router.patch("/inbox/:id/read", protectRoute, managementRoute, markContactRead);
 router.post("/inbox/:id/reply", protectRoute, managementRoute, replyToContact);
 
 // Subscribers
 router.get("/subscribers", protectRoute, managementRoute, getSubscribers);
 router.get("/subscribers/export", protectRoute, managementRoute, exportSubscribers);
+router.delete("/subscribers/:id", protectRoute, managementRoute, deleteSubscriber);
 
 // Templates
 router.get("/templates", protectRoute, managementRoute, getTemplates);

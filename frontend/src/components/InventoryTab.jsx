@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+﻿import { useEffect, useState, useMemo } from "react";
 import { useInventoryStore } from "../stores/useInventoryStore";
 import { useProductStore } from "../stores/useProductStore";
 import { motion, AnimatePresence } from "framer-motion";
@@ -72,12 +72,12 @@ const InventoryTab = () => {
 
     return (
         <div className="space-y-8">
-            {/* Thống kê Tổng quan */}
+            {/* Thá»‘ng kĂª Tá»•ng quan */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border p-6 rounded-2xl shadow-sm">
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Tổng giá trị kho</p>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Tá»•ng giĂ¡ trá»‹ kho</p>
                     <p className="text-3xl font-bold text-luxury-gold">
-                        {products?.reduce((sum, p) => sum + (p.stock * (p.costPrice || 0)), 0).toLocaleString("vi-VN")} ₫
+                        {products?.reduce((sum, p) => sum + (p.stock * (p.costPrice || 0)), 0).toLocaleString("vi-VN")} â‚«
                     </p>
                 </div>
             </div>
@@ -87,21 +87,21 @@ const InventoryTab = () => {
                 <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
                 <h2 className="text-xl font-bold flex items-center text-red-600 dark:text-red-400 mb-4">
                     <AlertCircle className="w-6 h-6 mr-2" />
-                    Cảnh báo Tồn kho Thiếu Hụt
+                    Cáº£nh bĂ¡o Tá»“n kho Thiáº¿u Há»¥t
                 </h2>
                 {lowStockProducts.length === 0 ? (
                     <p className="text-sm font-medium text-[color:var(--color-gold)] flex items-center gap-2 p-3 rounded-lg w-fit border border-[color:var(--color-gold)]/20 bg-[color:var(--color-gold)]/8">
-                        Tất cả sản phẩm đều đang đạt mức tồn kho an toàn.
+                        Táº¥t cáº£ sáº£n pháº©m Ä‘á»u Ä‘ang Ä‘áº¡t má»©c tá»“n kho an toĂ n.
                     </p>
                 ) : (
                     <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-red-100 dark:border-red-900/30">
                         <table className="min-w-full divide-y divide-gray-100 dark:divide-gray-700">
                             <thead className="bg-red-50/50 dark:bg-red-900/20">
                                 <tr>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider">Sản phẩm</th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider">Tồn kho hiện tại</th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider">Hạn mức đề xuất</th>
-                                    <th className="px-5 py-3 text-right text-xs font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider">Thao tác</th>
+                                    <th className="px-5 py-3 text-left text-xs font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider">Sáº£n pháº©m</th>
+                                    <th className="px-5 py-3 text-left text-xs font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider">Tá»“n kho hiá»‡n táº¡i</th>
+                                    <th className="px-5 py-3 text-left text-xs font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider">Háº¡n má»©c Ä‘á» xuáº¥t</th>
+                                    <th className="px-5 py-3 text-right text-xs font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider">Thao tĂ¡c</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
@@ -114,13 +114,13 @@ const InventoryTab = () => {
                                             </div>
                                         </td>
                                         <td className="px-5 py-3 font-bold text-red-600 dark:text-red-400 text-lg">{p.stock}</td>
-                                        <td className="px-5 py-3 text-gray-500 dark:text-gray-400">{p.lowStockThreshold || 5} sản phẩm</td>
+                                        <td className="px-5 py-3 text-gray-500 dark:text-gray-400">{p.lowStockThreshold || 5} sáº£n pháº©m</td>
                                         <td className="px-5 py-3 text-right">
                                             <button 
                                                 onClick={() => { setAction("IN"); openAdjust(p._id); }}
                                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 shadow-sm transition-colors text-xs font-bold"
                                             >
-                                                <PlusCircle className="w-3.5 h-3.5" /> Nhập Kho Ngay
+                                                <PlusCircle className="w-3.5 h-3.5" /> Nháº­p Kho Ngay
                                             </button>
                                         </td>
                                     </tr>
@@ -135,14 +135,14 @@ const InventoryTab = () => {
             <section>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-luxury-gold flex items-center gap-2">
-                        <History className="w-6 h-6 text-luxury-gold" /> Kiểm Kê & Lịch Sự
+                        <History className="w-6 h-6 text-luxury-gold" /> Kiá»ƒm KĂª & Lá»‹ch Sá»±
                     </h2>
                     <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
                         <div className="relative w-full sm:w-64">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Tìm kiếm sản phẩm..."
+                                placeholder="TĂ¬m kiáº¿m sáº£n pháº©m..."
                                 value={search}
                                 onChange={handleSearch}
                                 className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-luxury-gold transition"
@@ -152,7 +152,7 @@ const InventoryTab = () => {
                             onClick={() => { setSelectedProduct(""); setAction("ADJUST"); setShowAdjustModal(true); }}
                             className="bg-luxury-gold font-bold text-luxury-dark px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-yellow-500 transition shadow w-full sm:w-auto justify-center"
                         >
-                            <Edit3 className="w-4 h-4" /> Khởi tạo Kiểm kê
+                            <Edit3 className="w-4 h-4" /> Khá»Ÿi táº¡o Kiá»ƒm kĂª
                         </button>
                     </div>
                 </div>
@@ -162,17 +162,17 @@ const InventoryTab = () => {
                         <table className="min-w-full divide-y divide-gray-100 dark:divide-gray-700 relative">
                             <thead className="bg-gray-50/95 dark:bg-gray-700/95 backdrop-blur-sm sticky top-0 z-10 shadow-sm">
                                 <tr>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Sản phẩm</th>
+                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Sáº£n pháº©m</th>
                                     <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">SKU / Brand</th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Tồn kho</th>
-                                    <th className="px-5 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Thao tác</th>
+                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Tá»“n kho</th>
+                                    <th className="px-5 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Thao tĂ¡c</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                                 {paginatedProducts.length === 0 ? (
                                     <tr>
                                         <td colSpan="4" className="text-center py-12 text-gray-400">
-                                            Không tìm thấy sản phẩm nào.
+                                            KhĂ´ng tĂ¬m tháº¥y sáº£n pháº©m nĂ o.
                                         </td>
                                     </tr>
                                 ) : paginatedProducts.map(p => (
@@ -193,14 +193,14 @@ const InventoryTab = () => {
                                             <button 
                                                 onClick={() => { setAction("ADJUST"); openAdjust(p._id); }} 
                                                 className="inline-flex items-center justify-center p-2 bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-luxury-gold hover:text-luxury-dark transition-colors"
-                                                title="Điều chỉnh số lượng"
+                                                title="Äiá»u chá»‰nh sá»‘ lÆ°á»£ng"
                                             >
                                                 <Edit3 className="w-4 h-4" />
                                             </button>
                                             <button 
                                                 onClick={() => openLogs(p._id)} 
                                                 className="inline-flex items-center justify-center p-2 bg-[color:var(--color-gold)]/10 text-[color:var(--color-gold)] rounded-lg hover:bg-[color:var(--color-gold)]/20 transition-colors"
-                                                title="Xem lịch sử"
+                                                title="Xem lá»‹ch sá»­"
                                             >
                                                 <BookOpen className="w-4 h-4" />
                                             </button>
@@ -215,7 +215,7 @@ const InventoryTab = () => {
                     {totalPages > 1 && (
                         <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 flex items-center justify-between border-t border-gray-100 dark:border-gray-600">
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Trang {currentPage} / {totalPages} • {filteredProducts.length} sản phẩm
+                                Trang {currentPage} / {totalPages} â€¢ {filteredProducts.length} sáº£n pháº©m
                             </p>
                             <div className="flex items-center gap-2">
                                 <button
@@ -263,7 +263,7 @@ const InventoryTab = () => {
                     >
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-xl font-bold dark:text-luxury-gold flex items-center gap-2">
-                                <Edit3 className="w-5 h-5" /> Điều chỉnh tồn kho
+                                <Edit3 className="w-5 h-5" /> Äiá»u chá»‰nh tá»“n kho
                             </h3>
                             <button 
                                 onClick={() => setShowAdjustModal(false)}
@@ -274,32 +274,32 @@ const InventoryTab = () => {
                         </div>
                         <form onSubmit={handleAdjustSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Chọn sản phẩm</label>
+                                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Chá»n sáº£n pháº©m</label>
                                 <select 
                                     className="w-full bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border rounded-lg px-3 py-2 dark:text-white"
                                     value={selectedProduct}
                                     onChange={(e) => setSelectedProduct(e.target.value)}
                                     required
                                 >
-                                    <option value="">-- Chọn sản phẩm --</option>
+                                    <option value="">-- Chá»n sáº£n pháº©m --</option>
                                     {products.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
                                 </select>
                             </div>
                             <div className="flex gap-4">
                                 <div className="flex-1">
-                                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Loại thao tác</label>
+                                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Loáº¡i thao tĂ¡c</label>
                                     <select 
                                         className="w-full bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border rounded-lg px-3 py-2 dark:text-white"
                                         value={action}
                                         onChange={(e) => setAction(e.target.value)}
                                     >
-                                        <option value="IN">Nhập Kho (+)</option>
-                                        <option value="OUT">Xuất Kho (-)</option>
-                                        <option value="ADJUST">Kiểm Kê (Set số mới)</option>
+                                        <option value="IN">Nháº­p Kho (+)</option>
+                                        <option value="OUT">Xuáº¥t Kho (-)</option>
+                                        <option value="ADJUST">Kiá»ƒm KĂª (Set sá»‘ má»›i)</option>
                                     </select>
                                 </div>
                                 <div className="flex-1">
-                                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Số lượng</label>
+                                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Sá»‘ lÆ°á»£ng</label>
                                     <input 
                                         type="number" min="1" required
                                         className="w-full bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border rounded-lg px-3 py-2 dark:text-white"
@@ -308,11 +308,11 @@ const InventoryTab = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Ghi chú / Lý do</label>
+                                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Ghi chĂº / LĂ½ do</label>
                                 <textarea 
                                     className="w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold focus:ring-1 focus:ring-luxury-gold transition resize-none"
                                     rows="2" required
-                                    placeholder="Vd: Nhập lô hàng mới tháng 4..."
+                                    placeholder="Vd: Nháº­p lĂ´ hĂ ng má»›i thĂ¡ng 4..."
                                     value={note} onChange={e => setNote(e.target.value)}
                                 />
                             </div>
@@ -321,7 +321,7 @@ const InventoryTab = () => {
                                     type="submit" disabled={loading}
                                     className="w-full bg-luxury-gold text-luxury-dark font-bold py-2.5 rounded-lg hover:bg-yellow-500 shadow-md transition-colors disabled:opacity-50"
                                 >
-                                    {loading ? "Đang xử lý..." : "Xác nhận cập nhật"}
+                                    {loading ? "Äang xá»­ lĂ½..." : "XĂ¡c nháº­n cáº­p nháº­t"}
                                 </button>
                             </div>
                         </form>
@@ -342,7 +342,7 @@ const InventoryTab = () => {
                     >
                         <div className="flex justify-between items-center mb-6 border-b border-gray-100 dark:border-luxury-border pb-4">
                             <h3 className="text-xl font-bold dark:text-luxury-gold flex items-center gap-2">
-                                <History className="w-5 h-5" /> Lịch sử xuất / nhập kho
+                                <History className="w-5 h-5" /> Lá»‹ch sá»­ xuáº¥t / nháº­p kho
                             </h3>
                             <button 
                                 onClick={() => setShowLogsModal(false)}
@@ -353,7 +353,7 @@ const InventoryTab = () => {
                         </div>
                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
                             {inventoryLogs.length === 0 ? (
-                                <p className="text-center text-gray-500 py-8">Chưa có lịch sử nào ghi nhận.</p>
+                                <p className="text-center text-gray-500 py-8">ChÆ°a cĂ³ lá»‹ch sá»­ nĂ o ghi nháº­n.</p>
                             ) : (
                                 <div className="space-y-3">
                                     {inventoryLogs.map(log => (
@@ -364,7 +364,7 @@ const InventoryTab = () => {
                                                 </span>
                                                 <span className="text-gray-400">{new Date(log.createdAt).toLocaleString()}</span>
                                             </div>
-                                            <p className="text-gray-600 dark:text-gray-300">Lý do: <span className="font-medium">{log.note}</span></p>
+                                            <p className="text-gray-600 dark:text-gray-300">LĂ½ do: <span className="font-medium">{log.note}</span></p>
                                             {log.referenceOrderId && (
                                                 <p className="text-xs text-gray-500 mt-1">Order Ref: {log.referenceOrderId.orderCode || log.referenceOrderId._id}</p>
                                             )}
@@ -385,3 +385,4 @@ const InventoryTab = () => {
 };
 
 export default InventoryTab;
+

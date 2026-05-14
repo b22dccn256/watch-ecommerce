@@ -132,6 +132,15 @@ const orderSchema = new mongoose.Schema(
 			default: 0,
 			min: 0,
 		},
+		loyaltyPointsGranted: {
+			type: Number,
+			default: 0,
+			min: 0,
+		},
+		loyaltyPointsReversedAt: {
+			type: Date,
+			default: null,
+		},
 		carrierTrackingNumber: {
 			type: String,
 		},

@@ -1,4 +1,4 @@
-import { createWithEqualityFn } from "zustand/traditional";
+﻿import { createWithEqualityFn } from "zustand/traditional";
 import { persist } from "zustand/middleware";
 
 export const useThemeStore = createWithEqualityFn(
@@ -24,3 +24,4 @@ window.addEventListener("storage", (event) => {
 		useThemeStore.getState().setTheme(newTheme);
 	}
 });
+

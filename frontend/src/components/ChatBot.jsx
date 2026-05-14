@@ -1,14 +1,14 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Bot, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import axios from "../lib/axios";
 
 const QUICK_QUESTIONS = [
-    "Rolex Submariner giá bao nhiêu?",
-    "Chính sách bảo hành?",
-    "Giao hàng mất bao lâu?",
-    "Đồng hồ Patek Philippe nào phổ biến nhất?",
+    "Rolex Submariner giĂ¡ bao nhiĂªu?",
+    "ChĂ­nh sĂ¡ch báº£o hĂ nh?",
+    "Giao hĂ ng máº¥t bao lĂ¢u?",
+    "Äá»“ng há»“ Patek Philippe nĂ o phá»• biáº¿n nháº¥t?",
 ];
 
 const stripAccents = (value) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -63,7 +63,7 @@ const parseBudgetQuery = (text) => {
 
     const maxPrice = amount * 1000000;
 
-    if (includesAny(normalized, ["duoi", "toi da", "khong qua", "under", "less than", "<=", "≤"])) {
+    if (includesAny(normalized, ["duoi", "toi da", "khong qua", "under", "less than", "<=", "â‰¤"])) {
         return { maxPrice };
     }
 
@@ -87,81 +87,81 @@ const parseBudgetQuery = (text) => {
 
 const formatBudgetProducts = (products, budgetText) => {
     if (!products.length) {
-        return `Hiện tại chưa có sản phẩm phù hợp ${budgetText}. Bạn muốn mình lọc theo mức giá gần nhất hoặc theo thương hiệu không?`;
+        return `Hiá»‡n táº¡i chÆ°a cĂ³ sáº£n pháº©m phĂ¹ há»£p ${budgetText}. Báº¡n muá»‘n mĂ¬nh lá»c theo má»©c giĂ¡ gáº§n nháº¥t hoáº·c theo thÆ°Æ¡ng hiá»‡u khĂ´ng?`;
     }
 
     const lines = products.slice(0, 5).map((product) => {
-        const brandName = product.brand?.name || product.brand || "Không rõ";
+        const brandName = product.brand?.name || product.brand || "KhĂ´ng rĂµ";
         const price = Number(product.price || 0).toLocaleString("vi-VN");
-        return `* **${brandName} ${product.name}**: ${price}đ${product.stock > 0 ? ` - Còn ${product.stock} chiếc` : " - Hết hàng"}`;
+        return `* **${brandName} ${product.name}**: ${price}Ä‘${product.stock > 0 ? ` - CĂ²n ${product.stock} chiáº¿c` : " - Háº¿t hĂ ng"}`;
     });
 
-    return `Mình tìm được các mẫu phù hợp ${budgetText}:\n\n${lines.join("\n")}\n\nBạn muốn mình lọc tiếp theo thương hiệu, kiểu máy hay màu dây không?`;
+    return `MĂ¬nh tĂ¬m Ä‘Æ°á»£c cĂ¡c máº«u phĂ¹ há»£p ${budgetText}:\n\n${lines.join("\n")}\n\nBáº¡n muá»‘n mĂ¬nh lá»c tiáº¿p theo thÆ°Æ¡ng hiá»‡u, kiá»ƒu mĂ¡y hay mĂ u dĂ¢y khĂ´ng?`;
 };
 
 const buildAction = (label, to, description = "") => ({ label, to, description });
 
 const INTENT_RESPONSE = {
     wrist: {
-        content: "Với cổ tay nhỏ, mình ưu tiên mặt 28-38mm, case mỏng, dây thanh và lug-to-lug ngắn để đeo cân đối. Mình sẽ lọc vài mẫu hợp dáng tay ngay đây:",
-        action: buildAction("Mở Size Guide", "/size-guide", "Đo cổ tay chính xác hơn"),
+        content: "Vá»›i cá»• tay nhá», mĂ¬nh Æ°u tiĂªn máº·t 28-38mm, case má»ng, dĂ¢y thanh vĂ  lug-to-lug ngáº¯n Ä‘á»ƒ Ä‘eo cĂ¢n Ä‘á»‘i. MĂ¬nh sáº½ lá»c vĂ i máº«u há»£p dĂ¡ng tay ngay Ä‘Ă¢y:",
+        action: buildAction("Má»Ÿ Size Guide", "/size-guide", "Äo cá»• tay chĂ­nh xĂ¡c hÆ¡n"),
     },
     compare: {
-        content: "Nếu bạn muốn so sánh mẫu, mình có thể gợi ý theo 3 hướng: độ bền, giá trị giữ giá và độ hợp dáng tay. Bạn cũng có thể mở catalog để đối chiếu trực tiếp.",
-        action: buildAction("Mở Catalog", "/catalog", "So sánh sản phẩm trực tiếp"),
+        content: "Náº¿u báº¡n muá»‘n so sĂ¡nh máº«u, mĂ¬nh cĂ³ thá»ƒ gá»£i Ă½ theo 3 hÆ°á»›ng: Ä‘á»™ bá»n, giĂ¡ trá»‹ giá»¯ giĂ¡ vĂ  Ä‘á»™ há»£p dĂ¡ng tay. Báº¡n cÅ©ng cĂ³ thá»ƒ má»Ÿ catalog Ä‘á»ƒ Ä‘á»‘i chiáº¿u trá»±c tiáº¿p.",
+        action: buildAction("Má»Ÿ Catalog", "/catalog", "So sĂ¡nh sáº£n pháº©m trá»±c tiáº¿p"),
     },
     sizeGuide: {
-        content: "Mở size guide sẽ giúp bạn đo cổ tay và chọn đường kính mặt đồng hồ phù hợp nhất.",
-        action: buildAction("Mở Size Guide", "/size-guide", "Công cụ đo size"),
+        content: "Má»Ÿ size guide sáº½ giĂºp báº¡n Ä‘o cá»• tay vĂ  chá»n Ä‘Æ°á»ng kĂ­nh máº·t Ä‘á»“ng há»“ phĂ¹ há»£p nháº¥t.",
+        action: buildAction("Má»Ÿ Size Guide", "/size-guide", "CĂ´ng cá»¥ Ä‘o size"),
     },
     tracking: {
-        content: "Bạn có thể dán mã theo dõi để xem trạng thái đơn hàng theo thời gian thực.",
-        action: buildAction("Theo dõi đơn", "/order-tracking/search", "Nhập mã tracking"),
+        content: "Báº¡n cĂ³ thá»ƒ dĂ¡n mĂ£ theo dĂµi Ä‘á»ƒ xem tráº¡ng thĂ¡i Ä‘Æ¡n hĂ ng theo thá»i gian thá»±c.",
+        action: buildAction("Theo dĂµi Ä‘Æ¡n", "/order-tracking/search", "Nháº­p mĂ£ tracking"),
     },
     warranty: {
-        content: "Tất cả sản phẩm được bảo hành chính hãng 5 năm. Bảo hành gồm sửa chữa miễn phí, thay thế linh kiện chính hãng và vệ sinh định kỳ.",
-        action: buildAction("Xem chính sách bảo hành", "/warranty", "Chi tiết bảo hành"),
+        content: "Táº¥t cáº£ sáº£n pháº©m Ä‘Æ°á»£c báº£o hĂ nh chĂ­nh hĂ£ng 5 nÄƒm. Báº£o hĂ nh gá»“m sá»­a chá»¯a miá»…n phĂ­, thay tháº¿ linh kiá»‡n chĂ­nh hĂ£ng vĂ  vá»‡ sinh Ä‘á»‹nh ká»³.",
+        action: buildAction("Xem chĂ­nh sĂ¡ch báº£o hĂ nh", "/warranty", "Chi tiáº¿t báº£o hĂ nh"),
     },
     shipping: {
-        content: "Giao hàng hỏa tốc 2-4 giờ nội thành, toàn quốc 1-2 ngày làm việc, miễn phí với đa số đơn hàng.",
-        action: buildAction("Xem chính sách giao hàng", "/delivery-policy", "Thời gian và phí ship"),
+        content: "Giao hĂ ng há»a tá»‘c 2-4 giá» ná»™i thĂ nh, toĂ n quá»‘c 1-2 ngĂ y lĂ m viá»‡c, miá»…n phĂ­ vá»›i Ä‘a sá»‘ Ä‘Æ¡n hĂ ng.",
+        action: buildAction("Xem chĂ­nh sĂ¡ch giao hĂ ng", "/delivery-policy", "Thá»i gian vĂ  phĂ­ ship"),
     },
     payment: {
-        content: "Chúng tôi hỗ trợ thẻ quốc tế, VNPay, MoMo, chuyển khoản ngân hàng và COD tùy đơn hàng.",
-        action: buildAction("Xem thanh toán", "/checkout", "Xem luồng thanh toán"),
+        content: "ChĂºng tĂ´i há»— trá»£ tháº» quá»‘c táº¿, VNPay, MoMo, chuyá»ƒn khoáº£n ngĂ¢n hĂ ng vĂ  COD tĂ¹y Ä‘Æ¡n hĂ ng.",
+        action: buildAction("Xem thanh toĂ¡n", "/checkout", "Xem luá»“ng thanh toĂ¡n"),
     },
     returns: {
-        content: "Đổi trả trong vòng 30 ngày nếu sản phẩm còn nguyên tem, hộp và chưa qua sử dụng.",
-        action: buildAction("Xem đổi trả", "/terms", "Chính sách đổi trả"),
+        content: "Äá»•i tráº£ trong vĂ²ng 30 ngĂ y náº¿u sáº£n pháº©m cĂ²n nguyĂªn tem, há»™p vĂ  chÆ°a qua sá»­ dá»¥ng.",
+        action: buildAction("Xem Ä‘á»•i tráº£", "/terms", "ChĂ­nh sĂ¡ch Ä‘á»•i tráº£"),
     },
     contact: {
-        content: "Bạn có thể liên hệ hotline 1900 6789 hoặc email contact@luxurywatch.vn để được hỗ trợ nhanh.",
-        action: buildAction("Liên hệ", "/contact", "Mở trang liên hệ"),
+        content: "Báº¡n cĂ³ thá»ƒ liĂªn há»‡ hotline 1900 6789 hoáº·c email contact@luxurywatch.vn Ä‘á»ƒ Ä‘Æ°á»£c há»— trá»£ nhanh.",
+        action: buildAction("LiĂªn há»‡", "/contact", "Má»Ÿ trang liĂªn há»‡"),
     },
     account: {
-        content: "Nếu bạn cần đăng nhập, đăng ký hay xác thực email, mình có thể dẫn bạn sang đúng màn hình ngay.",
-        action: buildAction("Mở hồ sơ", "/profile", "Trang tài khoản"),
+        content: "Náº¿u báº¡n cáº§n Ä‘Äƒng nháº­p, Ä‘Äƒng kĂ½ hay xĂ¡c thá»±c email, mĂ¬nh cĂ³ thá»ƒ dáº«n báº¡n sang Ä‘Ăºng mĂ n hĂ¬nh ngay.",
+        action: buildAction("Má»Ÿ há»“ sÆ¡", "/profile", "Trang tĂ i khoáº£n"),
     },
     fallback: {
-        content: "Mình có thể tư vấn theo ngân sách, size cổ tay, top sản phẩm bán chạy hoặc đánh giá cao. Nếu bạn muốn, hãy nói ngắn hơn một chút để mình bắt đúng nhu cầu.",
-        action: buildAction("Mở Catalog", "/catalog", "Xem toàn bộ sản phẩm"),
+        content: "MĂ¬nh cĂ³ thá»ƒ tÆ° váº¥n theo ngĂ¢n sĂ¡ch, size cá»• tay, top sáº£n pháº©m bĂ¡n cháº¡y hoáº·c Ä‘Ă¡nh giĂ¡ cao. Náº¿u báº¡n muá»‘n, hĂ£y nĂ³i ngáº¯n hÆ¡n má»™t chĂºt Ä‘á»ƒ mĂ¬nh báº¯t Ä‘Ăºng nhu cáº§u.",
+        action: buildAction("Má»Ÿ Catalog", "/catalog", "Xem toĂ n bá»™ sáº£n pháº©m"),
     },
 };
 
 const formatRankedProducts = (products, heading) => {
     if (!products.length) {
         return {
-            content: `Hiện tại mình chưa tìm thấy sản phẩm phù hợp cho mục ${heading}.`,
+            content: `Hiá»‡n táº¡i mĂ¬nh chÆ°a tĂ¬m tháº¥y sáº£n pháº©m phĂ¹ há»£p cho má»¥c ${heading}.`,
             products: [],
         };
     }
 
     return {
-        content: `Đây là ${heading} mà mình tìm được từ catalog:`,
+        content: `ÄĂ¢y lĂ  ${heading} mĂ  mĂ¬nh tĂ¬m Ä‘Æ°á»£c tá»« catalog:`,
         products: products.slice(0, 5).map((product) => ({
             id: product._id,
             name: product.name,
-            brand: product.brand?.name || product.brand || "Không rõ",
+            brand: product.brand?.name || product.brand || "KhĂ´ng rĂµ",
             price: Number(product.price || 0),
             stock: product.stock || 0,
             averageRating: Number(product.averageRating || 0),
@@ -180,17 +180,17 @@ const parseDiameterMm = (product) => {
 const formatWristProducts = (products) => {
     if (!products.length) {
         return {
-            content: "Hiện tại mình chưa tìm thấy mẫu phù hợp cho cổ tay nhỏ. Bạn có thể mở Size Guide để đo cổ tay chính xác hơn.",
+            content: "Hiá»‡n táº¡i mĂ¬nh chÆ°a tĂ¬m tháº¥y máº«u phĂ¹ há»£p cho cá»• tay nhá». Báº¡n cĂ³ thá»ƒ má»Ÿ Size Guide Ä‘á»ƒ Ä‘o cá»• tay chĂ­nh xĂ¡c hÆ¡n.",
             products: [],
         };
     }
 
     return {
-        content: "Với cổ tay nhỏ, mình ưu tiên mặt 28-38mm, dây mảnh và case mỏng để đeo cân đối. Đây là vài mẫu phù hợp từ catalog:",
+        content: "Vá»›i cá»• tay nhá», mĂ¬nh Æ°u tiĂªn máº·t 28-38mm, dĂ¢y máº£nh vĂ  case má»ng Ä‘á»ƒ Ä‘eo cĂ¢n Ä‘á»‘i. ÄĂ¢y lĂ  vĂ i máº«u phĂ¹ há»£p tá»« catalog:",
         products: products.slice(0, 5).map((product) => ({
             id: product._id,
             name: product.name,
-            brand: product.brand?.name || product.brand || "Không rõ",
+            brand: product.brand?.name || product.brand || "KhĂ´ng rĂµ",
             price: Number(product.price || 0),
             stock: product.stock || 0,
             averageRating: Number(product.averageRating || 0),
@@ -208,7 +208,7 @@ const ChatBot = () => {
         {
             id: 1,
             role: "bot",
-            content: "Xin chào! Tôi là trợ lý AI của Luxury Watch 👑\n\nTôi có thể giúp bạn tìm kiếm đồng hồ phù hợp, tư vấn thương hiệu và giải đáp mọi thắc mắc. Bạn cần hỗ trợ gì không?",
+            content: "Xin chĂ o! TĂ´i lĂ  trá»£ lĂ½ AI cá»§a Luxury Watch đŸ‘‘\n\nTĂ´i cĂ³ thá»ƒ giĂºp báº¡n tĂ¬m kiáº¿m Ä‘á»“ng há»“ phĂ¹ há»£p, tÆ° váº¥n thÆ°Æ¡ng hiá»‡u vĂ  giáº£i Ä‘Ă¡p má»i tháº¯c máº¯c. Báº¡n cáº§n há»— trá»£ gĂ¬ khĂ´ng?",
         },
     ]);
     const [input, setInput] = useState("");
@@ -304,7 +304,7 @@ const ChatBot = () => {
 
                 const summary = formatRankedProducts(
                     rankedProducts,
-                    intent.type === "topRated" ? "5 sản phẩm đánh giá cao nhất" : "5 sản phẩm bán chạy nhất"
+                    intent.type === "topRated" ? "5 sáº£n pháº©m Ä‘Ă¡nh giĂ¡ cao nháº¥t" : "5 sáº£n pháº©m bĂ¡n cháº¡y nháº¥t"
                 );
 
                 const botMsg = {
@@ -312,7 +312,7 @@ const ChatBot = () => {
                     role: "bot",
                     content: summary.content,
                     products: summary.products,
-                    actions: [buildAction("Mở Catalog", "/catalog", "Xem toàn bộ catalog")],
+                    actions: [buildAction("Má»Ÿ Catalog", "/catalog", "Xem toĂ n bá»™ catalog")],
                 };
                 setMessages((prev) => [...prev, botMsg]);
                 return;
@@ -332,10 +332,10 @@ const ChatBot = () => {
 
                 const products = Array.isArray(res.data?.products) ? res.data.products : [];
                 const budgetText = budget.minPrice != null && budget.maxPrice != null
-                    ? `trong khoảng ${Math.round(budget.minPrice / 1000000)} đến ${Math.round(budget.maxPrice / 1000000)} triệu`
+                    ? `trong khoáº£ng ${Math.round(budget.minPrice / 1000000)} Ä‘áº¿n ${Math.round(budget.maxPrice / 1000000)} triá»‡u`
                     : budget.maxPrice != null
-                        ? `dưới ${Math.round(budget.maxPrice / 1000000)} triệu`
-                        : `ở mức giá này`;
+                        ? `dÆ°á»›i ${Math.round(budget.maxPrice / 1000000)} triá»‡u`
+                        : `á»Ÿ má»©c giĂ¡ nĂ y`;
 
                 const botMsg = {
                     id: Date.now() + 1,
@@ -344,14 +344,14 @@ const ChatBot = () => {
                     products: products.slice(0, 5).map((product) => ({
                         id: product._id,
                         name: product.name,
-                        brand: product.brand?.name || product.brand || "Không rõ",
+                        brand: product.brand?.name || product.brand || "KhĂ´ng rĂµ",
                         price: Number(product.price || 0),
                         stock: product.stock || 0,
                         averageRating: Number(product.averageRating || 0),
                         salesCount: Number(product.salesCount || 0),
                         image: product.image,
                     })),
-                    actions: [buildAction("Mở Catalog", "/catalog", "Xem thêm sản phẩm")],
+                    actions: [buildAction("Má»Ÿ Catalog", "/catalog", "Xem thĂªm sáº£n pháº©m")],
                 };
                 setMessages((prev) => [...prev, botMsg]);
                 return;
@@ -362,14 +362,14 @@ const ChatBot = () => {
                 id: Date.now() + 1,
                 role: "bot",
                 content: res.data.response,
-                actions: [buildAction("Mở Catalog", "/catalog", "Xem toàn bộ sản phẩm")],
+                actions: [buildAction("Má»Ÿ Catalog", "/catalog", "Xem toĂ n bá»™ sáº£n pháº©m")],
             };
             setMessages((prev) => [...prev, botMsg]);
         } catch {
             const errorMsg = {
                 id: Date.now() + 1,
                 role: "bot",
-                content: "Xin lỗi, hệ thống AI đang bảo trì. Vui lòng gọi 1900 6789.",
+                content: "Xin lá»—i, há»‡ thá»‘ng AI Ä‘ang báº£o trĂ¬. Vui lĂ²ng gá»i 1900 6789.",
             };
             setMessages((prev) => [...prev, errorMsg]);
         } finally {
@@ -395,10 +395,10 @@ const ChatBot = () => {
                                     <Bot className="w-5 h-5 text-black" />
                                 </div>
                                 <div>
-                                    <div className="font-bold text-black text-sm leading-tight">AI Tư Vấn</div>
+                                    <div className="font-bold text-black text-sm leading-tight">AI TÆ° Váº¥n</div>
                                     <div className="flex items-center gap-1 mt-0.5">
                                         <div className="w-1.5 h-1.5 rounded-full bg-green-700 animate-pulse" />
-                                        <span className="text-black/70 text-[10px] font-medium">Trực tuyến • Phản hồi ngay</span>
+                                        <span className="text-black/70 text-[10px] font-medium">Trá»±c tuyáº¿n â€¢ Pháº£n há»“i ngay</span>
                                     </div>
                                 </div>
                             </div>
@@ -469,11 +469,11 @@ const ChatBot = () => {
                                                             <div className="min-w-0 flex-1">
                                                                 <div className="font-semibold text-yellow-300 truncate">{product.brand} {product.name}</div>
                                                                 <div className="text-[11px] text-gray-400 mt-0.5">
-                                                                    {Number(product.price || 0).toLocaleString("vi-VN")}đ · {product.stock > 0 ? `Còn ${product.stock}` : "Hết hàng"}
+                                                                    {Number(product.price || 0).toLocaleString("vi-VN")}Ä‘ Â· {product.stock > 0 ? `CĂ²n ${product.stock}` : "Háº¿t hĂ ng"}
                                                                 </div>
                                                                 <div className="text-[10px] text-gray-500 mt-1">
-                                                                    ⭐ {Number(product.averageRating || 0).toFixed(1)} · Mua {Number(product.salesCount || 0).toLocaleString("vi-VN")}
-                                                                    {product.diameter ? ` · ${product.diameter}mm` : ""}
+                                                                    â­ {Number(product.averageRating || 0).toFixed(1)} Â· Mua {Number(product.salesCount || 0).toLocaleString("vi-VN")}
+                                                                    {product.diameter ? ` Â· ${product.diameter}mm` : ""}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -523,7 +523,7 @@ const ChatBot = () => {
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                                placeholder="Nhập câu hỏi của bạn..."
+                                placeholder="Nháº­p cĂ¢u há»i cá»§a báº¡n..."
                                 className="flex-1 bg-[#2a2a1a] border border-[#3a3a1a] focus:border-yellow-400 text-white text-sm px-4 py-2.5 rounded-xl focus:outline-none transition placeholder-gray-600"
                             />
                             <button
@@ -566,3 +566,4 @@ const ChatBot = () => {
 };
 
 export default ChatBot;
+

@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+﻿import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useCartStore } from "../stores/useCartStore";
 
@@ -34,13 +34,13 @@ const GiftCouponCard = () => {
 			<div className='space-y-4'>
 				<div>
 					<label htmlFor='voucher' className='mb-2 block text-sm font-medium text-secondary'>
-						Bạn có mã giảm giá?
+						Báº¡n cĂ³ mĂ£ giáº£m giĂ¡?
 					</label>
 					<input
 						type='text'
 						id='voucher'
 						className='input-base'
-						placeholder='Nhập mã...'
+						placeholder='Nháº­p mĂ£...'
 						value={userInputCode}
 						onChange={(e) => setUserInputCode(e.target.value)}
 						required
@@ -54,15 +54,15 @@ const GiftCouponCard = () => {
 					whileTap={{ scale: 0.95 }}
 					onClick={handleApplyCoupon}
 				>
-					Áp dụng
+					Ăp dá»¥ng
 				</motion.button>
 			</div>
 			{isCouponApplied && coupon && (
 				<div className='mt-4'>
-					<h3 className='text-lg font-medium text-primary'>Mã đã áp dụng</h3>
+					<h3 className='text-lg font-medium text-primary'>MĂ£ Ä‘Ă£ Ă¡p dá»¥ng</h3>
 
 					<p className='mt-2 text-sm text-muted'>
-						{coupon.code} - Giảm {coupon.discountPercentage}%
+						{coupon.code} - Giáº£m {coupon.discountPercentage}%
 					</p>
 
 					<motion.button
@@ -72,16 +72,16 @@ const GiftCouponCard = () => {
 						whileTap={{ scale: 0.95 }}
 						onClick={handleRemoveCoupon}
 					>
-						Gỡ mã giảm giá
+						Gá»¡ mĂ£ giáº£m giĂ¡
 					</motion.button>
 				</div>
 			)}
 
 			{coupon && (
 				<div className='mt-4'>
-					<h3 className='text-lg font-medium text-primary'>Mã giảm giá dành cho bạn:</h3>
+					<h3 className='text-lg font-medium text-primary'>MĂ£ giáº£m giĂ¡ dĂ nh cho báº¡n:</h3>
 					<p className='mt-2 text-sm text-muted'>
-						{coupon.code} - Giảm {coupon.discountPercentage}%
+						{coupon.code} - Giáº£m {coupon.discountPercentage}%
 					</p>
 				</div>
 			)}
@@ -89,3 +89,4 @@ const GiftCouponCard = () => {
 	);
 };
 export default GiftCouponCard;
+

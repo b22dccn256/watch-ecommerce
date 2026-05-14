@@ -5,6 +5,7 @@ const productSchema = new mongoose.Schema(
 		name: {
 			type: String,
 			required: true,
+			index: true,
 		},
 		description: {
 			type: String,
@@ -70,6 +71,15 @@ const productSchema = new mongoose.Schema(
 				value: String,
 			}
 		],
+		wristSizeOptions: {
+			type: [
+				{
+					size: { type: String, required: true },
+					stock: { type: Number, default: 0, min: 0 },
+				}
+			],
+			default: [],
+		},
 		lowStockThreshold: {
 			type: Number,
 			default: 5,

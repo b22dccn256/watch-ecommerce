@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+﻿import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -18,14 +18,14 @@ import { useOrderStore } from "../stores/useOrderStore";
 import { SkeletonPageShell } from "../components/SkeletonLoaders";
 
 const statusLabel = {
-    pending: "Đã đặt hàng",
-    confirmed: "Đã xác nhận",
-    shipped: "Đang vận chuyển",
-    out_for_delivery: "Đang giao hàng",
-    delivered: "Đã giao hàng",
-    return_requested: "Đang chờ duyệt trả hàng",
-    returned: "Đã trả hàng",
-    cancelled: "Đã hủy",
+    pending: "ÄĂ£ Ä‘áº·t hĂ ng",
+    confirmed: "ÄĂ£ xĂ¡c nháº­n",
+    shipped: "Äang váº­n chuyá»ƒn",
+    out_for_delivery: "Äang giao hĂ ng",
+    delivered: "ÄĂ£ giao hĂ ng",
+    return_requested: "Äang chá» duyá»‡t tráº£ hĂ ng",
+    returned: "ÄĂ£ tráº£ hĂ ng",
+    cancelled: "ÄĂ£ há»§y",
 };
 
 const statusDotClass = {
@@ -61,10 +61,10 @@ const OrderTrackingPage = () => {
                     <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--color-gold)]/15">
                         <AlertCircle className="h-6 w-6 text-[color:var(--color-gold)]" />
                     </div>
-                    <h1 className="hero-title text-3xl text-primary">Không tìm thấy đơn hàng</h1>
+                    <h1 className="hero-title text-3xl text-primary">KhĂ´ng tĂ¬m tháº¥y Ä‘Æ¡n hĂ ng</h1>
                     <p className="mt-3 text-sm text-secondary">{error}</p>
                     <button onClick={() => navigate("/")} className="btn-base btn-primary mt-6 h-11 px-6">
-                        Về trang chủ
+                        Vá» trang chá»§
                     </button>
                 </div>
             </div>
@@ -82,9 +82,9 @@ const OrderTrackingPage = () => {
                     <div className="mx-auto mb-5 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-[color:var(--color-gold)]/10">
                         <Search className="h-8 w-8 text-[color:var(--color-gold)]" />
                     </div>
-                    <h1 className="hero-title text-4xl text-primary">Theo dõi đơn hàng</h1>
+                    <h1 className="hero-title text-4xl text-primary">Theo dĂµi Ä‘Æ¡n hĂ ng</h1>
                     <p className="mt-3 text-sm text-secondary">
-                        Nhập mã theo dõi để xem trạng thái đơn hàng theo thời gian thực.
+                        Nháº­p mĂ£ theo dĂµi Ä‘á»ƒ xem tráº¡ng thĂ¡i Ä‘Æ¡n hĂ ng theo thá»i gian thá»±c.
                     </p>
 
                     <form
@@ -99,14 +99,14 @@ const OrderTrackingPage = () => {
                             name="token"
                             type="text"
                             required
-                            placeholder="Dán mã theo dõi vào đây"
+                            placeholder="DĂ¡n mĂ£ theo dĂµi vĂ o Ä‘Ă¢y"
                             className="input-base h-11 text-center"
                         />
                         <button type="submit" className="btn-base btn-primary h-11 w-full">
-                            Tra cứu ngay
+                            Tra cá»©u ngay
                         </button>
                         <p className="text-xs text-muted pt-2">
-                            Mã theo dõi được gửi qua email xác nhận đơn hàng hoặc tại mục hồ sơ của bạn.
+                            MĂ£ theo dĂµi Ä‘Æ°á»£c gá»­i qua email xĂ¡c nháº­n Ä‘Æ¡n hĂ ng hoáº·c táº¡i má»¥c há»“ sÆ¡ cá»§a báº¡n.
                         </p>
                     </form>
                 </motion.div>
@@ -123,15 +123,15 @@ const OrderTrackingPage = () => {
                 <div className="flex flex-wrap items-end justify-between gap-4">
                     <div>
                         <p className="hero-kicker text-[color:var(--color-gold)] mb-2">Order tracking</p>
-                        <h1 className="hero-title text-4xl text-primary">Đơn #{currentOrder.orderCode}</h1>
+                        <h1 className="hero-title text-4xl text-primary">ÄÆ¡n #{currentOrder.orderCode}</h1>
                         <p className="mt-2 text-sm text-secondary">
-                            Đặt ngày {new Date(currentOrder.createdAt).toLocaleDateString("vi-VN")} • {currentOrder.products.length} sản phẩm
+                            Äáº·t ngĂ y {new Date(currentOrder.createdAt).toLocaleDateString("vi-VN")} â€¢ {currentOrder.products.length} sáº£n pháº©m
                         </p>
                     </div>
 
                     {currentOrder.estimatedDelivery && (
                         <div className="rounded-xl border border-black/10 dark:border-white/10 bg-surface-soft px-4 py-3 text-sm">
-                            <p className="text-muted">Dự kiến giao</p>
+                            <p className="text-muted">Dá»± kiáº¿n giao</p>
                             <p className="font-semibold text-primary">
                                 {new Date(currentOrder.estimatedDelivery).toLocaleDateString("vi-VN")}
                             </p>
@@ -158,7 +158,7 @@ const OrderTrackingPage = () => {
 
                 <div className="grid gap-8 lg:grid-cols-3">
                     <section className="lg:col-span-2 space-y-4">
-                        <h2 className="hero-title text-2xl text-primary">Lịch sử cập nhật</h2>
+                        <h2 className="hero-title text-2xl text-primary">Lá»‹ch sá»­ cáº­p nháº­t</h2>
                         <div className="space-y-3">
                             {timelineEvents.map((event, index) => (
                                 <div key={`${event.timestamp}-${index}`} className="rounded-xl border border-black/10 dark:border-white/10 bg-surface-soft p-4">
@@ -184,7 +184,7 @@ const OrderTrackingPage = () => {
 
                     <aside className="space-y-4">
                         <div className="rounded-[1.3rem] border border-black/10 dark:border-white/10 bg-surface p-5">
-                            <h3 className="font-semibold text-primary mb-3">Thông tin giao hàng</h3>
+                            <h3 className="font-semibold text-primary mb-3">ThĂ´ng tin giao hĂ ng</h3>
                             <div className="space-y-3 text-sm text-secondary">
                                 <p className="inline-flex items-center gap-2"><User className="h-4 w-4 text-muted" />{currentOrder.shippingDetails.fullName}</p>
                                 <p className="inline-flex items-center gap-2"><Phone className="h-4 w-4 text-muted" />{currentOrder.shippingDetails.phoneNumber}</p>
@@ -194,17 +194,17 @@ const OrderTrackingPage = () => {
                                 <p className="inline-flex items-start gap-2"><MapPin className="h-4 w-4 text-muted mt-0.5" />
                                     <span>{currentOrder.shippingDetails.address}, {currentOrder.shippingDetails.city}</span>
                                 </p>
-                                <p className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-muted" />{currentOrder.carrier || "Đơn vị vận chuyển"}</p>
+                                <p className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-muted" />{currentOrder.carrier || "ÄÆ¡n vá»‹ váº­n chuyá»ƒn"}</p>
                                 <p className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-muted" />{statusLabel[currentOrder.status] || currentOrder.status}</p>
                                 <p className="inline-flex items-center gap-2">
                                     <span className={`inline-flex h-2 w-2 rounded-full ${statusDotClass[currentOrder.status] || "bg-gray-400"}`} />
-                                    <span className="text-xs text-muted">Mã tracking: {currentOrder.carrierTrackingNumber || "TRK-PENDING"}</span>
+                                    <span className="text-xs text-muted">MĂ£ tracking: {currentOrder.carrierTrackingNumber || "TRK-PENDING"}</span>
                                 </p>
                             </div>
                         </div>
 
                         <div className="rounded-[1.3rem] border border-black/10 dark:border-white/10 bg-surface p-5">
-                            <h3 className="font-semibold text-primary mb-3">Sản phẩm</h3>
+                            <h3 className="font-semibold text-primary mb-3">Sáº£n pháº©m</h3>
                             <div className="space-y-3">
                                 {currentOrder.products.map((item, index) => (
                                     <div key={`${item.product?._id || index}-${index}`} className="flex items-center gap-3 rounded-lg bg-surface-soft p-2.5 text-sm">
@@ -213,7 +213,7 @@ const OrderTrackingPage = () => {
                                             <p className="truncate text-primary font-medium">{item.product?.name}</p>
                                             <p className="text-xs text-muted">SL: {item.quantity}</p>
                                         </div>
-                                        <p className="font-semibold text-[color:var(--color-gold)]">{item.product?.price?.toLocaleString("vi-VN")} đ</p>
+                                        <p className="font-semibold text-[color:var(--color-gold)]">{item.product?.price?.toLocaleString("vi-VN")} Ä‘</p>
                                     </div>
                                 ))}
                             </div>
@@ -224,7 +224,7 @@ const OrderTrackingPage = () => {
                                 onClick={() => window.location.href = `mailto:support@watchstore.com?subject=Inquiry for Order ${currentOrder.orderCode}`}
                                 className="btn-base btn-primary h-11"
                             >
-                                Liên hệ
+                                LiĂªn há»‡
                             </button>
                             <button onClick={() => window.print()} className="btn-base btn-outline h-11">
                                 <Printer className="h-4 w-4" />
@@ -235,7 +235,7 @@ const OrderTrackingPage = () => {
                 </div>
 
                 <div className="rounded-[1.3rem] border border-black/10 dark:border-white/10 bg-surface p-5 text-center">
-                    <p className="text-sm text-secondary mb-3">Tra cứu đơn hàng khác</p>
+                    <p className="text-sm text-secondary mb-3">Tra cá»©u Ä‘Æ¡n hĂ ng khĂ¡c</p>
                     <form
                         onSubmit={(event) => {
                             event.preventDefault();
@@ -244,8 +244,8 @@ const OrderTrackingPage = () => {
                         }}
                         className="mx-auto flex max-w-xl flex-col gap-2 sm:flex-row"
                     >
-                        <input name="token" type="text" placeholder="Nhập mã theo dõi" className="input-base h-11" />
-                        <button type="submit" className="btn-base btn-primary h-11 px-6">Tìm kiếm</button>
+                        <input name="token" type="text" placeholder="Nháº­p mĂ£ theo dĂµi" className="input-base h-11" />
+                        <button type="submit" className="btn-base btn-primary h-11 px-6">TĂ¬m kiáº¿m</button>
                     </form>
                 </div>
             </div>
@@ -265,3 +265,4 @@ const OrderTrackingPage = () => {
 };
 
 export default OrderTrackingPage;
+

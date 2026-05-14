@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { LogIn, Mail, Lock, ArrowRight, Loader, ShieldCheck, RefreshCw, Facebook, Github } from "lucide-react";
@@ -44,12 +44,16 @@ const LoginPage = () => {
         setOtpExpiry(300);
         setResendCooldown(60);
       }
-    } catch {}
+    } catch (err) { 
+      // Handled in store
+    }
   };
 
   const handleVerifySubmit = async (e) => {
     e.preventDefault();
-    try { await verifyOTP(email, otp); } catch {}
+    try { await verifyOTP(email, otp); } catch (err) { 
+      // Handled in store
+    }
   };
 
   const handleResend = async () => {
@@ -61,7 +65,7 @@ const LoginPage = () => {
   return (
     <div className="flex min-h-screen">
 
-      {/* ── Left — Editorial Panel ── */}
+      {/* â”€â”€ Left â€” Editorial Panel â”€â”€ */}
       <div
         className="relative hidden lg:flex lg:w-[46%] flex-col justify-between overflow-hidden p-14"
         style={{ background: "#0d0c0a" }}
@@ -91,21 +95,21 @@ const LoginPage = () => {
         <div className="relative space-y-5">
           <div className="h-px w-12 bg-[color:var(--color-gold)]/55" />
           <blockquote className="font-serif text-[1.95rem] font-medium leading-[1.24] text-white/92">
-            "Thời gian là xa xỉ phẩm<br />duy nhất không thể mua
-            được —<br />nhưng bạn có thể đeo nó."
+            &quot;Thá»i gian lĂ  xa xá»‰ pháº©m<br />duy nháº¥t khĂ´ng thá»ƒ mua
+            Ä‘Æ°á»£c â€”<br />nhÆ°ng báº¡n cĂ³ thá»ƒ Ä‘eo nĂ³.&quot;
           </blockquote>
           <p className="text-[10px] uppercase tracking-[0.22em] text-white/35">
-            Luxury Watch Gallery · 2026
+            Luxury Watch Gallery Â· 2026
           </p>
         </div>
 
         {/* Bottom */}
         <p className="relative text-[10px] uppercase tracking-[0.2em] text-white/20">
-          © 2026 · Hanoi · Vietnam
+          Â© 2026 Â· Hanoi Â· Vietnam
         </p>
       </div>
 
-      {/* ── Right — Form Panel ── */}
+      {/* â”€â”€ Right â€” Form Panel â”€â”€ */}
       <div className="flex flex-1 items-center justify-center bg-[color:var(--color-bg)] px-6 py-20 sm:px-10">
         <div className="w-full max-w-[360px]">
 
@@ -121,7 +125,7 @@ const LoginPage = () => {
           </div>
 
           <AnimatePresence mode="wait">
-            {/* ── Login step ── */}
+            {/* â”€â”€ Login step â”€â”€ */}
             {step === "login" && (
               <motion.div
                 key="login"
@@ -133,16 +137,16 @@ const LoginPage = () => {
                 {/* Heading */}
                 <div className="mb-8 space-y-1.5">
                   <h1 className="font-serif text-[2rem] leading-tight text-primary">
-                    Chào mừng trở lại
+                    ChĂ o má»«ng trá»Ÿ láº¡i
                   </h1>
-                  <p className="text-sm text-muted">Đăng nhập để tiếp tục hành trình của bạn</p>
+                  <p className="text-sm text-muted">ÄÄƒng nháº­p Ä‘á»ƒ tiáº¿p tá»¥c hĂ nh trĂ¬nh cá»§a báº¡n</p>
                 </div>
 
                 <form onSubmit={handleLoginSubmit} className="space-y-4">
                   {/* Email */}
                   <div className="space-y-1.5">
                     <label htmlFor="email" className="block text-[10px] uppercase tracking-[0.18em] text-secondary">
-                      Địa chỉ Email
+                      Äá»‹a chá»‰ Email
                     </label>
                     <div className="relative">
                       <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
@@ -158,7 +162,7 @@ const LoginPage = () => {
                   {/* Password */}
                   <div className="space-y-1.5">
                     <label htmlFor="password" className="block text-[10px] uppercase tracking-[0.18em] text-secondary">
-                      Mật khẩu
+                      Máº­t kháº©u
                     </label>
                     <div className="relative">
                       <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
@@ -166,26 +170,31 @@ const LoginPage = () => {
                         id="password" type="password" required
                         value={password} onChange={(e) => setPassword(e.target.value)}
                         className="input-base h-11 rounded-lg pl-10"
-                        placeholder="••••••••"
+                        placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                       />
+                    </div>
+                    <div className="text-right">
+                      <Link to="/forgot-password" className="text-xs text-[color:var(--color-gold)] hover:underline">
+                        QuĂªn máº­t kháº©u?
+                      </Link>
                     </div>
                   </div>
 
                   <button type="submit" disabled={loading} className="btn-base btn-primary mt-1 h-11 w-full">
                     {loading
-                      ? <><Loader className="mr-2 h-4 w-4 animate-spin" />Đang xử lý…</>
-                      : <><LogIn className="mr-2 h-4 w-4" />Đăng nhập</>}
+                      ? <><Loader className="mr-2 h-4 w-4 animate-spin" />Äang xá»­ lĂ½â€¦</>
+                      : <><LogIn className="mr-2 h-4 w-4" />ÄÄƒng nháº­p</>}
                   </button>
                 </form>
 
                 {/* Divider */}
                 <div className="my-6 flex items-center gap-4">
                   <div className="flex-1 border-t border-[color:var(--color-border)]" />
-                  <span className="text-[10px] uppercase tracking-[0.16em] text-muted">hoặc</span>
+                  <span className="text-[10px] uppercase tracking-[0.16em] text-muted">hoáº·c</span>
                   <div className="flex-1 border-t border-[color:var(--color-border)]" />
                 </div>
 
-                {/* Social Login — minimal line buttons */}
+                {/* Social Login â€” minimal line buttons */}
                 <div className="grid grid-cols-3 gap-2">
                   {/* Google */}
                   <button
@@ -222,15 +231,15 @@ const LoginPage = () => {
                 </div>
 
                 <p className="mt-7 text-center text-sm text-muted">
-                  Chưa có tài khoản?{" "}
+                  ChÆ°a cĂ³ tĂ i khoáº£n?{" "}
                   <Link to="/signup" className="font-medium text-[color:var(--color-gold)] transition hover:underline">
-                    Đăng ký <ArrowRight className="inline h-3.5 w-3.5" />
+                    ÄÄƒng kĂ½ <ArrowRight className="inline h-3.5 w-3.5" />
                   </Link>
                 </p>
               </motion.div>
             )}
 
-            {/* ── OTP step ── */}
+            {/* â”€â”€ OTP step â”€â”€ */}
             {step === "otp" && (
               <motion.div
                 key="otp"
@@ -240,16 +249,16 @@ const LoginPage = () => {
                 transition={{ duration: 0.38 }}
               >
                 <div className="mb-8 space-y-1.5">
-                  <h1 className="font-serif text-[2rem] leading-tight text-primary">Xác thực danh tính</h1>
+                  <h1 className="font-serif text-[2rem] leading-tight text-primary">XĂ¡c thá»±c danh tĂ­nh</h1>
                   <p className="text-sm text-muted">
-                    Mã OTP đã được gửi đến <span className="font-medium text-primary">{email}</span>
+                    MĂ£ OTP Ä‘Ă£ Ä‘Æ°á»£c gá»­i Ä‘áº¿n <span className="font-medium text-primary">{email}</span>
                   </p>
                 </div>
 
                 <form onSubmit={handleVerifySubmit} className="space-y-4">
                   <div className="space-y-1.5">
                     <label htmlFor="otp" className="block text-[10px] uppercase tracking-[0.18em] text-secondary">
-                      Mã xác thực Admin (OTP)
+                      MĂ£ xĂ¡c thá»±c Admin (OTP)
                     </label>
                     <div className="relative">
                       <ShieldCheck className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
@@ -264,7 +273,7 @@ const LoginPage = () => {
                   </div>
 
                   <div className="flex items-center justify-between text-xs text-muted">
-                    <span>Hết hạn sau: <strong className="text-primary">{fmt(otpExpiry)}</strong></span>
+                    <span>Háº¿t háº¡n sau: <strong className="text-primary">{fmt(otpExpiry)}</strong></span>
                     <button
                       type="button"
                       onClick={handleResend}
@@ -272,14 +281,14 @@ const LoginPage = () => {
                       className="flex items-center gap-1 transition hover:text-[color:var(--color-gold)] disabled:opacity-40"
                     >
                       <RefreshCw className="h-3.5 w-3.5" />
-                      {resendCooldown > 0 ? `Gửi lại (${resendCooldown}s)` : "Gửi lại OTP"}
+                      {resendCooldown > 0 ? `Gá»­i láº¡i (${resendCooldown}s)` : "Gá»­i láº¡i OTP"}
                     </button>
                   </div>
 
                   <button type="submit" disabled={loading} className="btn-base btn-primary h-11 w-full">
                     {loading
-                      ? <><Loader className="mr-2 h-4 w-4 animate-spin" />Đang xác thực…</>
-                      : <><ShieldCheck className="mr-2 h-4 w-4" />Xác nhận</>}
+                      ? <><Loader className="mr-2 h-4 w-4 animate-spin" />Äang xĂ¡c thá»±câ€¦</>
+                      : <><ShieldCheck className="mr-2 h-4 w-4" />XĂ¡c nháº­n</>}
                   </button>
                 </form>
 
@@ -288,7 +297,7 @@ const LoginPage = () => {
                   onClick={() => setStep("login")}
                   className="mt-5 block w-full text-center text-sm text-muted transition hover:text-primary"
                 >
-                  ← Quay lại đăng nhập
+                  â† Quay láº¡i Ä‘Äƒng nháº­p
                 </button>
               </motion.div>
             )}
@@ -300,3 +309,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+

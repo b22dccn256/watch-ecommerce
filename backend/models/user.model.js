@@ -55,12 +55,6 @@ const userSchema = new mongoose.Schema(
 				},
 			},
 		],
-		wishlist: [
-			{
-				type: mongoose.Schema.Types.ObjectId,
-				ref: "Product",
-			},
-		],
 		role: {
 			type: String,
 			enum: ["customer", "admin", "staff"],
@@ -101,6 +95,22 @@ const userSchema = new mongoose.Schema(
 			type: Date,
 			default: null,
 		},
+		welcomeEmailSentAt: {
+			type: Date,
+			default: null,
+		},
+		passwordResetToken: {
+			type: String,
+			default: null,
+		},
+		passwordResetExpires: {
+			type: Date,
+			default: null,
+		},
+		lastPasswordResetEmailSent: {
+			type: Date,
+			default: null,
+		},
 		// D2: Admin notes & tags
 		adminNotes: {
 			type: String,
@@ -114,6 +124,8 @@ const userSchema = new mongoose.Schema(
 	},
 	{
 		timestamps: true,
+		toJSON: { virtuals: true },
+		toObject: { virtuals: true },
 	}
 );
 

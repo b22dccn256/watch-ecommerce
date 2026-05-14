@@ -3,6 +3,7 @@ import User from "../models/user.model.js";
 import AuditLog from "../models/auditLog.model.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../lib/email.js";
+import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { emailQueue } from "./mail.controller.js";
 
@@ -123,19 +124,12 @@ export const signup = async (req, res) => {
 
 		const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${verifyToken}`;
 
-		// --- QUEUE VERIFY EMAIL ---
+		// --- QUEUE VERIFY EMAIL ONLY ---
+		// Welcome email will be sent AFTER email verification to avoid confusion
 		await emailQueue.add("verify-email", {
 			userName: user.name,
 			email: user.email,
 			verifyUrl,
-		});
-
-		// --- QUEUE WELCOME EMAIL ---
-		await emailQueue.add("welcome-email", {
-			fullName: normalizedName,
-			email: normalizedEmail,
-			shopUrl: process.env.CLIENT_URL || "http://localhost:5173",
-			unsubscribeLink: (process.env.BACKEND_URL || "http://localhost:5000") + "/api/mail/unsubscribe/" + normalizedEmail,
 		});
 
 		return res.status(201).json({
@@ -165,7 +159,6 @@ export const login = async (req, res) => {
 		const user = await User.findOne({ email });
 
 		if (user && (await user.comparePassword(password))) {
-			console.log("Login: User found and password matches. Role:", user.role);
 
 			// User thường phải verify email, admin được bypass để luôn vào luồng OTP
 			if (user.role !== "admin" && !user.emailVerified) {
@@ -373,6 +366,10 @@ export const resendOTP = async (req, res) => {
 		const salt = await bcrypt.genSalt(10);
 		const hashedOtp = await bcrypt.hash(otp, salt);
 
+		// FIX A2: Declare userAgent and ip (were missing, causing ReferenceError in sendEmail call)
+		const userAgent = req.headers["user-agent"] || "Không xác định thiết bị";
+		const ip = req.ip || req.connection?.remoteAddress || "Không xác định IP";
+
 		// Store in Redis (refresh TTL)
 		await redis.set(`otp:${email}`, hashedOtp, "EX", 5 * 60);
 		// Reset attempts on manual resend (30 mins to match design)
@@ -506,6 +503,18 @@ export const verifyEmail = async (req, res) => {
 		user.emailVerificationExpires = null;
 		await user.save();
 
+		// --- QUEUE WELCOME EMAIL after successful verification ---
+		try {
+			await emailQueue.add("welcome-email", {
+				fullName: user.name,
+				email: user.email,
+				shopUrl: process.env.CLIENT_URL || "http://localhost:5173",
+				unsubscribeLink: (process.env.BACKEND_URL || "http://localhost:5000") + "/api/mail/unsubscribe/" + encodeURIComponent(user.email),
+			});
+		} catch (emailErr) {
+			console.error("Non-critical: Failed to queue welcome email after verify:", emailErr.message);
+		}
+
 		return res.json({ message: "Email đã được xác thực thành công" });
 	} catch (error) {
 		console.error("Error in verifyEmail controller:", error.message);
@@ -515,9 +524,20 @@ export const verifyEmail = async (req, res) => {
 
 export const resendVerificationEmail = async (req, res) => {
 	try {
-		const user = req.user;
+		// Support both authenticated flow (req.user) and public flow (email in body)
+		let user = req.user || null;
+
 		if (!user) {
-			return res.status(401).json({ message: "Unauthorized" });
+			// Public resend: look up user by email in request body
+			const { email } = req.body;
+			if (!email) {
+				return res.status(400).json({ message: "Vui lòng cung cấp email" });
+			}
+			user = await User.findOne({ email: email.toLowerCase().trim() });
+			if (!user) {
+				// Return success to avoid account enumeration
+				return res.json({ message: "Nếu tài khoản tồn tại, email xác thực đã được gửi lại" });
+			}
 		}
 
 		if (user.emailVerified) {
@@ -538,6 +558,77 @@ export const resendVerificationEmail = async (req, res) => {
 		return res.json({ message: "Email xác thực đã được gửi lại" });
 	} catch (error) {
 		console.error("Error in resendVerificationEmail controller:", error.message);
+		return res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+// Forgot password: send reset email with token (always respond 200 to avoid account enumeration)
+export const forgotPassword = async (req, res) => {
+	try {
+		const { email } = req.body;
+		if (!email) return res.status(400).json({ message: "Email is required" });
+
+		const user = await User.findOne({ email: email.toLowerCase().trim() });
+		if (!user) {
+			// Always return success to avoid leaking account existence
+			return res.json({ message: "If an account exists, a reset email has been sent" });
+		}
+
+		const token = crypto.randomBytes(32).toString("hex");
+		user.passwordResetToken = token;
+		user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+		user.lastPasswordResetEmailSent = new Date();
+		await user.save();
+
+		const resetUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/reset-password?token=${token}`;
+
+		// Queue email (resilient)
+		try {
+			await emailQueue.add("password-reset", {
+				email: user.email,
+				name: user.name,
+				resetUrl,
+			});
+		} catch (err) {
+			console.error("Non-critical: failed to enqueue password reset email", err.message);
+		}
+
+		return res.json({ message: "If an account exists, a reset email has been sent" });
+	} catch (error) {
+		console.error("Error in forgotPassword controller:", error.message);
+		return res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+// Reset password using token
+export const resetPassword = async (req, res) => {
+	try {
+		const { token, newPassword, confirmPassword } = req.body;
+		if (!token || !newPassword || !confirmPassword) {
+			return res.status(400).json({ message: "Token and new password are required" });
+		}
+
+		if (newPassword !== confirmPassword) {
+			return res.status(400).json({ message: "Mật khẩu xác nhận không khớp" });
+		}
+
+		if (newPassword.length < 6) {
+			return res.status(400).json({ message: "Mật khẩu phải có ít nhất 6 ký tự" });
+		}
+
+		const user = await User.findOne({ passwordResetToken: token });
+		if (!user || !user.passwordResetExpires || user.passwordResetExpires < new Date()) {
+			return res.status(400).json({ message: "Token reset không hợp lệ hoặc đã hết hạn" });
+		}
+
+		user.password = newPassword;
+		user.passwordResetToken = null;
+		user.passwordResetExpires = null;
+		await user.save();
+
+		return res.json({ message: "Đã đặt lại mật khẩu thành công" });
+	} catch (error) {
+		console.error("Error in resetPassword controller:", error.message);
 		return res.status(500).json({ message: "Server error", error: error.message });
 	}
 };

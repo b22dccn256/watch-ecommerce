@@ -9,6 +9,8 @@ import mongoose from "mongoose";
 import User from "../models/user.model.js";
 import { emailQueue } from "./mail.controller.js";
 import { createVNPayPayment, createMoMoPayment, createZaloPayPayment, vnpayInstance } from "../services/payment.service.js";
+import { createCODOrder, createQROrder } from "./order.controller.js";
+import { getCouponDiscountAmount } from "../lib/coupon.js";
 
 // Helper: lấy IP client (x-forwarded-for > req.ip > remote address)
 const getClientIp = (req) => {
@@ -68,11 +70,20 @@ const verifyZaloPayMac = (body) => {
 };
 
 export const createCheckoutSession = async (req, res) => {
-	const sessionOpts = await mongoose.startSession();
-	sessionOpts.startTransaction();
-
+	let sessionOpts = null;
 	try {
 		const { products, couponCode, shippingDetails, paymentMethod = "stripe" } = req.body;
+
+		if (paymentMethod === "cod") {
+			return createCODOrder(req, res);
+		}
+
+		if (paymentMethod === "qr") {
+			return createQROrder(req, res);
+		}
+
+		sessionOpts = await mongoose.startSession();
+		sessionOpts.startTransaction();
 
 		if (!products || !Array.isArray(products) || products.length === 0) {
 			await sessionOpts.abortTransaction();
@@ -112,9 +123,7 @@ export const createCheckoutSession = async (req, res) => {
 			};
 		});
 
-		if (coupon) {
-			totalAmount -= Math.round((totalAmount * coupon.discountPercentage) / 100);
-		}
+		totalAmount -= getCouponDiscountAmount(coupon, totalAmount);
 
 		if (totalAmount > 0 && totalAmount < 2000000) {
 			totalAmount += 30000;
@@ -178,7 +187,7 @@ export const createCheckoutSession = async (req, res) => {
 				cancel_url: `${process.env.CLIENT_URL}/purchase-cancel`,
 				expires_at: Math.floor(Date.now() / 1000) + (31 * 60),
 				discounts: coupon
-					? [{ coupon: await createStripeCoupon(coupon.discountPercentage) }]
+					? [{ coupon: await createStripeCoupon(coupon) }]
 					: [],
 				metadata: {
 					userId: req.user ? req.user._id.toString() : "guest",
@@ -255,8 +264,10 @@ export const createCheckoutSession = async (req, res) => {
 		}
 		res.status(200).json(sessionResponse);
 	} catch (error) {
-		await sessionOpts.abortTransaction();
-		sessionOpts.endSession();
+		if (sessionOpts) {
+			await sessionOpts.abortTransaction();
+			sessionOpts.endSession();
+		}
 		console.error("Error processing checkout:", error);
 		try { fs.appendFileSync("stripe-error.log", new Date().toISOString() + " - " + (error.stack || error.message) + "\n"); } catch (e) { }
 		res.status(500).json({ message: "Error processing checkout", error: error.message });
@@ -448,13 +459,18 @@ const handlePaymentExpired = async (session) => {
 };
 
 
-async function createStripeCoupon(discountPercentage) {
-	const coupon = await stripe.coupons.create({
-		percent_off: discountPercentage,
+async function createStripeCoupon(coupon) {
+	const discountValue = Number(coupon?.discountValue ?? coupon?.discountPercentage ?? 0);
+	const stripeCoupon = await stripe.coupons.create(coupon?.type === "fixed" ? {
+		amount_off: Math.round(discountValue),
+		currency: "vnd",
+		duration: "once",
+	} : {
+		percent_off: Math.min(discountValue, 100),
 		duration: "once",
 	});
 
-	return coupon.id;
+	return stripeCoupon.id;
 }
 
 async function createNewCoupon(userId) {
@@ -462,7 +478,8 @@ async function createNewCoupon(userId) {
 
 	const newCoupon = new Coupon({
 		code: "GIFT" + Math.random().toString(36).substring(2, 8).toUpperCase(),
-		discountPercentage: 10,
+		type: "percent",
+		discountValue: 10,
 		expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
 		userId: userId,
 	});

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { motion } from "framer-motion";
 import { ShieldCheck, Zap, Ghost, RefreshCw, Terminal, CheckCircle2, AlertTriangle } from "lucide-react";
 import axios from "../lib/axios";
@@ -8,7 +8,7 @@ const AITab = () => {
 	const [isRunningOrders, setIsRunningOrders] = useState(false);
 	const [isRunningUsers, setIsRunningUsers] = useState(false);
 	const [logs, setLogs] = useState([
-		{ time: new Date().toLocaleTimeString(), msg: "Hệ thống AI đang ở trạng thái chờ...", type: "info" },
+		{ time: new Date().toLocaleTimeString(), msg: "Há»‡ thá»‘ng AI Ä‘ang á»Ÿ tráº¡ng thĂ¡i chá»...", type: "info" },
 	]);
 
 	const addLog = (msg, type = "info") => {
@@ -17,14 +17,14 @@ const AITab = () => {
 
 	const handleConfirmOrders = async () => {
 		setIsRunningOrders(true);
-		addLog("Đang khởi chạy AI phân tích đơn hàng...", "process");
+		addLog("Äang khá»Ÿi cháº¡y AI phĂ¢n tĂ­ch Ä‘Æ¡n hĂ ng...", "process");
 		try {
 			const res = await axios.post("/ai/automation/confirm-orders");
 			addLog(res.data.message, "success");
 			toast.success(res.data.message);
 		} catch {
-			addLog("Lỗi khi chạy AI xác nhận đơn hàng", "error");
-			toast.error("Lỗi AI xác nhận đơn hàng");
+			addLog("Lá»—i khi cháº¡y AI xĂ¡c nháº­n Ä‘Æ¡n hĂ ng", "error");
+			toast.error("Lá»—i AI xĂ¡c nháº­n Ä‘Æ¡n hĂ ng");
 		} finally {
 			setIsRunningOrders(false);
 		}
@@ -32,14 +32,14 @@ const AITab = () => {
 
 	const handleCleanupUsers = async () => {
 		setIsRunningUsers(true);
-		addLog("Đang quét tài khoản spam/không hợp lệ...", "process");
+		addLog("Äang quĂ©t tĂ i khoáº£n spam/khĂ´ng há»£p lá»‡...", "process");
 		try {
 			const res = await axios.post("/ai/automation/cleanup-users");
 			addLog(res.data.message, "success");
 			toast.success(res.data.message);
 		} catch {
-			addLog("Lỗi khi dọn dẹp tài khoản rác", "error");
-			toast.error("Lỗi xóa tài khoản rác");
+			addLog("Lá»—i khi dá»n dáº¹p tĂ i khoáº£n rĂ¡c", "error");
+			toast.error("Lá»—i xĂ³a tĂ i khoáº£n rĂ¡c");
 		} finally {
 			setIsRunningUsers(false);
 		}
@@ -52,13 +52,13 @@ const AITab = () => {
 				<div>
 					<h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
 						<ShieldCheck className="w-7 h-7 text-luxury-gold" />
-						Hệ Thống Tự Động Hóa AI
+						Há»‡ Thá»‘ng Tá»± Äá»™ng HĂ³a AI
 					</h2>
-					<p className="text-gray-500 dark:text-luxury-text-muted text-sm mt-1">Sử dụng trí tuệ nhân tạo để tối ưu hóa vận hành cửa hàng.</p>
+					<p className="text-gray-500 dark:text-luxury-text-muted text-sm mt-1">Sá»­ dá»¥ng trĂ­ tuá»‡ nhĂ¢n táº¡o Ä‘á»ƒ tá»‘i Æ°u hĂ³a váº­n hĂ nh cá»­a hĂ ng.</p>
 				</div>
 				<div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
 					<div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-					<span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest text-nowrap">Hệ thống đang hoạt động</span>
+					<span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest text-nowrap">Há»‡ thá»‘ng Ä‘ang hoáº¡t Ä‘á»™ng</span>
 				</div>
 			</div>
 
@@ -77,18 +77,18 @@ const AITab = () => {
 					</div>
 
 					<div className="space-y-2">
-						<h3 className="text-xl font-bold text-gray-900 dark:text-white uppercase tracking-wider">Xác Nhận Đơn Thông Minh</h3>
+						<h3 className="text-xl font-bold text-gray-900 dark:text-white uppercase tracking-wider">XĂ¡c Nháº­n ÄÆ¡n ThĂ´ng Minh</h3>
 						<p className="text-sm text-gray-500 dark:text-luxury-text-muted leading-relaxed">
-							AI phân tích dữ liệu khách hàng, lịch sử mua hàng và thông tin vận chuyển để tự động phê duyệt các đơn COD hợp lệ.
+							AI phĂ¢n tĂ­ch dá»¯ liá»‡u khĂ¡ch hĂ ng, lá»‹ch sá»­ mua hĂ ng vĂ  thĂ´ng tin váº­n chuyá»ƒn Ä‘á»ƒ tá»± Ä‘á»™ng phĂª duyá»‡t cĂ¡c Ä‘Æ¡n COD há»£p lá»‡.
 						</p>
 					</div>
 
 					<ul className="space-y-3">
 						<li className="flex items-center gap-3 text-xs text-gray-500 dark:text-luxury-text-muted">
-							<CheckCircle2 className="w-4 h-4 text-emerald-500" /> Phân tích rủi ro gian lận (Fraud Detection)
+							<CheckCircle2 className="w-4 h-4 text-emerald-500" /> PhĂ¢n tĂ­ch rá»§i ro gian láº­n (Fraud Detection)
 						</li>
 						<li className="flex items-center gap-3 text-xs text-gray-500 dark:text-luxury-text-muted">
-							<CheckCircle2 className="w-4 h-4 text-emerald-500" /> Xác thực chất lượng thông tin giao hàng
+							<CheckCircle2 className="w-4 h-4 text-emerald-500" /> XĂ¡c thá»±c cháº¥t lÆ°á»£ng thĂ´ng tin giao hĂ ng
 						</li>
 					</ul>
 
@@ -98,7 +98,7 @@ const AITab = () => {
 						className="w-full py-4 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-luxury-border text-gray-700 dark:text-white hover:bg-luxury-gold dark:hover:bg-luxury-gold hover:text-luxury-dark rounded-xl font-bold transition duration-300 flex items-center justify-center gap-2 disabled:opacity-50 shadow-md dark:shadow-none"
 					>
 						{isRunningOrders ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-						Kích hoạt AI Phê Duyệt
+						KĂ­ch hoáº¡t AI PhĂª Duyá»‡t
 					</button>
 				</motion.div>
 
@@ -116,18 +116,18 @@ const AITab = () => {
 					</div>
 
 					<div className="space-y-2">
-						<h3 className="text-xl font-bold text-gray-900 dark:text-white uppercase tracking-wider">Dọn Dẹp Tài Khoản Rác</h3>
+						<h3 className="text-xl font-bold text-gray-900 dark:text-white uppercase tracking-wider">Dá»n Dáº¹p TĂ i Khoáº£n RĂ¡c</h3>
 						<p className="text-sm text-gray-500 dark:text-luxury-text-muted leading-relaxed">
-							Sử dụng quy tắc Naming Patterns và Behavior Analysis để phát hiện và loại bỏ các tài khoản clone, spam hoặc không hoạt động.
+							Sá»­ dá»¥ng quy táº¯c Naming Patterns vĂ  Behavior Analysis Ä‘á»ƒ phĂ¡t hiá»‡n vĂ  loáº¡i bá» cĂ¡c tĂ i khoáº£n clone, spam hoáº·c khĂ´ng hoáº¡t Ä‘á»™ng.
 						</p>
 					</div>
 
 					<ul className="space-y-3">
 						<li className="flex items-center gap-3 text-xs text-gray-500 dark:text-luxury-text-muted">
-							<AlertTriangle className="w-4 h-4 text-amber-500" /> Nhận diện User qua Regex & Naming
+							<AlertTriangle className="w-4 h-4 text-amber-500" /> Nháº­n diá»‡n User qua Regex & Naming
 						</li>
 						<li className="flex items-center gap-3 text-xs text-gray-500 dark:text-luxury-text-muted">
-							<AlertTriangle className="w-4 h-4 text-amber-500" /> Tự động xóa tài khoản không phát sinh đơn hàng
+							<AlertTriangle className="w-4 h-4 text-amber-500" /> Tá»± Ä‘á»™ng xĂ³a tĂ i khoáº£n khĂ´ng phĂ¡t sinh Ä‘Æ¡n hĂ ng
 						</li>
 					</ul>
 
@@ -137,7 +137,7 @@ const AITab = () => {
 						className="w-full py-4 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-luxury-border text-gray-700 dark:text-white hover:bg-red-500 dark:hover:bg-red-500 hover:text-white rounded-xl font-bold transition duration-300 flex items-center justify-center gap-2 disabled:opacity-50 shadow-md dark:shadow-none"
 					>
 						{isRunningUsers ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-						Quét & Dọn Dẹp Spam
+						QuĂ©t & Dá»n Dáº¹p Spam
 					</button>
 				</motion.div>
 			</div>
@@ -146,7 +146,7 @@ const AITab = () => {
 			<div className="bg-slate-950 dark:bg-luxury-darker border border-slate-900 dark:border-luxury-border rounded-3xl p-6 shadow-2xl">
 				<div className="flex items-center gap-2 mb-4">
 					<Terminal className="w-4 h-4 text-luxury-gold" />
-					<h3 className="text-sm font-bold text-white uppercase tracking-widest">Nhật ký AI System</h3>
+					<h3 className="text-sm font-bold text-white uppercase tracking-widest">Nháº­t kĂ½ AI System</h3>
 				</div>
 				<div className="space-y-3 font-mono text-[11px]">
 					{logs.map((log, i) => (
@@ -169,3 +169,4 @@ const AITab = () => {
 };
 
 export default AITab;
+

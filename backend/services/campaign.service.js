@@ -2,6 +2,40 @@ import Campaign from "../models/campaign.model.js";
 
 class CampaignService {
     /**
+     * A.3 Fix: Adapter between Campaign.group (string) and Product.categoryId (ObjectId).
+     * Campaign.group is a human-readable string (e.g. "Đồng hồ Nam"),
+     * while Product.categoryId is an ObjectId reference to Category collection.
+     * 
+     * This method performs a multi-candidate lookup to bridge the gap:
+     * it checks category.name, category.slug, product.collectionName, and even
+     * the ObjectId toString as fallbacks. This allows campaigns to match products
+     * regardless of whether the group was stored as a name or slug.
+     * 
+     * TODO: Long-term, consider storing categoryId reference in Campaign.group
+     * for a more reliable and rename-proof match.
+     */
+    static matchesCampaignGroup(campaignGroup, product) {
+        if (!campaignGroup) return false;
+
+        const normalizedGroup = String(campaignGroup).trim().toLowerCase();
+        if (["entire catalog", "toàn bộ danh mục"].includes(normalizedGroup)) {
+            return true;
+        }
+
+        const category = product?.categoryId;
+        const categoryCandidates = [
+            product?.category,
+            product?.categoryName,
+            product?.collectionName,
+            category?.name,
+            category?.slug,
+            category?._id?.toString(),
+        ].filter(Boolean).map((value) => String(value).trim().toLowerCase());
+
+        return categoryCandidates.includes(normalizedGroup);
+    }
+
+    /**
      * Applies active campaigns to an array of products and dynamically calculates salePrice.
      * @param {Array|Object} products - An array of products or a single product object
      * @returns {Array|Object} Products with potentially updated `price` and a new `originalPrice` field
@@ -31,7 +65,7 @@ class CampaignService {
 
                 // Find applicable campaigns (Global or matching category)
                 const applicableCampaigns = activeCampaigns.filter(c =>
-                    c.isGlobal || c.group === product.category
+                    c.isGlobal || CampaignService.matchesCampaignGroup(c.group, product)
                 );
 
                 if (applicableCampaigns.length > 0) {

@@ -1,4 +1,4 @@
-import ProductCard from "./ProductCard";
+﻿import ProductCard from "./ProductCard";
 import { Zap } from "lucide-react";
 
 const FlashSaleSection = ({ products, timeLeft, addToCart, campaignName, title, gridCols }) => {
@@ -19,12 +19,12 @@ const FlashSaleSection = ({ products, timeLeft, addToCart, campaignName, title, 
 						<div className="space-y-3">
 							<div className="flex items-center gap-3">
 								<span className="bg-black text-white font-bold tracking-widest uppercase text-xs px-3 py-1 rounded-full inline-block">
-									Flash Sale
+									Æ¯u ÄĂ£i
 								</span>
-								<span className="text-[color:var(--color-gold)] font-semibold">{campaignName || "Sự kiện Siêu Sale"}</span>
+								<span className="text-[color:var(--color-gold)] font-semibold">{campaignName || "Sá»± Kiá»‡n Äáº·c Quyá»n"}</span>
 							</div>
 							<h2 className="hero-title text-4xl md:text-5xl font-bold text-gray-900 dark:text-white flex items-center gap-4">
-								{title || "Ưu Đãi Đặc Biệt"}
+								{title || "Æ¯u ÄĂ£i Äáº·c Biá»‡t"}
 								<Zap className="w-8 h-8 md:w-10 md:h-10 text-[color:var(--color-gold)] fill-[color:var(--color-gold)]" />
 							</h2>
 						</div>
@@ -38,7 +38,7 @@ const FlashSaleSection = ({ products, timeLeft, addToCart, campaignName, title, 
 											{value.toString().padStart(2, "0")}
 										</div>
 										<div className="text-[10px] md:text-xs uppercase tracking-widest text-gray-500 font-bold">
-											{label === "days" ? "NGÀY" : label === "hours" ? "GIỜ" : label === "minutes" ? "PHÚT" : "GIÂY"}
+											{label === "days" ? "NGĂ€Y" : label === "hours" ? "GIá»œ" : label === "minutes" ? "PHĂT" : "GIĂ‚Y"}
 										</div>
 									</div>
 								);

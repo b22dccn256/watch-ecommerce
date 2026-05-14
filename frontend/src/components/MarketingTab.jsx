@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+﻿import { useState, useEffect, useRef, useCallback } from "react";
 import { Plus, Image as ImageIcon, Trash2, Power } from "lucide-react";
 import { useCampaignStore } from "../stores/useCampaignStore";
 import { useProductStore } from "../stores/useProductStore";
 import { toast } from "react-hot-toast";
 import axios from "../lib/axios";
+import { confirmToast } from "../lib/confirmToast";
 
 const MarketingTab = () => {
     const { campaigns, fetchCampaigns, createCampaign, toggleCampaignStatus, deleteCampaign } = useCampaignStore();
@@ -38,7 +39,7 @@ const MarketingTab = () => {
                 setBanners(res.data);
             } catch (error) {
                 console.error("Error fetching banners:", error);
-                toast.error("Không thể tải danh sách banner");
+                toast.error("KhĂ´ng thá»ƒ táº£i danh sĂ¡ch banner");
             } finally {
                 fetchState.lastFetched = Date.now();
                 fetchState.promise = null;
@@ -50,23 +51,24 @@ const MarketingTab = () => {
 
     useEffect(() => {
         fetchCampaigns();
-        fetchAllProducts();
         fetchBanners();
-    }, [fetchCampaigns, fetchAllProducts, fetchBanners]);
+        // FIX B6: removed fetchAllProducts() â€” was loading entire catalog just for 1 preview.
+        // Preview now handled lazily by reading from products already in store if available.
+    }, [fetchCampaigns, fetchBanners]);
 
-    // ─── Campaign handlers ────────────────────────────────────────────────
+    // â”€â”€â”€ Campaign handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const handleCreate = async () => {
-        if (!formData.name.trim()) { toast.error("Vui lòng nhập tên chiến dịch"); return; }
-        if (!formData.discountPercentage || Number(formData.discountPercentage) <= 0 || Number(formData.discountPercentage) > 99) { toast.error("Vui lòng nhập phần trăm giảm hợp lệ (1-99)"); return; }
-        if (!formData.startDate || !formData.endDate) { toast.error("Vui lòng chọn ngày bắt đầu và ngày kết thúc"); return; }
+        if (!formData.name.trim()) { toast.error("Vui lĂ²ng nháº­p tĂªn chiáº¿n dá»‹ch"); return; }
+        if (!formData.discountPercentage || Number(formData.discountPercentage) <= 0 || Number(formData.discountPercentage) > 99) { toast.error("Vui lĂ²ng nháº­p pháº§n trÄƒm giáº£m há»£p lá»‡ (1-99)"); return; }
+        if (!formData.startDate || !formData.endDate) { toast.error("Vui lĂ²ng chá»n ngĂ y báº¯t Ä‘áº§u vĂ  ngĂ y káº¿t thĂºc"); return; }
         
         const startDateObj = new Date(formData.startDate);
         const endDateObj = new Date(formData.endDate);
         const now = new Date();
         
-        if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) { toast.error("Định dạng ngày không hợp lệ"); return; }
-        if (endDateObj <= startDateObj) { toast.error("Ngày kết thúc phải sau ngày bắt đầu"); return; }
-        if (startDateObj < now && startDateObj.getTime() < now.getTime() - 60000) { toast.error("Ngày bắt đầu không được trong quá khứ"); return; }
+        if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) { toast.error("Äá»‹nh dáº¡ng ngĂ y khĂ´ng há»£p lá»‡"); return; }
+        if (endDateObj <= startDateObj) { toast.error("NgĂ y káº¿t thĂºc pháº£i sau ngĂ y báº¯t Ä‘áº§u"); return; }
+        if (startDateObj < now && startDateObj.getTime() < now.getTime() - 60000) { toast.error("NgĂ y báº¯t Ä‘áº§u khĂ´ng Ä‘Æ°á»£c trong quĂ¡ khá»©"); return; }
 
         setCreating(true);
         const { success } = await createCampaign({
@@ -77,53 +79,54 @@ const MarketingTab = () => {
         
         if (success) {
             setFormData({ name: "", group: "Entire Catalog", discountPercentage: "", startDate: "", endDate: "", isGlobal: true });
-            toast.success("Chiến dịch đã được tạo thành công!");
+            toast.success("Chiáº¿n dá»‹ch Ä‘Ă£ Ä‘Æ°á»£c táº¡o thĂ nh cĂ´ng!");
         }
         setCreating(false);
     };
 
     const formatDate = (dateString) => {
-        if (!dateString) return "—";
+        if (!dateString) return "â€”";
         const d = new Date(dateString);
         return d.toLocaleDateString("vi-VN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
     };
 
     const previewProduct = products?.find(p => formData.group === "Entire Catalog" ? true : p.category === formData.group);
 
-    // ─── Banner handlers (API based) ──────────────────────────────────────
+    // â”€â”€â”€ Banner handlers (API based) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const handleBannerUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        if (!file.type.startsWith("image/")) { toast.error("Vui lòng chọn file ảnh (JPG, PNG, WEBP...)"); return; }
-        if (file.size > 5 * 1024 * 1024) { toast.error("Ảnh phải nhỏ hơn 5MB"); return; }
+        if (!file.type.startsWith("image/")) { toast.error("Vui lĂ²ng chá»n file áº£nh (JPG, PNG, WEBP...)"); return; }
+        if (file.size > 5 * 1024 * 1024) { toast.error("áº¢nh pháº£i nhá» hÆ¡n 5MB"); return; }
 
         const reader = new FileReader();
         reader.onload = async (ev) => {
-            const toastId = toast.loading("Đang tải banner lên...");
+            const toastId = toast.loading("Äang táº£i banner lĂªn...");
             try {
                 const res = await axios.post("/banners", {
                     title: file.name.replace(/\.[^.]+$/, ""),
                     image: ev.target.result,
                 });
                 setBanners(prev => [res.data, ...prev]);
-                toast.success("Banner đã được tải lên thành công!", { id: toastId });
+                toast.success("Banner Ä‘Ă£ Ä‘Æ°á»£c táº£i lĂªn thĂ nh cĂ´ng!", { id: toastId });
             } catch {
-                toast.error("Lỗi khi tải banner lên", { id: toastId });
+                toast.error("Lá»—i khi táº£i banner lĂªn", { id: toastId });
             }
         };
         reader.readAsDataURL(file);
         e.target.value = "";
     };
 
-    const handleDeleteBanner = async (id) => {
-        if (!window.confirm("Bạn có chắc chắn muốn xóa banner này?")) return;
-        try {
-            await axios.delete(`/banners/${id}`);
-            setBanners(prev => prev.filter(b => b._id !== id));
-            toast.success("Đã xóa banner");
-        } catch {
-            toast.error("Không thể xóa banner");
-        }
+    const handleDeleteBanner = (id) => {
+        confirmToast("Báº¡n cĂ³ cháº¯c cháº¯n muá»‘n xĂ³a banner nĂ y?", async () => {
+            try {
+                await axios.delete(`/banners/${id}`);
+                setBanners(prev => prev.filter(b => b._id !== id));
+                toast.success("ÄĂ£ xĂ³a banner");
+            } catch {
+                toast.error("KhĂ´ng thá»ƒ xĂ³a banner");
+            }
+        });
     };
 
     const handleToggleBannerStatus = async (id) => {
@@ -131,7 +134,7 @@ const MarketingTab = () => {
             const res = await axios.patch(`/banners/${id}/toggle`);
             setBanners(prev => prev.map(b => b._id === id ? res.data : b));
         } catch {
-            toast.error("Lỗi khi cập nhật trạng thái banner");
+            toast.error("Lá»—i khi cáº­p nháº­t tráº¡ng thĂ¡i banner");
         }
     };
 
@@ -140,30 +143,30 @@ const MarketingTab = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-2">
-                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight">Marketing & Chiến Dịch</h1>
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight">Marketing & Chiáº¿n Dá»‹ch</h1>
                     <p className="text-gray-500 dark:text-luxury-text-muted max-w-2xl">
-                        Thiết lập và tự động hoá các chương trình khuyến mãi cho hệ thống toàn cầu.
+                        Thiáº¿t láº­p vĂ  tá»± Ä‘á»™ng hoĂ¡ cĂ¡c chÆ°Æ¡ng trĂ¬nh khuyáº¿n mĂ£i cho há»‡ thá»‘ng toĂ n cáº§u.
                     </p>
                 </div>
                 <div className="flex gap-4">
                     <div className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border p-4 rounded-2xl min-w-[140px] shadow-xl dark:shadow-none">
-                        <p className="text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest mb-1">Đang hoạt động</p>
+                        <p className="text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest mb-1">Äang hoáº¡t Ä‘á»™ng</p>
                         <span className="text-3xl font-bold text-gray-900 dark:text-white">{campaigns?.filter(c => c.status === "Active").length || 0}</span>
                     </div>
                 </div>
             </div>
 
-            {/* ═══ BANNER MANAGEMENT ═══ */}
+            {/* â•â•â• BANNER MANAGEMENT â•â•â• */}
             <section className="space-y-6">
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                        <ImageIcon className="w-5 h-5 text-luxury-gold" /> Quản lý Banner Trang chủ
+                        <ImageIcon className="w-5 h-5 text-luxury-gold" /> Quáº£n lĂ½ Banner Trang chá»§
                     </h2>
                     <button
                         onClick={() => bannerInputRef.current?.click()}
                         className="flex items-center gap-2 px-4 py-2 bg-luxury-gold text-luxury-dark rounded-xl text-sm font-bold hover:bg-luxury-gold-light transition"
                     >
-                        <Plus className="w-4 h-4" /> Tải lên Banner Mới
+                        <Plus className="w-4 h-4" /> Táº£i lĂªn Banner Má»›i
                     </button>
                     <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleBannerUpload} />
                 </div>
@@ -175,12 +178,12 @@ const MarketingTab = () => {
                         className="relative group h-48 rounded-2xl overflow-hidden border-2 border-dashed border-gray-200 dark:border-luxury-border hover:border-luxury-gold bg-gray-50 dark:bg-transparent transition-colors cursor-pointer flex flex-col items-center justify-center gap-3"
                     >
                         <ImageIcon className="w-10 h-10 text-gray-400 dark:text-luxury-text-muted group-hover:text-luxury-gold transition-colors" />
-                        <p className="text-sm text-gray-500 dark:text-luxury-text-muted group-hover:text-gray-900 dark:group-hover:text-white transition-colors font-medium">Click để tải banner mới</p>
-                        <p className="text-[10px] text-gray-400 dark:text-luxury-text-muted">JPG, PNG, WEBP — tối đa 5MB</p>
+                        <p className="text-sm text-gray-500 dark:text-luxury-text-muted group-hover:text-gray-900 dark:group-hover:text-white transition-colors font-medium">Click Ä‘á»ƒ táº£i banner má»›i</p>
+                        <p className="text-[10px] text-gray-400 dark:text-luxury-text-muted">JPG, PNG, WEBP â€” tá»‘i Ä‘a 5MB</p>
                     </div>
 
                     {bannersLoading ? (
-                        <div className="col-span-full py-12 text-center text-gray-500 dark:text-luxury-text-muted">Đang tải danh sách banner...</div>
+                        <div className="col-span-full py-12 text-center text-gray-500 dark:text-luxury-text-muted">Äang táº£i danh sĂ¡ch banner...</div>
                     ) : banners.map((banner) => (
                         <div key={banner._id} className="relative group h-48 rounded-2xl overflow-hidden border border-gray-100 dark:border-luxury-border shadow-lg dark:shadow-none bg-white dark:bg-luxury-dark">
                             {banner.imageUrl ? (
@@ -205,14 +208,14 @@ const MarketingTab = () => {
                                 <button
                                     onClick={() => handleToggleBannerStatus(banner._id)}
                                     className="p-2 bg-luxury-dark rounded-lg text-luxury-gold hover:bg-luxury-gold hover:text-luxury-dark transition"
-                                    title={banner.status === "ACTIVE" ? "Tắt" : "Bật"}
+                                    title={banner.status === "ACTIVE" ? "Táº¯t" : "Báº­t"}
                                 >
                                     <Power className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={() => handleDeleteBanner(banner._id)}
                                     className="p-2 bg-luxury-dark rounded-lg text-red-400 hover:bg-red-500 hover:text-white transition"
-                                    title="Xóa banner"
+                                    title="XĂ³a banner"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
@@ -222,14 +225,14 @@ const MarketingTab = () => {
                 </div>
             </section>
 
-            {/* ═══ CAMPAIGN CREATION ═══ */}
+            {/* â•â•â• CAMPAIGN CREATION â•â•â• */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Form tạo chiến dịch */}
+                {/* Form táº¡o chiáº¿n dá»‹ch */}
                 <div className="lg:col-span-1 bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border shadow-xl dark:shadow-none rounded-3xl p-8 space-y-6 h-fit">
-                    <h2 className="text-xl font-bold text-gray-800 dark:text-white">Tạo chiến dịch mới</h2>
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-white">Táº¡o chiáº¿n dá»‹ch má»›i</h2>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Tên chiến dịch</label>
+                        <label className="text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">TĂªn chiáº¿n dá»‹ch</label>
                         <input
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -240,28 +243,28 @@ const MarketingTab = () => {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Nhóm áp dụng</label>
+                        <label className="text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">NhĂ³m Ă¡p dá»¥ng</label>
                         <select
                             value={formData.group}
                             onChange={(e) => setFormData({ ...formData, group: e.target.value })}
                             className="w-full bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold transition"
                         >
-                            <option value="Entire Catalog">Toàn bộ danh mục</option>
-                            <option value="Đồng hồ Nam">Đồng hồ Nam</option>
-                            <option value="Đồng hồ Nữ">Đồng hồ Nữ</option>
-                            <option value="Đồng hồ Đôi">Đồng hồ Đôi</option>
-                            <option value="Phụ kiện">Phụ kiện</option>
-                            <option value="Cơ Tự Động (Automatic)">Cơ Tự Động (Automatic)</option>
-                            <option value="Cơ Lên Cót Tay (Hand-wound)">Cơ Lên Cót Tay (Hand-wound)</option>
-                            <option value="Bộ Máy Pin (Quartz)">Bộ Máy Pin (Quartz)</option>
-                            <option value="Năng Lượng Ánh Sáng (Solar)">Năng Lượng Ánh Sáng (Solar)</option>
-                            <option value="Đồng Hồ Điện Tử (Digital)">Đồng Hồ Điện Tử (Digital)</option>
-                            <option value="Đồng Hồ Thông Minh (Smartwatch)">Đồng Hồ Thông Minh (Smartwatch)</option>
+                            <option value="Entire Catalog">ToĂ n bá»™ danh má»¥c</option>
+                            <option value="Äá»“ng há»“ Nam">Äá»“ng há»“ Nam</option>
+                            <option value="Äá»“ng há»“ Ná»¯">Äá»“ng há»“ Ná»¯</option>
+                            <option value="Äá»“ng há»“ ÄĂ´i">Äá»“ng há»“ ÄĂ´i</option>
+                            <option value="Phá»¥ kiá»‡n">Phá»¥ kiá»‡n</option>
+                            <option value="CÆ¡ Tá»± Äá»™ng (Automatic)">CÆ¡ Tá»± Äá»™ng (Automatic)</option>
+                            <option value="CÆ¡ LĂªn CĂ³t Tay (Hand-wound)">CÆ¡ LĂªn CĂ³t Tay (Hand-wound)</option>
+                            <option value="Bá»™ MĂ¡y Pin (Quartz)">Bá»™ MĂ¡y Pin (Quartz)</option>
+                            <option value="NÄƒng LÆ°á»£ng Ănh SĂ¡ng (Solar)">NÄƒng LÆ°á»£ng Ănh SĂ¡ng (Solar)</option>
+                            <option value="Äá»“ng Há»“ Äiá»‡n Tá»­ (Digital)">Äá»“ng Há»“ Äiá»‡n Tá»­ (Digital)</option>
+                            <option value="Äá»“ng Há»“ ThĂ´ng Minh (Smartwatch)">Äá»“ng Há»“ ThĂ´ng Minh (Smartwatch)</option>
                         </select>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Phần trăm giảm (%)</label>
+                        <label className="text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Pháº§n trÄƒm giáº£m (%)</label>
                         <div className="relative">
                             <input
                                 value={formData.discountPercentage}
@@ -278,15 +281,15 @@ const MarketingTab = () => {
                     {/* Preview discount */}
                     {previewProduct && formData.discountPercentage && (
                         <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-500/30 p-4 rounded-xl space-y-2 shadow-sm">
-                            <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">Mô phỏng giá trị</p>
+                            <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">MĂ´ phá»ng giĂ¡ trá»‹</p>
                             <div className="flex items-center gap-3">
                                 <img src={previewProduct.image} className="w-12 h-12 rounded-lg object-cover" alt="" />
                                 <div>
                                     <p className="text-xs text-gray-900 dark:text-white font-medium line-clamp-1">{previewProduct.name}</p>
                                     <div className="flex gap-2 items-center">
-                                        <span className="line-through text-xs text-gray-400 dark:text-luxury-text-muted">{previewProduct.price.toLocaleString("vi-VN")}₫</span>
+                                        <span className="line-through text-xs text-gray-400 dark:text-luxury-text-muted">{previewProduct.price.toLocaleString("vi-VN")}â‚«</span>
                                         <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">
-                                            {(previewProduct.price * (1 - formData.discountPercentage / 100)).toLocaleString("vi-VN")}₫
+                                            {(previewProduct.price * (1 - formData.discountPercentage / 100)).toLocaleString("vi-VN")}â‚«
                                         </span>
                                     </div>
                                 </div>
@@ -296,7 +299,7 @@ const MarketingTab = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Bắt đầu</label>
+                            <label className="text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Báº¯t Ä‘áº§u</label>
                             <input
                                 value={formData.startDate}
                                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
@@ -305,7 +308,7 @@ const MarketingTab = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Kết thúc</label>
+                            <label className="text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Káº¿t thĂºc</label>
                             <input
                                 value={formData.endDate}
                                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
@@ -323,26 +326,26 @@ const MarketingTab = () => {
                         {creating ? (
                             <>
                                 <span className="w-5 h-5 border-2 border-luxury-dark border-t-transparent rounded-full animate-spin"></span>
-                                Đang xử lý...
+                                Äang xá»­ lĂ½...
                             </>
-                        ) : "Kích hoạt chiến dịch"}
+                        ) : "KĂ­ch hoáº¡t chiáº¿n dá»‹ch"}
                     </button>
                 </div>
 
                 {/* Campaign list */}
                 <div className="lg:col-span-2 bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border shadow-xl dark:shadow-none rounded-3xl p-8 space-y-6">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-gray-800 dark:text-white">Danh sách chiến dịch</h2>
+                        <h2 className="text-xl font-bold text-gray-800 dark:text-white">Danh sĂ¡ch chiáº¿n dá»‹ch</h2>
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
                                 <tr className="text-left border-b border-gray-100 dark:border-luxury-border/50">
-                                    <th className="pb-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Chiến dịch</th>
-                                    <th className="pb-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Nhóm</th>
+                                    <th className="pb-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Chiáº¿n dá»‹ch</th>
+                                    <th className="pb-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">NhĂ³m</th>
                                     <th className="pb-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Discount</th>
-                                    <th className="pb-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Thời gian</th>
+                                    <th className="pb-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Thá»i gian</th>
                                     <th className="pb-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">Status</th>
                                     <th className="pb-4"></th>
                                 </tr>
@@ -350,7 +353,7 @@ const MarketingTab = () => {
                             <tbody className="divide-y divide-gray-100 dark:divide-luxury-border/30">
                                 {(!campaigns || campaigns.length === 0) && (
                                     <tr>
-                                        <td colSpan="6" className="py-8 text-center text-gray-400 dark:text-luxury-text-muted">Chưa có chiến dịch nào</td>
+                                        <td colSpan="6" className="py-8 text-center text-gray-400 dark:text-luxury-text-muted">ChÆ°a cĂ³ chiáº¿n dá»‹ch nĂ o</td>
                                     </tr>
                                 )}
                                 {campaigns?.map((camp) => (
@@ -359,10 +362,10 @@ const MarketingTab = () => {
                                             <div className="font-bold text-gray-900 dark:text-white">{camp.name}</div>
                                             <div className="text-[10px] text-gray-500 dark:text-luxury-text-muted mt-0.5">ID: {camp._id.substring(0, 8)}...</div>
                                         </td>
-                                        <td className="py-5 text-sm text-gray-600 dark:text-luxury-text-muted">{camp.isGlobal ? "Toàn bộ" : camp.group}</td>
+                                        <td className="py-5 text-sm text-gray-600 dark:text-luxury-text-muted">{camp.isGlobal ? "ToĂ n bá»™" : camp.group}</td>
                                         <td className="py-5 font-bold text-luxury-gold">{camp.discountPercentage}%</td>
                                         <td className="py-5 text-[10px] text-gray-500 dark:text-luxury-text-muted">
-                                            {formatDate(camp.startDate)} <br /><span className="text-gray-400 dark:text-gray-500">tới</span> {formatDate(camp.endDate)}
+                                            {formatDate(camp.startDate)} <br /><span className="text-gray-400 dark:text-gray-500">tá»›i</span> {formatDate(camp.endDate)}
                                         </td>
                                         <td className="py-5">
                                             <div className="flex items-center gap-2">
@@ -373,10 +376,17 @@ const MarketingTab = () => {
                                             </div>
                                         </td>
                                         <td className="py-5 text-right">
-                                            <button onClick={() => toggleCampaignStatus(camp._id)} className="p-2 text-gray-400 dark:text-luxury-text-muted hover:text-luxury-gold transition-colors mr-2" title="Bật/Tắt">
+                                            <button onClick={() => toggleCampaignStatus(camp._id)} className="p-2 text-gray-400 dark:text-luxury-text-muted hover:text-luxury-gold transition-colors mr-2" title="Báº­t/Táº¯t">
                                                 <Power className="w-4 h-4" />
                                             </button>
-                                            <button onClick={() => deleteCampaign(camp._id)} className="p-2 text-gray-400 dark:text-luxury-text-muted hover:text-red-400 transition-colors" title="Xoá">
+                                            <button
+                                                onClick={() => {
+                                                    confirmToast(`XĂ³a chiáº¿n dá»‹ch "${camp.name}"?`, async () => {
+                                                        await deleteCampaign(camp._id);
+                                                    });
+                                                }}
+                                                className="p-2 text-gray-400 dark:text-luxury-text-muted hover:text-red-400 transition-colors" title="XoĂ¡"
+                                            >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                         </td>
@@ -392,3 +402,4 @@ const MarketingTab = () => {
 };
 
 export default MarketingTab;
+

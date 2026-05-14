@@ -6,6 +6,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, ".env") });
 
+// C.8: Fail-fast validation for critical environment variables
+const REQUIRED_ENV_VARS = [
+	"MONGO_URI",
+	"ACCESS_TOKEN_SECRET",
+	"REFRESH_TOKEN_SECRET",
+];
+const missingEnvVars = REQUIRED_ENV_VARS.filter((v) => !process.env[v]);
+if (missingEnvVars.length > 0) {
+	console.error(
+		`[FATAL] Missing required environment variables: ${missingEnvVars.join(", ")}`
+	);
+	console.error("Please check backend/.env.example for reference.");
+	process.exit(1);
+}
+
 import express from "express";
 import cookieParser from "cookie-parser";
 import fs from "fs";
@@ -33,6 +48,7 @@ import mailRoutes from "./routes/mail.route.js";
 import reviewRoutes from "./routes/review.route.js";
 import questionRoutes from "./routes/question.route.js";
 import storeConfigRoutes from "./routes/storeConfig.route.js";
+import { sanitizeInput } from "./middleware/sanitize.middleware.js";
 import "./services/mailWorker.js";
 // cron job
 import "./lib/cron.js";
@@ -86,6 +102,9 @@ app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
 app.use(passport.initialize());
 
+// C.1: Input sanitization - strip null bytes and trim strings from body/query/params
+app.use(sanitizeInput);
+
 const uploadDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -93,8 +112,8 @@ if (!fs.existsSync(uploadDir)) {
 app.use("/uploads", express.static(uploadDir));
 
 
-app.use("/api/auth/oauth", oauthRoutes);
-app.use("/api/auth", oauthRoutes);
+app.use("/api/auth/oauth", oauthRoutes); // FIX D7: removed duplicate mount at /api/auth
+
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);

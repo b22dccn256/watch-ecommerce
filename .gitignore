@@ -34,3 +34,10 @@ AGENTS.md
 #imgs file
 *watch_images*
 *dongho_maxwatches_VIETNAMESE_FINAL_LOCAL_IMAGES.csv*
+
+# Test artifacts - should not be committed
+frontend/playwright-report/
+frontend/test-results/
+
+# Runtime log files - do not commit
+stripe-error.log

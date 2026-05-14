@@ -1,7 +1,8 @@
-import ProfilePage from "./ProfilePage";
+﻿import ProfilePage from "./ProfilePage";
 
 const AccountPages = () => {
   return <ProfilePage />;
 };
 
 export default AccountPages;
+

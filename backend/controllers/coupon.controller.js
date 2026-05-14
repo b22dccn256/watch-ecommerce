@@ -1,4 +1,5 @@
 import Coupon from "../models/coupon.model.js";
+import { getCouponDiscountAmount } from "../lib/coupon.js";
 
 export const getCoupon = async (req, res) => {
 	try {
@@ -28,7 +29,9 @@ export const validateCoupon = async (req, res) => {
 		res.json({
 			message: "Coupon is valid",
 			code: coupon.code,
-			discountPercentage: coupon.discountPercentage,
+			discountPercentage: coupon.discountValue,
+			discountValue: coupon.discountValue,
+			type: coupon.type,
 		});
 	} catch (error) {
 		console.log("Error in validateCoupon controller", error.message);
@@ -76,14 +79,14 @@ export const toggleCoupon = async (req, res) => {
 
 export const createCoupon = async (req, res) => {
 	try {
-		const { code, type, discountValue, minOrderAmount, maxUses, expirationDate } = req.body;
-		if (!code || !discountValue || !expirationDate) {
+		const { code, type = "percent", discountValue, minOrderAmount, maxUses, expirationDate } = req.body;
+		if (!code || discountValue === undefined || !expirationDate) {
 			return res.status(400).json({ message: "Thiếu thông tin bắt buộc: code, discountValue, expirationDate" });
 		}
 		const existing = await Coupon.findOne({ code: code.toUpperCase() });
 		if (existing) return res.status(409).json({ message: "Mã coupon đã tồn tại" });
 		const coupon = await Coupon.create({
-			code: code.toUpperCase(), type: type || "percent",
+			code: code.toUpperCase(), type,
 			discountValue, minOrderAmount: minOrderAmount || 0,
 			maxUses: maxUses || 0, expirationDate,
 		});

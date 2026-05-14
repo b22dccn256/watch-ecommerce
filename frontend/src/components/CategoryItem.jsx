@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 
 const CategoryItem = ({ category }) => {
 	return (
@@ -23,3 +23,4 @@ const CategoryItem = ({ category }) => {
 };
 
 export default CategoryItem;
+

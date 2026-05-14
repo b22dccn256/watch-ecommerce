@@ -1,4 +1,4 @@
-import { createWithEqualityFn } from "zustand/traditional";
+﻿import { createWithEqualityFn } from "zustand/traditional";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
 
@@ -55,13 +55,14 @@ export const useInventoryStore = createWithEqualityFn((set, get) => ({
                 quantity: Number(quantity),
                 note
             });
-            toast.success("Điều chỉnh tồn kho thành công");
+            toast.success("Äiá»u chá»‰nh tá»“n kho thĂ nh cĂ´ng");
             set({ loading: false });
             return res.data.product; // Return updated product
         } catch (error) {
             set({ loading: false });
-            toast.error(error.response?.data?.message || "Lỗi điều chỉnh tồn kho");
+            toast.error(error.response?.data?.message || "Lá»—i Ä‘iá»u chá»‰nh tá»“n kho");
             throw error;
         }
     }
 }));
+

@@ -1,6 +1,7 @@
 import Product from "../models/product.model.js";
 import InventoryLog from "../models/inventoryLog.model.js";
 import CampaignService from "./campaign.service.js";
+import { getCouponDiscountAmount } from "../lib/coupon.js";
 
 class OrderService {
     // Kiểm tra và trừ tồn kho (Có hỗ trợ Transaction Session)
@@ -82,9 +83,7 @@ class OrderService {
             totalAmount += product.price * item.quantity;
         }
 
-        if (coupon && coupon.isActive) {
-            totalAmount -= Math.round((totalAmount * coupon.discountPercentage) / 100);
-        }
+        totalAmount -= getCouponDiscountAmount(coupon, totalAmount);
 
         if (totalAmount > 0 && totalAmount < 2000000) {
             totalAmount += 30000;

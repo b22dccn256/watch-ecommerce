@@ -52,8 +52,26 @@ const couponSchema = new mongoose.Schema(
 	},
 	{
 		timestamps: true,
+		toJSON: { virtuals: true },
+		toObject: { virtuals: true },
 	}
 );
+
+couponSchema.virtual("discountPercentage")
+	.get(function () {
+		return this.discountValue;
+	})
+	.set(function (value) {
+		this.discountValue = value;
+	});
+
+couponSchema.virtual("discountAmount")
+	.get(function () {
+		return this.discountValue;
+	})
+	.set(function (value) {
+		this.discountValue = value;
+	});
 
 const Coupon = mongoose.model("Coupon", couponSchema);
 

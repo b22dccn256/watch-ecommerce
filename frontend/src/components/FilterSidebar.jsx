@@ -1,35 +1,35 @@
-import { useState, useCallback } from "react";
+﻿import { useState, useCallback } from "react";
 import { RotateCcw, Star, ChevronDown, Filter } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
 
 const CATEGORIES = [
-	"Cơ Tự Động (Automatic)",
-	"Cơ Lên Cót Tay (Hand-wound)",
-	"Bộ Máy Pin (Quartz)",
-	"Năng Lượng Ánh Sáng (Solar)",
-	"Đồng Hồ Điện Tử (Digital)",
-	"Đồng Hồ Thông Minh (Smartwatch)",
+	"CÆ¡ Tá»± Äá»™ng (Automatic)",
+	"CÆ¡ LĂªn CĂ³t Tay (Hand-wound)",
+	"Bá»™ MĂ¡y Pin (Quartz)",
+	"NÄƒng LÆ°á»£ng Ănh SĂ¡ng (Solar)",
+	"Äá»“ng Há»“ Äiá»‡n Tá»­ (Digital)",
+	"Äá»“ng Há»“ ThĂ´ng Minh (Smartwatch)",
 ];
 
 const BRANDS = ["Rolex", "Casio", "Seiko", "Citizen", "Garmin", "Patek Philippe", "Audemars Piguet", "Hublot", "Omega", "Cartier", "Tag Heuer", "IWC"];
 const MACHINE_TYPES = [
-	{ value: "Mechanical", label: "Cơ lên cót" },
-	{ value: "Quartz", label: "Bộ máy pin" },
-	{ value: "Automatic", label: "Cơ tự động" },
-	{ value: "Solar", label: "Năng lượng ánh sáng" },
-	{ value: "Digital", label: "Điện tử" },
-	{ value: "Smartwatch", label: "Đồng hồ thông minh" },
+	{ value: "Mechanical", label: "CÆ¡ lĂªn cĂ³t" },
+	{ value: "Quartz", label: "Bá»™ mĂ¡y pin" },
+	{ value: "Automatic", label: "CÆ¡ tá»± Ä‘á»™ng" },
+	{ value: "Solar", label: "NÄƒng lÆ°á»£ng Ă¡nh sĂ¡ng" },
+	{ value: "Digital", label: "Äiá»‡n tá»­" },
+	{ value: "Smartwatch", label: "Äá»“ng há»“ thĂ´ng minh" },
 ];
-const STRAP_MATERIALS = ["Da", "Thép không gỉ", "Cao su", "Vải NATO", "Ceramic", "Titanium"];
+const STRAP_MATERIALS = ["Da", "ThĂ©p khĂ´ng gá»‰", "Cao su", "Váº£i NATO", "Ceramic", "Titanium"];
 const COLORS = [
-	{ name: "Đen", hex: "#111111" },
-	{ name: "Bạc", hex: "#C0C0C0" },
-	{ name: "Vàng", hex: "#D4AF37" },
-	{ name: "Xanh dương", hex: "#1D4ED8" },
-	{ name: "Trắng", hex: "#F5F5F5" },
-	{ name: "Nâu", hex: "#92400E" },
-	{ name: "Xanh lá", hex: "#065F46" },
-	{ name: "Đỏ", hex: "#B91C1C" },
+	{ name: "Äen", hex: "#111111" },
+	{ name: "Báº¡c", hex: "#C0C0C0" },
+	{ name: "VĂ ng", hex: "#D4AF37" },
+	{ name: "Xanh dÆ°Æ¡ng", hex: "#1D4ED8" },
+	{ name: "Tráº¯ng", hex: "#F5F5F5" },
+	{ name: "NĂ¢u", hex: "#92400E" },
+	{ name: "Xanh lĂ¡", hex: "#065F46" },
+	{ name: "Äá»", hex: "#B91C1C" },
 ];
 const SIZES = ["36mm", "38mm", "40mm", "41mm", "42mm", "44mm", "45mm", "46mm+"];
 const RATINGS = [5, 4, 3, 2, 1];
@@ -118,7 +118,7 @@ const FilterSidebar = () => {
 						<div className="flex items-center gap-2">
 							<Filter className="h-4 w-4 text-luxury-gold" />
 							<h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-								Bộ lọc
+								Bá»™ lá»c
 								{activeCount > 0 && (
 									<span className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-luxury-gold text-lux-dark text-[10px] font-bold">
 										{activeCount}
@@ -128,26 +128,26 @@ const FilterSidebar = () => {
 						</div>
 						{activeCount > 0 && (
 							<button type="button" onClick={handleReset} className="flex items-center gap-1 text-xs text-gray-500 transition hover:text-luxury-gold">
-								<RotateCcw className="h-3 w-3" /> Đặt lại
+								<RotateCcw className="h-3 w-3" /> Äáº·t láº¡i
 							</button>
 						)}
 					</div>
 				</div>
 
-				<FilterSection title="Loại đồng hồ" defaultOpen>
+				<FilterSection title="Loáº¡i Ä‘á»“ng há»“" defaultOpen>
 					<select
 						value={filters.category || ""}
 						onChange={(e) => applyLiveFilters({ category: e.target.value })}
 						className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 transition focus:border-luxury-gold focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
 					>
-						<option value="">Tất cả loại</option>
+						<option value="">Táº¥t cáº£ loáº¡i</option>
 						{CATEGORIES.map((cat) => (
 							<option key={cat} value={cat}>{cat}</option>
 						))}
 					</select>
 				</FilterSection>
 
-				<FilterSection title="Thương hiệu" defaultOpen>
+				<FilterSection title="ThÆ°Æ¡ng hiá»‡u" defaultOpen>
 					<div className="max-h-48 space-y-2 overflow-y-auto pr-1 custom-scrollbar">
 						{BRANDS.map((brand) => {
 							const active = filters.brands?.includes(brand);
@@ -169,11 +169,11 @@ const FilterSidebar = () => {
 					</div>
 				</FilterSection>
 
-				<FilterSection title="Khoảng giá (Triệu ₫)" defaultOpen>
+				<FilterSection title="Khoáº£ng giĂ¡ (Triá»‡u â‚«)" defaultOpen>
 					<div className="flex items-center gap-2">
 						<input
 							type="number"
-							placeholder="Từ"
+							placeholder="Tá»«"
 							value={minPriceInput}
 							onChange={(e) => setMinPriceInput(e.target.value)}
 							onBlur={applyPriceFilter}
@@ -181,10 +181,10 @@ const FilterSidebar = () => {
 							min={0}
 							className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-2.5 py-2 text-xs text-gray-900 transition focus:border-luxury-gold focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
 						/>
-						<span className="flex-shrink-0 text-xs text-gray-400">–</span>
+						<span className="flex-shrink-0 text-xs text-gray-400">â€“</span>
 						<input
 							type="number"
-							placeholder="Đến"
+							placeholder="Äáº¿n"
 							value={maxPriceInput}
 							onChange={(e) => setMaxPriceInput(e.target.value)}
 							onBlur={applyPriceFilter}
@@ -194,11 +194,11 @@ const FilterSidebar = () => {
 						/>
 					</div>
 					<button type="button" onClick={applyPriceFilter} className="btn-outline mt-2 w-full rounded-2xl py-2 text-xs font-semibold hover:bg-luxury-gold hover:text-lux-dark hover:border-luxury-gold">
-						Áp dụng
+						Ăp dá»¥ng
 					</button>
 				</FilterSection>
 
-				<FilterSection title="Bộ máy" defaultOpen={false}>
+				<FilterSection title="Bá»™ mĂ¡y" defaultOpen={false}>
 					<div className="flex flex-wrap gap-2">
 						{MACHINE_TYPES.map((type) => {
 							const active = filters.machineType?.includes(type.value);
@@ -211,7 +211,7 @@ const FilterSidebar = () => {
 					</div>
 				</FilterSection>
 
-				<FilterSection title="Dây đeo" defaultOpen={false}>
+				<FilterSection title="DĂ¢y Ä‘eo" defaultOpen={false}>
 					<div className="flex flex-wrap gap-2">
 						{STRAP_MATERIALS.map((mat) => {
 							const active = filters.strapMaterial?.includes(mat);
@@ -224,7 +224,7 @@ const FilterSidebar = () => {
 					</div>
 				</FilterSection>
 
-				<FilterSection title="Màu sắc" defaultOpen={false}>
+				<FilterSection title="MĂ u sáº¯c" defaultOpen={false}>
 					<div className="flex flex-wrap gap-2">
 						{COLORS.map((color) => {
 							const active = filters.colors?.includes(color.name);
@@ -252,7 +252,7 @@ const FilterSidebar = () => {
 					</div>
 				</FilterSection>
 
-				<FilterSection title="Kích thước mặt" defaultOpen={false}>
+				<FilterSection title="KĂ­ch thÆ°á»›c máº·t" defaultOpen={false}>
 					<div className="grid grid-cols-4 gap-1.5">
 						{SIZES.map((size) => {
 							const active = filters.sizes?.includes(size);
@@ -265,7 +265,7 @@ const FilterSidebar = () => {
 					</div>
 				</FilterSection>
 
-				<FilterSection title="Đánh giá" defaultOpen={false}>
+				<FilterSection title="ÄĂ¡nh giĂ¡" defaultOpen={false}>
 					<div className="space-y-2">
 						{RATINGS.map((rating) => {
 							const active = filters.minRating === rating;
@@ -304,3 +304,4 @@ const FilterSidebar = () => {
 };
 
 export default FilterSidebar;
+
