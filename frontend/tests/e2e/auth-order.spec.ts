@@ -1,15 +1,16 @@
 import { test, expect, request as playwrightRequest } from '@playwright/test';
 import { skipIfBackendUnavailable } from './helpers/backend';
 
-const randomEmail = `e2euser+${Date.now()}@example.com`;
-const randomPassword = 'E2eSecurePassw0rd!';
-
 test.beforeEach(async () => {
   await skipIfBackendUnavailable();
 });
 
 test.describe('Customer basic flow', () => {
   test('Signup -> Login -> Add to Compare -> Add to Cart -> Place order', async ({ page }) => {
+    const randomEmail = `e2euser+${Date.now()}+${Math.floor(Math.random() * 1000)}@example.com`;
+    const randomPassword = 'E2eSecurePassw0rd!';
+    const randomPhone = `09${Math.floor(10000000 + Math.random() * 89999999)}`; // Generates a random valid VN phone number
+
     const api = await playwrightRequest.newContext({
       baseURL: process.env.E2E_BACKEND_URL || 'http://localhost:5000',
       timeout: 10000,
@@ -22,9 +23,9 @@ test.describe('Customer basic flow', () => {
 
     const signupRes = await api.post('/api/auth/signup', {
       data: {
-        name: 'E2E Tester',
+        name: 'Etest User',
         email: randomEmail,
-        phone: '0912345678',
+        phone: randomPhone,
         password: randomPassword,
         confirmPassword: randomPassword,
       },
@@ -39,7 +40,7 @@ test.describe('Customer basic flow', () => {
     await page.waitForURL('/', { timeout: 10000 });
 
     await page.goto('/catalog');
-    await page.locator('article').first().getByRole('button', { name: /So/i }).click();
+    await page.locator('article').first().getByRole('button', { name: /So/i }).click({ force: true });
     await expect(page.locator('.compare-scroll')).toBeVisible();
     await page.locator('.compare-scroll img').first().click();
     await page.waitForURL(/\/product\//, { timeout: 10000 });

@@ -1,4 +1,4 @@
-﻿import { Minus, Plus, Trash, Bookmark, AlertTriangle, PencilLine, X } from "lucide-react";
+import { Minus, Plus, Trash, Bookmark, AlertTriangle, PencilLine, X } from "lucide-react";
 import { useCartStore } from "../stores/useCartStore";
 import { useWishlistStore } from "../stores/useWishlistStore";
 import { useUserStore } from "../stores/useUserStore";
@@ -24,7 +24,7 @@ const CartItem = ({ item }) => {
 	const availableSizes = useMemo(() => (Array.isArray(item.sizes) ? item.sizes : []), [item.sizes]);
 	const availableWristOptions = useMemo(() => (Array.isArray(item.wristSizeOptions) ? item.wristSizeOptions : []), [item.wristSizeOptions]);
 	const hasWristOptions = availableWristOptions.length > 0;
-	const isFreeWristSizing = !hasWristOptions && !!item.specs?.strap?.material?.toLowerCase().match(/steel|metal|titanium|thĂ©p|kim loáº¡i/);
+	const isFreeWristSizing = !hasWristOptions && !!item.specs?.strap?.material?.toLowerCase().match(/steel|metal|titanium|thép|kim loại/);
 
 	// Sync local quantity with remote prop changes
 	useEffect(() => {
@@ -42,7 +42,7 @@ const CartItem = ({ item }) => {
 		if (isNaN(val) || val < 1) val = 1;
 		if (val > item.stock) {
 			val = item.stock;
-			toast.error(`Sáº£n pháº©m nĂ y chá»‰ cĂ²n ${item.stock} cĂ¡i trong kho`);
+			toast.error(`Sản phẩm này chỉ còn ${item.stock} cái trong kho`);
 		}
 		setLocalQuantity(val);
 		if (val !== item.quantity) {
@@ -146,19 +146,19 @@ const CartItem = ({ item }) => {
 
 					{item.wristSize && (
 						<p className="text-sm text-gray-500 dark:text-gray-400">
-							YĂªu cáº§u cáº¯t dĂ¢y: <span className="font-medium text-gray-800 dark:text-gray-200">{item.wristSize} mm</span>
+							Yêu cầu cắt dây: <span className="font-medium text-gray-800 dark:text-gray-200">{item.wristSize} mm</span>
 						</p>
 					)}
 
 					{item.selectedColor && (
 						<p className="text-sm text-gray-500 dark:text-gray-400">
-							MĂ u sáº¯c: <span className="font-medium text-gray-800 dark:text-gray-200">{item.selectedColor}</span>
+							Màu sắc: <span className="font-medium text-gray-800 dark:text-gray-200">{item.selectedColor}</span>
 						</p>
 					)}
 
 					{item.selectedSize && (
 						<p className="text-sm text-gray-500 dark:text-gray-400">
-							KĂ­ch cá»¡: <span className="font-medium text-gray-800 dark:text-gray-200">{item.selectedSize}</span>
+							Kích cỡ: <span className="font-medium text-gray-800 dark:text-gray-200">{item.selectedSize}</span>
 						</p>
 					)}
 
@@ -168,18 +168,18 @@ const CartItem = ({ item }) => {
 						className="inline-flex items-center gap-2 text-xs font-semibold text-[#D4AF37] hover:text-amber-400 transition"
 					>
 						<PencilLine className="w-3.5 h-3.5" />
-						Äá»•i thuá»™c tĂ­nh
+						Đổi thuộc tính
 					</button>
 
 					{item.stock <= 5 && item.stock > 0 && (
 						<p className="text-xs text-orange-400 flex items-center gap-1 font-medium bg-orange-400/10 w-fit px-2 py-1 rounded">
 							<AlertTriangle className="w-3 h-3" />
-							Chá»‰ cĂ²n {item.stock} sáº£n pháº©m
+							Chỉ còn {item.stock} sản phẩm
 						</p>
 					)}
 					{item.stock === 0 && (
 						<p className="text-xs text-secondary font-bold bg-black/5 dark:bg-white/10 w-fit px-2 py-1 rounded">
-							ÄĂ£ háº¿t hĂ ng
+							Đã hết hàng
 						</p>
 					)}
 
@@ -187,10 +187,10 @@ const CartItem = ({ item }) => {
 						<button
 							className='inline-flex items-center text-sm font-medium text-secondary hover:text-[color:var(--color-gold)] transition hover:bg-[color:var(--color-gold)]/10 px-2 py-1 -ml-2 rounded'
 							onClick={() => removeFromCart(item._id, item.wristSize, item.selectedColor, item.selectedSize)}
-							title='XĂ³a khá»i giá» hĂ ng'
+							title='Xóa khỏi giỏ hàng'
 						>
 							<Trash className="w-4 h-4" />
-							<span className='ml-1.5'>XĂ³a</span>
+							<span className='ml-1.5'>Xóa</span>
 						</button>
 						<button
 							className='inline-flex items-center text-sm font-medium text-secondary hover:text-[color:var(--color-gold)] transition hover:bg-[color:var(--color-gold)]/10 px-2 py-1 rounded'
@@ -198,7 +198,7 @@ const CartItem = ({ item }) => {
 								toggleWishlist(item, !!user);
 								removeFromCart(item._id, item.wristSize, item.selectedColor, item.selectedSize);
 							}}
-							title='LÆ°u láº¡i mua sau'
+							title='Lưu lại mua sau'
 						>
 							<Bookmark className="w-4 h-4" />
 							<span className='ml-1.5'>Mua sau</span>
@@ -221,7 +221,7 @@ const CartItem = ({ item }) => {
 					>
 						<div className="p-5 md:p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
 							<div>
-								<p className="text-xs uppercase tracking-[0.3em] text-gray-400 font-semibold">Sá»­a thuá»™c tĂ­nh</p>
+								<p className="text-xs uppercase tracking-[0.3em] text-gray-400 font-semibold">Sửa thuộc tính</p>
 								<h3 className="text-xl font-bold text-gray-900 dark:text-white mt-1">{item.name}</h3>
 							</div>
 							<button type="button" onClick={() => setShowAttributeModal(false)} className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 hover:text-black dark:hover:text-white">
@@ -232,7 +232,7 @@ const CartItem = ({ item }) => {
 						<div className="p-5 md:p-6 space-y-5">
 							{hasWristOptions && (
 								<div>
-									<p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">KĂ­ch cá»¡ / phĂ¢n loáº¡i</p>
+									<p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Kích cỡ / phân loại</p>
 									<div className="flex flex-wrap gap-2">
 										{availableWristOptions.map((option) => {
 											const isSelected = draftWristSize === option.size;
@@ -246,7 +246,7 @@ const CartItem = ({ item }) => {
 													className={`px-4 py-2 rounded-xl border text-sm font-semibold transition-all relative ${isSelected ? "border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37] ring-2 ring-[#D4AF37]/30" : "border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-[#D4AF37]"} ${isOut ? "opacity-50 cursor-not-allowed" : ""}`}
 												>
 													{option.size}
-													{isOut && <span className="ml-2 text-[10px] uppercase">Háº¿t</span>}
+													{isOut && <span className="ml-2 text-[10px] uppercase">Hết</span>}
 												</button>
 											);
 										})}
@@ -256,20 +256,20 @@ const CartItem = ({ item }) => {
 
 							{isFreeWristSizing && (
 								<div>
-									<p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Cáº¯t dĂ¢y theo cá»• tay (mm)</p>
+									<p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Cắt dây theo cổ tay (mm)</p>
 									<input
 										type="number"
 										value={draftWristSize}
 										onChange={(e) => setDraftWristSize(e.target.value)}
 										className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#D4AF37]"
-										placeholder="VĂ­ dá»¥: 170"
+										placeholder="Ví dụ: 170"
 									/>
 								</div>
 							)}
 
 							{availableColors.length > 0 && (
 								<div>
-									<p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">MĂ u sáº¯c</p>
+									<p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Màu sắc</p>
 									<div className="flex flex-wrap gap-2">
 										{availableColors.map((color) => (
 											<button
@@ -287,7 +287,7 @@ const CartItem = ({ item }) => {
 
 							{availableSizes.length > 0 && (
 								<div>
-									<p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">KĂ­ch cá»¡</p>
+									<p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Kích cỡ</p>
 									<div className="flex flex-wrap gap-2">
 										{availableSizes.map((size) => (
 											<button
@@ -306,7 +306,7 @@ const CartItem = ({ item }) => {
 
 						<div className="p-5 md:p-6 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end gap-3">
 							<button type="button" onClick={() => setShowAttributeModal(false)} className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-								Há»§y
+								Hủy
 							</button>
 							<button
 								type="button"
@@ -314,7 +314,7 @@ const CartItem = ({ item }) => {
 								disabled={isSavingAttributes}
 								className="px-5 py-2.5 rounded-xl bg-[#D4AF37] text-black text-sm font-bold hover:bg-amber-400 transition disabled:opacity-60"
 							>
-								{isSavingAttributes ? "Äang lÆ°u..." : "XĂ¡c nháº­n"}
+								{isSavingAttributes ? "Đang lưu..." : "Xác nhận"}
 							</button>
 						</div>
 					</motion.div>
@@ -325,4 +325,3 @@ const CartItem = ({ item }) => {
 	);
 };
 export default CartItem;
-

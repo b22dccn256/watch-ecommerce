@@ -1,4 +1,4 @@
-﻿import { createWithEqualityFn } from "zustand/traditional";
+import { createWithEqualityFn } from "zustand/traditional";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { useUserStore } from "./useUserStore";
@@ -146,7 +146,7 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 			localStorage.removeItem("watch_cart");
 		} else {
 			try {
-				// XĂ³a giá» hĂ ng trĂªn server (khĂ´ng cáº§n productId = xĂ³a toĂ n bá»™)
+				// Xóa giỏ hàng trên server (không cần productId = xóa toàn bộ)
 				await axios.delete("/cart", { data: {} });
 			} catch (error) {
 				console.error("clearCart server error:", error.message);
@@ -163,7 +163,7 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 		const newQuantity = existingItem ? existingItem.quantity + 1 : 1;
 
 		if (product.stock < newQuantity) {
-			return toast.error(`Sáº£n pháº©m nĂ y chá»‰ cĂ²n ${product.stock} cĂ¡i trong kho`);
+			return toast.error(`Sản phẩm này chỉ còn ${product.stock} cái trong kho`);
 		}
 
 		if (!user) {
@@ -190,7 +190,7 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 				get().calculateTotals();
 			}
 			
-			toast.success("ÄĂ£ thĂªm vĂ o giá» hĂ ng!");
+			toast.success("Đã thêm vào giỏ hàng!");
 			return;
 		}
 
@@ -201,7 +201,7 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 				selectedColor: product.selectedColor || null,
 				selectedSize: product.selectedSize || null,
 			});
-			toast.success("ÄĂ£ thĂªm vĂ o giá» hĂ ng!");
+			toast.success("Đã thêm vào giỏ hàng!");
 
 			set((prevState) => {
 				const existingItem = prevState.cart.find((item) => prevState.getUniqueId(item) === uniqueId);
@@ -243,7 +243,7 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 			localStorage.setItem("watch_cart", JSON.stringify(newCart));
 			set({ cart: newCart });
 			get().calculateTotals();
-			toast.success("ÄĂ£ xĂ³a sáº£n pháº©m khá»i giá» hĂ ng");
+			toast.success("Đã xóa sản phẩm khỏi giỏ hàng");
 			return;
 		}
 
@@ -251,9 +251,9 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 			await axios.delete(`/cart`, { data: { productId, wristSize, selectedColor, selectedSize } });
 			set((prevState) => ({ cart: prevState.cart.filter((item) => prevState.getUniqueId(item) !== uniqueId) }));
 			get().calculateTotals();
-			toast.success("ÄĂ£ xĂ³a sáº£n pháº©m khá»i giá» hĂ ng");
+			toast.success("Đã xóa sản phẩm khỏi giỏ hàng");
 		} catch (error) {
-			toast.error(error.response?.data?.message || "KhĂ´ng thá»ƒ xĂ³a sáº£n pháº©m khá»i giá» hĂ ng");
+			toast.error(error.response?.data?.message || "Không thể xóa sản phẩm khỏi giỏ hàng");
 		}
 	},
 	updateQuantity: async (productId, quantity, maxStock, wristSize, selectedColor = null, selectedSize = null) => {
@@ -263,7 +263,7 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 		}
 
 		if (maxStock !== undefined && quantity > maxStock) {
-			toast.error(`Sáº£n pháº©m nĂ y chá»‰ cĂ²n ${maxStock} cĂ¡i trong kho`);
+			toast.error(`Sản phẩm này chỉ còn ${maxStock} cái trong kho`);
 			return;
 		}
 
@@ -347,7 +347,7 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 			set({ cart: newCart });
 			syncSelectedItems(get().selectedItems);
 			get().calculateTotals();
-			toast.success("ÄĂ£ cáº­p nháº­t thuá»™c tĂ­nh sáº£n pháº©m");
+			toast.success("Đã cập nhật thuộc tính sản phẩm");
 			return;
 		}
 
@@ -363,48 +363,43 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 			await get().getCartItems();
 			syncSelectedItems(get().selectedItems);
 			get().calculateTotals();
-			toast.success("ÄĂ£ cáº­p nháº­t thuá»™c tĂ­nh sáº£n pháº©m");
+			toast.success("Đã cập nhật thuộc tính sản phẩm");
 		} catch (error) {
-			toast.error(error.response?.data?.message || "KhĂ´ng thá»ƒ cáº­p nháº­t thuá»™c tĂ­nh");
+			toast.error(error.response?.data?.message || "Không thể cập nhật thuộc tính");
 		}
 	},
-	calculateTotals: (city = "") => {
+	calculateTotals: async (city = "") => {
 		const { cart, coupon, selectedItems, getUniqueId } = get();
 		const selectedCart = cart.filter(item => selectedItems.includes(getUniqueId(item)));
-		const subtotal = selectedCart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-		let total = subtotal;
-
-		if (coupon) {
-			const discount = subtotal * (coupon.discountPercentage / 100);
-			total = subtotal - discount;
+		
+		if (selectedCart.length === 0) {
+			set({ subtotal: 0, total: 0, shippingFee: 0 });
+			return;
 		}
 
-		// --- PhĂ­ váº­n chuyá»ƒn Ä‘á»™ng theo Tá»‰nh / ThĂ nh phá»‘ ---
-		const FREE_SHIP_THRESHOLD = 5_000_000; // Miá»…n phĂ­ ship náº¿u Ä‘Æ¡n > 5tr
-		const BIG_CITY_FEE = 30_000; // HĂ  Ná»™i vĂ  TP.HCM
-		const OTHER_PROVINCE_FEE = 50_000; // Tá»‰nh khĂ¡c
+		try {
+			const res = await axios.post("/cart/calculate", {
+				items: selectedCart.map(item => ({
+					_id: item.product?._id || item.productId || item._id,
+					quantity: item.quantity,
+					wristSize: item.wristSize || null,
+					selectedColor: item.selectedColor || null,
+					selectedSize: item.selectedSize || null,
+				})),
+				couponCode: coupon ? coupon.code : null,
+				city: city,
+			});
 
-		const BIG_CITIES = [
-			"hĂ  ná»™i", "ha noi", "hn",
-			"há»“ chĂ­ minh", "ho chi minh", "hcm", "tp.hcm", "tp hcm", "sĂ i gĂ²n", "sai gon"
-		];
-
-		const hasPhysicalItems = selectedCart.length > 0;
-		let shippingFee = 0;
-
-		if (hasPhysicalItems) {
-			if (total >= FREE_SHIP_THRESHOLD) {
-				shippingFee = 0; // Miá»…n phĂ­
-			} else if (!city || BIG_CITIES.includes(city.toLowerCase().trim())) {
-				shippingFee = BIG_CITY_FEE; // HĂ  Ná»™i / HCM (hoáº·c chÆ°a nháº­p)
-			} else {
-				shippingFee = OTHER_PROVINCE_FEE; // Tá»‰nh khĂ¡c
-			}
+			set({ 
+				subtotal: res.data.subtotal, 
+				total: res.data.total, 
+				shippingFee: res.data.shippingFee 
+			});
+		} catch (error) {
+			console.error("Failed to calculate totals:", error);
 		}
-
-		total += shippingFee;
-		set({ subtotal, total, shippingFee });
 	},
+
 	resetStore: () => {
 		localStorage.removeItem("watch_cart");
 		localStorage.removeItem("watch_selected_items");
@@ -419,4 +414,3 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 		});
 	},
 }));
-

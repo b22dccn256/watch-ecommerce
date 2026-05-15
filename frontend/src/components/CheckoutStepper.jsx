@@ -1,11 +1,11 @@
-﻿import { Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const CheckoutStepper = ({ currentStep }) => {
 	const steps = [
-		{ id: 1, title: 'Giá» HĂ ng', link: '/cart' },
-		{ id: 2, title: 'Thanh ToĂ¡n', link: '/checkout' },
-		{ id: 3, title: 'HoĂ n Táº¥t', link: null }
+		{ id: 1, title: 'Giỏ Hàng', link: '/cart' },
+		{ id: 2, title: 'Thanh Toán', link: '/checkout' },
+		{ id: 3, title: 'Hoàn Tất', link: null }
 	];
 
 	return (
@@ -62,4 +62,3 @@ const CheckoutStepper = ({ currentStep }) => {
 };
 
 export default CheckoutStepper;
-

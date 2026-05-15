@@ -4,6 +4,7 @@ import Coupon from "../models/coupon.model.js";
 import Order from "../models/order.model.js";
 import ProcessedIPN from "../models/processedIPN.model.js";
 import { stripe } from "../lib/stripe.js";
+import { handlePaymentSuccess, handlePaymentExpired, createStripeCoupon, createNewCoupon } from "../services/payment.service.js";
 import OrderService from "../services/order.service.js";
 import mongoose from "mongoose";
 import User from "../models/user.model.js";
@@ -102,7 +103,7 @@ export const createCheckoutSession = async (req, res) => {
 		await OrderService.deductStock(products, sessionOpts, newOrderId, req.user?._id, "Thanh toán Stripe");
 
 		const coupon = (couponCode && req.user) ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }).session(sessionOpts) : null;
-		let dbTotalAmount = await OrderService.calculateTotalAmount(products, coupon, sessionOpts);
+		let dbTotalAmount = await OrderService.calculateTotalAmount(products, coupon, sessionOpts, shippingDetails?.city);
 
 		let totalAmount = 0;
 
@@ -395,99 +396,6 @@ export const stripeWebhook = async (req, res) => {
 		res.status(500).json({ error: 'Internal server error' });
 	}
 };
-
-const handlePaymentSuccess = async (session) => {
-	if (session.metadata.couponCode) {
-		await Coupon.findOneAndUpdate(
-			{
-				code: session.metadata.couponCode,
-				userId: session.metadata.userId,
-			},
-			{
-				isActive: false,
-			}
-		);
-	}
-
-	const orderId = session.metadata.orderId;
-	const order = await Order.findById(orderId);
-	if (order && order.paymentStatus === "pending") {
-		order.paymentStatus = "paid";
-		order.status = "confirmed";
-		await order.save();
-
-		// Queue Order Confirmation Email
-		const emailTarget = session.metadata.userEmail || "guest";
-		if (emailTarget !== "guest") {
-			await emailQueue.add("order-confirmation", {
-				email: emailTarget,
-				subject: `Xác nhận đơn hàng #${order.orderCode} - Luxury Watch`,
-				order: {
-					orderCode: order.orderCode,
-					totalAmount: order.totalAmount,
-					shippingDetails: order.shippingDetails,
-					paymentMethod: order.paymentMethod
-				}
-			});
-		}
-
-		// Clear cart just in case (webhook safety)
-		if (session.metadata.userId && session.metadata.userId !== "guest") {
-			const userToClear = await User.findById(session.metadata.userId);
-			if (userToClear) {
-				const orderedProductIds = order.products.map(p => p.product.toString());
-				userToClear.cartItems = userToClear.cartItems.filter(item =>
-					item.product && !orderedProductIds.includes(item.product.toString())
-				);
-				await userToClear.save();
-			}
-		}
-	}
-};
-
-const handlePaymentExpired = async (session) => {
-	const orderId = session.metadata.orderId;
-	const order = await Order.findById(orderId);
-	if (order && order.paymentStatus === "pending") {
-		order.paymentStatus = "cancelled";
-		order.status = "cancelled";
-		await order.save();
-
-		// Hoàn lại kho
-		await OrderService.restoreStock(order.products, null, orderId, "Stripe Checkout hết hạn");
-	}
-};
-
-
-async function createStripeCoupon(coupon) {
-	const discountValue = Number(coupon?.discountValue ?? coupon?.discountPercentage ?? 0);
-	const stripeCoupon = await stripe.coupons.create(coupon?.type === "fixed" ? {
-		amount_off: Math.round(discountValue),
-		currency: "vnd",
-		duration: "once",
-	} : {
-		percent_off: Math.min(discountValue, 100),
-		duration: "once",
-	});
-
-	return stripeCoupon.id;
-}
-
-async function createNewCoupon(userId) {
-	await Coupon.findOneAndDelete({ userId });
-
-	const newCoupon = new Coupon({
-		code: "GIFT" + Math.random().toString(36).substring(2, 8).toUpperCase(),
-		type: "percent",
-		discountValue: 10,
-		expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-		userId: userId,
-	});
-
-	await newCoupon.save();
-
-	return newCoupon;
-}
 
 // ======================= WEBHOOK IPN NỘI ĐỊA =======================
 

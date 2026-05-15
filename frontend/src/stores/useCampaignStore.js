@@ -1,4 +1,4 @@
-﻿import { createWithEqualityFn } from "zustand/traditional";
+import { createWithEqualityFn } from "zustand/traditional";
 import toast from "react-hot-toast";
 import axios from "../lib/axios";
 
@@ -27,8 +27,8 @@ export const useCampaignStore = createWithEqualityFn((set, get) => ({
                 return res.data;
             })
             .catch((error) => {
-                set({ error: error.response?.data?.message || "Lá»—i khi láº¥y danh sĂ¡ch chiáº¿n dá»‹ch", loading: false });
-                toast.error(error.response?.data?.message || "Lá»—i khi láº¥y danh sĂ¡ch chiáº¿n dá»‹ch");
+                set({ error: error.response?.data?.message || "Lỗi khi lấy danh sách chiến dịch", loading: false });
+                toast.error(error.response?.data?.message || "Lỗi khi lấy danh sách chiến dịch");
                 return get().campaigns;
             })
             .finally(() => {
@@ -51,7 +51,7 @@ export const useCampaignStore = createWithEqualityFn((set, get) => ({
                 return res.data;
             })
             .catch((error) => {
-                console.error("Lá»—i khi láº¥y danh sĂ¡ch chiáº¿n dá»‹ch Ä‘ang cháº¡y:", error);
+                console.error("Lỗi khi lấy danh sách chiến dịch đang chạy:", error);
                 return get().campaigns;
             })
             .finally(() => {
@@ -68,11 +68,11 @@ export const useCampaignStore = createWithEqualityFn((set, get) => ({
                 campaigns: [res.data, ...prevState.campaigns],
                 loading: false,
             }));
-            toast.success("Táº¡o chiáº¿n dá»‹ch thĂ nh cĂ´ng");
+            toast.success("Tạo chiến dịch thành công");
             return { success: true };
         } catch (error) {
             set({ loading: false });
-            toast.error(error.response?.data?.message || "Lá»—i táº¡o chiáº¿n dá»‹ch");
+            toast.error(error.response?.data?.message || "Lỗi tạo chiến dịch");
             return { success: false };
         }
     },
@@ -85,9 +85,9 @@ export const useCampaignStore = createWithEqualityFn((set, get) => ({
                     camp._id === campaignId ? res.data : camp
                 ),
             }));
-            toast.success("ÄĂ£ cáº­p nháº­t tráº¡ng thĂ¡i");
+            toast.success("Đã cập nhật trạng thái");
         } catch (error) {
-            toast.error(error.response?.data?.message || "Lá»—i cáº­p nháº­t chiáº¿n dá»‹ch");
+            toast.error(error.response?.data?.message || "Lỗi cập nhật chiến dịch");
         }
     },
 
@@ -97,10 +97,9 @@ export const useCampaignStore = createWithEqualityFn((set, get) => ({
             set((prevState) => ({
                 campaigns: prevState.campaigns.filter((camp) => camp._id !== campaignId),
             }));
-            toast.success("ÄĂ£ xoĂ¡ chiáº¿n dá»‹ch");
+            toast.success("Đã xoá chiến dịch");
         } catch (error) {
-            toast.error(error.response?.data?.message || "Lá»—i xoĂ¡ chiáº¿n dá»‹ch");
+            toast.error(error.response?.data?.message || "Lỗi xoá chiến dịch");
         }
     },
 }));
-

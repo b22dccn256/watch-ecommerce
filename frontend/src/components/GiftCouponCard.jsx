@@ -1,4 +1,4 @@
-﻿import { motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useCartStore } from "../stores/useCartStore";
 
@@ -34,13 +34,13 @@ const GiftCouponCard = () => {
 			<div className='space-y-4'>
 				<div>
 					<label htmlFor='voucher' className='mb-2 block text-sm font-medium text-secondary'>
-						Báº¡n cĂ³ mĂ£ giáº£m giĂ¡?
+						Bạn có mã giảm giá?
 					</label>
 					<input
 						type='text'
 						id='voucher'
 						className='input-base'
-						placeholder='Nháº­p mĂ£...'
+						placeholder='Nhập mã...'
 						value={userInputCode}
 						onChange={(e) => setUserInputCode(e.target.value)}
 						required
@@ -54,15 +54,15 @@ const GiftCouponCard = () => {
 					whileTap={{ scale: 0.95 }}
 					onClick={handleApplyCoupon}
 				>
-					Ăp dá»¥ng
+					Áp dụng
 				</motion.button>
 			</div>
 			{isCouponApplied && coupon && (
 				<div className='mt-4'>
-					<h3 className='text-lg font-medium text-primary'>MĂ£ Ä‘Ă£ Ă¡p dá»¥ng</h3>
+					<h3 className='text-lg font-medium text-primary'>Mã đã áp dụng</h3>
 
 					<p className='mt-2 text-sm text-muted'>
-						{coupon.code} - Giáº£m {coupon.discountPercentage}%
+						{coupon.code} - Giảm {coupon.discountPercentage}%
 					</p>
 
 					<motion.button
@@ -72,16 +72,16 @@ const GiftCouponCard = () => {
 						whileTap={{ scale: 0.95 }}
 						onClick={handleRemoveCoupon}
 					>
-						Gá»¡ mĂ£ giáº£m giĂ¡
+						Gỡ mã giảm giá
 					</motion.button>
 				</div>
 			)}
 
 			{coupon && (
 				<div className='mt-4'>
-					<h3 className='text-lg font-medium text-primary'>MĂ£ giáº£m giĂ¡ dĂ nh cho báº¡n:</h3>
+					<h3 className='text-lg font-medium text-primary'>Mã giảm giá dành cho bạn:</h3>
 					<p className='mt-2 text-sm text-muted'>
-						{coupon.code} - Giáº£m {coupon.discountPercentage}%
+						{coupon.code} - Giảm {coupon.discountPercentage}%
 					</p>
 				</div>
 			)}
@@ -89,4 +89,3 @@ const GiftCouponCard = () => {
 	);
 };
 export default GiftCouponCard;
-

@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UserPlus, Mail, Lock, User, Phone, ArrowRight, Loader, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
@@ -7,7 +7,7 @@ import { useUserStore } from "../stores/useUserStore";
 const EDITORIAL_IMAGE =
   "https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=1600&auto=format&fit=crop";
 
-// Field component tĂ¡i sá»­ dá»¥ng
+// Field component tái sử dụng
 const Field = ({ id, label, type = "text", value, onChange, onBlur, error, touched, placeholder, icon: Icon, suffix }) => (
   <div className="space-y-1.5">
     <label htmlFor={id} className="block text-[10px] uppercase tracking-[0.18em] text-secondary">
@@ -43,28 +43,28 @@ const SignUpPage = () => {
   const navigate = useNavigate();
 
   const validatePasswordStrength = (password) => {
-    if (password.length < 8) return "Máº­t kháº©u pháº£i cĂ³ Ă­t nháº¥t 8 kĂ½ tá»±";
+    if (password.length < 8) return "Mật khẩu phải có ít nhất 8 ký tự";
     const score = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter((r) => r.test(password)).length;
-    if (score < 3) return "NĂªn cĂ³ chá»¯ hoa, chá»¯ thÆ°á»ng, sá»‘ vĂ  kĂ½ tá»± Ä‘áº·c biá»‡t";
+    if (score < 3) return "Nên có chữ hoa, chữ thường, số và ký tự đặc biệt";
     return "";
   };
 
   const validateField = (field, value) => {
     let msg = "";
     if (field === "name") {
-      if (!value.trim()) msg = "Vui lĂ²ng nháº­p há» vĂ  tĂªn";
-      else if (!NAME_REGEX.test(value.trim())) msg = "Chá»‰ chá»©a chá»¯ cĂ¡i vĂ  khoáº£ng tráº¯ng (2â€“50 kĂ½ tá»±)";
+      if (!value.trim()) msg = "Vui lòng nhập họ và tên";
+      else if (!NAME_REGEX.test(value.trim())) msg = "Chỉ chứa chữ cái và khoảng trắng (2–50 ký tự)";
     }
     if (field === "email") {
-      if (!value.trim()) msg = "Vui lĂ²ng nháº­p email";
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) msg = "Email khĂ´ng há»£p lá»‡";
+      if (!value.trim()) msg = "Vui lòng nhập email";
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) msg = "Email không hợp lệ";
     }
     if (field === "phone" && value.trim() && !/^0[35789]\d{8}$/.test(value.trim()))
-      msg = "Sá»‘ Ä‘iá»‡n thoáº¡i khĂ´ng há»£p lá»‡";
-    if (field === "password") msg = value ? validatePasswordStrength(value) : "Vui lĂ²ng nháº­p máº­t kháº©u";
+      msg = "Số điện thoại không hợp lệ";
+    if (field === "password") msg = value ? validatePasswordStrength(value) : "Vui lòng nhập mật khẩu";
     if (field === "confirmPassword") {
-      if (!value) msg = "Vui lĂ²ng nháº­p láº¡i máº­t kháº©u";
-      else if (formData.password !== value) msg = "Máº­t kháº©u xĂ¡c nháº­n khĂ´ng khá»›p";
+      if (!value) msg = "Vui lòng nhập lại mật khẩu";
+      else if (formData.password !== value) msg = "Mật khẩu xác nhận không khớp";
     }
     setErrors((prev) => ({ ...prev, [field]: msg }));
     return msg;
@@ -97,7 +97,7 @@ const SignUpPage = () => {
   return (
     <div className="flex min-h-screen">
 
-      {/* â”€â”€ Left â€” Editorial Panel â”€â”€ */}
+      {/* ── Left — Editorial Panel ── */}
       <div
         className="relative hidden lg:flex lg:w-[46%] flex-col justify-between overflow-hidden p-14"
         style={{ background: "#0d0c0a" }}
@@ -125,20 +125,20 @@ const SignUpPage = () => {
         <div className="relative space-y-5">
           <div className="h-px w-12 bg-[color:var(--color-gold)]/55" />
           <blockquote className="font-serif text-[1.9rem] font-medium leading-[1.26] text-white/92">
-            &quot;Má»—i chiáº¿c Ä‘á»“ng há»“ lĂ <br />má»™t tuyĂªn ngĂ´n vá» báº¡n â€”<br />
-            trÆ°á»›c khi báº¡n nĂ³i má»™t lá»i.&quot;
+            &quot;Mỗi chiếc đồng hồ là<br />một tuyên ngôn về bạn —<br />
+            trước khi bạn nói một lời.&quot;
           </blockquote>
           <p className="text-[10px] uppercase tracking-[0.22em] text-white/35">
-            Luxury Watch Gallery Â· 2026
+            Luxury Watch Gallery · 2026
           </p>
         </div>
 
         <p className="relative text-[10px] uppercase tracking-[0.2em] text-white/20">
-          Â© 2026 Â· Hanoi Â· Vietnam
+          © 2026 · Hanoi · Vietnam
         </p>
       </div>
 
-      {/* â”€â”€ Right â€” Form Panel â”€â”€ */}
+      {/* ── Right — Form Panel ── */}
       <div className="flex flex-1 items-start justify-center overflow-y-auto bg-[color:var(--color-bg)] px-6 py-16 sm:px-10">
         <motion.div
           initial={{ opacity: 0, y: 14 }}
@@ -159,23 +159,23 @@ const SignUpPage = () => {
 
           {/* Heading */}
           <div className="mb-8 space-y-1.5">
-            <h1 className="font-serif text-[2rem] leading-tight text-primary">Táº¡o tĂ i khoáº£n</h1>
-            <p className="text-sm text-muted">Gia nháº­p cá»™ng Ä‘á»“ng nhá»¯ng ngÆ°á»i yĂªu Ä‘á»“ng há»“</p>
+            <h1 className="font-serif text-[2rem] leading-tight text-primary">Tạo tài khoản</h1>
+            <p className="text-sm text-muted">Gia nhập cộng đồng những người yêu đồng hồ</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Field
-              id="name" label="Há» vĂ  tĂªn *"
+              id="name" label="Họ và tên *"
               value={formData.name}
               onChange={(e) => handleChange("name", e.target.value)}
               onBlur={() => handleBlur("name")}
               error={errors.name} touched={touched.name}
-              placeholder="Nguyá»…n VÄƒn A"
+              placeholder="Nguyễn Văn A"
               icon={User}
             />
 
             <Field
-              id="email" label="Äá»‹a chá»‰ Email *" type="email"
+              id="email" label="Địa chỉ Email *" type="email"
               value={formData.email}
               onChange={(e) => handleChange("email", e.target.value)}
               onBlur={() => handleBlur("email")}
@@ -185,7 +185,7 @@ const SignUpPage = () => {
             />
 
             <Field
-              id="phone" label="Sá»‘ Ä‘iá»‡n thoáº¡i" type="tel"
+              id="phone" label="Số điện thoại" type="tel"
               value={formData.phone}
               onChange={(e) => handleChange("phone", e.target.value)}
               onBlur={() => handleBlur("phone")}
@@ -197,7 +197,7 @@ const SignUpPage = () => {
             {/* Password with toggle */}
             <div className="space-y-1.5">
               <label htmlFor="password" className="block text-[10px] uppercase tracking-[0.18em] text-secondary">
-                Máº­t kháº©u *
+                Mật khẩu *
               </label>
               <div className="relative">
                 <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
@@ -206,7 +206,7 @@ const SignUpPage = () => {
                   value={formData.password}
                   onChange={(e) => handleChange("password", e.target.value)}
                   onBlur={() => handleBlur("password")}
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="••••••••"
                   className={`input-base h-11 w-full rounded-lg pl-10 pr-10 ${touched.password && errors.password ? "border-[color:var(--color-danger)]" : ""}`}
                 />
                 <button
@@ -216,7 +216,7 @@ const SignUpPage = () => {
                   {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              <p className="text-[11px] text-muted">Tá»‘i thiá»ƒu 8 kĂ½ tá»±, gá»“m hoa, thÆ°á»ng, sá»‘</p>
+              <p className="text-[11px] text-muted">Tối thiểu 8 ký tự, gồm hoa, thường, số</p>
               {touched.password && errors.password && (
                 <p className="text-[11px] text-[color:var(--color-danger)]">{errors.password}</p>
               )}
@@ -225,7 +225,7 @@ const SignUpPage = () => {
             {/* Confirm password */}
             <div className="space-y-1.5">
               <label htmlFor="confirmPassword" className="block text-[10px] uppercase tracking-[0.18em] text-secondary">
-                XĂ¡c nháº­n máº­t kháº©u *
+                Xác nhận mật khẩu *
               </label>
               <div className="relative">
                 <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
@@ -234,7 +234,7 @@ const SignUpPage = () => {
                   value={formData.confirmPassword}
                   onChange={(e) => handleChange("confirmPassword", e.target.value)}
                   onBlur={() => handleBlur("confirmPassword")}
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="••••••••"
                   className={`input-base h-11 w-full rounded-lg pl-10 pr-10 ${touched.confirmPassword && errors.confirmPassword ? "border-[color:var(--color-danger)]" : ""}`}
                 />
                 <button
@@ -251,15 +251,15 @@ const SignUpPage = () => {
 
             <button type="submit" disabled={loading} className="btn-base btn-primary mt-2 h-11 w-full">
               {loading
-                ? <><Loader className="mr-2 h-4 w-4 animate-spin" />Äang táº¡o tĂ i khoáº£nâ€¦</>
-                : <><UserPlus className="mr-2 h-4 w-4" />ÄÄƒng kĂ½</>}
+                ? <><Loader className="mr-2 h-4 w-4 animate-spin" />Đang tạo tài khoản…</>
+                : <><UserPlus className="mr-2 h-4 w-4" />Đăng ký</>}
             </button>
           </form>
 
           <p className="mt-6 text-center text-sm text-muted">
-            ÄĂ£ cĂ³ tĂ i khoáº£n?{" "}
+            Đã có tài khoản?{" "}
             <Link to="/login" className="font-medium text-[color:var(--color-gold)] transition hover:underline">
-              ÄÄƒng nháº­p <ArrowRight className="inline h-3.5 w-3.5" />
+              Đăng nhập <ArrowRight className="inline h-3.5 w-3.5" />
             </Link>
           </p>
         </motion.div>
@@ -269,4 +269,3 @@ const SignUpPage = () => {
 };
 
 export default SignUpPage;
-

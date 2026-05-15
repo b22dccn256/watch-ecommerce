@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Lock } from "lucide-react";
@@ -30,10 +30,10 @@ const ResetPasswordPage = () => {
 				newPassword,
 				confirmPassword,
 			});
-			toast.success(res.data.message || "Máº­t kháº©u Ä‘Ă£ Ä‘Æ°á»£c Ä‘áº·t láº¡i thĂ nh cĂ´ng");
+			toast.success(res.data.message || "Mật khẩu đã được đặt lại thành công");
 			navigate("/login");
 		} catch (error) {
-			toast.error(error.response?.data?.message || "KhĂ´ng thá»ƒ Ä‘áº·t láº¡i máº­t kháº©u");
+			toast.error(error.response?.data?.message || "Không thể đặt lại mật khẩu");
 		} finally {
 			setLoading(false);
 		}
@@ -47,38 +47,38 @@ const ResetPasswordPage = () => {
 				className="mx-auto max-w-xl rounded-[1.8rem] border border-black/10 bg-surface p-8 shadow-[0_30px_100px_-50px_rgba(0,0,0,0.5)] dark:border-white/10"
 			>
 				<p className="hero-kicker text-[color:var(--color-gold)]">Account recovery</p>
-				<h1 className="hero-title mt-3 text-3xl text-primary">Äáº·t láº¡i máº­t kháº©u</h1>
-				<p className="mt-2 text-sm text-secondary">Táº¡o máº­t kháº©u má»›i cho tĂ i khoáº£n cá»§a báº¡n.</p>
+				<h1 className="hero-title mt-3 text-3xl text-primary">Đặt lại mật khẩu</h1>
+				<p className="mt-2 text-sm text-secondary">Tạo mật khẩu mới cho tài khoản của bạn.</p>
 
 				<form className="mt-8 space-y-4" onSubmit={handleSubmit}>
 					<Input
-						label="MĂ£ Ä‘áº·t láº¡i"
+						label="Mã đặt lại"
 						type="text"
 						required
 						value={token}
 						onChange={(e) => setToken(e.target.value)}
-						placeholder="Token tá»« email"
+						placeholder="Token từ email"
 					/>
 					<Input
-						label="Máº­t kháº©u má»›i"
+						label="Mật khẩu mới"
 						type="password"
 						required
 						value={newPassword}
 						onChange={(e) => setNewPassword(e.target.value)}
-						placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+						placeholder="••••••••"
 					/>
 					<Input
-						label="XĂ¡c nháº­n máº­t kháº©u"
+						label="Xác nhận mật khẩu"
 						type="password"
 						required
 						value={confirmPassword}
 						onChange={(e) => setConfirmPassword(e.target.value)}
-						placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+						placeholder="••••••••"
 					/>
 					<button type="submit" disabled={loading} className="btn-base btn-primary h-11 w-full">
-						{loading ? "Äang cáº­p nháº­t..." : (
+						{loading ? "Đang cập nhật..." : (
 							<>
-								Äáº·t láº¡i máº­t kháº©u
+								Đặt lại mật khẩu
 								<ArrowRight className="h-4 w-4" />
 							</>
 						)}
@@ -87,7 +87,7 @@ const ResetPasswordPage = () => {
 
 				<div className="mt-6 text-sm">
 					<Link to="/login" className="text-[color:var(--color-gold)] hover:underline">
-						Quay láº¡i Ä‘Äƒng nháº­p
+						Quay lại đăng nhập
 					</Link>
 				</div>
 			</motion.div>
@@ -96,4 +96,3 @@ const ResetPasswordPage = () => {
 };
 
 export default ResetPasswordPage;
-

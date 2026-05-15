@@ -1,14 +1,13 @@
-﻿{
-  "welcome": "ChĂ o má»«ng",
-  "cart": "Giá» hĂ ng",
-  "wishlist": "YĂªu thĂ­ch",
-  "compare": "So sĂ¡nh",
-  "checkout": "Thanh toĂ¡n",
-  "order_summary": "TĂ³m táº¯t Ä‘Æ¡n hĂ ng",
-  "subtotal": "Táº¡m tĂ­nh",
-  "savings": "Tiáº¿t kiá»‡m",
-  "total": "Tá»•ng cá»™ng",
-  "currency_vnd": "â‚«",
+{
+  "welcome": "Chào mừng",
+  "cart": "Giỏ hàng",
+  "wishlist": "Yêu thích",
+  "compare": "So sánh",
+  "checkout": "Thanh toán",
+  "order_summary": "Tóm tắt đơn hàng",
+  "subtotal": "Tạm tính",
+  "savings": "Tiết kiệm",
+  "total": "Tổng cộng",
+  "currency_vnd": "₫",
   "currency_usd": "$"
 }
-

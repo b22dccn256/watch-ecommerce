@@ -1,10 +1,9 @@
 // controllers/order.controller.js
-// FIX A1: Imports moved to top — ES Module best practice, prevents undefined references
 import Order from "../models/order.model.js";
 import Product from "../models/product.model.js";
 import Coupon from "../models/coupon.model.js";
 import User from "../models/user.model.js";
-import OrderService from "../services/order.service.js";
+import OrderService, { canTransitionOrderStatus } from "../services/order.service.js";
 import mongoose from "mongoose";
 import crypto from "crypto";
 import { emailQueue } from "./mail.controller.js";
@@ -28,7 +27,7 @@ export const requestReturnOrder = async (req, res) => {
             updatedBy: req.user._id
         });
         await order.save();
-        // Email notify
+        
         await emailQueue.add("order-status-update", {
             email: order.shippingDetails?.email || (await User.findById(order.user))?.email,
             subject: `Yêu cầu trả hàng cho đơn #${order.orderCode}`,
@@ -75,24 +74,6 @@ export const cancelOrder = async (req, res) => {
     }
 };
 
-const ORDER_STATUS_TRANSITIONS = {
-    pending: ["awaiting_verification", "confirmed", "cancelled"],
-    awaiting_verification: ["confirmed", "cancelled"],
-    confirmed: ["processing", "cancelled"],
-    processing: ["shipped", "cancelled"],
-    shipped: ["delivered"],
-    delivered: ["return_requested"],
-    return_requested: ["returned", "delivered"],
-    returned: [],
-    cancelled: [],
-};
-
-const canTransitionOrderStatus = (fromStatus, toStatus) => {
-    if (fromStatus === toStatus) return true;
-    const allowedTargets = ORDER_STATUS_TRANSITIONS[fromStatus] || [];
-    return allowedTargets.includes(toStatus);
-};
-
 // Ensure order products are always returned with product details (name/image etc.)
 const ensureOrderProductsPopulated = async (order) => {
     if (!order) return order;
@@ -131,7 +112,7 @@ const ensureOrderProductsPopulated = async (order) => {
 
 export const getAllOrders = async (req, res) => {
     try {
-        const { status, startDate, endDate, search, page = 1, limit = 10, userId } = req.query; // FIX B5: add userId
+        const { status, startDate, endDate, search, page = 1, limit = 10, userId } = req.query;
 
         const skip = (parseInt(page) - 1) * parseInt(limit);
         
@@ -140,7 +121,6 @@ export const getAllOrders = async (req, res) => {
         if (startDate) filter.createdAt = { $gte: new Date(startDate) };
         if (endDate) filter.createdAt = { ...filter.createdAt, $lte: new Date(endDate) };
 
-        // FIX B5: Support userId filter for UsersTab order history
         if (userId && mongoose.Types.ObjectId.isValid(userId)) filter.user = userId;
 
         if (search) {
@@ -157,9 +137,6 @@ export const getAllOrders = async (req, res) => {
         }
 
         const totalOrders = await Order.countDocuments(filter);
-        
-        // Tính toán stats cho toàn bộ database (theo filter hiện tại hoặc toàn bộ)
-        // User muốn "đơn cần xử lý" (pending) và "trả hàng" (returned) của toàn bộ database
         const pendingCount = await Order.countDocuments({ status: "pending" });
         const returnedCount = await Order.countDocuments({ status: "returned" });
 
@@ -195,100 +172,17 @@ export const getAllOrders = async (req, res) => {
     }
 };
 
+// Refactored: Call OrderService
 export const updateOrderStatus = async (req, res) => {
     try {
         const { status } = req.body;
-        const order = await Order.findById(req.params.id);
-
-        if (!order) return res.status(404).json({ message: "Order not found" });
-
-        if (!status) {
-            return res.status(400).json({ message: "Thiếu trạng thái cần cập nhật" });
-        }
-
-        const validStatuses = Object.keys(ORDER_STATUS_TRANSITIONS);
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({ message: "Trạng thái đơn hàng không hợp lệ" });
-        }
-
-        const oldStatus = order.status;
-
-        if (!canTransitionOrderStatus(oldStatus, status)) {
-            return res.status(400).json({
-                message: `Không thể chuyển trạng thái từ ${oldStatus} sang ${status}`,
-            });
-        }
-
-        order.status = status;
-
-        order.trackingEvents.push({
-            status,
-            message: "Trạng thái đơn hàng đã được cập nhật thành: " + status,
-            timestamp: new Date(),
-            updatedBy: req.user?._id || "system"
-        });
-
-        if (status === "cancelled" && oldStatus !== "cancelled") {
-            await OrderService.restoreStock(order.products, null, order._id, "Hủy đơn hàng");
-        } else if (status === "returned" && oldStatus !== "returned") {
-            try {
-                await OrderService.restoreStock(order.products, null, order._id, "Trả hàng: " + (order.returnReason || "Không rõ lý do"));
-                // FIX D1: Set loyaltyPointsReversedAt BEFORE deducting to prevent double-deduct
-                // if restoreStock throws, we still mark it as reversed to avoid double deduct in block below
-                if (order.loyaltyPointsGranted > 0 && !order.loyaltyPointsReversedAt) {
-                    order.loyaltyPointsReversedAt = new Date(); // guard FIRST
-                    const user = await User.findById(order.user);
-                    if (user) {
-                        user.rewardPoints = Math.max(0, (user.rewardPoints || 0) - order.loyaltyPointsGranted);
-                        await user.save();
-                    }
-                    order.internalNotes = (order.internalNotes || "") + `\n[SYSTEM] Đã trừ ${order.loyaltyPointsGranted.toLocaleString()} điểm thưởng do đơn bị trả.`;
-                }
-            } catch (restoreError) {
-                console.error("Error restoring stock for returned order:", restoreError.message);
-                order.internalNotes = (order.internalNotes || "") + "\n[SYSTEM] Lỗi khi hoàn cộng tồn kho: " + restoreError.message;
-            }
-        }
-
-        await order.save();
-
-        // === Loyalty Points Accrual (1% of order when Delivered) ===
-        if (status === "delivered" && oldStatus !== "delivered" && order.user) {
-            const pointsToAdd = Math.max(1, Math.floor(order.totalAmount / 100)); // 1% giá trị đơn
-            await User.findByIdAndUpdate(order.user, {
-                $inc: { rewardPoints: pointsToAdd, totalPointsEarned: pointsToAdd }
-            });
-            order.loyaltyPointsGranted = pointsToAdd;
-            order.loyaltyPointsReversedAt = null;
-            order.internalNotes = (order.internalNotes || "") + `\n[SYSTEM] Cộng ${pointsToAdd.toLocaleString()} điểm thưởng cho khách.`;
-            await order.save();
-        } else if (status === "refunded" && order.user && order.loyaltyPointsGranted > 0 && !order.loyaltyPointsReversedAt) {
-            // FIX D1: Only handle "refunded" here — "returned" is already handled above with stock restore
-            order.loyaltyPointsReversedAt = new Date();
-            const user = await User.findById(order.user);
-            if (user) {
-                user.rewardPoints = Math.max(0, (user.rewardPoints || 0) - order.loyaltyPointsGranted);
-                await user.save();
-            }
-            order.internalNotes = (order.internalNotes || "") + `\n[SYSTEM] Trừ ${order.loyaltyPointsGranted.toLocaleString()} điểm thưởng do đơn ${status}.`;
-            await order.save();
-        }
-
-        // Queue Email Notification
-        await emailQueue.add("order-status-update", {
-            email: order.shippingDetails?.email || (await mongoose.model('User').findById(order.user))?.email,
-            subject: "Cập nhật trạng thái đơn hàng #" + order.orderCode,
-            order: {
-                orderCode: order.orderCode,
-                status: status,
-                trackingToken: order.trackingToken
-            }
-        });
-
+        const orderId = req.params.id;
+        
+        const order = await OrderService.updateOrderStatus(orderId, status, req.user);
         res.json({ message: "Order status updated to " + status, order });
     } catch (error) {
         console.error("Error in updateOrderStatus:", error.message);
-        res.status(500).json({ message: "Server error" });
+        res.status(400).json({ message: error.message });
     }
 };
 
@@ -299,18 +193,15 @@ export const updateOrderDetails = async (req, res) => {
 
         if (!order) return res.status(404).json({ message: "Order not found" });
 
-        // Update fields if provided
         if (internalNotes !== undefined) order.internalNotes = internalNotes;
         if (returnReason !== undefined) order.returnReason = returnReason;
         if (refundAmount !== undefined) {
-             // Validation for refundAmount
              if (refundAmount < 0 || refundAmount > order.totalAmount) {
-                 return res.status(400).json({ message: "Số tiền hoàn không hợp lệ (phải từ 0 đến tổng giá trị đơn hàng)" });
+                  return res.status(400).json({ message: "Số tiền hoàn không hợp lệ (phải từ 0 đến tổng giá trị đơn hàng)" });
              }
              order.refundAmount = refundAmount;
         }
 
-        // Only admins can change carrier and tracking safely, but this route is adminRoute anyway
         if (carrier !== undefined) order.carrier = carrier;
         if (carrierTrackingNumber !== undefined) order.carrierTrackingNumber = carrierTrackingNumber;
 
@@ -361,138 +252,9 @@ export const getMyOrders = async (req, res) => {
     }
 };
 
-// ── Hàm lõi chung cho COD và QR (tránh duplicate ~80 dòng code) ──────────────
-const createNonStripeOrder = async (req, res, paymentMethod) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-        const { products, couponCode, shippingDetails } = req.body;
-
-        // Validation
-        if (!products || !Array.isArray(products) || products.length === 0) {
-            await session.abortTransaction(); session.endSession();
-            return res.status(400).json({ message: "Danh sách sản phẩm không được rỗng" });
-        }
-        for (const p of products) {
-            if (!Number.isInteger(p.quantity) || p.quantity < 1) {
-                await session.abortTransaction(); session.endSession();
-                return res.status(400).json({ message: `Số lượng sản phẩm không hợp lệ: ${p.quantity}` });
-            }
-        }
-        if (!shippingDetails?.fullName?.trim() || !shippingDetails?.address?.trim() ||
-            !shippingDetails?.city?.trim() || !shippingDetails?.phoneNumber?.trim()) {
-            await session.abortTransaction(); session.endSession();
-            return res.status(400).json({ message: "Thiếu thông tin giao hàng bắt buộc." });
-        }
-
-        // Deduct stock with a generated order id (avoid race conditions)
-        const newOrderId = new mongoose.Types.ObjectId();
-        const deductNote = paymentMethod === 'cod' ? 'Đặt hàng COD' : (paymentMethod === 'qr' ? 'Đặt hàng VietQR' : 'Đặt hàng');
-        await OrderService.deductStock(products, session, newOrderId, req.user?._id, deductNote);
-
-        const coupon = (couponCode && req.user)
-            ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }).session(session)
-            : null;
-
-        const totalAmount = await OrderService.calculateTotalAmount(products, coupon, session);
-        const orderCode = OrderService.generateOrderCode();
-        const trackingToken = crypto.randomUUID();
-
-        const label = paymentMethod === "cod" ? "Thanh toán COD" : "Thanh toán QR";
-
-        const newOrder = new Order({
-            _id: newOrderId,
-            ...(req.user && { user: req.user._id }),
-            products: products.map(p => ({
-                product: p._id || p.id,
-                quantity: p.quantity,
-                price: p.price,
-                wristSize: p.wristSize || null,
-                selectedColor: p.selectedColor || null,
-                selectedSize: p.selectedSize || null,
-            })),
-            totalAmount,
-            orderCode,
-            trackingToken,
-            shippingDetails,
-            paymentMethod,
-            paymentStatus: "pending",
-            status: "pending",
-            trackingEvents: [{
-                status: "pending",
-                message: `Đơn hàng đã được khởi tạo (${label}).`,
-                timestamp: new Date()
-            }]
-        });
-
-        await newOrder.save({ session });
-
-        if (coupon) {
-            coupon.usedCount = (coupon.usedCount || 0) + 1;
-            coupon.usageHistory.push({
-                usedAt: new Date(),
-                orderId: newOrderId,
-                userId: req.user?._id
-            });
-            if (coupon.maxUses > 0 && coupon.usedCount >= coupon.maxUses) {
-                coupon.isActive = false;
-            }
-            await coupon.save({ session });
-        }
-
-        if (req.user) {
-            const orderedVariants = products.map(p => ({
-                productId: (p._id || p.id).toString(),
-                wristSize: p.wristSize || null,
-                selectedColor: p.selectedColor || null,
-                selectedSize: p.selectedSize || null,
-            }));
-            req.user.cartItems = req.user.cartItems.filter(item => {
-                if (!item.product) return true;
-                const matchesOrderedVariant = orderedVariants.some(v =>
-                    item.product.toString() === v.productId
-                    && (item.wristSize || null) === v.wristSize
-                    && (item.selectedColor || null) === v.selectedColor
-                    && (item.selectedSize || null) === v.selectedSize
-                );
-                return !matchesOrderedVariant;
-            });
-            await req.user.save({ session });
-        }
-
-        await session.commitTransaction();
-        session.endSession();
-
-        // Queue email xác nhận (ngoài transaction — không critical nếu fail)
-        await emailQueue.add("order-confirmation", {
-            email: req.user?.email || shippingDetails.email,
-            subject: `Xác nhận đơn hàng #${orderCode} - Luxury Watch`,
-            order: { orderCode, totalAmount, shippingDetails, paymentMethod }
-        });
-
-        const message = paymentMethod === "cod"
-            ? "Đơn hàng COD đã tạo thành công! Bạn sẽ thanh toán khi nhận hàng."
-            : "Đơn hàng QR đã tạo thành công. Vui lòng chuyển khoản để xác nhận.";
-
-        return res.status(201).json({
-            success: true,
-            message,
-            orderId: newOrder._id,
-            orderCode,
-            ...(paymentMethod === "qr" && { totalAmount })
-        });
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        console.error(`Error in create${paymentMethod.toUpperCase()}Order:`, error.message);
-        return res.status(400).json({ message: error.message });
-    }
-};
-
-// ── Exported route handlers (thin wrappers) ───────────────────────────────────
-export const createCODOrder = (req, res) => createNonStripeOrder(req, res, "cod");
-export const createQROrder  = (req, res) => createNonStripeOrder(req, res, "qr");
+// Refactored: Call OrderService
+export const createCODOrder = (req, res) => OrderService.createNonStripeOrder(req, res, "cod");
+export const createQROrder  = (req, res) => OrderService.createNonStripeOrder(req, res, "qr");
 
 export const confirmQRPayment = async (req, res) => {
     try {
@@ -507,7 +269,6 @@ export const confirmQRPayment = async (req, res) => {
             return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
         }
 
-        // FIX E2: Guard against guest orders where order.user is null/undefined
         if (!order.user) {
             return res.status(403).json({ message: "Không thể xác nhận thanh toán cho đơn hàng khách vãng lai" });
         }
@@ -528,7 +289,6 @@ export const confirmQRPayment = async (req, res) => {
             return res.status(400).json({ message: "Đơn hàng đã được gửi xác nhận, vui lòng đợi admin kiểm tra" });
         }
 
-        // Chỉ chuyển sang chờ xác minh — admin sẽ xác nhận thủ công
         order.status = "awaiting_verification";
         order.trackingEvents.push({
             status: "awaiting_verification",

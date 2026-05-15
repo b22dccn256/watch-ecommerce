@@ -1,4 +1,4 @@
-﻿import {
+import {
   PlusCircle, ShoppingBasket, LayoutDashboard, Users, Mail,
   Megaphone, ShieldCheck, Archive, Menu, X, Watch, LayoutTemplate, Tag, MessageSquare, Layers,
   AlertTriangle, Clock, CheckCircle, Search, Bell, ChevronDown, Settings
@@ -9,34 +9,34 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 
-import AnalyticsTab from "../components/AnalyticsTab";
-import ProductsList from "../components/ProductsList";
-import OrdersTab from "../components/OrdersTab";
-import MarketingTab from "../components/MarketingTab";
-import EmailTab from "../components/EmailTab";
-import UsersTab from "../components/UsersTab";
-import AITab from "../components/AITab";
-import InventoryTab from "../components/InventoryTab";
-import StoreSettingsTab from "../components/StoreSettingsTab";
-import CouponsTab from "../components/CouponsTab";
-import ReviewsTab from "../components/ReviewsTab";
-import CatalogTab from "../components/CatalogTab";
+import AnalyticsTab from "../components/admin/AnalyticsTab";
+import ProductsList from "../components/admin/ProductsList";
+import OrdersTab from "../components/admin/OrdersTab";
+import MarketingTab from "../components/admin/MarketingTab";
+import EmailTab from "../components/admin/EmailTab";
+import UsersTab from "../components/admin/UsersTab";
+import AITab from "../components/admin/AITab";
+import InventoryTab from "../components/admin/InventoryTab";
+import StoreSettingsTab from "../components/admin/StoreSettingsTab";
+import CouponsTab from "../components/admin/CouponsTab";
+import ReviewsTab from "../components/admin/ReviewsTab";
+import CatalogTab from "../components/admin/CatalogTab";
 import { useProductStore } from "../stores/useProductStore";
 import { useUserStore } from "../stores/useUserStore";
 
 const tabs = [
   { id: "analytics", label: "Dashboard",     icon: LayoutDashboard, roles: ["admin", "staff"] },
-  { id: "orders",    label: "ÄÆ¡n hĂ ng",      icon: ShoppingBasket,  roles: ["admin", "staff"] },
-  { id: "catalog",   label: "Danh má»¥c",       icon: Layers,          roles: ["admin", "staff"] },
-  { id: "products",  label: "Sáº£n pháº©m",      icon: PlusCircle,      roles: ["admin", "staff"] },
-  { id: "inventory", label: "Kho hĂ ng",      icon: Archive,         roles: ["admin", "staff"] },
+  { id: "orders",    label: "Đơn hàng",      icon: ShoppingBasket,  roles: ["admin", "staff"] },
+  { id: "catalog",   label: "Danh mục",       icon: Layers,          roles: ["admin", "staff"] },
+  { id: "products",  label: "Sản phẩm",      icon: PlusCircle,      roles: ["admin", "staff"] },
+  { id: "inventory", label: "Kho hàng",      icon: Archive,         roles: ["admin", "staff"] },
   { id: "marketing", label: "Marketing",     icon: Megaphone,       roles: ["admin", "staff"] },
   { id: "email",     label: "Email",         icon: Mail,            roles: ["admin", "staff"] },
   { id: "reviews",   label: "Reviews & Q&A", icon: MessageSquare,   roles: ["admin", "staff"] },
-  { id: "coupons",   label: "MĂ£ giáº£m giĂ¡",   icon: Tag,             roles: ["admin"] },
-  { id: "users",     label: "NgÆ°á»i dĂ¹ng",    icon: Users,           roles: ["admin"] },
+  { id: "coupons",   label: "Mã giảm giá",   icon: Tag,             roles: ["admin"] },
+  { id: "users",     label: "Người dùng",    icon: Users,           roles: ["admin"] },
   { id: "ai",        label: "AI System",     icon: ShieldCheck,     roles: ["admin"] },
-  { id: "settings",  label: "Giao diá»‡n",     icon: LayoutTemplate,  roles: ["admin"] },
+  { id: "settings",  label: "Giao diện",     icon: LayoutTemplate,  roles: ["admin"] },
 ];
 
 const resolveTabFromParams = (searchParams, accessibleTabs) => {
@@ -50,7 +50,7 @@ const AdminPage = () => {
   const currentRole = user?.role || "admin";
   const accessibleTabs = useMemo(() => tabs.filter(t => t.roles.includes(currentRole)), [currentRole]);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState(() => resolveTabFromParams(searchParams, accessibleTabs));
+  const activeTab = useMemo(() => resolveTabFromParams(searchParams, accessibleTabs), [searchParams, accessibleTabs]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [tasks, setTasks] = useState({ pendingOrders: 0, lowStock: 0, pendingReviews: 0, unansweredQuestions: 0 });
@@ -84,16 +84,16 @@ const AdminPage = () => {
       if (ordersRes.status === "fulfilled") {
         (ordersRes.value.data?.orders || []).slice(0, 5).forEach(o => notifs.push({
           id: o._id, type: "order",
-          title: "ÄÆ¡n hĂ ng má»›i chá» xá»­ lĂ½",
-          desc: "#" + (o.orderCode || o._id?.slice(0, 8).toUpperCase()) + " â€” " + (o.shippingDetails?.fullName || ""),
+          title: "Đơn hàng mới chờ xử lý",
+          desc: "#" + (o.orderCode || o._id?.slice(0, 8).toUpperCase()) + " — " + (o.shippingDetails?.fullName || ""),
           time: o.createdAt, tab: "orders",
         }));
       }
       if (inventoryRes.status === "fulfilled") {
         (inventoryRes.value.data?.products || []).slice(0, 3).forEach(p => notifs.push({
           id: "inv_" + p._id, type: "inventory",
-          title: "HĂ ng sáº¯p háº¿t kho",
-          desc: (p.name || "Sáº£n pháº©m") + " â€” cĂ²n " + p.stock + " cĂ¡i",
+          title: "Hàng sắp hết kho",
+          desc: (p.name || "Sản phẩm") + " — còn " + p.stock + " cái",
           time: new Date().toISOString(), tab: "inventory",
         }));
       }
@@ -135,19 +135,8 @@ const AdminPage = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  useEffect(() => {
-    const tabFromUrl = resolveTabFromParams(searchParams, accessibleTabs);
-    if (tabFromUrl !== activeTab) setActiveTab(tabFromUrl);
-    const ids = new Set(accessibleTabs.map(t => t.id));
-    if (!searchParams.get("tab") || !ids.has(searchParams.get("tab"))) {
-      const next = new URLSearchParams(searchParams);
-      next.set("tab", tabFromUrl);
-      setSearchParams(next, { replace: true });
-    }
-  }, [searchParams, setSearchParams, activeTab, accessibleTabs]);
-
   const handleTabChange = (tabId) => {
-    setActiveTab(tabId);
+    console.log("AdminPage handleTabChange - tabId:", tabId);
     const next = new URLSearchParams(searchParams);
     next.set("tab", tabId);
     setSearchParams(next, { replace: true });
@@ -202,7 +191,7 @@ const AdminPage = () => {
   return (
     <div className="min-h-screen flex bg-gray-50 dark:bg-luxury-dark">
 
-      {/* â”€â”€ Desktop Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Desktop Sidebar ─────────────────────── */}
       <aside className="hidden md:flex flex-col w-56 flex-shrink-0 bg-white dark:bg-luxury-darker border-r border-gray-100 dark:border-luxury-border min-h-screen sticky top-0">
         <div className="flex items-center gap-2.5 px-4 py-4 border-b border-gray-100 dark:border-luxury-border">
           <div className="w-7 h-7 rounded-lg bg-luxury-gold flex items-center justify-center flex-shrink-0">
@@ -229,7 +218,7 @@ const AdminPage = () => {
         </div>
       </aside>
 
-      {/* â”€â”€ Mobile overlay sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Mobile overlay sidebar ──────────────── */}
       <AnimatePresence>
         {sidebarOpen && (
           <>
@@ -260,7 +249,7 @@ const AdminPage = () => {
         )}
       </AnimatePresence>
 
-      {/* â”€â”€ Main Content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Main Content ────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* Mobile topbar */}
@@ -324,20 +313,14 @@ const AdminPage = () => {
                 {searchLoading && <div className="px-4 py-3 text-xs text-gray-400">Đang tìm kiếm...</div>}
                 {searchResults.products.length > 0 && (
                   <div>
-                    <p className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b dark:border-luxury-border">Sáº£n pháº©m</p>
+                    <p className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b dark:border-luxury-border">Sản phẩm</p>
                     {searchResults.products.map(p => (
-                      <button key={p._id} onClick={() => {
-                          const next = new URLSearchParams(searchParams);
-                          next.set("tab", "products");
-                          next.set("focus", p._id);
-                          setSearchParams(next, { replace: true });
-                          setSearchOpen(false); setSearchQuery("");
-                        }}
+                      <button key={p._id} onClick={() => { handleTabChange("products"); setSearchOpen(false); setSearchQuery(""); }}
                         className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-white/5 transition text-left">
                         {p.image && <img src={p.image} alt={p.name} className="w-7 h-7 rounded object-cover" />}
                         <div className="min-w-0">
                           <p className="text-xs font-medium text-gray-900 dark:text-white truncate">{p.name}</p>
-                          <p className="text-[10px] text-luxury-gold">{p.price?.toLocaleString("vi-VN")} â‚«</p>
+                          <p className="text-[10px] text-luxury-gold">{p.price?.toLocaleString("vi-VN")} ₫</p>
                         </div>
                       </button>
                     ))}
@@ -345,15 +328,9 @@ const AdminPage = () => {
                 )}
                 {searchResults.orders.length > 0 && (
                   <div>
-                    <p className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b dark:border-luxury-border">ÄÆ¡n hĂ ng</p>
+                    <p className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b dark:border-luxury-border">Đơn hàng</p>
                     {searchResults.orders.map(o => (
-                      <button key={o._id} onClick={() => {
-                          const next = new URLSearchParams(searchParams);
-                          next.set("tab", "orders");
-                          next.set("focus", o._id);
-                          setSearchParams(next, { replace: true });
-                          setSearchOpen(false); setSearchQuery("");
-                        }}
+                      <button key={o._id} onClick={() => { handleTabChange("orders"); setSearchOpen(false); setSearchQuery(""); }}
                         className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-white/5 transition text-left">
                         <ShoppingBasket className="w-4 h-4 text-luxury-gold flex-shrink-0" />
                         <div className="min-w-0">
@@ -396,16 +373,9 @@ const AdminPage = () => {
                 </div>
                 <div className="max-h-64 overflow-y-auto divide-y divide-gray-50 dark:divide-luxury-border/30 admin-scroll">
                   {notifications.length === 0 ? (
-                    <p className="text-center text-xs text-gray-400 py-6">Không có thông báo mới</p>
+                    <p className="text-center text-xs text-gray-400 py-6">Không có thông báo mới 🎉</p>
                   ) : notifications.map(n => (
-                    <button key={n.id} onClick={() => {
-                        const next = new URLSearchParams(searchParams);
-                        next.set("tab", n.tab);
-                        next.set("focus", n.id);
-                        setSearchParams(next, { replace: true });
-                        setNotifOpen(false);
-                        setNotifCount(0);
-                      }}
+                    <button key={n.id} onClick={() => { handleTabChange(n.tab); setNotifOpen(false); setNotifCount(0); }}
                       className="w-full flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/5 transition text-left">
                       <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${n.type === "order" ? "bg-amber-400" : "bg-red-400"}`} />
                       <div className="min-w-0 flex-1">
@@ -417,21 +387,7 @@ const AdminPage = () => {
                 </div>
                 {notifications.length > 0 && (
                   <div className="px-4 py-2 border-t border-gray-100 dark:border-luxury-border">
-                    <button onClick={async () => {
-                        try {
-                          await axios.post('/notifications/mark-all-read');
-                          setNotifications([]);
-                          setNotifCount(0);
-                          setNotifOpen(false);
-                          toast.success('Đã đánh dấu tất cả đã đọc');
-                        } catch (e) {
-                          if (e?.response?.status === 404) {
-                            toast.error('Tính năng chưa được bật trên backend');
-                          } else {
-                            toast.error('Lỗi khi đánh dấu thông báo');
-                          }
-                        }
-                      }}
+                    <button onClick={() => { setNotifications([]); setNotifCount(0); setNotifOpen(false); }}
                       className="text-[10px] text-gray-400 hover:text-luxury-gold transition">
                       Đánh dấu tất cả đã đọc
                     </button>
@@ -444,14 +400,14 @@ const AdminPage = () => {
 
         {/* Tab content */}
         <main className="flex-1 p-4 md:p-6 overflow-auto space-y-5">
-          {/* Today's Tasks â€” analytics tab only */}
+          {/* Today's Tasks — analytics tab only */}
           {activeTab === "analytics" && (tasks.pendingOrders > 0 || tasks.lowStock > 0) && (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {[
-                { label: "ÄÆ¡n chá» xá»­ lĂ½",       count: tasks.pendingOrders,        icon: Clock,         color: "text-amber-400 bg-amber-400/10 border-amber-400/20", tab: "orders" },
-                { label: "HĂ ng sáº¯p háº¿t",          count: tasks.lowStock,             icon: AlertTriangle, color: "text-red-400 bg-red-400/10 border-red-400/20",       tab: "inventory" },
-                { label: "Review chá» duyá»‡t",      count: tasks.pendingReviews,       icon: MessageSquare, color: "text-blue-400 bg-blue-400/10 border-blue-400/20",     tab: "reviews" },
-                { label: "CĂ¢u há»i chÆ°a tráº£ lá»i", count: tasks.unansweredQuestions,  icon: CheckCircle,   color: "text-purple-400 bg-purple-400/10 border-purple-400/20", tab: "reviews" },
+                { label: "Đơn chờ xử lý",       count: tasks.pendingOrders,        icon: Clock,         color: "text-amber-400 bg-amber-400/10 border-amber-400/20", tab: "orders" },
+                { label: "Hàng sắp hết",          count: tasks.lowStock,             icon: AlertTriangle, color: "text-red-400 bg-red-400/10 border-red-400/20",       tab: "inventory" },
+                { label: "Review chờ duyệt",      count: tasks.pendingReviews,       icon: MessageSquare, color: "text-blue-400 bg-blue-400/10 border-blue-400/20",     tab: "reviews" },
+                { label: "Câu hỏi chưa trả lời", count: tasks.unansweredQuestions,  icon: CheckCircle,   color: "text-purple-400 bg-purple-400/10 border-purple-400/20", tab: "reviews" },
               ].map(item => (
                 <button
                   key={item.label}
@@ -484,4 +440,3 @@ const AdminPage = () => {
 };
 
 export default AdminPage;
-

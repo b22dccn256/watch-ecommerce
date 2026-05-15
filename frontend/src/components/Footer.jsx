@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -23,24 +23,24 @@ import axios from "../lib/axios";
 
 const footerColumns = [
   {
-    title: "Danh má»¥c",
+    title: "Danh mục",
     links: [
-      ["Äá»“ng há»“ nam", "/category/men"],
-      ["Äá»“ng há»“ ná»¯", "/category/women"],
+      ["Đồng hồ nam", "/category/men"],
+      ["Đồng hồ nữ", "/category/women"],
       ["Luxury", "/category/luxury"],
-      ["Thá»ƒ thao", "/category/sport"],
-      ["ThÆ°Æ¡ng hiá»‡u", "/brands"],
+      ["Thể thao", "/category/sport"],
+      ["Thương hiệu", "/brands"],
     ],
   },
   {
-    title: "Há»— trá»£",
+    title: "Hỗ trợ",
     links: [
-      ["Vá» chĂºng tĂ´i", "/about"],
-      ["ChĂ­nh sĂ¡ch giao hĂ ng", "/delivery-policy"],
-      ["Äá»•i tráº£ vĂ  báº£o hĂ nh", "/warranty"],
-      ["HÆ°á»›ng dáº«n chá»n size", "/size-guide"],
-      ["Tra cá»©u Ä‘Æ¡n hĂ ng", "/order-lookup"],
-      ["LiĂªn há»‡", "/contact"],
+      ["Về chúng tôi", "/about"],
+      ["Chính sách giao hàng", "/delivery-policy"],
+      ["Đổi trả và bảo hành", "/warranty"],
+      ["Hướng dẫn chọn size", "/size-guide"],
+      ["Tra cứu đơn hàng", "/order-lookup"],
+      ["Liên hệ", "/contact"],
     ],
   },
 ];
@@ -60,22 +60,22 @@ const Footer = () => {
     event.preventDefault();
 
     if (!email) {
-      toast.error("Vui lĂ²ng nháº­p email.");
+      toast.error("Vui lòng nhập email.");
       return;
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error("Email khĂ´ng Ä‘Ăºng Ä‘á»‹nh dáº¡ng.");
+      toast.error("Email không đúng định dạng.");
       return;
     }
 
     setIsLoading(true);
     try {
       const res = await axios.post("/mail/subscribe", { email });
-      toast.success(res.data.message || "ÄÄƒng kĂ½ thĂ nh cĂ´ng");
+      toast.success(res.data.message || "Đăng ký thành công");
       setEmail("");
     } catch (error) {
-      toast.error(error.response?.data?.message || "KhĂ´ng thá»ƒ Ä‘Äƒng kĂ½ nháº­n tin.");
+      toast.error(error.response?.data?.message || "Không thể đăng ký nhận tin.");
     } finally {
       setIsLoading(false);
     }
@@ -85,8 +85,8 @@ const Footer = () => {
     <footer className="section-divider mt-16 border-t border-black/10 bg-[color:var(--color-surface)] dark:border-white/10">
       <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-center gap-3 border-b border-black/8 py-5 text-xs uppercase tracking-[0.16em] text-secondary dark:border-white/8 sm:justify-between">
-          <span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-[color:var(--color-gold)]" />Miá»…n phĂ­ giao hĂ ng tá»« 2.000.000 Ä‘</span>
-          <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-[color:var(--color-gold)]" />Báº£o máº­t thanh toĂ¡n 100%</span>
+          <span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-[color:var(--color-gold)]" />Miễn phí giao hàng từ 2.000.000 đ</span>
+          <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-[color:var(--color-gold)]" />Bảo mật thanh toán 100%</span>
         </div>
 
         <motion.div
@@ -108,7 +108,7 @@ const Footer = () => {
             </div>
 
             <p className="max-w-sm text-sm leading-relaxed text-secondary">
-              Tuyá»ƒn chá»n Ä‘á»“ng há»“ cao cáº¥p tá»« nhá»¯ng thÆ°Æ¡ng hiá»‡u danh tiáº¿ng, káº¿t há»£p tráº£i nghiá»‡m mua sáº¯m tinh gá»n vĂ  dá»‹ch vá»¥ háº­u mĂ£i chuyĂªn nghiá»‡p.
+              Tuyển chọn đồng hồ cao cấp từ những thương hiệu danh tiếng, kết hợp trải nghiệm mua sắm tinh gọn và dịch vụ hậu mãi chuyên nghiệp.
             </p>
 
             <div className="flex gap-2">
@@ -144,22 +144,22 @@ const Footer = () => {
           ))}
 
           <section className="space-y-5">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-primary">LiĂªn há»‡</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-primary">Liên hệ</h3>
             <div className="space-y-3 text-sm text-secondary">
-              <p className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 text-[color:var(--color-gold)]" />123 ÄÆ°á»ng ABC, Quáº­n 1, TP.HCM</p>
+              <p className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 text-[color:var(--color-gold)]" />123 Đường ABC, Quận 1, TP.HCM</p>
               <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-[color:var(--color-gold)]" />1900 XXX XXX</p>
               <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-[color:var(--color-gold)]" />info@luxurywatch.vn</p>
-              <p className="flex items-start gap-2"><Clock className="mt-0.5 h-4 w-4 text-[color:var(--color-gold)]" />Thá»© 2 Ä‘áº¿n Chá»§ nháº­t: 09:00 - 21:00</p>
+              <p className="flex items-start gap-2"><Clock className="mt-0.5 h-4 w-4 text-[color:var(--color-gold)]" />Thứ 2 đến Chủ nhật: 09:00 - 21:00</p>
             </div>
 
             <form onSubmit={handleSubscribe} className="space-y-2 rounded-xl border border-black/10 bg-surface-soft p-3 dark:border-white/10">
-              <p className="text-xs uppercase tracking-[0.18em] text-muted">Nháº­n Æ°u Ä‘Ă£i má»›i</p>
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">Nhận ưu đãi mới</p>
               <div className="relative">
                 <input
                   type="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  placeholder="Email cá»§a báº¡n"
+                  placeholder="Email của bạn"
                   className="input-base h-10 rounded-full pr-10"
                   disabled={isLoading}
                 />
@@ -172,16 +172,16 @@ const Footer = () => {
         </motion.div>
 
         <div className="flex flex-col items-center justify-between gap-4 border-t border-black/8 py-6 text-xs text-muted dark:border-white/8 sm:flex-row">
-          <p>Â© 2026 Luxury Watch. All rights reserved.</p>
+          <p>© 2026 Luxury Watch. All rights reserved.</p>
           <div className="flex items-center gap-3">
             <CreditCard className="h-4 w-4" />
             <Wallet className="h-4 w-4" />
             <ShieldCheck className="h-4 w-4" />
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/privacy-policy" className="transition hover:text-[color:var(--color-gold)]">ChĂ­nh sĂ¡ch báº£o máº­t</Link>
+            <Link to="/privacy-policy" className="transition hover:text-[color:var(--color-gold)]">Chính sách bảo mật</Link>
             <span>|</span>
-            <Link to="/terms" className="transition hover:text-[color:var(--color-gold)]">Äiá»u khoáº£n</Link>
+            <Link to="/terms" className="transition hover:text-[color:var(--color-gold)]">Điều khoản</Link>
           </div>
         </div>
       </div>
@@ -190,4 +190,3 @@ const Footer = () => {
 };
 
 export default Footer;
-

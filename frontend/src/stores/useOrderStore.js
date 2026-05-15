@@ -1,4 +1,4 @@
-﻿import { createWithEqualityFn } from "zustand/traditional";
+import { createWithEqualityFn } from "zustand/traditional";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 
@@ -17,10 +17,10 @@ export const useOrderStore = createWithEqualityFn((set) => ({
 			set({ loading: false, orders: [] });
 			const status = error.response?.status;
 			if (status === 401) {
-				toast.error("Vui lĂ²ng Ä‘Äƒng nháº­p láº¡i Ä‘á»ƒ xem Ä‘Æ¡n hĂ ng cá»§a báº¡n");
+				toast.error("Vui lòng đăng nhập lại để xem đơn hàng của bạn");
 				return;
 			}
-			toast.error(error.response?.data?.message || "Lá»—i khi táº£i Ä‘Æ¡n hĂ ng");
+			toast.error(error.response?.data?.message || "Lỗi khi tải đơn hàng");
 		}
 	},
 
@@ -32,7 +32,7 @@ export const useOrderStore = createWithEqualityFn((set) => ({
 		} catch (error) {
 			set({
 				loading: false,
-				error: error.response?.data?.message || "KhĂ´ng tĂ¬m tháº¥y thĂ´ng tin Ä‘Æ¡n hĂ ng"
+				error: error.response?.data?.message || "Không tìm thấy thông tin đơn hàng"
 			});
 		}
 	},
@@ -45,10 +45,10 @@ export const useOrderStore = createWithEqualityFn((set) => ({
 					o._id === orderId ? { ...o, status: 'cancelled' } : o
 				)
 			}));
-			toast.success("ÄĂ£ há»§y Ä‘Æ¡n hĂ ng thĂ nh cĂ´ng!");
+			toast.success("Đã hủy đơn hàng thành công!");
 			return true;
 		} catch (error) {
-			toast.error(error.response?.data?.message || "KhĂ´ng thá»ƒ há»§y Ä‘Æ¡n hĂ ng nĂ y");
+			toast.error(error.response?.data?.message || "Không thể hủy đơn hàng này");
 			return false;
 		}
 	},
@@ -60,12 +60,11 @@ export const useOrderStore = createWithEqualityFn((set) => ({
 					o._id === orderId ? { ...o, status: 'return_requested' } : o
 				)
 			}));
-			toast.success("ÄĂ£ gá»­i yĂªu cáº§u tráº£ hĂ ng!");
+			toast.success("Đã gửi yêu cầu trả hàng!");
 			return true;
 		} catch (error) {
-			toast.error(error.response?.data?.message || "KhĂ´ng thá»ƒ gá»­i yĂªu cáº§u tráº£ hĂ ng");
+			toast.error(error.response?.data?.message || "Không thể gửi yêu cầu trả hàng");
 			return false;
 		}
 	},
 }));
-

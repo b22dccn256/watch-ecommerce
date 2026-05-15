@@ -1,41 +1,15 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
 const InputModal = ({ config, onClose }) => {
+  const [value, setValue] = useState(config ? config.defaultValue || "" : "");
+
   if (!config) return null;
 
-  const {
-    title = "Nhập giá trị",
-    message = "Vui lòng nhập giá trị",
-    label = "Giá trị",
-    defaultValue = "",
-    confirmLabel = "Xác nhận",
-    variant = "info",
-    onConfirm,
-    loading = false,
-    type = "text", // 'text' | 'number' | 'percent_or_value'
-    validate, // optional function(value) => { valid: boolean, message?: string }
-    preview, // optional function(value) => ReactNode
-  } = config;
-
-  const [value, setValue] = useState(defaultValue);
-  const [error, setError] = useState(null);
+  const { title = "Nhập giá trị", message = "Vui lòng nhập giá trị", label = "Giá trị", confirmLabel = "Xác nhận", variant = "info", onConfirm, loading = false } = config;
 
   const handleConfirm = async () => {
-    setError(null);
-    if (type === "number") {
-      if (value === "" || isNaN(Number(value))) return setError("Vui lòng nhập số hợp lệ");
-    }
-    if (validate) {
-      try {
-        const res = await validate(value);
-        if (res === false) return setError("Giá trị không hợp lệ");
-        if (typeof res === "object" && !res.valid) return setError(res.message || "Giá trị không hợp lệ");
-      } catch (e) {
-        return setError(e?.message || "Giá trị không hợp lệ");
-      }
-    }
     if (onConfirm) await onConfirm(value);
     onClose();
   };
@@ -69,22 +43,11 @@ const InputModal = ({ config, onClose }) => {
 
             <div className="mt-4">
               <label className="text-xs text-gray-500 block mb-2 font-bold">{label}</label>
-              <input
-                type={type === 'number' ? 'number' : 'text'}
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 text-sm focus:outline-none"
-              />
-              {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
-              {preview && (
-                <div className="mt-3 text-xs text-gray-600">
-                  {typeof preview === 'function' ? preview(value) : preview}
-                </div>
-              )}
+              <input type="text" value={value} onChange={(e) => setValue(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 text-sm focus:outline-none" />
             </div>
           </div>
           <div className="flex items-center gap-3 px-6 py-4 bg-zinc-50 dark:bg-zinc-800/50 border-t border-zinc-100 dark:border-zinc-800">
-            <button onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition">Há»§y</button>
+            <button onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition">Hủy</button>
             <button onClick={handleConfirm} disabled={loading} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold bg-luxury-gold text-luxury-dark hover:bg-yellow-500 transition">{confirmLabel}</button>
           </div>
         </motion.div>
@@ -94,4 +57,3 @@ const InputModal = ({ config, onClose }) => {
 };
 
 export default InputModal;
-

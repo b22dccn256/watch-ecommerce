@@ -1,4 +1,4 @@
-﻿import ProductCard from "./ProductCard";
+import ProductCard from "./ProductCard";
 
 const BestSellersSection = ({ products, addToCart, title, gridCols }) => {
     // Helper mapper since tailwind doesn't support completely dynamic numeric classes safely
@@ -14,7 +14,7 @@ const BestSellersSection = ({ products, addToCart, title, gridCols }) => {
             <div className="editorial-surface rounded-[2rem] px-6 py-6 md:px-8 md:py-8 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.35)] mb-10">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div className="space-y-3 max-w-2xl">
-                        <h2 className="hero-title text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">{title || "Sáº£n pháº©m BĂ¡n cháº¡y"}</h2>
+                        <h2 className="hero-title text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">{title || "Sản phẩm Bán chạy"}</h2>
                     </div>
                 </div>
             </div>

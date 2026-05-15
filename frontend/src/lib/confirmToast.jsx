@@ -1,4 +1,4 @@
-﻿import { toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 
 export const confirmToast = (message, onConfirm) => {
 	toast(
@@ -10,7 +10,7 @@ export const confirmToast = (message, onConfirm) => {
 						className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
 						onClick={() => toast.dismiss(t.id)}
 					>
-						Há»§y
+						Hủy
 					</button>
 					<button
 						className="px-3 py-1.5 text-sm font-medium bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
@@ -19,7 +19,7 @@ export const confirmToast = (message, onConfirm) => {
 							onConfirm();
 						}}
 					>
-						XĂ¡c nháº­n
+						Xác nhận
 					</button>
 				</div>
 			</div>
@@ -27,4 +27,3 @@ export const confirmToast = (message, onConfirm) => {
 		{ duration: 5000 }
 	);
 };
-

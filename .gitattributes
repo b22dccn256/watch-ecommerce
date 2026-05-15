@@ -1,0 +1,27 @@
+# Normalize text files and prefer UTF-8 working tree
+* text=auto
+*.js text
+*.jsx text
+*.ts text
+*.tsx text
+*.json text
+*.html text
+*.css text
+*.md text
+*.yml text
+*.yaml text
+*.sh text eol=lf
+*.bat text eol=crlf
+
+# Working tree encoding hint (Git 2.10+)
+*.js working-tree-encoding=UTF-8
+*.jsx working-tree-encoding=UTF-8
+*.ts working-tree-encoding=UTF-8
+*.tsx working-tree-encoding=UTF-8
+*.json working-tree-encoding=UTF-8
+*.html working-tree-encoding=UTF-8
+*.css working-tree-encoding=UTF-8
+*.md working-tree-encoding=UTF-8
+
+# Lock generated build artefacts
+/frontend/dist/** binary

@@ -1,4 +1,4 @@
-﻿{
+{
   "welcome": "Welcome",
   "cart": "Cart",
   "wishlist": "Wishlist",
@@ -8,7 +8,6 @@
   "subtotal": "Subtotal",
   "savings": "Savings",
   "total": "Total",
-  "currency_vnd": "â‚«",
+  "currency_vnd": "₫",
   "currency_usd": "$"
 }
-

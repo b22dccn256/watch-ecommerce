@@ -1,4 +1,4 @@
-﻿
+
 import { motion } from "framer-motion";
 import { useCartStore } from "../stores/useCartStore";
 import { Link, useNavigate } from "react-router-dom";
@@ -40,14 +40,14 @@ const OrderSummary = () => {
 
 					{coupon && isCouponApplied && (
 						<dl className='flex items-center justify-between gap-4'>
-							<dt className='text-base font-normal text-gray-600 dark:text-gray-300'>MĂ£ giáº£m giĂ¡ ({coupon.code})</dt>
+							<dt className='text-base font-normal text-gray-600 dark:text-gray-300'>Mã giảm giá ({coupon.code})</dt>
 							<dd className='text-base font-medium text-luxury-gold'>-{coupon.discountPercentage}%</dd>
 						</dl>
 					)}
 					<dl className='flex items-center justify-between gap-4'>
-						   <dt className='text-base font-normal text-gray-600 dark:text-gray-300'>PhĂ­ váº­n chuyá»ƒn</dt>
+						   <dt className='text-base font-normal text-gray-600 dark:text-gray-300'>Phí vận chuyển</dt>
 						   <dd className={`text-base font-medium ${shippingFee === 0 ? 'text-luxury-gold' : 'text-gray-900 dark:text-white'}`}>
-							   {shippingFee === 0 ? (lang === 'vi' ? 'Miá»…n phĂ­' : 'Free') : formatCurrency(shippingFee, currency, lang)}
+							   {shippingFee === 0 ? (lang === 'vi' ? 'Miễn phí' : 'Free') : formatCurrency(shippingFee, currency, lang)}
 						   </dd>
 					</dl>
 
@@ -64,16 +64,16 @@ const OrderSummary = () => {
 					onClick={() => selectedItems.length > 0 && navigate('/checkout')}
 					disabled={selectedItems.length === 0}
 				>
-					{selectedItems.length === 0 ? "Chá»n sáº£n pháº©m Ä‘á»ƒ thanh toĂ¡n" : "Tiáº¿n hĂ nh thanh toĂ¡n"}
+					{selectedItems.length === 0 ? "Chọn sản phẩm để thanh toán" : "Tiến hành thanh toán"}
 				</motion.button>
 
 				<div className='flex items-center justify-center gap-2'>
-					<span className='text-sm font-normal text-gray-400'>hoáº·c</span>
+					<span className='text-sm font-normal text-gray-400'>hoặc</span>
 					<Link
 						to='/'
 						className='inline-flex items-center gap-2 text-sm font-medium text-luxury-gold underline hover:text-luxury-gold-light hover:no-underline'
 					>
-						Tiáº¿p tá»¥c mua sáº¯m
+						Tiếp tục mua sắm
 						<MoveRight size={16} />
 					</Link>
 				</div>
@@ -82,4 +82,3 @@ const OrderSummary = () => {
 	);
 };
 export default OrderSummary;
-

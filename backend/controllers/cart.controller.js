@@ -1,5 +1,7 @@
 // backend/controllers/cart.controller.js
 import Product from "../models/product.model.js";
+import OrderService from "../services/order.service.js";
+import Coupon from "../models/coupon.model.js";
 
 export const getCartProducts = async (req, res) => {
 	try {
@@ -260,6 +262,27 @@ export const mergeCart = async (req, res) => {
 
 	} catch (error) {
 		console.error("Error in mergeCart:", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+export const calculateCartTotals = async (req, res) => {
+	try {
+		const { items, couponCode, city } = req.body;
+
+		if (!items || !Array.isArray(items)) {
+			return res.status(400).json({ message: "Danh sách sản phẩm không hợp lệ" });
+		}
+
+		const coupon = (couponCode && req.user)
+			? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true })
+			: null;
+
+		const totals = await OrderService.calculateTotals(items, coupon, city);
+
+		res.json(totals);
+	} catch (error) {
+		console.error("Error in calculateCartTotals:", error.message);
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
 };

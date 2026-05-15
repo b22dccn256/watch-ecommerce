@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowRight, Sparkles } from "lucide-react";
@@ -77,11 +77,11 @@ const HeroBanner = ({ slogan }) => {
         >
           <p className="hero-kicker inline-flex items-center gap-2 text-[color:var(--color-gold)]">
             <Sparkles className="h-3.5 w-3.5" />
-            Fine Timepieces Â· Global Maisons
+            Fine Timepieces · Global Maisons
           </p>
 
           <h1 className="heading-display max-w-2xl text-primary">
-            {/* FIX B2: Replace dangerouslySetInnerHTML â€” escape slogan safely, split newlines into <br /> */}
+            {/* FIX B2: Replace dangerouslySetInnerHTML — escape slogan safely, split newlines into <br /> */}
             {(slogan || "A Quiet Theater\nfor Great Timepieces")
               .split("\n")
               .map((line, i, arr) => (
@@ -93,22 +93,22 @@ const HeroBanner = ({ slogan }) => {
           </h1>
 
           <p className="max-w-xl text-base text-secondary sm:text-lg">
-            Tuyá»ƒn chá»n Ä‘á»“ng há»“ cao cáº¥p vá»›i tráº£i nghiá»‡m tinh gá»n, rĂµ rĂ ng vĂ  sang trá»ng.
+            Tuyển chọn đồng hồ cao cấp với trải nghiệm tinh gọn, rõ ràng và sang trọng.
           </p>
 
           <div className="flex flex-wrap gap-3">
             <Link to="/catalog" className="btn-base btn-primary h-11 px-6">
-              KhĂ¡m phĂ¡ bá»™ sÆ°u táº­p
+              Khám phá bộ sưu tập
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link to="/brands" className="btn-base btn-outline h-11 px-6">
-              Xem thÆ°Æ¡ng hiá»‡u
+              Xem thương hiệu
             </Link>
           </div>
 
           {heroBanners.length > 1 && (
             <div className="flex items-center gap-2 pt-1">
-              <button type="button" onClick={prev} className="btn-base btn-secondary h-9 w-9 rounded-full p-0" aria-label="Banner trÆ°á»›c">
+              <button type="button" onClick={prev} className="btn-base btn-secondary h-9 w-9 rounded-full p-0" aria-label="Banner trước">
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <button type="button" onClick={next} className="btn-base btn-secondary h-9 w-9 rounded-full p-0" aria-label="Banner sau">
@@ -152,7 +152,7 @@ const HeroBanner = ({ slogan }) => {
               key={banner._id || index}
               type="button"
               onClick={() => setCurrentIndex(index)}
-              aria-label={`Chá»n banner ${index + 1}`}
+              aria-label={`Chọn banner ${index + 1}`}
               className={`h-2 rounded-full transition-all ${index === currentIndex ? "w-8 bg-[color:var(--color-gold)]" : "w-2 bg-black/20 hover:bg-black/40 dark:bg-white/30"}`}
             />
           ))}
@@ -163,4 +163,3 @@ const HeroBanner = ({ slogan }) => {
 };
 
 export default HeroBanner;
-

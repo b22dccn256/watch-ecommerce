@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -591,7 +591,7 @@ h6,
 }
 
 /* =================================================================
-   ADMIN DASHBOARD — PRODUCTION DESIGN SYSTEM
+   ADMIN DASHBOARD � PRODUCTION DESIGN SYSTEM
    ================================================================= */
 
 :root {
@@ -665,4 +665,3 @@ h6,
 .admin-scroll::-webkit-scrollbar-track { background: transparent; }
 .admin-scroll::-webkit-scrollbar-thumb { background: rgba(201,169,110,0.25); border-radius: 999px; }
 .admin-scroll::-webkit-scrollbar-thumb:hover { background: rgba(201,169,110,0.5); }
-

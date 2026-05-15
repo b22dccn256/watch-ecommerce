@@ -1,18 +1,18 @@
-﻿import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, Trash2, X } from "lucide-react";
 
 /**
- * ConfirmModal â€” Production-grade confirmation dialog
+ * ConfirmModal — Production-grade confirmation dialog
  * 
  * Usage:
  *   const [confirm, setConfirm] = useState(null);
  *   <ConfirmModal config={confirm} onClose={() => setConfirm(null)} />
  * 
  *   setConfirm({
- *     title: "XĂ³a Ä‘Æ¡n hĂ ng",
- *     message: "Thao tĂ¡c nĂ y khĂ´ng thá»ƒ hoĂ n tĂ¡c.",
+ *     title: "Xóa đơn hàng",
+ *     message: "Thao tác này không thể hoàn tác.",
  *     variant: "danger" | "warning" | "info",
- *     confirmLabel: "XĂ³a",
+ *     confirmLabel: "Xóa",
  *     onConfirm: async () => { ... }
  *   });
  */
@@ -20,11 +20,11 @@ const ConfirmModal = ({ config, onClose }) => {
   if (!config) return null;
 
   const {
-    title = "XĂ¡c nháº­n thao tĂ¡c",
-    message = "Báº¡n cĂ³ cháº¯c cháº¯n muá»‘n thá»±c hiá»‡n thao tĂ¡c nĂ y?",
+    title = "Xác nhận thao tác",
+    message = "Bạn có chắc chắn muốn thực hiện thao tác này?",
     variant = "danger",
-    confirmLabel = "XĂ¡c nháº­n",
-    cancelLabel = "Há»§y",
+    confirmLabel = "Xác nhận",
+    cancelLabel = "Hủy",
     onConfirm,
     loading = false,
   } = config;
@@ -124,4 +124,3 @@ const ConfirmModal = ({ config, onClose }) => {
 };
 
 export default ConfirmModal;
-

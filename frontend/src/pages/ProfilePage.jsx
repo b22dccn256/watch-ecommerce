@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertCircle,
@@ -18,9 +18,9 @@ import { SkeletonPageShell } from "../components/SkeletonLoaders";
 import Input from "../components/ui/Input";
 
 const tabs = [
-  { id: "profile", label: "ThĂ´ng tin", icon: UserIcon },
-  { id: "orders", label: "ÄÆ¡n hĂ ng", icon: ShoppingBag },
-  { id: "password", label: "Máº­t kháº©u", icon: Lock },
+  { id: "profile", label: "Thông tin", icon: UserIcon },
+  { id: "orders", label: "Đơn hàng", icon: ShoppingBag },
+  { id: "password", label: "Mật khẩu", icon: Lock },
 ];
 
 const ProfilePage = () => {
@@ -53,9 +53,9 @@ const ProfilePage = () => {
 
   const validateProfile = () => {
     const nextErrors = {};
-    if (!profileData.name.trim()) nextErrors.name = "TĂªn khĂ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng";
+    if (!profileData.name.trim()) nextErrors.name = "Tên không được để trống";
     if (profileData.phone && !/^(0|\+84)(3|5|7|8|9)\d{8}$/.test(profileData.phone.replace(/\s/g, ""))) {
-      nextErrors.phone = "Sá»‘ Ä‘iá»‡n thoáº¡i khĂ´ng há»£p lá»‡";
+      nextErrors.phone = "Số điện thoại không hợp lệ";
     }
     setProfileErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -79,20 +79,20 @@ const ProfilePage = () => {
   const statusText = (status) => {
     switch (status) {
       case "pending":
-        return "Äang chá»";
+        return "Đang chờ";
       case "confirmed":
-        return "ÄĂ£ xĂ¡c nháº­n";
+        return "Đã xác nhận";
       case "shipping":
-        return "Äang giao";
+        return "Đang giao";
       case "return_requested":
-        return "Chá» duyá»‡t tráº£ hĂ ng";
+        return "Chờ duyệt trả hàng";
       case "delivered":
       case "completed":
-        return "HoĂ n thĂ nh";
+        return "Hoàn thành";
       case "returned":
-        return "ÄĂ£ tráº£ hĂ ng";
+        return "Đã trả hàng";
       case "cancelled":
-        return "ÄĂ£ há»§y";
+        return "Đã hủy";
       default:
         return status;
     }
@@ -123,16 +123,16 @@ const ProfilePage = () => {
                 )}
               </div>
               <div>
-                <p className="font-semibold text-primary">{user?.name || "KhĂ¡ch hĂ ng"}</p>
+                <p className="font-semibold text-primary">{user?.name || "Khách hàng"}</p>
                 <p className="text-xs uppercase tracking-[0.14em] text-muted">
-                  {user?.role === "admin" ? "Quáº£n trá»‹ viĂªn" : "ThĂ nh viĂªn"}
+                  {user?.role === "admin" ? "Quản trị viên" : "Thành viên"}
                 </p>
               </div>
             </div>
 
             {typeof user?.rewardPoints === "number" && (
               <div className="rounded-xl bg-surface-soft p-3 text-sm">
-                <p className="text-muted">Äiá»ƒm thÆ°á»Ÿng</p>
+                <p className="text-muted">Điểm thưởng</p>
                 <p className="mt-1 text-xl font-bold text-[color:var(--color-gold)]">{user.rewardPoints.toLocaleString("vi-VN")}</p>
               </div>
             )}
@@ -161,7 +161,7 @@ const ProfilePage = () => {
               className="mt-1 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-secondary transition hover:bg-[color:var(--color-gold)]/10 hover:text-[color:var(--color-gold)]"
             >
               <LogOut className="h-4 w-4" />
-              ÄÄƒng xuáº¥t
+              Đăng xuất
             </button>
           </nav>
         </aside>
@@ -178,20 +178,20 @@ const ProfilePage = () => {
               {activeTab === "profile" && (
                 <form onSubmit={handleProfileSubmit} className="space-y-5">
                   <div>
-                    <h1 className="hero-title text-3xl">ThĂ´ng tin cĂ¡ nhĂ¢n</h1>
-                    <p className="mt-1 text-sm text-secondary">Quáº£n lĂ½ thĂ´ng tin liĂªn há»‡ vĂ  há»“ sÆ¡ tĂ i khoáº£n.</p>
+                    <h1 className="hero-title text-3xl">Thông tin cá nhân</h1>
+                    <p className="mt-1 text-sm text-secondary">Quản lý thông tin liên hệ và hồ sơ tài khoản.</p>
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Input
-                      label="Há» vĂ  tĂªn"
+                      label="Họ và tên"
                       name="name"
                       value={profileData.name}
                       onChange={(event) => setProfileData((prev) => ({ ...prev, name: event.target.value }))}
                       error={profileErrors.name}
                     />
                     <Input
-                      label="Sá»‘ Ä‘iá»‡n thoáº¡i"
+                      label="Số điện thoại"
                       name="phone"
                       value={profileData.phone}
                       onChange={(event) => setProfileData((prev) => ({ ...prev, phone: event.target.value }))}
@@ -202,13 +202,13 @@ const ProfilePage = () => {
                       label="Email"
                       value={user?.email || ""}
                       disabled
-                      hint="Email khĂ´ng thá»ƒ chá»‰nh sá»­a"
+                      hint="Email không thể chỉnh sửa"
                       containerClassName="sm:col-span-2"
                     />
                   </div>
 
                   <button type="submit" disabled={userLoading} className="btn-base btn-primary h-11 px-6">
-                    {userLoading ? "Äang xá»­ lĂ½" : "LÆ°u thay Ä‘á»•i"}
+                    {userLoading ? "Đang xử lý" : "Lưu thay đổi"}
                   </button>
                 </form>
               )}
@@ -216,8 +216,8 @@ const ProfilePage = () => {
               {activeTab === "orders" && (
                 <div className="space-y-4">
                   <div>
-                    <h1 className="hero-title text-3xl">ÄÆ¡n hĂ ng cá»§a tĂ´i</h1>
-                    <p className="mt-1 text-sm text-secondary">Theo dĂµi tráº¡ng thĂ¡i vĂ  quáº£n lĂ½ cĂ¡c Ä‘Æ¡n Ä‘Ă£ Ä‘áº·t.</p>
+                    <h1 className="hero-title text-3xl">Đơn hàng của tôi</h1>
+                    <p className="mt-1 text-sm text-secondary">Theo dõi trạng thái và quản lý các đơn đã đặt.</p>
                   </div>
 
                   {ordersLoading ? (
@@ -231,12 +231,12 @@ const ProfilePage = () => {
                       <div className="mx-auto mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full border border-black/10 bg-surface-soft dark:border-white/10">
                         <Package className="h-8 w-8 text-[color:var(--color-gold)]" />
                       </div>
-                      <h2 className="hero-title text-3xl">ChÆ°a cĂ³ dáº¥u áº¥n nĂ o</h2>
+                      <h2 className="hero-title text-3xl">Chưa có dấu ấn nào</h2>
                       <p className="mx-auto mt-4 max-w-lg text-sm text-secondary sm:text-base">
-                        Bá»™ sÆ°u táº­p cĂ¡ nhĂ¢n cá»§a báº¡n hiá»‡n chÆ°a cĂ³ sáº£n pháº©m nĂ o. KhĂ¡m phĂ¡ ngay nhá»¯ng thiáº¿t káº¿ Ä‘á»™c báº£n.
+                        Bộ sưu tập cá nhân của bạn hiện chưa có sản phẩm nào. Khám phá ngay những thiết kế độc bản.
                       </p>
                       <Link to="/catalog" className="btn-base btn-primary mt-7 h-11 px-6">
-                        KhĂ¡m phĂ¡ Bá»™ SÆ°u Táº­p
+                        Khám phá Bộ Sưu Tập
                       </Link>
                     </div>
                   ) : (
@@ -251,10 +251,10 @@ const ProfilePage = () => {
                           <div className="flex flex-wrap items-center justify-between gap-3">
                             <div>
                               <p className="font-semibold text-primary">#{order.orderCode || order._id.slice(-6).toUpperCase()}</p>
-                              <p className="text-xs text-muted">{new Date(order.createdAt).toLocaleDateString("vi-VN")} â€¢ {order.products?.length || 0} sáº£n pháº©m</p>
+                              <p className="text-xs text-muted">{new Date(order.createdAt).toLocaleDateString("vi-VN")} • {order.products?.length || 0} sản phẩm</p>
                             </div>
                             <div className="text-right">
-                              <p className="font-semibold text-[color:var(--color-gold)]">{order.totalAmount?.toLocaleString("vi-VN")} Ä‘</p>
+                              <p className="font-semibold text-[color:var(--color-gold)]">{order.totalAmount?.toLocaleString("vi-VN")} đ</p>
                               <span className="mt-1 inline-flex items-center gap-1.5 text-xs text-secondary">
                                 <span className={`inline-flex h-1.5 w-1.5 rounded-full ${statusDotClass(order.status)}`} />
                                 {statusText(order.status)}
@@ -271,14 +271,14 @@ const ProfilePage = () => {
               {activeTab === "password" && (
                 <form onSubmit={handlePasswordSubmit} className="max-w-lg space-y-4">
                   <div>
-                    <h1 className="hero-title text-3xl">Äá»•i máº­t kháº©u</h1>
-                    <p className="mt-1 text-sm text-secondary">Cáº­p nháº­t máº­t kháº©u Ä‘á»ƒ tÄƒng cÆ°á»ng báº£o máº­t tĂ i khoáº£n.</p>
+                    <h1 className="hero-title text-3xl">Đổi mật khẩu</h1>
+                    <p className="mt-1 text-sm text-secondary">Cập nhật mật khẩu để tăng cường bảo mật tài khoản.</p>
                   </div>
 
                   {[
-                    ["oldPassword", "Máº­t kháº©u hiá»‡n táº¡i", "old"],
-                    ["newPassword", "Máº­t kháº©u má»›i", "next"],
-                    ["confirmPassword", "XĂ¡c nháº­n máº­t kháº©u", "confirm"],
+                    ["oldPassword", "Mật khẩu hiện tại", "old"],
+                    ["newPassword", "Mật khẩu mới", "next"],
+                    ["confirmPassword", "Xác nhận mật khẩu", "confirm"],
                   ].map(([field, label, flag]) => (
                     <div key={field} className="space-y-2">
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">{label}</p>
@@ -302,7 +302,7 @@ const ProfilePage = () => {
                   ))}
 
                   <button type="submit" disabled={userLoading} className="btn-base btn-primary h-11 px-6">
-                    {userLoading ? "Äang cáº­p nháº­t" : "Cáº­p nháº­t máº­t kháº©u"}
+                    {userLoading ? "Đang cập nhật" : "Cập nhật mật khẩu"}
                   </button>
                 </form>
               )}
@@ -329,7 +329,7 @@ const ProfilePage = () => {
             >
               <div className="mb-6 flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="hero-title text-3xl">ÄÆ¡n #{selectedOrder.orderCode || selectedOrder._id.slice(-6).toUpperCase()}</h2>
+                  <h2 className="hero-title text-3xl">Đơn #{selectedOrder.orderCode || selectedOrder._id.slice(-6).toUpperCase()}</h2>
                   <p className="mt-1 text-sm text-secondary">{new Date(selectedOrder.createdAt).toLocaleString("vi-VN")}</p>
                 </div>
                 <span className="inline-flex items-center gap-1.5 text-xs text-secondary">
@@ -340,16 +340,16 @@ const ProfilePage = () => {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-xl bg-surface-soft p-4 text-sm">
-                  <p className="font-semibold text-primary">ThĂ´ng tin giao hĂ ng</p>
+                  <p className="font-semibold text-primary">Thông tin giao hàng</p>
                   <p className="mt-2 text-secondary">{selectedOrder.shippingDetails?.fullName}</p>
                   <p className="text-secondary">{selectedOrder.shippingDetails?.phoneNumber}</p>
                   <p className="text-secondary">{selectedOrder.shippingDetails?.address}</p>
                 </div>
                 <div className="rounded-xl bg-surface-soft p-4 text-sm">
-                  <p className="font-semibold text-primary">Thanh toĂ¡n</p>
-                  <p className="mt-2 text-secondary">PhÆ°Æ¡ng thá»©c: {selectedOrder.paymentMethod?.toUpperCase()}</p>
-                  <p className="text-secondary">Tráº¡ng thĂ¡i: {selectedOrder.paymentStatus === "paid" ? "ÄĂ£ thanh toĂ¡n" : "Chá» thanh toĂ¡n"}</p>
-                  <p className="mt-1 font-semibold text-[color:var(--color-gold)]">{selectedOrder.totalAmount?.toLocaleString("vi-VN")} Ä‘</p>
+                  <p className="font-semibold text-primary">Thanh toán</p>
+                  <p className="mt-2 text-secondary">Phương thức: {selectedOrder.paymentMethod?.toUpperCase()}</p>
+                  <p className="text-secondary">Trạng thái: {selectedOrder.paymentStatus === "paid" ? "Đã thanh toán" : "Chờ thanh toán"}</p>
+                  <p className="mt-1 font-semibold text-[color:var(--color-gold)]">{selectedOrder.totalAmount?.toLocaleString("vi-VN")} đ</p>
                 </div>
               </div>
 
@@ -361,7 +361,7 @@ const ProfilePage = () => {
                       <p className="truncate font-medium text-primary">{item.product?.name}</p>
                       <p className="text-xs text-muted">x{item.quantity}</p>
                     </div>
-                    <p className="font-semibold text-primary">{item.price?.toLocaleString("vi-VN")} Ä‘</p>
+                    <p className="font-semibold text-primary">{item.price?.toLocaleString("vi-VN")} đ</p>
                   </div>
                 ))}
               </div>
@@ -373,7 +373,7 @@ const ProfilePage = () => {
                     onClick={() => cancelOrder(selectedOrder._id)}
                     className="btn-base btn-outline h-10 px-5 text-secondary hover:text-[color:var(--color-gold)]"
                   >
-                    Há»§y Ä‘Æ¡n hĂ ng
+                    Hủy đơn hàng
                   </button>
                 )}
 
@@ -383,13 +383,13 @@ const ProfilePage = () => {
                     onClick={() => requestReturnOrder(selectedOrder._id)}
                     className="btn-base btn-outline h-10 px-5"
                   >
-                    YĂªu cáº§u tráº£ hĂ ng
+                    Yêu cầu trả hàng
                   </button>
                 )}
 
                 {selectedOrder.trackingToken && (
                   <Link to={`/order-tracking/${selectedOrder.trackingToken}`} className="btn-base btn-secondary h-10 px-5">
-                    Theo dĂµi Ä‘Æ¡n
+                    Theo dõi đơn
                   </Link>
                 )}
               </div>
@@ -402,7 +402,7 @@ const ProfilePage = () => {
         <div className="fixed bottom-4 right-4 rounded-xl border border-black/15 bg-white/95 px-4 py-2 text-sm text-secondary shadow-lg dark:border-white/15 dark:bg-black/75 dark:text-gray-200">
           <span className="inline-flex items-center gap-2">
             <AlertCircle className="h-4 w-4 text-[color:var(--color-gold)]" />
-            Vui lĂ²ng kiá»ƒm tra thĂ´ng tin há»“ sÆ¡.
+            Vui lòng kiểm tra thông tin hồ sơ.
           </span>
         </div>
       )}
@@ -411,4 +411,3 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
-

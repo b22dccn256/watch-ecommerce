@@ -1,4 +1,4 @@
-﻿import { createWithEqualityFn } from "zustand/traditional";
+import { createWithEqualityFn } from "zustand/traditional";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { useCartStore } from "./useCartStore";
@@ -18,7 +18,7 @@ export const useUserStore = createWithEqualityFn((set, get) => ({
 
 		if (password !== confirmPassword) {
 			set({ loading: false });
-			toast.error("Máº­t kháº©u xĂ¡c nháº­n khĂ´ng khá»›p");
+			toast.error("Mật khẩu xác nhận không khớp");
 			return { success: false };
 		}
 
@@ -32,27 +32,27 @@ export const useUserStore = createWithEqualityFn((set, get) => ({
 			});
 			set({ loading: false });
 			localStorage.setItem("pendingVerifyEmail", normalizedEmail);
-			toast.success(res.data.message || "ÄÄƒng kĂ½ thĂ nh cĂ´ng! Vui lĂ²ng xĂ¡c thá»±c email.");
+			toast.success(res.data.message || "Đăng ký thành công! Vui lòng xác thực email.");
 			return { success: true, email: normalizedEmail };
 		} catch (error) {
 			set({ loading: false });
-			toast.error(error.response?.data?.message || "ÄĂ£ xáº£y ra lá»—i khi Ä‘Äƒng kĂ½");
+			toast.error(error.response?.data?.message || "Đã xảy ra lỗi khi đăng ký");
 			return { success: false };
 		}
 	},
 
 	resendVerificationEmail: async (email) => {
 		if (!email) {
-			toast.error("Email khĂ´ng há»£p lá»‡");
+			toast.error("Email không hợp lệ");
 			return false;
 		}
 
 		try {
 			const res = await axios.post("/auth/resend-verification", { email });
-			toast.success(res.data.message || "Email xĂ¡c thá»±c Ä‘Ă£ Ä‘Æ°á»£c gá»­i láº¡i");
+			toast.success(res.data.message || "Email xác thực đã được gửi lại");
 			return true;
 		} catch (error) {
-			toast.error(error.response?.data?.message || "KhĂ´ng thá»ƒ gá»­i láº¡i email xĂ¡c thá»±c");
+			toast.error(error.response?.data?.message || "Không thể gửi lại email xác thực");
 			return false;
 		}
 	},
@@ -68,7 +68,7 @@ export const useUserStore = createWithEqualityFn((set, get) => ({
 			}
 
 			set({ user: res.data, loading: false });
-			toast.success("ÄÄƒng nháº­p thĂ nh cĂ´ng!");
+			toast.success("Đăng nhập thành công!");
 
 			// Sync guest cart to server
 			await useCartStore.getState().syncLocalCartToServer();
@@ -77,7 +77,7 @@ export const useUserStore = createWithEqualityFn((set, get) => ({
 
 		} catch (error) {
 			set({ loading: false });
-			toast.error(error.response?.data?.message || "ÄĂ£ xáº£y ra lá»—i");
+			toast.error(error.response?.data?.message || "Đã xảy ra lỗi");
 			throw error;
 		}
 	},
@@ -87,14 +87,14 @@ export const useUserStore = createWithEqualityFn((set, get) => ({
 		try {
 			const res = await axios.post("/auth/verify-otp", { email, otp });
 			set({ user: res.data, loading: false });
-			toast.success("XĂ¡c thá»±c 2FA thĂ nh cĂ´ng!");
+			toast.success("Xác thực 2FA thành công!");
 
 			await useCartStore.getState().syncLocalCartToServer();
 			await useCartStore.getState().getCartItems();
 			return true;
 		} catch (error) {
 			set({ loading: false });
-			const message = error.response?.data?.message || "MĂ£ OTP khĂ´ng chĂ­nh xĂ¡c";
+			const message = error.response?.data?.message || "Mã OTP không chính xác";
 			toast.error(message);
 			throw error;
 		}
@@ -103,10 +103,10 @@ export const useUserStore = createWithEqualityFn((set, get) => ({
 	resendOTP: async (email) => {
 		try {
 			const res = await axios.post("/auth/resend-otp", { email });
-			toast.success(res.data.message || "ÄĂ£ gá»­i láº¡i mĂ£ OTP");
+			toast.success(res.data.message || "Đã gửi lại mã OTP");
 			return true;
 		} catch (error) {
-			toast.error(error.response?.data?.message || "KhĂ´ng thá»ƒ gá»­i láº¡i mĂ£ OTP");
+			toast.error(error.response?.data?.message || "Không thể gửi lại mã OTP");
 			return false;
 		}
 	},
@@ -174,6 +174,5 @@ export const useUserStore = createWithEqualityFn((set, get) => ({
 		}
 	},
 }));
-
 
 

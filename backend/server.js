@@ -90,7 +90,7 @@ app.use("/api/auth", rateLimit({
 // Chung cho tất cả API còn lại
 app.use("/api", rateLimit({
 	windowMs: 15 * 60 * 1000,
-	max: 300,
+	max: process.env.NODE_ENV === "production" ? 300 : 10000, // Tăng lên 10000 trong dev
 	standardHeaders: true,
 	legacyHeaders: false,
 }));

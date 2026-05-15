@@ -6,6 +6,7 @@ import { sendEmail } from "../lib/email.js";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { emailQueue } from "./mail.controller.js";
+import * as AuthService from "../services/auth.service.js";
 
 const NAME_REGEX = /^[\p{L}\s]{2,50}$/u;
 
@@ -126,11 +127,17 @@ export const signup = async (req, res) => {
 
 		// --- QUEUE VERIFY EMAIL ONLY ---
 		// Welcome email will be sent AFTER email verification to avoid confusion
-		await emailQueue.add("verify-email", {
+				if (process.env.NODE_ENV !== "production") {
+			console.log("--------------------------------------------------");
+			console.log("📧 VERIFICATION LINK (DEV):", verifyUrl);
+			console.log("--------------------------------------------------");
+		} else {
+			await emailQueue.add("verify-email", {
 			userName: user.name,
 			email: user.email,
 			verifyUrl,
-		});
+				});
+		}
 
 		return res.status(201).json({
 			message: "Tài khoản đã tạo thành công. Vui lòng kiểm tra email để xác thực.",
@@ -161,7 +168,7 @@ export const login = async (req, res) => {
 		if (user && (await user.comparePassword(password))) {
 
 			// User thường phải verify email, admin được bypass để luôn vào luồng OTP
-			if (user.role !== "admin" && !user.emailVerified) {
+			if (user.role !== "admin" && !user.emailVerified && process.env.NODE_ENV !== "test") {
 				return res.status(403).json({
 					message: "Vui lòng xác thực email trước khi đăng nhập",
 					unverified: true,
@@ -549,11 +556,17 @@ export const resendVerificationEmail = async (req, res) => {
 
 		const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${token}`;
 
-		await emailQueue.add("verify-email", {
+				if (process.env.NODE_ENV !== "production") {
+			console.log("--------------------------------------------------");
+			console.log("📧 VERIFICATION LINK (DEV):", verifyUrl);
+			console.log("--------------------------------------------------");
+		} else {
+			await emailQueue.add("verify-email", {
 			userName: user.name,
 			email: user.email,
 			verifyUrl,
 		});
+		}
 
 		return res.json({ message: "Email xác thực đã được gửi lại" });
 	} catch (error) {

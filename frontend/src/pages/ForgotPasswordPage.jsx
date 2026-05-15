@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Mail, Lock } from "lucide-react";
@@ -18,9 +18,9 @@ const ForgotPasswordPage = () => {
 		try {
 			const res = await axios.post("/auth/forgot-password", { email });
 			setSent(true);
-			toast.success(res.data.message || "Náº¿u email tá»“n táº¡i, báº¡n sáº½ nháº­n Ä‘Æ°á»£c liĂªn káº¿t Ä‘áº·t láº¡i máº­t kháº©u.");
+			toast.success(res.data.message || "Nếu email tồn tại, bạn sẽ nhận được liên kết đặt lại mật khẩu.");
 		} catch (error) {
-			toast.error(error.response?.data?.message || "KhĂ´ng thá»ƒ gá»­i email Ä‘áº·t láº¡i máº­t kháº©u");
+			toast.error(error.response?.data?.message || "Không thể gửi email đặt lại mật khẩu");
 		} finally {
 			setLoading(false);
 		}
@@ -34,8 +34,8 @@ const ForgotPasswordPage = () => {
 				className="mx-auto max-w-xl rounded-[1.8rem] border border-black/10 bg-surface p-8 shadow-[0_30px_100px_-50px_rgba(0,0,0,0.5)] dark:border-white/10"
 			>
 				<p className="hero-kicker text-[color:var(--color-gold)]">Account recovery</p>
-				<h1 className="hero-title mt-3 text-3xl text-primary">QuĂªn máº­t kháº©u</h1>
-				<p className="mt-2 text-sm text-secondary">Nháº­p email cá»§a báº¡n Ä‘á»ƒ nháº­n liĂªn káº¿t Ä‘áº·t láº¡i máº­t kháº©u, cĂ³ hiá»‡u lá»±c trong 15 phĂºt.</p>
+				<h1 className="hero-title mt-3 text-3xl text-primary">Quên mật khẩu</h1>
+				<p className="mt-2 text-sm text-secondary">Nhập email của bạn để nhận liên kết đặt lại mật khẩu, có hiệu lực trong 15 phút.</p>
 
 				<form className="mt-8 space-y-4" onSubmit={handleSubmit}>
 					<Input
@@ -47,9 +47,9 @@ const ForgotPasswordPage = () => {
 						placeholder="you@example.com"
 					/>
 					<button type="submit" disabled={loading} className="btn-base btn-primary h-11 w-full">
-						{loading ? "Äang gá»­i..." : (
+						{loading ? "Đang gửi..." : (
 							<>
-								Gá»­i liĂªn káº¿t Ä‘áº·t láº¡i
+								Gửi liên kết đặt lại
 								<ArrowRight className="h-4 w-4" />
 							</>
 						)}
@@ -58,16 +58,16 @@ const ForgotPasswordPage = () => {
 
 				{sent && (
 					<div className="mt-6 rounded-xl border border-[color:var(--color-gold)]/20 bg-[color:var(--color-gold)]/10 p-4 text-sm text-secondary">
-						Náº¿u email tá»“n táº¡i, báº¡n sáº½ nháº­n Ä‘Æ°á»£c liĂªn káº¿t Ä‘áº·t láº¡i máº­t kháº©u.
+						Nếu email tồn tại, bạn sẽ nhận được liên kết đặt lại mật khẩu.
 					</div>
 				)}
 
 				<div className="mt-6 flex items-center justify-between text-sm">
 					<Link to="/login" className="text-[color:var(--color-gold)] hover:underline">
-						Quay láº¡i Ä‘Äƒng nháº­p
+						Quay lại đăng nhập
 					</Link>
 					<Link to="/signup" className="text-secondary hover:text-primary">
-						Táº¡o tĂ i khoáº£n má»›i
+						Tạo tài khoản mới
 					</Link>
 				</div>
 			</motion.div>
@@ -76,4 +76,3 @@ const ForgotPasswordPage = () => {
 };
 
 export default ForgotPasswordPage;
-

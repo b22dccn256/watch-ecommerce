@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams, useParams, Link } from "react-router-dom";
 import { LayoutGrid, Grid3X3, X } from "lucide-react";
 import { motion } from "framer-motion";
@@ -12,31 +12,31 @@ const CatalogPage = () => {
 	const { category } = useParams();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const { config, fetchConfig } = useStorefrontStore();
-	// B-01 Fix: default tá»« storeConfig.gridColumns, fallback vá» 4 náº¿u chÆ°a load
+	// B-01 Fix: default từ storeConfig.gridColumns, fallback về 4 nếu chưa load
 	const [gridCols, setGridCols] = useState(4);
 	const {
 		products, loading, totalPages, currentPage, sort, totalCount,
 		fetchFilteredProducts, setPage, setSearchTerm, setFilters, filters, setSort
 	} = useProductStore();
 
-	// B-01 Fix: Load storeConfig Ä‘á»ƒ láº¥y gridColumns máº·c Ä‘á»‹nh
+	// B-01 Fix: Load storeConfig để lấy gridColumns mặc định
 	useEffect(() => {
 		fetchConfig();
 	}, [fetchConfig]);
 
-	// B-01 Fix: Sync gridCols khi config load xong (chá»‰ láº§n Ä‘áº§u)
+	// B-01 Fix: Sync gridCols khi config load xong (chỉ lần đầu)
 	useEffect(() => {
 		if (config?.gridColumns) {
 			setGridCols(Number(config.gridColumns));
 		}
 	}, [config?.gridColumns]);
 
-	// Äá»“ng bá»™ URL params vá»›i store
+	// Đồng bộ URL params với store
 	useEffect(() => {
 		const q = searchParams.get("q") || "";
 		setSearchTerm(q);
 
-		// PhĂ¢n tĂ­ch Param nĂ¢ng cao (tá»« Mega Menu hoáº·c Deep Link)
+		// Phân tích Param nâng cao (từ Mega Menu hoặc Deep Link)
 		const brandParam = searchParams.get("brand");
 		const machineTypeParam = searchParams.get("machineType");
 		const resetParam = searchParams.get("reset");
@@ -55,7 +55,7 @@ const CatalogPage = () => {
 			if (searchParams.get("minPrice")) urlFilters.minPrice = Number(searchParams.get("minPrice"));
 			if (searchParams.get("maxPrice")) urlFilters.maxPrice = Number(searchParams.get("maxPrice"));
 
-			// Náº¿u cĂ³ param URL, Æ°u tiĂªn ghi Ä‘Ă¨ vĂ o Zustand
+			// Nếu có param URL, ưu tiên ghi đè vào Zustand
 			if (Object.keys(urlFilters).length > 0) {
 				setFilters(urlFilters);
 			}
@@ -81,7 +81,7 @@ const CatalogPage = () => {
 		(filters.sizes || []).forEach(s => chips.push({ key: `sizes:${s}`, label: s }));
 		if (filters.minRating > 0) chips.push({ key: "minRating", label: `${filters.minRating}+ sao` });
 		if (filters.minPrice > 0 || filters.maxPrice < 1_000_000_000)
-			chips.push({ key: "price", label: `${(filters.minPrice/1e6).toFixed(0)}â€“${filters.maxPrice >= 1e9 ? "âˆ" : (filters.maxPrice/1e6).toFixed(0)} Trâ‚«` });
+			chips.push({ key: "price", label: `${(filters.minPrice/1e6).toFixed(0)}–${filters.maxPrice >= 1e9 ? "∞" : (filters.maxPrice/1e6).toFixed(0)} Tr₫` });
 		return chips;
 	};
 
@@ -114,7 +114,7 @@ const CatalogPage = () => {
 		return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
 	};
 
-	// PhĂ¢n trang
+	// Phân trang
 	const handlePageChange = (newPage) => {
 		setPage(newPage);
 		fetchFilteredProducts();
@@ -132,12 +132,12 @@ const CatalogPage = () => {
 				<div className="mb-8 rounded-[2rem] editorial-surface px-6 py-6 md:px-8 md:py-7 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.35)]">
 					<div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
 						<div className="space-y-4">
-							<p className="hero-kicker text-xs font-semibold text-luxury-gold">Bá»™ sÆ°u táº­p Â· Tuyá»ƒn chá»n</p>
+							<p className="hero-kicker text-xs font-semibold text-luxury-gold">Bộ sưu tập · Tuyển chọn</p>
 							<h1 className="hero-title text-3xl md:text-5xl text-gray-900 leading-tight">
-								{category ? category : "Táº¥t cáº£ Ä‘á»“ng há»“"}
+								{category ? category : "Tất cả đồng hồ"}
 							</h1>
 							<p className="max-w-2xl text-sm md:text-base text-gray-600 dark:text-luxury-text-muted leading-relaxed">
-								KhĂ¡m phĂ¡ nhá»¯ng cá»— mĂ¡y thá»i gian tinh xáº£o Ä‘Æ°á»£c tuyá»ƒn chá»n kháº¯t khe, nÆ¡i nghá»‡ thuáº­t cháº¿ tĂ¡c vĂ  phong cĂ¡ch sá»‘ng Ä‘áº³ng cáº¥p gáº·p nhau trong tá»«ng chi tiáº¿t.
+								Khám phá những cỗ máy thời gian tinh xảo được tuyển chọn khắt khe, nơi nghệ thuật chế tác và phong cách sống đẳng cấp gặp nhau trong từng chi tiết.
 							</p>
 						</div>
 						<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -156,16 +156,16 @@ const CatalogPage = () => {
 					</div>
 				</div>
 				<div className="grid gap-10 lg:grid-cols-[280px_1fr]">
-					{/* Bá»™ lá»c bĂªn trĂ¡i */}
+					{/* Bộ lọc bên trái */}
 					<FilterSidebar />
 
-					{/* Danh sĂ¡ch sáº£n pháº©m */}
+					{/* Danh sách sản phẩm */}
 					<div className="flex-1 w-full max-w-full overflow-hidden">
 						{/* Breadcrumbs */}
 						<div className="mb-4 flex items-center text-sm text-gray-500">
-							<Link to="/" className="hover:text-luxury-gold transition">Trang chá»§</Link>
+							<Link to="/" className="hover:text-luxury-gold transition">Trang chủ</Link>
 							<span className="mx-2">/</span>
-							<Link to="/catalog" className="hover:text-luxury-gold transition">Äá»“ng há»“</Link>
+							<Link to="/catalog" className="hover:text-luxury-gold transition">Đồng hồ</Link>
 							{category && (
 								<>
 									<span className="mx-2">/</span>
@@ -176,9 +176,9 @@ const CatalogPage = () => {
 
 						<div className="flex flex-wrap justify-between items-center mb-4 gap-3 rounded-[1.5rem] border border-black/5 dark:border-white/5 bg-white/85 dark:bg-white/5 px-4 py-4 shadow-sm">
 							<div>
-								<p className="hero-kicker text-[10px] font-semibold text-luxury-gold mb-2">Danh má»¥c sáº£n pháº©m</p>
+								<p className="hero-kicker text-[10px] font-semibold text-luxury-gold mb-2">Danh mục sản phẩm</p>
 								<h2 className="heading-section text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-									{category ? category : "Táº¥t cáº£ Ä‘á»“ng há»“"}
+									{category ? category : "Tất cả đồng hồ"}
 								</h2>
 							</div>
 							<div className="flex items-center gap-3">
@@ -187,14 +187,14 @@ const CatalogPage = () => {
 									<button
 										onClick={() => setGridCols(3)}
 										className={`p-1.5 rounded-xl transition ${gridCols === 3 ? "bg-luxury-gold text-lux-dark" : "text-gray-400 hover:text-gray-900 dark:hover:text-white"}`}
-										title="3 cá»™t"
+										title="3 cột"
 									>
 										<Grid3X3 className="w-4 h-4" />
 									</button>
 									<button
 										onClick={() => setGridCols(4)}
 										className={`p-1.5 rounded-xl transition ${gridCols === 4 ? "bg-luxury-gold text-lux-dark" : "text-gray-400 hover:text-gray-900 dark:hover:text-white"}`}
-										title="4 cá»™t"
+										title="4 cột"
 									>
 										<LayoutGrid className="w-4 h-4" />
 									</button>
@@ -204,12 +204,12 @@ const CatalogPage = () => {
 									onChange={handleSortChange}
 									className="bg-gray-100/90 dark:bg-zinc-900 border border-gray-200/80 dark:border-luxury-border text-gray-900 dark:text-white px-4 py-2 rounded-2xl text-sm outline-none focus:border-luxury-gold transition"
 								>
-									<option value="newest">Má»›i nháº¥t</option>
-									<option value="best_selling">BĂ¡n cháº¡y nháº¥t</option>
-									<option value="price_asc">GiĂ¡: Tháº¥p â†’ Cao</option>
-									<option value="price_desc">GiĂ¡: Cao â†’ Tháº¥p</option>
-									<option value="name_asc">TĂªn: A-Z</option>
-									<option value="name_desc">TĂªn: Z-A</option>
+									<option value="newest">Mới nhất</option>
+									<option value="best_selling">Bán chạy nhất</option>
+									<option value="price_asc">Giá: Thấp → Cao</option>
+									<option value="price_desc">Giá: Cao → Thấp</option>
+									<option value="name_asc">Tên: A-Z</option>
+									<option value="name_desc">Tên: Z-A</option>
 								</select>
 							</div>
 						</div>
@@ -231,14 +231,14 @@ const CatalogPage = () => {
 									onClick={clearAllFilters}
 									className="text-xs text-gray-500 hover:text-[color:var(--color-gold)] underline transition ml-1"
 								>
-									XĂ³a táº¥t cáº£
+									Xóa tất cả
 								</button>
 							</div>
 						)}
 
 						{!loading && (
 							<p className="text-sm text-gray-500 mb-8 border-b border-black/10 dark:border-zinc-800 pb-4">
-								TĂ¬m tháº¥y <span className="text-luxury-gold font-bold">{totalCount ?? products.length}</span> sáº£n pháº©m phĂ¹ há»£p
+								Tìm thấy <span className="text-luxury-gold font-bold">{totalCount ?? products.length}</span> sản phẩm phù hợp
 							</p>
 						)}
 
@@ -251,8 +251,8 @@ const CatalogPage = () => {
 						) : products.length === 0 ? (
 							<div className="text-center py-20 bg-white/80 dark:bg-zinc-900/30 rounded-2xl border border-black/5 dark:border-zinc-800/50">
 								<svg className="w-16 h-16 mx-auto text-gray-400 dark:text-zinc-700 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-								<h2 className="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">KhĂ´ng tĂ¬m tháº¥y sáº£n pháº©m</h2>
-								<p className="text-gray-500 max-w-md mx-auto">Thá»­ Ä‘iá»u chá»‰nh láº¡i bá»™ lá»c hoáº·c khoáº£ng giĂ¡ Ä‘á»ƒ tĂ¬m tháº¥y chiáº¿c Ä‘á»“ng há»“ Æ°ng Ă½ nháº¥t cá»§a báº¡n.</p>
+								<h2 className="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">Không tìm thấy sản phẩm</h2>
+								<p className="text-gray-500 max-w-md mx-auto">Thử điều chỉnh lại bộ lọc hoặc khoảng giá để tìm thấy chiếc đồng hồ ưng ý nhất của bạn.</p>
 							</div>
 						) : (
 							<motion.div
@@ -273,7 +273,7 @@ const CatalogPage = () => {
 							</motion.div>
 						)}
 
-						{/* PhĂ¢n trang */}
+						{/* Phân trang */}
 						{totalPages > 1 && (
 							<div className="flex justify-center mt-16 gap-2 flex-wrap">
 								{getPaginationRange(currentPage, totalPages).map((page, index) => (

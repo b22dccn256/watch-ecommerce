@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
@@ -15,9 +15,9 @@ import { SkeletonProductCard } from "../components/SkeletonLoaders";
 
 // Brand pillars
 const PILLARS = [
-  { label: "Báº£o hĂ nh quá»‘c táº¿", sub: "5 nÄƒm toĂ n diá»‡n" },
-  { label: "Giao hĂ ng miá»…n phĂ­", sub: "Tá»« 2.000.000 â‚«" },
-  { label: "Äá»•i tráº£ 30 ngĂ y", sub: "KhĂ´ng Ä‘iá»u kiá»‡n" },
+  { label: "Bảo hành quốc tế", sub: "5 năm toàn diện" },
+  { label: "Giao hàng miễn phí", sub: "Từ 2.000.000 ₫" },
+  { label: "Đổi trả 30 ngày", sub: "Không điều kiện" },
 ];
 
 // Stagger variants
@@ -125,7 +125,7 @@ const HomePage = () => {
           </div>
         )}
 
-        {/* â”€â”€ Featured Products â€” Editorial â”€â”€ */}
+        {/* ── Featured Products — Editorial ── */}
         <section className="py-24 sm:py-32">
           {/* Section header */}
           <motion.div
@@ -137,18 +137,18 @@ const HomePage = () => {
           >
             <div>
               <p className="hero-kicker text-[color:var(--color-gold)]">Featured pieces</p>
-              <h2 className="hero-title text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mt-3">Tuyá»ƒn chá»n tinh hoa</h2>
+              <h2 className="hero-title text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mt-3">Tuyển chọn tinh hoa</h2>
             </div>
             <Link
               to="/catalog"
               className="group hidden items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted transition-colors duration-300 hover:text-[color:var(--color-gold)] sm:inline-flex"
             >
-              Xem táº¥t cáº£
+              Xem tất cả
               <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </motion.div>
 
-          {/* Product grid â€” staggered */}
+          {/* Product grid — staggered */}
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -166,12 +166,12 @@ const HomePage = () => {
           {/* Mobile CTA */}
           <div className="mt-10 flex justify-center sm:hidden">
             <Link to="/catalog" className="btn-base btn-outline h-11 px-8">
-              Xem táº¥t cáº£ <ArrowRight className="h-4 w-4" />
+              Xem tất cả <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </section>
 
-        {/* â”€â”€ Brand Pillars â”€â”€ */}
+        {/* ── Brand Pillars ── */}
         <section className="border-y border-[color:var(--color-border)] py-12">
           <div className="grid gap-10 sm:grid-cols-3">
             {PILLARS.map((p, i) => (
@@ -190,7 +190,7 @@ const HomePage = () => {
           </div>
         </section>
 
-        {/* â”€â”€ Editorial Story â€” Asymmetric â”€â”€ */}
+        {/* ── Editorial Story — Asymmetric ── */}
         <section className="grid gap-6 py-24 sm:py-32 lg:grid-cols-[1.15fr_0.85fr]">
           {/* Text side */}
           <motion.div
@@ -203,15 +203,15 @@ const HomePage = () => {
             <div>
               <p className="hero-kicker text-[color:var(--color-gold)]">Editorial story</p>
               <h2 className="heading-section mt-5 max-w-md text-[1.75rem] sm:text-[2.2rem]">
-                Nhá»‹p Ä‘iá»‡u sá»‘ng cĂ¹ng<br />cÆ¡ khĂ­ chĂ­nh xĂ¡c
+                Nhịp điệu sống cùng<br />cơ khí chính xác
               </h2>
               <p className="mt-5 max-w-lg text-sm leading-relaxed text-secondary sm:text-base">
-                Bá»™ sÆ°u táº­p Ä‘Æ°á»£c tuyá»ƒn theo ngĂ´n ngá»¯ tinh gá»n: tá»· lá»‡ máº·t sá»‘, hoĂ n thiá»‡n vá», Ä‘á»™ mÆ°á»£t dĂ¢y Ä‘eo
-                vĂ  cáº£m giĂ¡c Ä‘eo trong tá»«ng ngá»¯ cáº£nh Ä‘á»i sá»‘ng.
+                Bộ sưu tập được tuyển theo ngôn ngữ tinh gọn: tỷ lệ mặt số, hoàn thiện vỏ, độ mượt dây đeo
+                và cảm giác đeo trong từng ngữ cảnh đời sống.
               </p>
             </div>
             <Link to="/catalog" className="btn-base btn-outline mt-10 h-11 w-fit px-7">
-              KhĂ¡m phĂ¡ bá»™ sÆ°u táº­p
+              Khám phá bộ sưu tập
             </Link>
           </motion.div>
 
@@ -238,7 +238,7 @@ const HomePage = () => {
           </motion.div>
         </section>
 
-        {/* â”€â”€ Vision Statement â€” Full Width â”€â”€ */}
+        {/* ── Vision Statement — Full Width ── */}
         <section className="pb-28 sm:pb-36">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -249,12 +249,12 @@ const HomePage = () => {
           >
             <div className="lux-divider mx-auto mb-10 w-16" />
             <p className="font-serif text-[clamp(1.55rem,3.2vw,2.6rem)] font-medium leading-[1.28] text-primary">
-              &quot;Má»™t chiáº¿c Ä‘á»“ng há»“ khĂ´ng chá»‰ Ä‘o thá»i gian â€”<br className="hidden sm:block" />
-              nĂ³ ká»ƒ cĂ¢u chuyá»‡n vá» ngÆ°á»i Ä‘eo nĂ³.&quot;
+              &quot;Một chiếc đồng hồ không chỉ đo thời gian —<br className="hidden sm:block" />
+              nó kể câu chuyện về người đeo nó.&quot;
             </p>
             <div className="lux-divider mx-auto mt-10 w-16" />
             <p className="mt-7 text-xs uppercase tracking-[0.22em] text-muted">
-              Luxury Watch Gallery Â· HĂ  Ná»™i, Viá»‡t Nam
+              Luxury Watch Gallery · Hà Nội, Việt Nam
             </p>
           </motion.div>
         </section>
@@ -270,4 +270,3 @@ const HomePage = () => {
 };
 
 export default HomePage;
-

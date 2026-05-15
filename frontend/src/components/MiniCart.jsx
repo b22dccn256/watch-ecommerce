@@ -1,4 +1,4 @@
-﻿import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { X, ShoppingBag, ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCartStore } from "../stores/useCartStore";
@@ -41,7 +41,7 @@ const MiniCart = ({ isOpen, onClose }) => {
 						<div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/10">
 							<div className="flex items-center gap-2">
 								<ShoppingBag className="w-5 h-5 text-gray-900 dark:text-white" />
-								<h2 className="text-lg font-serif font-semibold text-gray-900 dark:text-white">Giá» hĂ ng ({cartCount})</h2>
+								<h2 className="text-lg font-serif font-semibold text-gray-900 dark:text-white">Giỏ hàng ({cartCount})</h2>
 							</div>
 							<button
 								onClick={onClose}
@@ -59,14 +59,14 @@ const MiniCart = ({ isOpen, onClose }) => {
 										<ShoppingBag className="w-8 h-8 text-gray-300 dark:text-gray-600" />
 									</div>
 									<div>
-										<p className="text-gray-900 dark:text-white font-medium mb-1">Giá» hĂ ng trá»‘ng</p>
-										<p className="text-sm text-gray-500">Báº¡n chÆ°a thĂªm sáº£n pháº©m nĂ o vĂ o giá».</p>
+										<p className="text-gray-900 dark:text-white font-medium mb-1">Giỏ hàng trống</p>
+										<p className="text-sm text-gray-500">Bạn chưa thêm sản phẩm nào vào giỏ.</p>
 									</div>
 									<button
 										onClick={onClose}
 										className="text-sm font-semibold text-luxury-gold hover:underline"
 									>
-										Tiáº¿p tá»¥c mua sáº¯m
+										Tiếp tục mua sắm
 									</button>
 								</div>
 							) : (
@@ -85,13 +85,13 @@ const MiniCart = ({ isOpen, onClose }) => {
 													{item.name}
 												</Link>
 												<div className="text-[10px] text-gray-500 mt-1 space-y-0.5">
-													{item.selectedColor && <p>MĂ u: {item.selectedColor}</p>}
+													{item.selectedColor && <p>Màu: {item.selectedColor}</p>}
 													{item.selectedSize && <p>Size: {item.selectedSize}</p>}
-													{item.wristSize && <p>Cáº¯t dĂ¢y: {item.wristSize}mm</p>}
+													{item.wristSize && <p>Cắt dây: {item.wristSize}mm</p>}
 												</div>
 												<div className="mt-auto flex items-end justify-between">
 													<p className="text-sm font-semibold text-luxury-gold">
-														{item.price?.toLocaleString("vi-VN")} â‚«
+														{item.price?.toLocaleString("vi-VN")} ₫
 													</p>
 													<div className="flex items-center gap-3">
 														<span className="text-xs text-gray-500">SL: {item.quantity}</span>
@@ -99,7 +99,7 @@ const MiniCart = ({ isOpen, onClose }) => {
 															onClick={() => removeFromCart(item._id, item.wristSize, item.selectedColor, item.selectedSize)}
 															className="text-[10px] font-medium text-red-500 hover:text-red-600 transition-colors uppercase tracking-wider"
 														>
-															XĂ³a
+															Xóa
 														</button>
 													</div>
 												</div>
@@ -114,20 +114,20 @@ const MiniCart = ({ isOpen, onClose }) => {
 						{cart.length > 0 && (
 							<div className="p-5 bg-gray-50 dark:bg-white/5 border-t border-gray-100 dark:border-white/10">
 								<div className="flex items-center justify-between mb-4">
-									<span className="text-sm text-gray-500">Táº¡m tĂ­nh</span>
+									<span className="text-sm text-gray-500">Tạm tính</span>
 									<span className="text-lg font-semibold text-gray-900 dark:text-white">
-										{subtotal.toLocaleString("vi-VN")} â‚«
+										{subtotal.toLocaleString("vi-VN")} ₫
 									</span>
 								</div>
 								<button
 									onClick={handleCheckout}
 									className="w-full flex items-center justify-center gap-2 bg-luxury-gold hover:bg-[#a68249] text-black font-semibold py-3.5 px-4 rounded-xl transition-all hover:shadow-[0_0_20px_rgba(183,146,90,0.3)] hover:-translate-y-0.5"
 								>
-									Thanh ToĂ¡n <ArrowRight className="w-4 h-4" />
+									Thanh Toán <ArrowRight className="w-4 h-4" />
 								</button>
 								<div className="mt-3 text-center">
 									<button onClick={() => { onClose(); navigate("/cart"); }} className="text-xs text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors underline-offset-4 hover:underline">
-										Xem chi tiáº¿t giá» hĂ ng
+										Xem chi tiết giỏ hàng
 									</button>
 								</div>
 							</div>
@@ -140,4 +140,3 @@ const MiniCart = ({ isOpen, onClose }) => {
 };
 
 export default MiniCart;
-

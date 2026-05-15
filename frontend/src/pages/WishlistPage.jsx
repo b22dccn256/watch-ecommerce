@@ -1,4 +1,4 @@
-﻿import { motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useWishlistStore } from "../stores/useWishlistStore";
 import { useCartStore } from "../stores/useCartStore";
 import { useUserStore } from "../stores/useUserStore";
@@ -15,18 +15,18 @@ const WishlistPage = () => {
 
 	const handleAddAll = async () => {
 		if (!user) {
-			toast.error("Vui lĂ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ thĂªm vĂ o giá» hĂ ng");
+			toast.error("Vui lòng đăng nhập để thêm vào giỏ hàng");
 			return;
 		}
 		const results = await Promise.allSettled(wishlist.map(p => addToCart(p)));
 		const failed = results.filter(r => r.status === "rejected").length;
 		const succeeded = results.length - failed;
 		if (failed > 0 && succeeded > 0) {
-			toast.error(`${failed} sáº£n pháº©m khĂ´ng thá»ƒ thĂªm (cĂ³ thá»ƒ Ä‘Ă£ háº¿t hĂ ng)`);
+			toast.error(`${failed} sản phẩm không thể thêm (có thể đã hết hàng)`);
 		} else if (failed === results.length) {
-			toast.error("KhĂ´ng thá»ƒ thĂªm sáº£n pháº©m nĂ o vĂ o giá» hĂ ng");
+			toast.error("Không thể thêm sản phẩm nào vào giỏ hàng");
 		} else {
-			toast.success(`ÄĂ£ thĂªm ${succeeded} sáº£n pháº©m vĂ o giá» hĂ ng!`);
+			toast.success(`Đã thêm ${succeeded} sản phẩm vào giỏ hàng!`);
 		}
 	};
 
@@ -60,10 +60,10 @@ const WishlistPage = () => {
 				>
 					<div>
 						<p className='hero-kicker text-[11px] text-[color:var(--color-gold)] mb-3'>Client Selection</p>
-						<h1 className='hero-title text-4xl md:text-5xl font-bold mb-4 text-primary'>Danh sĂ¡ch yĂªu thĂ­ch</h1>
+						<h1 className='hero-title text-4xl md:text-5xl font-bold mb-4 text-primary'>Danh sách yêu thích</h1>
 						<p className='text-secondary dark:text-luxury-text-muted max-w-2xl leading-relaxed'>
-							NÆ¡i lÆ°u giá»¯ nhá»¯ng tuyá»‡t tĂ¡c thá»i gian báº¡n Ä‘ang khao khĂ¡t sá»Ÿ há»¯u.
-							HĂ£y Ä‘á»ƒ chĂºng tĂ´i giĂºp báº¡n hiá»‡n thá»±c hĂ³a giáº¥c mÆ¡ luxury cá»§a mĂ¬nh.
+							Nơi lưu giữ những tuyệt tác thời gian bạn đang khao khát sở hữu.
+							Hãy để chúng tôi giúp bạn hiện thực hóa giấc mơ luxury của mình.
 						</p>
 					</div>
 					{wishlist.length > 0 && (
@@ -72,7 +72,7 @@ const WishlistPage = () => {
 							className='btn-base btn-primary h-11 px-6 rounded-full shrink-0'
 						>
 							<ShoppingCart className='w-4 h-4' />
-							ThĂªm táº¥t cáº£ vĂ o giá» ({wishlist.length})
+							Thêm tất cả vào giỏ ({wishlist.length})
 						</button>
 					)}
 				</motion.div>
@@ -105,20 +105,19 @@ const EmptyWishlist = () => (
 		<div className='bg-[color:var(--color-gold)]/10 p-8 rounded-full mb-8'>
 			<Heart className='w-20 h-20 text-[color:var(--color-gold)]' />
 		</div>
-		<h2 className='hero-title text-3xl font-bold mb-4 text-primary'>ChÆ°a cĂ³ sáº£n pháº©m yĂªu thĂ­ch</h2>
+		<h2 className='hero-title text-3xl font-bold mb-4 text-primary'>Chưa có sản phẩm yêu thích</h2>
 		<p className='text-secondary mb-10 max-w-md mx-auto'>
-			Báº¡n chÆ°a thĂªm báº¥t ká»³ sáº£n pháº©m nĂ o vĂ o danh sĂ¡ch mong muá»‘n.
-			HĂ£y khĂ¡m phĂ¡ bá»™ sÆ°u táº­p cá»§a chĂºng tĂ´i Ä‘á»ƒ tĂ¬m tháº¥y chiáº¿c Ä‘á»“ng há»“ hoĂ n má»¹ dĂ nh riĂªng cho báº¡n.
+			Bạn chưa thêm bất kỳ sản phẩm nào vào danh sách mong muốn.
+			Hãy khám phá bộ sưu tập của chúng tôi để tìm thấy chiếc đồng hồ hoàn mỹ dành riêng cho bạn.
 		</p>
 		<Link
 			to='/catalog'
 			className='group btn-base btn-primary h-12 px-8 rounded-full'
 		>
-			KHĂM PHĂ Bá»˜ SÆ¯U Táº¬P
+			KHÁM PHÁ BỘ SƯU TẬP
 			<ArrowRight className='w-5 h-5 group-hover:translate-x-2 transition-transform' />
 		</Link>
 	</motion.div>
 );
 
 export default WishlistPage;
-

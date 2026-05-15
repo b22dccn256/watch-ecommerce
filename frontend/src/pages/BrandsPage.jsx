@@ -1,41 +1,41 @@
-﻿import { ArrowRight, Crown, Gem, Globe2, ShieldCheck, Star } from "lucide-react";
+import { ArrowRight, Crown, Gem, Globe2, ShieldCheck, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const BRAND_HOUSES = [
 	{
 		name: "Rolex Heritage",
-		tagline: "Biá»ƒu tÆ°á»£ng cá»§a Ä‘á»™ chĂ­nh xĂ¡c, Ä‘á»‹a vá»‹ vĂ  di sáº£n.",
-		description: "Nhá»¯ng thiáº¿t káº¿ mang tĂ­nh biá»ƒu tÆ°á»£ng, Ä‘Æ°á»£c tuyá»ƒn chá»n cho khĂ¡ch hĂ ng yĂªu sá»± chuáº©n má»±c vĂ  giĂ¡ trá»‹ bá»n vá»¯ng.",
+		tagline: "Biểu tượng của độ chính xác, địa vị và di sản.",
+		description: "Những thiết kế mang tính biểu tượng, được tuyển chọn cho khách hàng yêu sự chuẩn mực và giá trị bền vững.",
 		accent: "from-[color:var(--color-gold)]/25 to-black/5",
 		link: "/catalog?brand=Rolex",
 	},
 	{
 		name: "Omega Atelier",
-		tagline: "Tinh tháº§n thá»ƒ thao, cĂ´ng nghá»‡ vĂ  Ä‘á»™ tin cáº­y hiá»‡n Ä‘áº¡i.",
-		description: "DĂ nh cho ngÆ°á»i dĂ¹ng cáº§n má»™t chiáº¿c Ä‘á»“ng há»“ cĂ¢n báº±ng giá»¯a hiá»‡u nÄƒng, lá»‹ch sá»­ vĂ  tĂ­nh á»©ng dá»¥ng hĂ ng ngĂ y.",
+		tagline: "Tinh thần thể thao, công nghệ và độ tin cậy hiện đại.",
+		description: "Dành cho người dùng cần một chiếc đồng hồ cân bằng giữa hiệu năng, lịch sử và tính ứng dụng hàng ngày.",
 		accent: "from-gray-500/20 to-black/5",
 		link: "/catalog?brand=Omega",
 	},
 	{
 		name: "Patek Philippe House",
-		tagline: "Sá»± tinh xáº£o dĂ nh cho giá»›i sÆ°u táº§m.",
-		description: "Má»™t lá»±a chá»n giĂ u tĂ­nh sÆ°u táº§m, phĂ¹ há»£p vá»›i khĂ¡ch hĂ ng tĂ¬m kiáº¿m sá»± tinh vi vĂ  tĂ­nh biá»ƒu tÆ°á»£ng ráº¥t cao.",
+		tagline: "Sự tinh xảo dành cho giới sưu tầm.",
+		description: "Một lựa chọn giàu tính sưu tầm, phù hợp với khách hàng tìm kiếm sự tinh vi và tính biểu tượng rất cao.",
 		accent: "from-gray-600/20 to-black/5",
 		link: "/catalog?brand=Patek+Philippe",
 	},
 	{
 		name: "Audemars Piguet Studio",
-		tagline: "NgĂ´n ngá»¯ thiáº¿t káº¿ tĂ¡o báº¡o, hiá»‡n Ä‘áº¡i vĂ  cĂ³ cĂ¡ tĂ­nh.",
-		description: "PhĂ¹ há»£p vá»›i khĂ¡ch hĂ ng muá»‘n má»™t tuyĂªn ngĂ´n phong cĂ¡ch rĂµ rĂ ng mĂ  váº«n giá»¯ Ä‘Æ°á»£c cháº¥t haute horlogerie.",
+		tagline: "Ngôn ngữ thiết kế táo bạo, hiện đại và có cá tính.",
+		description: "Phù hợp với khách hàng muốn một tuyên ngôn phong cách rõ ràng mà vẫn giữ được chất haute horlogerie.",
 		accent: "from-[color:var(--color-gold)]/18 to-black/5",
 		link: "/catalog?brand=Audemars+Piguet",
 	},
 ];
 
 const FEATURE_POINTS = [
-	{ icon: Crown, title: "Tuyá»ƒn chá»n chuáº©n boutique", desc: "Chá»‰ hiá»ƒn thá»‹ cĂ¡c thÆ°Æ¡ng hiá»‡u vĂ  bá»™ sÆ°u táº­p phĂ¹ há»£p vá»›i Ä‘á»‹nh vá»‹ cá»§a cá»­a hĂ ng." },
-	{ icon: Gem, title: "Phong cĂ¡ch sang trá»ng", desc: "Má»—i thÆ°Æ¡ng hiá»‡u Ä‘Æ°á»£c giá»›i thiá»‡u theo ngĂ´n ngá»¯ cá»§a má»™t maison cao cáº¥p." },
-	{ icon: ShieldCheck, title: "ChĂ­nh hĂ£ng & báº£o hĂ nh", desc: "Táº­p trung vĂ o Ä‘á»™ tin cáº­y, dá»‹ch vá»¥ vĂ  báº£o hĂ nh dĂ i háº¡n." },
+	{ icon: Crown, title: "Tuyển chọn chuẩn boutique", desc: "Chỉ hiển thị các thương hiệu và bộ sưu tập phù hợp với định vị của cửa hàng." },
+	{ icon: Gem, title: "Phong cách sang trọng", desc: "Mỗi thương hiệu được giới thiệu theo ngôn ngữ của một maison cao cấp." },
+	{ icon: ShieldCheck, title: "Chính hãng & bảo hành", desc: "Tập trung vào độ tin cậy, dịch vụ và bảo hành dài hạn." },
 ];
 
 const BrandsPage = () => {
@@ -47,17 +47,17 @@ const BrandsPage = () => {
 					<div className="relative max-w-3xl">
 						<p className="text-[11px] uppercase tracking-[0.35em] text-luxury-gold font-bold mb-4">Brand House</p>
 						<h1 className="text-4xl md:text-6xl font-bold leading-[1.02] tracking-tight mb-5 text-gray-900 dark:text-white">
-							Nhá»¯ng thÆ°Æ¡ng hiá»‡u Ä‘Æ°á»£c tuyá»ƒn chá»n theo chuáº©n sang trá»ng.
+							Những thương hiệu được tuyển chọn theo chuẩn sang trọng.
 						</h1>
 						<p className="text-base md:text-lg text-gray-600 dark:text-luxury-text-muted leading-relaxed max-w-2xl">
-							ÄĂ¢y lĂ  khĂ´ng gian riĂªng Ä‘á»ƒ giá»›i thiá»‡u tinh tháº§n tá»«ng maison, giĂºp khĂ¡ch hĂ ng hiá»ƒu nhanh thÆ°Æ¡ng hiá»‡u nĂ o há»£p vá»›i phong cĂ¡ch, ngĂ¢n sĂ¡ch vĂ  má»¥c Ä‘Ă­ch sá»­ dá»¥ng cá»§a mĂ¬nh.
+							Đây là không gian riêng để giới thiệu tinh thần từng maison, giúp khách hàng hiểu nhanh thương hiệu nào hợp với phong cách, ngân sách và mục đích sử dụng của mình.
 						</p>
 						<div className="mt-8 flex flex-col sm:flex-row gap-3">
 							<Link to="/catalog" className="inline-flex items-center justify-center gap-2 rounded-full bg-luxury-gold px-6 py-3 font-semibold text-luxury-dark hover:bg-luxury-gold-light transition-colors">
-								Xem toĂ n bá»™ sáº£n pháº©m <ArrowRight className="w-4 h-4" />
+								Xem toàn bộ sản phẩm <ArrowRight className="w-4 h-4" />
 							</Link>
 							<Link to="/order-lookup" className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-300 dark:border-white/15 px-6 py-3 font-semibold text-gray-700 dark:text-white hover:bg-white/60 dark:hover:bg-white/10 transition-colors">
-								Tra cá»©u Ä‘Æ¡n hĂ ng
+								Tra cứu đơn hàng
 							</Link>
 						</div>
 					</div>
@@ -79,11 +79,11 @@ const BrandsPage = () => {
 				<section className="space-y-5">
 					<div className="flex items-end justify-between gap-4 flex-wrap">
 						<div>
-							<p className="text-[11px] uppercase tracking-[0.28em] text-gray-500 dark:text-luxury-text-muted font-bold mb-2">ThÆ°Æ¡ng hiá»‡u ná»•i báº­t</p>
-							<h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Bá»‘n maison tiĂªu biá»ƒu Ä‘á»ƒ báº¯t Ä‘áº§u khĂ¡m phĂ¡</h2>
+							<p className="text-[11px] uppercase tracking-[0.28em] text-gray-500 dark:text-luxury-text-muted font-bold mb-2">Thương hiệu nổi bật</p>
+							<h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Bốn maison tiêu biểu để bắt đầu khám phá</h2>
 						</div>
 						<p className="text-sm text-gray-500 dark:text-luxury-text-muted max-w-xl">
-							Nháº¥n vĂ o tá»«ng thÆ°Æ¡ng hiá»‡u Ä‘á»ƒ Ä‘i tháº³ng tá»›i bá»™ lá»c sáº£n pháº©m tÆ°Æ¡ng á»©ng.
+							Nhấn vào từng thương hiệu để đi thẳng tới bộ lọc sản phẩm tương ứng.
 						</p>
 					</div>
 
@@ -107,7 +107,7 @@ const BrandsPage = () => {
 									<p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">{brand.tagline}</p>
 									<p className="text-sm text-gray-600 dark:text-luxury-text-muted leading-relaxed mb-5">{brand.description}</p>
 									<span className="inline-flex items-center gap-2 rounded-full bg-black/90 dark:bg-white/10 px-4 py-2 text-sm font-semibold text-white dark:text-white">
-										KhĂ¡m phĂ¡ thÆ°Æ¡ng hiá»‡u <ArrowRight className="w-4 h-4" />
+										Khám phá thương hiệu <ArrowRight className="w-4 h-4" />
 									</span>
 								</div>
 							</Link>
@@ -118,17 +118,17 @@ const BrandsPage = () => {
 				<section className="rounded-[2rem] border border-black/5 dark:border-white/10 bg-white/85 dark:bg-white/5 p-6 md:p-8 shadow-sm">
 					<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 						<div>
-							<p className="text-[11px] uppercase tracking-[0.28em] text-gray-500 dark:text-luxury-text-muted font-bold mb-2">Lá»i khuyĂªn chá»n thÆ°Æ¡ng hiá»‡u</p>
-							<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Chá»n theo phong cĂ¡ch, khĂ´ng chá»‰ theo tĂªn</h2>
+							<p className="text-[11px] uppercase tracking-[0.28em] text-gray-500 dark:text-luxury-text-muted font-bold mb-2">Lời khuyên chọn thương hiệu</p>
+							<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Chọn theo phong cách, không chỉ theo tên</h2>
 							<p className="text-sm text-gray-600 dark:text-luxury-text-muted max-w-2xl leading-relaxed">
-								Náº¿u báº¡n muá»‘n má»™t trang â€œthÆ°Æ¡ng hiá»‡uâ€ tháº­t sá»± riĂªng biá»‡t, Ä‘Ă¢y lĂ  nÆ¡i Ä‘á»ƒ ká»ƒ cĂ¢u chuyá»‡n, Ä‘á»‹nh vá»‹ vĂ  dáº«n khĂ¡ch hĂ ng sang bá»™ sÆ°u táº­p phĂ¹ há»£p thay vĂ¬ nĂ©m tháº³ng vá» catalog.
+								Nếu bạn muốn một trang “thương hiệu” thật sự riêng biệt, đây là nơi để kể câu chuyện, định vị và dẫn khách hàng sang bộ sưu tập phù hợp thay vì ném thẳng về catalog.
 							</p>
 						</div>
 						<div className="flex items-center gap-3 text-sm text-gray-600 dark:text-luxury-text-muted">
 							<Globe2 className="w-5 h-5 text-luxury-gold" />
 							<div>
 								<p className="font-semibold text-gray-900 dark:text-white">Luxury Watch House</p>
-								<p>Chá»n thÆ°Æ¡ng hiá»‡u nhÆ° chá»n má»™t phong cĂ¡ch sá»‘ng.</p>
+								<p>Chọn thương hiệu như chọn một phong cách sống.</p>
 							</div>
 						</div>
 					</div>

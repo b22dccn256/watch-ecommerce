@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCartStore } from "../stores/useCartStore";
 
@@ -96,4 +96,3 @@ const FeaturedProducts = ({ featuredProducts }) => {
 	);
 };
 export default FeaturedProducts;
-

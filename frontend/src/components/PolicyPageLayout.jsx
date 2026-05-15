@@ -1,4 +1,4 @@
-﻿import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ChevronRight, Truck, ShieldCheck, Ruler, Mail, Lock, FileText, Search } from "lucide-react";
 import { useEffect } from "react";
@@ -11,13 +11,13 @@ const PolicyPageLayout = ({ children, title, description, activeId }) => {
 	}, [title]);
 
 	const menuItems = [
-		{ id: "delivery", label: "ChĂ­nh sĂ¡ch giao hĂ ng", icon: Truck, path: "/delivery-policy" },
-		{ id: "warranty", label: "Äá»•i tráº£ & Báº£o hĂ nh", icon: ShieldCheck, path: "/warranty" },
-		{ id: "size-guide", label: "HÆ°á»›ng dáº«n chá»n size", icon: Ruler, path: "/size-guide" },
-		{ id: "order-lookup", label: "Tra cá»©u Ä‘Æ¡n hĂ ng", icon: Search, path: "/order-lookup" },
-		{ id: "contact", label: "LiĂªn há»‡ chĂºng tĂ´i", icon: Mail, path: "/contact" },
-		{ id: "privacy", label: "ChĂ­nh sĂ¡ch báº£o máº­t", icon: Lock, path: "/privacy-policy" },
-		{ id: "terms", label: "Äiá»u khoáº£n sá»­ dá»¥ng", icon: FileText, path: "/terms" },
+		{ id: "delivery", label: "Chính sách giao hàng", icon: Truck, path: "/delivery-policy" },
+		{ id: "warranty", label: "Đổi trả & Bảo hành", icon: ShieldCheck, path: "/warranty" },
+		{ id: "size-guide", label: "Hướng dẫn chọn size", icon: Ruler, path: "/size-guide" },
+		{ id: "order-lookup", label: "Tra cứu đơn hàng", icon: Search, path: "/order-lookup" },
+		{ id: "contact", label: "Liên hệ chúng tôi", icon: Mail, path: "/contact" },
+		{ id: "privacy", label: "Chính sách bảo mật", icon: Lock, path: "/privacy-policy" },
+		{ id: "terms", label: "Điều khoản sử dụng", icon: FileText, path: "/terms" },
 	];
 
 	return (
@@ -26,7 +26,7 @@ const PolicyPageLayout = ({ children, title, description, activeId }) => {
 			<div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
 				{/* Breadcrumbs */}
 				<nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-luxury-text-muted mb-8">
-					<NavLink to="/" className="hover:text-luxury-gold transition">Trang chá»§</NavLink>
+					<NavLink to="/" className="hover:text-luxury-gold transition">Trang chủ</NavLink>
 					<ChevronRight className="w-4 h-4" />
 					<span className="text-luxury-gold font-medium">{title}</span>
 				</nav>
@@ -45,7 +45,7 @@ const PolicyPageLayout = ({ children, title, description, activeId }) => {
 					{/* Sidebar Navigation */}
 					<aside className="w-full lg:w-72 shrink-0">
 						<div className="sticky top-28 space-y-4 rounded-[2rem] border border-black/5 dark:border-luxury-border bg-white/90 dark:bg-luxury-darker/90 p-4 shadow-[0_24px_80px_-45px_rgba(0,0,0,0.35)] backdrop-blur-md">
-							<h3 className="text-[11px] uppercase tracking-[0.24em] text-gray-500 dark:text-luxury-text-muted font-bold mb-4 px-3">Há»— trá»£ nhanh</h3>
+							<h3 className="text-[11px] uppercase tracking-[0.24em] text-gray-500 dark:text-luxury-text-muted font-bold mb-4 px-3">Hỗ trợ nhanh</h3>
 							{menuItems.map((item) => {
 								const Icon = item.icon;
 								const isActive = item.id === activeId || location.pathname === item.path;
@@ -65,7 +65,7 @@ const PolicyPageLayout = ({ children, title, description, activeId }) => {
 							})}
 
 							<div className="rounded-[1.5rem] border border-black/5 dark:border-white/5 bg-gradient-to-br from-[#f8f5ef] to-white dark:from-white/5 dark:to-white/0 p-4">
-								<p className="text-[10px] uppercase tracking-[0.24em] text-gray-500 dark:text-luxury-text-muted font-bold mb-3">ThĂ´ng tin nhanh</p>
+								<p className="text-[10px] uppercase tracking-[0.24em] text-gray-500 dark:text-luxury-text-muted font-bold mb-3">Thông tin nhanh</p>
 								<div className="space-y-3 text-sm text-gray-600 dark:text-luxury-text-muted">
 									<div className="flex items-start justify-between gap-3">
 										<span className="font-medium text-gray-900 dark:text-white">Hotline</span>
@@ -76,8 +76,8 @@ const PolicyPageLayout = ({ children, title, description, activeId }) => {
 										<span className="text-right break-all">contact@luxurywatch.vn</span>
 									</div>
 									<div className="flex items-start justify-between gap-3">
-										<span className="font-medium text-gray-900 dark:text-white">Pháº£n há»“i</span>
-										<span className="text-right">Trong 24h lĂ m viá»‡c</span>
+										<span className="font-medium text-gray-900 dark:text-white">Phản hồi</span>
+										<span className="text-right">Trong 24h làm việc</span>
 									</div>
 								</div>
 							</div>
@@ -103,4 +103,3 @@ const PolicyPageLayout = ({ children, title, description, activeId }) => {
 };
 
 export default PolicyPageLayout;
-

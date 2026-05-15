@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -25,10 +25,10 @@ import { useCompareStore } from "../stores/useCompareStore";
 import MiniCart from "./MiniCart";
 
 const menuItems = [
-  { to: "/", label: "Trang chá»§" },
-  { to: "/catalog?reset=true", label: "Bá»™ sÆ°u táº­p" },
-  { to: "/brands", label: "ThÆ°Æ¡ng hiá»‡u" },
-  { to: "/about", label: "Vá» chĂºng tĂ´i" },
+  { to: "/", label: "Trang chủ" },
+  { to: "/catalog?reset=true", label: "Bộ sưu tập" },
+  { to: "/brands", label: "Thương hiệu" },
+  { to: "/about", label: "Về chúng tôi" },
 ];
 
 const iconButtonClass =
@@ -88,7 +88,7 @@ const Navbar = () => {
     setIsMobileOpen(false);
   };
 
-  const userName = user?.name?.split(" ")[0] || "KhĂ¡ch";
+  const userName = user?.name?.split(" ")[0] || "Khách";
 
   return (
     <header className="fixed inset-x-0 top-0 z-[90] border-b border-black/5 bg-[color:var(--color-surface)] dark:border-white/5">
@@ -118,7 +118,7 @@ const Navbar = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && executeSearch()}
-              placeholder="TĂ¬m Ä‘á»“ng há»“"
+              placeholder="Tìm đồng hồ"
               className="input-base h-9 rounded-full pl-9 pr-10"
             />
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
@@ -132,13 +132,13 @@ const Navbar = () => {
           <button
             onClick={toggleTheme}
             className={iconButtonClass}
-            title="Äá»•i giao diá»‡n"
-            aria-label="Äá»•i giao diá»‡n"
+            title="Đổi giao diện"
+            aria-label="Đổi giao diện"
           >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
-          <Link to="/wishlist" className={iconButtonClass} aria-label="YĂªu thĂ­ch">
+          <Link to="/wishlist" className={iconButtonClass} aria-label="Yêu thích">
             <Heart className="h-4 w-4" />
             {wishlistCount > 0 && (
               <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--color-gold)] px-1 text-[10px] font-bold text-black">
@@ -147,7 +147,7 @@ const Navbar = () => {
             )}
           </Link>
 
-          <button onClick={() => setIsOpen(true)} className={iconButtonClass} aria-label="So sĂ¡nh">
+          <button onClick={() => setIsOpen(true)} className={iconButtonClass} aria-label="So sánh">
             <Scale className="h-4 w-4" />
             {compareCount > 0 && (
               <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--color-gold)] px-1 text-[10px] font-bold text-black">
@@ -157,7 +157,7 @@ const Navbar = () => {
           </button>
 
           {user && (
-            <button type="button" onClick={() => setIsMiniCartOpen(true)} className={iconButtonClass} aria-label="Giá» hĂ ng">
+            <button type="button" onClick={() => setIsMiniCartOpen(true)} className={iconButtonClass} aria-label="Giỏ hàng">
               <ShoppingBag className="h-4 w-4" />
               {cartCount > 0 && (
                 <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--color-gold)] px-1 text-[10px] font-bold text-black">
@@ -195,10 +195,10 @@ const Navbar = () => {
                     className="absolute right-0 mt-2 w-56 rounded-xl border border-black/10 bg-[color:var(--color-surface)] p-2 shadow-[0_20px_50px_-30px_rgba(0,0,0,0.5)] dark:border-white/10"
                   >
                     <Link to="/profile" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-secondary transition hover:bg-[color:var(--color-surface-2)] hover:text-primary">
-                      <UserRound className="h-4 w-4" /> TĂ i khoáº£n
+                      <UserRound className="h-4 w-4" /> Tài khoản
                     </Link>
                     <Link to="/order-lookup" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-secondary transition hover:bg-[color:var(--color-surface-2)] hover:text-primary">
-                      <ShoppingBag className="h-4 w-4" /> ÄÆ¡n hĂ ng
+                      <ShoppingBag className="h-4 w-4" /> Đơn hàng
                     </Link>
                     {["admin", "staff"].includes(user.role) && (
                       <Link to="/secret-dashboard" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[color:var(--color-gold)] transition hover:bg-[color:var(--color-surface-2)]">
@@ -213,7 +213,7 @@ const Navbar = () => {
                       }}
                       className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-secondary transition hover:bg-[color:var(--color-gold)]/10 hover:text-[color:var(--color-gold)]"
                     >
-                      <LogOut className="h-4 w-4" /> ÄÄƒng xuáº¥t
+                      <LogOut className="h-4 w-4" /> Đăng xuất
                     </button>
                   </motion.div>
                 )}
@@ -221,7 +221,7 @@ const Navbar = () => {
             </div>
           ) : (
             <Link to="/login" className="hidden h-9 items-center rounded-full border border-black/10 px-4 text-xs font-semibold uppercase tracking-[0.14em] text-secondary transition hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)] sm:inline-flex dark:border-white/10">
-              ÄÄƒng nháº­p
+              Đăng nhập
             </Link>
           )}
 
@@ -229,7 +229,7 @@ const Navbar = () => {
             type="button"
             onClick={() => setIsMobileOpen((open) => !open)}
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 text-primary transition hover:text-[color:var(--color-gold)] lg:hidden dark:border-white/10"
-            aria-label="Má»Ÿ menu"
+            aria-label="Mở menu"
           >
             {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -250,7 +250,7 @@ const Navbar = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && executeSearch()}
-                placeholder="TĂ¬m kiáº¿m"
+                placeholder="Tìm kiếm"
                 className="input-base h-10 rounded-full pl-9 pr-10"
               />
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
@@ -285,7 +285,7 @@ const Navbar = () => {
                 onClick={() => setIsMobileOpen(false)}
                 className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-xl bg-[color:var(--color-gold)] px-4 text-sm font-bold uppercase tracking-[0.14em] text-black"
               >
-                ÄÄƒng nháº­p
+                Đăng nhập
               </Link>
             )}
           </motion.div>
@@ -297,4 +297,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

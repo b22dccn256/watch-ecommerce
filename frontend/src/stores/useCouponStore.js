@@ -1,4 +1,4 @@
-﻿import { createWithEqualityFn } from "zustand/traditional";
+import { createWithEqualityFn } from "zustand/traditional";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
 
@@ -25,7 +25,7 @@ export const useCouponStore = createWithEqualityFn((set, get) => ({
 				return nextCoupons;
 			})
 			.catch((error) => {
-				console.error("Lá»—i khi táº£i coupons:", error);
+				console.error("Lỗi khi tải coupons:", error);
 				// Mock data if backend is not ready to avoid empty screen
 				if (error.response?.status === 404) {
 					const fallback = [
@@ -33,11 +33,11 @@ export const useCouponStore = createWithEqualityFn((set, get) => ({
 						{ _id: "2", code: "TET2026", type: "fixed", discountValue: 500000, minOrderAmount: 2000000, usedCount: 200, maxUses: 200, expirationDate: new Date(Date.now() - 864000000).toISOString(), isActive: false },
 					];
 					set({ coupons: fallback, loading: false });
-					toast.error("Backend chÆ°a cĂ³ endpoint GET /coupons. Äang hiá»ƒn thá»‹ dá»¯ liá»‡u máº«u.");
+					toast.error("Backend chưa có endpoint GET /coupons. Đang hiển thị dữ liệu mẫu.");
 					return fallback;
 				}
 				set({ loading: false });
-				toast.error(error.response?.data?.message || "KhĂ´ng thá»ƒ táº£i danh sĂ¡ch coupon");
+				toast.error(error.response?.data?.message || "Không thể tải danh sách coupon");
 				return get().coupons;
 			})
 			.finally(() => {
@@ -54,11 +54,11 @@ export const useCouponStore = createWithEqualityFn((set, get) => ({
 				coupons: [...state.coupons, res.data.coupon || res.data],
 				loading: false,
 			}));
-			toast.success("Táº¡o mĂ£ giáº£m giĂ¡ thĂ nh cĂ´ng!");
+			toast.success("Tạo mã giảm giá thành công!");
 			return true;
 		} catch (error) {
 			set({ loading: false });
-			toast.error(error.response?.data?.message || "Lá»—i khi táº¡o mĂ£ giáº£m giĂ¡");
+			toast.error(error.response?.data?.message || "Lỗi khi tạo mã giảm giá");
 			return false;
 		}
 	},
@@ -71,10 +71,10 @@ export const useCouponStore = createWithEqualityFn((set, get) => ({
 				coupons: state.coupons.filter((c) => c._id !== id),
 				loading: false,
 			}));
-			toast.success("ÄĂ£ xĂ³a mĂ£ giáº£m giĂ¡");
+			toast.success("Đã xóa mã giảm giá");
 		} catch (error) {
 			set({ loading: false });
-			toast.error(error.response?.data?.message || "Lá»—i khi xĂ³a mĂ£");
+			toast.error(error.response?.data?.message || "Lỗi khi xóa mã");
 		}
 	},
 
@@ -94,8 +94,7 @@ export const useCouponStore = createWithEqualityFn((set, get) => ({
 					c._id === id ? { ...c, isActive: !c.isActive } : c
 				)
 			}));
-			toast.error(error.response?.data?.message || "Lá»—i khi cáº­p nháº­t tráº¡ng thĂ¡i");
+			toast.error(error.response?.data?.message || "Lỗi khi cập nhật trạng thái");
 		}
 	}
 }));
-
