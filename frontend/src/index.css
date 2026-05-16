@@ -589,9 +589,119 @@ h6,
   background: var(--color-primary);
   color: var(--color-bg);
 }
+/* ================================================= */
+/* LUXURY PRODUCT PAGE - MICROINTERACTIONS */
+/* ================================================= */
 
+/* Product image zoom on hover */
+.product-image-container {
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+}
+
+.product-image-container img {
+  transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+}
+
+.product-image-container:hover img {
+  transform: scale(1.08);
+}
+
+/* Icon button hover sophistication */
+.icon-btn-luxury {
+  position: relative;
+  border: 1px solid rgba(183, 146, 90, 0.4);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.icon-btn-luxury:hover {
+  border-color: var(--color-gold);
+  background: color-mix(in srgb, var(--color-gold) 12%, transparent);
+  transform: scale(1.05);
+}
+
+/* Trust and authenticity badges */
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: 1px solid;
+  background: color-mix(in srgb, var(--color-gold) 8%, transparent);
+  border-color: color-mix(in srgb, var(--color-gold) 40%, transparent);
+  color: var(--color-gold-deep);
+}
+
+.trust-badge.authenticity {
+  border-color: color-mix(in srgb, #2563eb 50%, transparent);
+  background: color-mix(in srgb, #2563eb 8%, transparent);
+  color: #1e40af;
+}
+
+.trust-badge.exclusive {
+  border-color: color-mix(in srgb, #dc2626 50%, transparent);
+  background: color-mix(in srgb, #dc2626 8%, transparent);
+  color: #b91c1c;
+}
+
+/* Stock status indicator */
+.stock-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+}
+
+.stock-indicator.limited {
+  color: #d97706;
+  background: color-mix(in srgb, #d97706 12%, transparent);
+  border: 1px solid color-mix(in srgb, #d97706 35%, transparent);
+}
+
+.stock-indicator.exclusive {
+  color: #7c3aed;
+  background: color-mix(in srgb, #7c3aed 12%, transparent);
+  border: 1px solid color-mix(in srgb, #7c3aed 35%, transparent);
+}
+
+/* Benefit card refinement */
+.benefit-card {
+  border-radius: 0.75rem;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 20%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-gold) 6%, transparent),
+    color-mix(in srgb, var(--color-gold) 2%, transparent)
+  );
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.benefit-card:hover {
+  border-color: color-mix(in srgb, var(--color-gold) 50%, transparent);
+  background: color-mix(in srgb, var(--color-gold) 8%, transparent);
+  transform: translateY(-2px);
+}
+
+.benefit-card svg {
+  transition: transform 0.4s ease;
+}
+
+.benefit-card:hover svg {
+  transform: scale(1.12);
+}
 /* =================================================================
-   ADMIN DASHBOARD — PRODUCTION DESIGN SYSTEM
+   ADMIN DASHBOARD ï¿½ PRODUCTION DESIGN SYSTEM
    ================================================================= */
 
 :root {

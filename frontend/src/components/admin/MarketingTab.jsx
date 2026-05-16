@@ -1,142 +1,26 @@
-import { useState, useEffect, useRef, useCallback } from "react";
 import { Plus, Image as ImageIcon, Trash2, Power } from "lucide-react";
-import { useCampaignStore } from "../../stores/useCampaignStore";
-import { useProductStore } from "../../stores/useProductStore";
-import { toast } from "react-hot-toast";
-import axios from "../../lib/axios";
 import { confirmToast } from "../../lib/confirmToast";
+import { useMarketingManagement } from "../../hooks/useMarketingManagement";
 
 const MarketingTab = () => {
-    const { campaigns, fetchCampaigns, createCampaign, toggleCampaignStatus, deleteCampaign } = useCampaignStore();
-    const { allProducts: products, fetchAllProducts } = useProductStore();
-    const bannerInputRef = useRef(null);
-
-    const [formData, setFormData] = useState({
-        name: "",
-        group: "Entire Catalog",
-        discountPercentage: "",
-        startDate: "",
-        endDate: "",
-        isGlobal: true,
-    });
-
-    // Persistent Banners using API
-    const [banners, setBanners] = useState([]);
-    const [bannersLoading, setBannersLoading] = useState(false);
-    const [creating, setCreating] = useState(false);
-    const bannersFetchRef = useRef({ promise: null, lastFetched: 0 });
-
-    const fetchBanners = useCallback(async (force = false) => {
-        const now = Date.now();
-        const fetchState = bannersFetchRef.current;
-        if (!force && fetchState.promise) return fetchState.promise;
-        if (!force && now - fetchState.lastFetched < 30000 && banners.length > 0) return;
-
-        setBannersLoading(true);
-        fetchState.promise = (async () => {
-            try {
-                const res = await axios.get("/banners");
-                setBanners(res.data);
-            } catch (error) {
-                console.error("Error fetching banners:", error);
-                toast.error("Không thể tải danh sách banner");
-            } finally {
-                fetchState.lastFetched = Date.now();
-                fetchState.promise = null;
-                setBannersLoading(false);
-            }
-        })();
-        return fetchState.promise;
-    }, [banners.length]);
-
-    useEffect(() => {
-        fetchCampaigns();
-        fetchBanners();
-        // FIX B6: removed fetchAllProducts() — was loading entire catalog just for 1 preview.
-        // Preview now handled lazily by reading from products already in store if available.
-    }, [fetchCampaigns, fetchBanners]);
-
-    // ─── Campaign handlers ────────────────────────────────────────────────
-    const handleCreate = async () => {
-        if (!formData.name.trim()) { toast.error("Vui lòng nhập tên chiến dịch"); return; }
-        if (!formData.discountPercentage || Number(formData.discountPercentage) <= 0 || Number(formData.discountPercentage) > 99) { toast.error("Vui lòng nhập phần trăm giảm hợp lệ (1-99)"); return; }
-        if (!formData.startDate || !formData.endDate) { toast.error("Vui lòng chọn ngày bắt đầu và ngày kết thúc"); return; }
-        
-        const startDateObj = new Date(formData.startDate);
-        const endDateObj = new Date(formData.endDate);
-        const now = new Date();
-        
-        if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) { toast.error("Định dạng ngày không hợp lệ"); return; }
-        if (endDateObj <= startDateObj) { toast.error("Ngày kết thúc phải sau ngày bắt đầu"); return; }
-        if (startDateObj < now && startDateObj.getTime() < now.getTime() - 60000) { toast.error("Ngày bắt đầu không được trong quá khứ"); return; }
-
-        setCreating(true);
-        const { success } = await createCampaign({
-            ...formData,
-            discountPercentage: Number(formData.discountPercentage),
-            isGlobal: formData.group === "Entire Catalog",
-        });
-        
-        if (success) {
-            setFormData({ name: "", group: "Entire Catalog", discountPercentage: "", startDate: "", endDate: "", isGlobal: true });
-            toast.success("Chiến dịch đã được tạo thành công!");
-        }
-        setCreating(false);
-    };
-
-    const formatDate = (dateString) => {
-        if (!dateString) return "—";
-        const d = new Date(dateString);
-        return d.toLocaleDateString("vi-VN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-    };
-
-    const previewProduct = products?.find(p => formData.group === "Entire Catalog" ? true : p.category === formData.group);
-
-    // ─── Banner handlers (API based) ──────────────────────────────────────
-    const handleBannerUpload = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (!file.type.startsWith("image/")) { toast.error("Vui lòng chọn file ảnh (JPG, PNG, WEBP...)"); return; }
-        if (file.size > 5 * 1024 * 1024) { toast.error("Ảnh phải nhỏ hơn 5MB"); return; }
-
-        const reader = new FileReader();
-        reader.onload = async (ev) => {
-            const toastId = toast.loading("Đang tải banner lên...");
-            try {
-                const res = await axios.post("/banners", {
-                    title: file.name.replace(/\.[^.]+$/, ""),
-                    image: ev.target.result,
-                });
-                setBanners(prev => [res.data, ...prev]);
-                toast.success("Banner đã được tải lên thành công!", { id: toastId });
-            } catch {
-                toast.error("Lỗi khi tải banner lên", { id: toastId });
-            }
-        };
-        reader.readAsDataURL(file);
-        e.target.value = "";
-    };
-
-    const handleDeleteBanner = (id) => {
-        confirmToast("Bạn có chắc chắn muốn xóa banner này?", async () => {
-            try {
-                await axios.delete(`/banners/${id}`);
-                setBanners(prev => prev.filter(b => b._id !== id));
-                toast.success("Đã xóa banner");
-            } catch {
-                toast.error("Không thể xóa banner");
-            }
-        });
-    };
-
-    const handleToggleBannerStatus = async (id) => {
-        try {
-            const res = await axios.patch(`/banners/${id}/toggle`);
-            setBanners(prev => prev.map(b => b._id === id ? res.data : b));
-        } catch {
-            toast.error("Lỗi khi cập nhật trạng thái banner");
-        }
-    };
+    const {
+        campaigns,
+        banners,
+        bannersLoading,
+        creating,
+        formData,
+        setFormData,
+        bannerInputRef,
+        handleCreateCampaign,
+        handleBannerUpload,
+        handleDeleteBanner,
+        handleToggleBannerStatus,
+        toggleCampaignStatus,
+        deleteCampaign,
+        formatDate,
+        previewProduct,
+        activeCampaigns,
+    } = useMarketingManagement();
 
     return (
         <div className="space-y-12">
@@ -151,7 +35,7 @@ const MarketingTab = () => {
                 <div className="flex gap-4">
                     <div className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border p-4 rounded-2xl min-w-[140px] shadow-xl dark:shadow-none">
                         <p className="text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest mb-1">Đang hoạt động</p>
-                        <span className="text-3xl font-bold text-gray-900 dark:text-white">{campaigns?.filter(c => c.status === "Active").length || 0}</span>
+                        <span className="text-3xl font-bold text-gray-900 dark:text-white">{activeCampaigns}</span>
                     </div>
                 </div>
             </div>
@@ -319,7 +203,7 @@ const MarketingTab = () => {
                     </div>
 
                     <button
-                        onClick={handleCreate}
+                        onClick={handleCreateCampaign}
                         disabled={creating}
                         className="w-full bg-luxury-gold hover:bg-luxury-gold-light text-luxury-dark font-bold py-4 rounded-xl transition duration-300 mt-4 shadow-lg shadow-luxury-gold/20 disabled:opacity-50 flex justify-center items-center gap-2"
                     >

@@ -15,6 +15,7 @@ import {
     lookupOrder
 } from "../controllers/order.controller.js"; // Import controller
 import { requestReturnOrder } from "../controllers/order.controller.js";
+import { validateBody, orderSchemas } from "../middleware/validation.middleware.js";
 
 const router = express.Router();
 
@@ -44,11 +45,11 @@ router.patch("/:id/cancel", protectRoute, cancelOrder);
 // Route cho user/admin: Xem chi tiết 1 đơn hàng (kiểm tra thanh toán)
 router.get("/:id", protectRoute, getOrderById);
 
-// COD route
-router.post("/cod", optionalRoute, createCODOrder);
+// COD route with validation
+router.post("/cod", optionalRoute, validateBody(orderSchemas.create), createCODOrder);
 
-// QR Route
-router.post("/qr", optionalRoute, createQROrder);
+// QR Route with validation
+router.post("/qr", optionalRoute, validateBody(orderSchemas.create), createQROrder);
 
 // User tự xác nhận đã chuyển khoản QR
 router.post("/:id/confirm-qr-payment", protectRoute, confirmQRPayment);

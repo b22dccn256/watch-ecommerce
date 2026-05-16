@@ -1,338 +1,144 @@
-import { useState, useMemo, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Layers, PlusCircle, Trash2, Edit2, Check, X, ShieldCheck, MapPin, Grid, AlertTriangle, CornerDownRight, ImagePlus } from "lucide-react";
-import axios from "../../lib/axios";
-import toast from "react-hot-toast";
-import { useProductStore } from "../../stores/useProductStore";
-import { confirmToast } from "../../lib/confirmToast";
+import { motion, AnimatePresence } from 'framer-motion';
+import { Layers, PlusCircle, Trash2, ShieldCheck, Grid, CornerDownRight } from 'lucide-react';
+import { useProductStore } from '../../stores/useProductStore';
+import useCatalogData from '../../hooks/useCatalogData';
+import useBrandManagement from '../../hooks/useBrandManagement';
+import useCategoryManagement from '../../hooks/useCategoryManagement';
+import useCatalogModals from '../../hooks/useCatalogModals';
+import BrandFormModal from './catalog/BrandFormModal';
+import CategoryFormModal from './catalog/CategoryFormModal';
 
 const CatalogTab = () => {
-	const [activeSection, setActiveSection] = useState("brands"); 
-	const { brands, fetchBrands, categories, fetchCategories, products, fetchAllProducts } = useProductStore();
-	const [loading, setLoading] = useState(false);
+  const { fetchBrands, fetchCategories } = useProductStore();
+  const { activeSection, setActiveSection, brands, categories, products, categoryTree } = useCatalogData();
+  const refreshCatalog = async () => {
+    await Promise.all([fetchBrands(), fetchCategories()]);
+  };
 
-	// Modals State
-	const [showBrandModal, setShowBrandModal] = useState(false);
-	const [showCatModal, setShowCatModal] = useState(false);
+  const brand = useBrandManagement({ products, onRefresh: refreshCatalog });
+  const category = useCategoryManagement({ categories, onRefresh: refreshCatalog });
+  const modals = useCatalogModals();
 
-	useEffect(() => {
-		fetchBrands();
-		fetchCategories();
-		fetchAllProducts();
-	}, [fetchBrands, fetchCategories, fetchAllProducts]);
+  const openCreate = () => {
+    if (activeSection === 'brands') modals.openBrand();
+    else modals.openCategory();
+  };
 
-	// BRAND LOGIC
-	const [brandForm, setBrandForm] = useState({ name: "", description: "", isAuthorizedDealer: true, logo: "" });
+  return (
+    <div className="space-y-8 min-h-[600px]">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+            <Layers className="text-luxury-gold w-8 h-8" />
+            Danh mục & Thương hiệu
+          </h1>
+          <p className="text-gray-500 dark:text-luxury-text-muted text-sm">
+            Quản lý Master Data: thương hiệu đối tác, cấu trúc cây danh mục.
+          </p>
+        </div>
+        <button type="button" onClick={openCreate} className="flex items-center gap-2 px-6 py-3 bg-luxury-gold text-luxury-dark rounded-xl text-sm font-bold shadow-lg">
+          <PlusCircle className="w-4 h-4" /> THÊM {activeSection === 'brands' ? 'THƯƠNG HIỆU' : 'DANH MỤC'}
+        </button>
+      </div>
 
-	const processImage = (file, setFormState) => {
-		if (!file) return;
-		const reader = new FileReader();
-		reader.onload = () => setFormState(prev => ({ ...prev, image: reader.result, logo: reader.result }));
-		reader.readAsDataURL(file);
-	};
+      <div className="flex gap-2 border-b border-gray-100 dark:border-luxury-border pb-px">
+        <button type="button" onClick={() => setActiveSection('brands')} className={`px-6 py-4 text-sm font-bold border-b-2 ${activeSection === 'brands' ? 'border-luxury-gold text-luxury-gold' : 'border-transparent text-gray-500'}`}>
+          Thương Hiệu ({brands.length})
+        </button>
+        <button type="button" onClick={() => setActiveSection('categories')} className={`px-6 py-4 text-sm font-bold border-b-2 ${activeSection === 'categories' ? 'border-luxury-gold text-luxury-gold' : 'border-transparent text-gray-500'}`}>
+          Cấu Trúc Danh Mục ({categories.length})
+        </button>
+      </div>
 
-	const submitBrand = async (e) => {
-		e.preventDefault();
-		setLoading(true);
-		try {
-			await axios.post("/brands", brandForm);
-			toast.success("Tạo thương hiệu thành công!");
-			setShowBrandModal(false);
-			fetchBrands();
-			setBrandForm({ name: "", description: "", isAuthorizedDealer: true, logo: "" });
-		} catch (error) {
-			toast.error(error.response?.data?.message || "Lỗi khi tạo thương hiệu");
-		} finally {
-			setLoading(false);
-		}
-	};
+      {activeSection === 'brands' && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {brands.length === 0 && <p className="text-gray-500 col-span-full">Chưa có thương hiệu nào.</p>}
+          {brands.map((b) => (
+            <div key={b._id} className="bg-white dark:bg-luxury-dark rounded-2xl border overflow-hidden group">
+              <div className="h-32 bg-gray-50 dark:bg-black/20 flex items-center justify-center p-6 relative">
+                {b.logo ? <img src={b.logo} alt={b.name} className="max-h-full max-w-full object-contain" /> : <span className="font-bold text-3xl text-gray-300">{b.name.substring(0, 2).toUpperCase()}</span>}
+                <button type="button" onClick={() => brand.deleteBrand(b._id, b.name)} className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1.5 bg-red-50 text-red-500 rounded-lg">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="p-5">
+                <h3 className="font-bold text-lg flex items-center gap-2">
+                  {b.name}
+                  {b.isAuthorizedDealer && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
+                </h3>
+                <p className="text-xs text-gray-500 line-clamp-2 mt-2">{b.description || 'Chưa có mô tả'}</p>
+              </div>
+            </div>
+          ))}
+        </motion.div>
+      )}
 
-	const deleteBrand = (brandId, brandName) => {
-		const productsUsing = products.filter(p => typeof p.brand === 'object' ? p.brand?._id === brandId : p.brand === brandId);
-		if (productsUsing.length > 0) {
-			toast.error(`Cảnh báo: Có ${productsUsing.length} sản phẩm đang dùng thương hiệu này. Không thể xóa!`);
-			return;
-		}
-		confirmToast(`Bạn có chắc muốn xóa thương hiệu ${brandName}?`, async () => {
-			setLoading(true);
-			try {
-				await axios.delete(`/brands/${brandId}`);
-				toast.success("Đã xóa thương hiệu");
-				fetchBrands();
-			} catch (error) {
-				// Mocking frontend deletion if backend doesn't support
-				toast.error("Endpoint DELETE /brands/:id có thể chưa sẵn sàng.");
-			} finally {
-				setLoading(false);
-			}
-		});
-	};
-
-	// CATEGORY LOGIC
-	const [catForm, setCatForm] = useState({ name: "", parentCategory: "", image: "", slug: "" });
-
-	const generateSlug = (name) => {
-		return name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-	};
-
-	const submitCategory = async (e) => {
-		e.preventDefault();
-		setLoading(true);
-		try {
-			await axios.post("/categories", {
-				...catForm,
-				parentCategory: catForm.parentCategory || null,
-                slug: catForm.slug || generateSlug(catForm.name)
-			});
-			toast.success("Tạo danh mục thành công!");
-			setShowCatModal(false);
-			fetchCategories();
-			setCatForm({ name: "", parentCategory: "", image: "", slug: "" });
-		} catch (error) {
-			toast.error(error.response?.data?.message || "Lỗi khi tạo danh mục");
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	const deleteCategory = (catId, catName) => {
-		confirmToast(`Xóa danh mục ${catName}?`, async () => {
-			setLoading(true);
-			try {
-				await axios.delete(`/categories/${catId}`);
-				toast.success("Đã xóa danh mục");
-				fetchCategories();
-			} catch (error) {
-				toast.error(error.response?.data?.message || "Lỗi xóa danh mục");
-			} finally {
-				setLoading(false);
-			}
-		});
-	};
-
-	// Categorize the categories for Tree View simulation
-	const categoryTree = useMemo(() => {
-		const tree = [];
-		const map = {};
-		categories?.forEach(cat => map[cat._id] = { ...cat, children: [] });
-		categories?.forEach(cat => {
-			if (cat.parentCategory && map[cat.parentCategory]) {
-				map[cat.parentCategory].children.push(map[cat._id]);
-			} else {
-				tree.push(map[cat._id]);
-			}
-		});
-		return tree;
-	}, [categories]);
-
-	return (
-		<div className="space-y-8 min-h-[600px]">
-			{/* Header */}
-			<div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-				<div className="space-y-1">
-					<h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-						<Layers className="text-luxury-gold w-8 h-8" />
-						Danh mục & Thương hiệu
-					</h1>
-					<p className="text-gray-500 dark:text-luxury-text-muted text-sm">
-						Quản lý Master Data cho kho hàng: thương hiệu đối tác, cấu trúc cây danh mục.
-					</p>
-				</div>
-                <button 
-					onClick={() => activeSection === "brands" ? setShowBrandModal(true) : setShowCatModal(true)}
-					className="flex items-center gap-2 px-6 py-3 bg-luxury-gold text-luxury-dark rounded-xl text-sm font-bold hover:bg-white transition-all shadow-lg hover:-translate-y-0.5"
-				>
-					<PlusCircle className="w-4 h-4" /> THÊM {activeSection === "brands" ? "THƯƠNG HIỆU" : "DANH MỤC"}
-				</button>
-			</div>
-
-			<div className="flex gap-2 border-b border-gray-100 dark:border-luxury-border pb-px">
-				<button onClick={() => setActiveSection("brands")} className={`px-6 py-4 text-sm font-bold border-b-2 transition-all relative ${activeSection === "brands" ? "border-luxury-gold text-luxury-gold" : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-white"}`}>
-					Thương Hiệu ({brands?.length || 0})
-					{activeSection === "brands" && <motion.div layoutId="catLine" className="absolute bottom-0 left-0 right-0 h-0.5 bg-luxury-gold" />}
-				</button>
-				<button onClick={() => setActiveSection("categories")} className={`px-6 py-4 text-sm font-bold border-b-2 transition-all relative ${activeSection === "categories" ? "border-luxury-gold text-luxury-gold" : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-white"}`}>
-					Cấu Trúc Danh Mục ({categories?.length || 0})
-					{activeSection === "categories" && <motion.div layoutId="catLine" className="absolute bottom-0 left-0 right-0 h-0.5 bg-luxury-gold" />}
-				</button>
-			</div>
-
-            {/* --- BRANDS VIEW --- */}
-			{activeSection === "brands" && (
-				<motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-					{brands?.length === 0 && <p className="text-gray-500 col-span-full">Chưa có thương hiệu nào.</p>}
-					{brands?.map(brand => (
-						<div key={brand._id} className="bg-white dark:bg-luxury-dark rounded-2xl border border-gray-100 dark:border-luxury-border overflow-hidden hover:shadow-xl transition flex flex-col group">
-							<div className="h-32 bg-gray-50 dark:bg-black/20 flex items-center justify-center p-6 relative">
-								{brand.logo ? (
-                                    <img src={brand.logo} alt={brand.name} className="max-h-full max-w-full object-contain filter dark:brightness-200" />
-                                ) : (
-                                    <div className="font-bold text-3xl font-mono text-gray-300 dark:text-gray-700">{brand.name.substring(0,2).toUpperCase()}</div>
-                                )}
-								<div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
-									<button onClick={() => deleteBrand(brand._id, brand.name)} className="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100">
-										<Trash2 className="w-4 h-4" />
-									</button>
-								</div>
-							</div>
-							<div className="p-5 flex-1 flex flex-col">
-                                <div className="flex justify-between items-start mb-2 mt-auto">
-								    <h3 className="font-bold text-lg text-gray-900 dark:text-white truncate">{brand.name}</h3>
-                                    {brand.isAuthorizedDealer && <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 mt-1" title="Đại lý ủy quyền" />}
-                                </div>
-								<p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 flex-1">{brand.description || "Chưa có mô tả"}</p>
-                                <div className="text-[10px] uppercase font-bold tracking-widest text-luxury-gold pt-3 border-t border-gray-100 dark:border-luxury-border flex justify-between items-center">
-                                    <span>{new Date(brand.createdAt).toLocaleDateString("vi-VN")}</span>
-                                </div>
-							</div>
-						</div>
-					))}
-				</motion.div>
-			)}
-
-            {/* --- CATEGORIES VIEW --- */}
-			{activeSection === "categories" && (
-				<motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                    <div className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border rounded-xl p-6">
-                        {categoryTree.length === 0 && <p className="text-gray-500 text-center py-8">Chưa có danh mục nào.</p>}
-                        
-                        <div className="space-y-2">
-                            {categoryTree.map(parentCat => (
-                                <div key={parentCat._id} className="border border-gray-100 dark:border-luxury-border rounded-lg overflow-hidden bg-gray-50/50 dark:bg-gray-800/30">
-                                    {/* Parent */}
-                                    <div className="flex items-center justify-between p-4 bg-white dark:bg-luxury-darker border-b border-gray-100 dark:border-luxury-border">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0">
-                                                {parentCat.image ? <img src={parentCat.image} className="w-6 h-6 object-cover" /> : <Grid className="w-5 h-5 text-gray-400" />}
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                                    {parentCat.name}
-                                                    {!parentCat.isActive && <span className="text-[10px] bg-red-100 text-red-500 px-2 py-0.5 rounded">Tạm ẩn</span>}
-                                                </p>
-                                                <p className="text-xs text-gray-400 font-mono">/{parentCat.slug}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button onClick={() => deleteCategory(parentCat._id, parentCat.name)} className="p-2 text-gray-400 hover:text-red-500 transition"><Trash2 className="w-4 h-4" /></button>
-                                        </div>
-                                    </div>
-
-                                    {/* Children */}
-                                    {parentCat.children && parentCat.children.length > 0 && (
-                                        <div className="p-3 space-y-1">
-                                            {parentCat.children.map(child => (
-                                                <div key={child._id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/80 transition ml-8">
-                                                    <div className="flex items-center gap-3">
-                                                        <CornerDownRight className="w-4 h-4 text-gray-300 dark:text-gray-600" />
-                                                        <p className="font-semibold text-sm text-gray-800 dark:text-gray-200">{child.name}</p>
-                                                        <span className="text-xs text-gray-400 font-mono block sm:inline">/{child.slug}</span>
-                                                    </div>
-                                                    <button onClick={() => deleteCategory(child._id, child.name)} className="p-1.5 text-gray-400 hover:text-red-500 transition"><Trash2 className="w-4 h-4" /></button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+      {activeSection === 'categories' && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-luxury-dark border rounded-xl p-6">
+          {categoryTree.length === 0 && <p className="text-gray-500 text-center py-8">Chưa có danh mục nào.</p>}
+          <div className="space-y-2">
+            {categoryTree.map((parentCat) => (
+              <div key={parentCat._id} className="border rounded-lg overflow-hidden">
+                <div className="flex items-center justify-between p-4 bg-white dark:bg-luxury-darker border-b">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                      {parentCat.image ? <img src={parentCat.image} alt="" className="w-6 h-6 object-cover" /> : <Grid className="w-5 h-5 text-gray-400" />}
                     </div>
-				</motion.div>
-			)}
+                    <div>
+                      <p className="font-bold">{parentCat.name}</p>
+                      <p className="text-xs text-gray-400 font-mono">/{parentCat.slug}</p>
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => category.deleteCategory(parentCat._id, parentCat.name)} className="p-2 text-gray-400 hover:text-red-500">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+                {parentCat.children?.length > 0 && (
+                  <div className="p-3 space-y-1">
+                    {parentCat.children.map((child) => (
+                      <div key={child._id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/80 ml-8">
+                        <div className="flex items-center gap-3">
+                          <CornerDownRight className="w-4 h-4 text-gray-300" />
+                          <p className="font-semibold text-sm">{child.name}</p>
+                          <span className="text-xs text-gray-400 font-mono">/{child.slug}</span>
+                        </div>
+                        <button type="button" onClick={() => category.deleteCategory(child._id, child.name)} className="p-1.5 text-gray-400 hover:text-red-500">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
-            {/* ---> BRANDS MODAL <--- */}
-			<AnimatePresence>
-				{showBrandModal && (
-					<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowBrandModal(false)}>
-						<motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-							className="w-full max-w-lg bg-white dark:bg-luxury-darker border border-gray-100 dark:border-luxury-border rounded-xl shadow-2xl p-6"
-							onClick={e => e.stopPropagation()}
-						>
-							<h3 className="text-xl font-bold mb-6 text-luxury-gold flex gap-2"><PlusCircle className="w-6 h-6" /> Tạo Thương Hiệu</h3>
-							<form onSubmit={submitBrand} className="space-y-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tên thương hiệu *</label>
-                                    <input required type="text" value={brandForm.name} onChange={e => setBrandForm({...brandForm, name: e.target.value})} className="w-full bg-gray-50 dark:bg-luxury-dark border-gray-200 dark:border-luxury-border rounded-lg px-4 py-2 border text-sm" placeholder="VD: Rolex" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Logo / Biểu tượng URL</label>
-                                    <div className="flex gap-4 items-center">
-                                        <div className="w-16 h-16 border rounded bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
-                                            {brandForm.logo ? <img src={brandForm.logo} className="w-full object-contain" /> : <ImagePlus className="w-6 h-6 text-gray-400"/>}
-                                        </div>
-                                        <input type="file" accept="image/*" onChange={(e) => processImage(e.target.files[0], setBrandForm)} className="w-full border p-1 rounded bg-white text-xs"/>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Mô tả (Tùy chọn)</label>
-                                    <textarea rows={3} value={brandForm.description} onChange={e => setBrandForm({...brandForm, description: e.target.value})} className="w-full bg-gray-50 dark:bg-luxury-dark border-gray-200 dark:border-luxury-border rounded-lg px-4 py-2 border text-sm" placeholder="Về lịch sử..." />
-                                </div>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" checked={brandForm.isAuthorizedDealer} onChange={e => setBrandForm({...brandForm, isAuthorizedDealer: e.target.checked})} className="accent-luxury-gold w-4 h-4" />
-                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Đại lý ủy quyền chính hãng (Authorized Dealer)</span>
-                                </label>
-								<div className="flex justify-end gap-3 mt-6 pt-6 border-t dark:border-luxury-border">
-									<button type="button" onClick={() => setShowBrandModal(false)} className="px-4 py-2 border rounded-lg text-sm font-bold">Hủy</button>
-									<button type="submit" disabled={loading} className="px-6 py-2 bg-luxury-gold text-luxury-dark rounded-lg text-sm font-bold shadow-md hover:bg-yellow-500">{loading ? "Đang xử lý..." : "Lưu thương hiệu"}</button>
-								</div>
-							</form>
-						</motion.div>
-					</div>
-				)}
-            </AnimatePresence>
-
-            {/* ---> CATEGORY MODAL <--- */}
-			<AnimatePresence>
-				{showCatModal && (
-					<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowCatModal(false)}>
-						<motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-							className="w-full max-w-lg bg-white dark:bg-luxury-darker border border-gray-100 dark:border-luxury-border rounded-xl shadow-2xl p-6"
-							onClick={e => e.stopPropagation()}
-						>
-							<h3 className="text-xl font-bold mb-6 text-luxury-gold flex gap-2"><PlusCircle className="w-6 h-6" /> Tạo Danh Mục</h3>
-							<form onSubmit={submitCategory} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tên danh mục *</label>
-                                        <input required type="text" value={catForm.name} onChange={e => {
-                                            setCatForm({...catForm, name: e.target.value, slug: generateSlug(e.target.value) });
-                                        }} className="w-full bg-gray-50 dark:bg-luxury-dark border-gray-200 dark:border-luxury-border rounded-lg px-4 py-2 border text-sm" placeholder="VD: Dress Watches" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Slug URL</label>
-                                        <input type="text" value={catForm.slug} onChange={e => setCatForm({...catForm, slug: e.target.value})} className="w-full bg-gray-50 font-mono text-gray-500 dark:bg-luxury-dark border-gray-200 dark:border-luxury-border rounded-lg px-4 py-2 border text-sm" placeholder="tu-dong-tao" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Danh mục cha</label>
-                                    <select value={catForm.parentCategory} onChange={e => setCatForm({...catForm, parentCategory: e.target.value})} className="w-full bg-gray-50 dark:bg-luxury-dark border-gray-200 dark:border-luxury-border rounded-lg px-4 py-2 border text-sm">
-                                        <option value="">-- Không có (Danh mục gốc) --</option>
-                                        {categories?.filter(c => !c.parentCategory).map(c => (
-                                            <option key={c._id} value={c._id}>{c.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Ảnh Icon</label>
-                                    <div className="flex gap-4 items-center">
-                                        <div className="w-12 h-12 border rounded bg-gray-100 flex items-center justify-center shrink-0">
-                                            {catForm.image ? <img src={catForm.image} className="w-full object-cover" /> : <Grid className="w-5 h-5 text-gray-400"/>}
-                                        </div>
-                                        <input type="file" accept="image/*" onChange={(e) => processImage(e.target.files[0], setCatForm)} className="w-full border p-1 rounded bg-white text-xs"/>
-                                    </div>
-                                </div>
-
-								<div className="flex justify-end gap-3 mt-6 pt-6 border-t dark:border-luxury-border">
-									<button type="button" onClick={() => setShowCatModal(false)} className="px-4 py-2 border rounded-lg text-sm font-bold">Hủy</button>
-									<button type="submit" disabled={loading} className="px-6 py-2 bg-luxury-gold text-luxury-dark rounded-lg text-sm font-bold shadow-md hover:bg-yellow-500">{loading ? "Đang xử lý..." : "Lưu danh mục"}</button>
-								</div>
-							</form>
-						</motion.div>
-					</div>
-				)}
-            </AnimatePresence>
-		</div>
-	);
+      <AnimatePresence>
+        <BrandFormModal
+          isOpen={modals.isBrandOpen}
+          onClose={modals.closeBrand}
+          brandForm={brand.brandForm}
+          setBrandForm={brand.setBrandForm}
+          processImage={brand.processImage}
+          submitBrand={brand.submitBrand}
+          loading={brand.loading}
+        />
+        <CategoryFormModal
+          isOpen={modals.isCategoryOpen}
+          onClose={modals.closeCategory}
+          catForm={category.catForm}
+          setCatForm={category.setCatForm}
+          processImage={category.processImage}
+          submitCategory={category.submitCategory}
+          loading={category.loading}
+          rootCategories={category.rootCategories}
+          generateCategorySlug={category.generateCategorySlug}
+        />
+      </AnimatePresence>
+    </div>
+  );
 };
 
 export default CatalogTab;

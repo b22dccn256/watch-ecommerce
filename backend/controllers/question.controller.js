@@ -63,3 +63,23 @@ export const listAllQuestions = async (req, res) => {
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
 };
+
+export const answerQuestion = async (req, res) => {
+	try {
+		const { answer } = req.body;
+		if (!answer || !String(answer).trim()) {
+			return res.status(400).json({ message: "Câu trả lời không được để trống." });
+		}
+		const question = await Question.findByIdAndUpdate(
+			req.params.id,
+			{ answer: String(answer).trim(), isAnswered: true },
+			{ new: true }
+		)
+			.populate("user", "name email")
+			.populate("product", "name image");
+		if (!question) return res.status(404).json({ message: "Question not found" });
+		res.json(question);
+	} catch (error) {
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};

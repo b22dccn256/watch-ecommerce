@@ -1,136 +1,34 @@
-import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, Star, Search, Filter, ShieldCheck, EyeOff, Trash2, Check, X, User, ExternalLink, CornerDownRight, MessageCircle } from "lucide-react";
-import toast from "react-hot-toast";
-import { confirmToast } from "../../lib/confirmToast";
-
-// MOCK DATA for Admin UI demonstration
-const INITIAL_REVIEWS = [
-	{
-		_id: "r1",
-		user: { name: "Nguyễn Văn A", avatar: null },
-		product: { name: "Rolex Submariner Date 41mm", _id: "p1" },
-		rating: 5,
-		comment: "Đồng hồ rất đẹp, đúng như mô tả. Giao hàng nhanh bọc kỹ.",
-		images: [],
-		status: "approved", // pending, approved, hidden
-		createdAt: new Date(Date.now() - 86400000).toISOString()
-	},
-	{
-		_id: "r2",
-		user: { name: "Trần Thị B", avatar: null },
-		product: { name: "Omega Speedmaster Moonwatch", _id: "p2" },
-		rating: 3,
-		comment: "Hộp bị móp chút trong quá trình vận chuyển, nhưng đồng hồ an toàn. Chờ support phản hồi.",
-		images: ["https://via.placeholder.com/150"],
-		status: "pending",
-		createdAt: new Date(Date.now() - 3600000).toISOString()
-	},
-	{
-		_id: "r3",
-		user: { name: "Lê Minh C", avatar: null },
-		product: { name: "Patek Philippe Nautilus", _id: "p3" },
-		rating: 1,
-		comment: "Spam comment test xxxxxxxxxx",
-		images: [],
-		status: "hidden",
-		createdAt: new Date(Date.now() - 250000000).toISOString()
-	}
-];
-
-const INITIAL_QUESTIONS = [
-	{
-		_id: "q1",
-		user: { name: "Hoàng Duy" },
-		product: { name: "Rolex Submariner Date 41mm", _id: "p1" },
-		question: "Dòng này có sẵn ở showroom quận 1 không shop?",
-		answer: "Dạ sản phẩm hiện đang có sẵn tại showroom quận 1, anh có thể ghé xem trực tiếp ạ.",
-		isAnswered: true,
-		createdAt: new Date(Date.now() - 170000000).toISOString()
-	},
-	{
-		_id: "q2",
-		user: { name: "Phạm Tùng" },
-		product: { name: "Omega Speedmaster Moonwatch", _id: "p2" },
-		question: "Bảo hành quốc tế mấy năm vậy?",
-		answer: null,
-		isAnswered: false,
-		createdAt: new Date(Date.now() - 600000).toISOString()
-	}
-];
-
-const renderStars = (rating) => {
-	return [...Array(5)].map((_, i) => (
-		<Star key={i} className={`w-3.5 h-3.5 ${i < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300 dark:text-gray-600"}`} />
-	));
-};
+import { MessageSquare, Star, ShieldCheck, EyeOff, Trash2, Check, X, User, ExternalLink, CornerDownRight, MessageCircle } from "lucide-react";
+import { renderStars } from "../../lib/renderStars";
+import { useReviewsManagement } from "../../hooks/useReviewsManagement";
 
 const ReviewsTab = () => {
-	const [activeSection, setActiveSection] = useState("reviews"); // reviews, qa
-
-	// Reviews State
-	const [reviews, setReviews] = useState(INITIAL_REVIEWS);
-	const [reviewFilter, setReviewFilter] = useState("all");
-	const [reviewRating, setReviewRating] = useState("all");
-	const [selectedReview, setSelectedReview] = useState(null);
-
-	// Q&A State
-	const [questions, setQuestions] = useState(INITIAL_QUESTIONS);
-	const [qaFilter, setQaFilter] = useState("all");
-	const [selectedQuestion, setSelectedQuestion] = useState(null);
-	const [replyContent, setReplyContent] = useState("");
-
-	// --- REVIEWS LOGIC ---
-	const filteredReviews = useMemo(() => {
-		return reviews.filter(r => {
-			if (reviewFilter !== "all" && r.status !== reviewFilter) return false;
-			if (reviewRating !== "all" && r.rating !== Number(reviewRating)) return false;
-			return true;
-		});
-	}, [reviews, reviewFilter, reviewRating]);
-
-	const updateReviewStatus = (id, newStatus) => {
-		setReviews(prev => prev.map(r => r._id === id ? { ...r, status: newStatus } : r));
-		toast.success(`Đã chuyển trạng thái thành: ${newStatus}`);
-		if (selectedReview?._id === id) setSelectedReview(null);
-	};
-
-	const deleteReview = (id) => {
-		confirmToast("Xóa vĩnh viễn đánh giá này?", () => {
-			setReviews(prev => prev.filter(r => r._id !== id));
-			toast.success("Đã xóa đánh giá");
-			if (selectedReview?._id === id) setSelectedReview(null);
-		});
-	};
-
-	const reviewStats = useMemo(() => {
-		const total = reviews.length;
-		const avg = total > 0 ? (reviews.reduce((acc, curr) => acc + curr.rating, 0) / total).toFixed(1) : 0;
-		const pending = reviews.filter(r => r.status === "pending").length;
-		const hidden = reviews.filter(r => r.status === "hidden").length;
-		return { total, avg, pending, hidden };
-	}, [reviews]);
-
-	// --- Q&A LOGIC ---
-	const filteredQuestions = useMemo(() => {
-		return questions.filter(q => {
-			if (qaFilter === "answered" && !q.isAnswered) return false;
-			if (qaFilter === "unanswered" && q.isAnswered) return false;
-			return true;
-		});
-	}, [questions, qaFilter]);
-
-	const submitReply = (e) => {
-		e.preventDefault();
-		if (!replyContent.trim()) return;
-		
-		setQuestions(prev => prev.map(q => 
-			q._id === selectedQuestion._id ? { ...q, answer: replyContent, isAnswered: true } : q
-		));
-		toast.success("Đã gửi câu trả lời");
-		setSelectedQuestion(null);
-		setReplyContent("");
-	};
+	const {
+		activeSection,
+		setActiveSection,
+		loading,
+		reviews,
+		questions,
+		reviewFilter,
+		setReviewFilter,
+		reviewRating,
+		setReviewRating,
+		selectedReview,
+		setSelectedReview,
+		qaFilter,
+		setQaFilter,
+		selectedQuestion,
+		setSelectedQuestion,
+		replyContent,
+		setReplyContent,
+		filteredReviews,
+		filteredQuestions,
+		reviewStats,
+		updateReviewStatus,
+		deleteReview,
+		submitReply,
+	} = useReviewsManagement();
 
 	return (
 		<div className="space-y-8 min-h-[600px]">
@@ -174,6 +72,10 @@ const ReviewsTab = () => {
 					{activeSection === "qa" && <motion.div layoutId="activeRevTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-luxury-gold" />}
 				</button>
 			</div>
+
+			{loading && (
+				<p className="text-sm text-gray-500 dark:text-gray-400">Đang tải dữ liệu...</p>
+			)}
 
 			{activeSection === "reviews" ? (
 				<motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">

@@ -1,11 +1,13 @@
 import express from "express";
 import { login, logout, signup, refreshToken, getProfile, getAllUsers, getAuditLogs, deleteUser, updateUserRole, updateProfile, changePassword, verifyOTP, resendOTP, verifyEmail, resendVerificationEmail, adjustLoyaltyPoints, updateUserAdminNotes, forgotPassword, resetPassword } from "../controllers/auth.controller.js";
 import { protectRoute, requireEmailVerified, resendVerificationLimiter, adminRoute, managementRoute } from "../middleware/auth.middleware.js";
+import { validateBody } from "../middleware/validation.middleware.js";
+import { authSchemas } from "../middleware/validation.middleware.js";
 
 const router = express.Router();
 
-router.post("/signup", signup);
-router.post("/login", login);
+router.post("/signup", validateBody(authSchemas.signup), signup);
+router.post("/login", validateBody(authSchemas.login), login);
 router.post("/verify-otp", verifyOTP);
 router.post("/resend-otp", resendOTP);
 router.post("/logout", logout);
@@ -15,10 +17,10 @@ router.get("/profile", protectRoute, getProfile);
 router.post("/resend-verification", resendVerificationLimiter, resendVerificationEmail);
 router.post("/verify-email", verifyEmail);
 router.get("/verify-email", verifyEmail);
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password", resetPassword);
-router.patch("/profile", protectRoute, requireEmailVerified, updateProfile);
-router.patch("/change-password", protectRoute, requireEmailVerified, changePassword);
+router.post("/forgot-password", validateBody(authSchemas.forgotPassword), forgotPassword);
+router.post("/reset-password", validateBody(authSchemas.resetPassword), resetPassword);
+router.patch("/profile", protectRoute, requireEmailVerified, validateBody(authSchemas.updateProfile), updateProfile);
+router.patch("/change-password", protectRoute, requireEmailVerified, validateBody(authSchemas.changePassword), changePassword);
 router.get("/users", protectRoute, managementRoute, getAllUsers);
 router.get("/audit-logs", protectRoute, adminRoute, getAuditLogs);
 router.delete("/users/:id", protectRoute, adminRoute, deleteUser);

@@ -49,6 +49,12 @@ import reviewRoutes from "./routes/review.route.js";
 import questionRoutes from "./routes/question.route.js";
 import storeConfigRoutes from "./routes/storeConfig.route.js";
 import { sanitizeInput } from "./middleware/sanitize.middleware.js";
+import { csrfProtection, issueCsrfToken } from "./middleware/csrf.middleware.js";
+import { responseSanitizationMiddleware } from "./middleware/response-sanitization.middleware.js";
+import { forceHttps } from "./middleware/https.middleware.js";
+import { attachSafeRequestLog } from "./middleware/log-redaction.middleware.js";
+import { sanitizeErrorResponse } from "./lib/sanitize-response.js";
+import { errorHandler, notFoundHandler } from "./middleware/error.middleware.js";
 import "./services/mailWorker.js";
 // cron job
 import "./lib/cron.js";
@@ -69,13 +75,35 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ── Security Headers ──────────────────────────────────────────────────────────
-app.use(helmet());
+app.use(
+	helmet({
+		hsts:
+			process.env.NODE_ENV === "production"
+				? { maxAge: 31536000, includeSubDomains: true, preload: true }
+				: false,
+	})
+);
+app.use(forceHttps);
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
-app.use(cors({
-	origin: process.env.CLIENT_URL || "http://localhost:5173",
-	credentials: true,
-}));
+const corsOrigins = [
+	process.env.CLIENT_URL,
+	"http://localhost:5173",
+	"http://localhost:5174",
+	"http://127.0.0.1:5173",
+].filter(Boolean);
+
+app.use(
+	cors({
+		origin(origin, callback) {
+			if (!origin || corsOrigins.includes(origin)) {
+				return callback(null, true);
+			}
+			return callback(new Error("Not allowed by CORS"));
+		},
+		credentials: true,
+	})
+);
 
 // ── Rate Limiting ─────────────────────────────────────────────────────────────
 // Chặt hơn cho auth routes (chống brute-force)
@@ -102,8 +130,29 @@ app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
 app.use(passport.initialize());
 
+// ── CSRF Protection ───────────────────────────────────────────────────────────
+app.use(csrfProtection);
+
 // C.1: Input sanitization - strip null bytes and trim strings from body/query/params
 app.use(sanitizeInput);
+
+// Strip sensitive fields from all JSON API responses
+app.use(responseSanitizationMiddleware);
+
+// Safe request snapshot for error logs (passwords/tokens redacted)
+app.use(attachSafeRequestLog);
+
+// ── CSRF Token Endpoint ───────────────────────────────────────────────────────
+// Must be before route mounting to ensure it's processed first
+app.get("/api/csrf-token", (req, res) => {
+	const token = issueCsrfToken(req, res);
+	res.json({ token });
+});
+
+// Test endpoint to verify routing works
+app.get("/api/health", (req, res) => {
+	res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
 
 const uploadDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadDir)) {
@@ -111,8 +160,13 @@ if (!fs.existsSync(uploadDir)) {
 }
 app.use("/uploads", express.static(uploadDir));
 
-
 app.use("/api/auth/oauth", oauthRoutes); // FIX D7: removed duplicate mount at /api/auth
+
+// Alias for Google callback to handle wrong redirect URL
+app.get("/api/auth/google/callback", (req, res) => {
+  const query = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+  res.redirect("/api/auth/oauth/google/callback" + query);
+});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
@@ -142,14 +196,22 @@ if (process.env.NODE_ENV === "production") {
 	});
 }
 
+app.use(notFoundHandler);
+
 app.use((err, req, res, next) => {
 	if (err.type === "entity.parse.failed") {
 		return res.status(400).json({
 			message: "Invalid JSON in request body. Vui lòng kiểm tra định dạng JSON."
 		});
 	}
-	console.error("Server error:", err);
-	res.status(500).json({ message: "Server error", error: err.message });
+	if (err.message === "Not allowed by CORS") {
+		return res.status(403).json({ message: "Origin not allowed" });
+	}
+	console.error("Server error:", {
+		message: err.message,
+		request: req.safeLog,
+	});
+	return errorHandler(err, req, res, next);
 });
 
 const server = app.listen(PORT, () => {

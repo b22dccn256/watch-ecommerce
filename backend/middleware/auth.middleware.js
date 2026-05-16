@@ -1,7 +1,7 @@
 // middleware/auth.middleware.js - PHIÊN BẢN CẢI THIỆN (Debug + Logic chuẩn)
-import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import { redis } from "../lib/redis.js";
+import { getAccessTokenSecrets, verifyWithSecretRotation } from "../lib/jwt.js";
 
 export const protectRoute = async (req, res, next) => {
 	try {
@@ -15,7 +15,7 @@ export const protectRoute = async (req, res, next) => {
 		}
 
 		try {
-			const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+			const decoded = verifyWithSecretRotation(accessToken, getAccessTokenSecrets());
 			const user = await User.findById(decoded.userId).select("-password");
 
 			if (!user) {
@@ -99,7 +99,7 @@ export const optionalRoute = async (req, res, next) => {
 		}
 
 		try {
-			const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+			const decoded = verifyWithSecretRotation(accessToken, getAccessTokenSecrets());
 			const user = await User.findById(decoded.userId).select("-password");
 			if (user) {
 				req.user = user;

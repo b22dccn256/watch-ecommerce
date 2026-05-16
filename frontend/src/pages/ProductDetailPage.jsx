@@ -13,6 +13,7 @@ import { useCompareStore } from "../stores/useCompareStore";
 import { useUserStore } from "../stores/useUserStore";
 import axios from "../lib/axios";
 import ProductCard from "../components/ProductCard";
+import ProductTrustBadges from "../components/ProductTrustBadges";
 import { SkeletonProductDetail } from "../components/SkeletonLoaders";
 import Input from "../components/ui/Input";
 
@@ -21,6 +22,25 @@ const tabItems = [
   { id: "specs", label: "Thông số" },
   { id: "policy", label: "Chính sách" },
 ];
+
+const specTranslationMap = {
+  "automatic": "Cơ tự động",
+  "quartz": "Máy pin",
+  "mechanical": "Cơ học",
+  "digital": "Điện tử",
+  "smartwatch": "Đồng hồ thông minh",
+  "stainless steel": "Thép không gỉ",
+  "sapphire": "Kính Sapphire",
+  "leather": "Dây da",
+  "steel": "Dây thép",
+  "folding clasp": "Khóa gấp",
+};
+
+const translateSpecValue = (val) => {
+  if (!val) return val;
+  const key = val.toLowerCase().trim();
+  return specTranslationMap[key] || val;
+};
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -101,13 +121,13 @@ const ProductDetailPage = () => {
 
 
   const specsRows = [
-    ["Loại máy", currentProduct.specs?.movement?.type],
+    ["Loại máy", translateSpecValue(currentProduct.specs?.movement?.type)],
     ["Caliber", currentProduct.specs?.movement?.caliber],
     ["Dự trữ cót", currentProduct.specs?.movement?.powerReserve],
     ["Đường kính", currentProduct.specs?.case?.diameter],
     ["Độ dày", currentProduct.specs?.case?.thickness],
-    ["Chất liệu vỏ", currentProduct.specs?.case?.material],
-    ["Chất liệu dây", currentProduct.specs?.strap?.material],
+    ["Chất liệu vỏ", translateSpecValue(currentProduct.specs?.case?.material)],
+    ["Chất liệu dây", translateSpecValue(currentProduct.specs?.strap?.material)],
     ["Chống nước", currentProduct.specs?.waterResistance],
   ].filter(([, value]) => Boolean(value));
 
@@ -138,74 +158,84 @@ const ProductDetailPage = () => {
   return (
     <div className="min-h-screen pb-28 md:pb-14 pt-24">
       <div className="mx-auto max-w-7xl space-y-10 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-muted">
+        <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-secondary">
           <Link to="/" className="transition hover:text-primary">Trang chủ</Link>
-          <span>/</span>
+          <span className="text-muted">/</span>
           <Link to="/catalog" className="transition hover:text-primary">{category}</Link>
-          <span>/</span>
-          <span className="text-[color:var(--color-gold)]">Chi tiết</span>
+          <span className="text-muted">/</span>
+          <span className="font-medium text-[color:var(--color-gold)]">Chi tiết Sản Phẩm</span>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-12 xl:gap-12">
-          <section className="lg:col-span-6">
-            <div className="space-y-4 lg:sticky lg:top-24">
-              <div className="overflow-hidden rounded-[1.8rem] border border-black/10 bg-surface p-4 shadow-md dark:border-white/10">
-                <div className="relative aspect-square overflow-hidden rounded-[1.25rem] bg-[color:var(--color-surface-2)]">
-                  <Zoom>
-                    <img src={images[activeImage]} alt={currentProduct.name} className="h-full w-full object-contain p-5 sm:p-8" />
-                  </Zoom>
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/8 to-transparent" />
+        <div className="grid gap-12 lg:grid-cols-12 xl:gap-16">
+          {/* Image Section (lg:col-span-7 for asymmetry) */}
+          <section className="lg:col-span-7">
+            <div className="space-y-6 lg:sticky lg:top-24">
+              <div className="relative aspect-square overflow-hidden rounded-3xl bg-[color:var(--color-surface-2)]">
+                <Zoom>
+                  <img src={images[activeImage]} alt={currentProduct.name} className="h-full w-full object-contain p-3 sm:p-6 lg:p-4" />
+                </Zoom>
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/5 to-transparent" />
 
-                  <div className="absolute left-4 top-4 flex flex-col gap-2">
-                    {discount > 0 && (
-                      <span className="rounded-full border border-black/20 bg-black/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
-                        Sale {discount}%
-                      </span>
-                    )}
-                    {activeStock <= 0 && (
-                      <span className="rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
-                        Hết hàng
-                      </span>
-                    )}
-                  </div>
+                <div className="absolute left-6 top-6 flex flex-col gap-2">
+                  {discount > 0 && (
+                    <span className="rounded-full border border-black/10 bg-black/80 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
+                      Ưu đãi {discount}%
+                    </span>
+                  )}
+                  {activeStock <= 0 && (
+                    <span className="rounded-full bg-black/70 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
+                      Hết hàng
+                    </span>
+                  )}
                 </div>
+              </div>
 
-                <div className="custom-scrollbar mt-4 flex gap-3 overflow-x-auto pb-1">
-                  {images.map((image, index) => (
-                    <button
-                      key={image + index}
-                      type="button"
-                      onClick={() => setActiveImage(index)}
-                      className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl border ${activeImage === index ? "border-[color:var(--color-gold)]" : "border-black/10 dark:border-white/10"}`}
-                    >
-                      <img src={image} alt={`${currentProduct.name} ${index + 1}`} className="h-full w-full object-cover" />
-                    </button>
-                  ))}
-                </div>
+              {/* Thumbnails without outer card */}
+              <div className="custom-scrollbar flex gap-4 overflow-x-auto pb-2">
+                {images.map((image, index) => (
+                  <button
+                    key={image + index}
+                    type="button"
+                    onClick={() => setActiveImage(index)}
+                    className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 transition-colors ${activeImage === index ? "border-[color:var(--color-gold)]" : "border-transparent hover:border-black/10 dark:hover:border-white/10"}`}
+                  >
+                    <img src={image} alt={`${currentProduct.name} ${index + 1}`} className="h-full w-full object-cover" />
+                  </button>
+                ))}
               </div>
             </div>
           </section>
 
-          <section className="lg:col-span-6">
-            <div className="space-y-6 rounded-[1.8rem] border border-black/10 bg-surface p-6 shadow-md dark:border-white/10 sm:p-8">
-              <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[color:var(--color-gold)]">{brand}</p>
-                <h1 className="hero-title text-4xl leading-tight text-primary sm:text-5xl">{currentProduct.name}</h1>
+          {/* Info Section (lg:col-span-5) */}
+          <section className="lg:col-span-5">
+            <div className="space-y-8 py-4">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.5em] text-[color:var(--color-gold)]">{brand}</p>
+                  {activeStock <= 3 && activeStock > 0 && <span className="text-[10px] font-semibold text-orange-600 bg-orange-50 dark:bg-orange-950/30 px-2.5 py-1 rounded-full">Còn {activeStock} chiếc</span>}
+                </div>
+                <h1 className="font-serif text-4xl leading-tight text-primary sm:text-4xl lg:text-4xl xl:text-5xl font-light tracking-tight">{currentProduct.name}</h1>
               </div>
 
-              <div className="space-y-1">
-                <p className="price-display text-4xl">{currentProduct.price.toLocaleString("vi-VN")} đ</p>
-                {currentProduct.originalPrice && (
-                  <p className="price-original text-lg">{currentProduct.originalPrice.toLocaleString("vi-VN")} đ</p>
-                )}
-                <p className="text-sm text-muted">Đã bao gồm VAT. Bảo hành quốc tế 5 năm.</p>
+              <div className="space-y-3 py-5 border-y border-black/8 dark:border-white/8">
+                <div className="space-y-1">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted">Giá</p>
+                  <div className="flex items-baseline gap-3">
+                    <p className="font-serif text-4xl font-bold tracking-tight text-primary">{currentProduct.price.toLocaleString("vi-VN")}</p>
+                    <span className="text-lg font-medium text-primary">₫</span>
+                    {currentProduct.originalPrice && (
+                      <p className="text-sm text-muted line-through">{currentProduct.originalPrice.toLocaleString("vi-VN")} đ</p>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-secondary tracking-wide leading-relaxed">✓ Đã bao gồm VAT  •  ✓ Bảo hành quốc tế 5 năm  •  ✓ Xác thực 100%</p>
               </div>
 
-              <p className="text-sm leading-relaxed text-secondary sm:text-base">{currentProduct.description}</p>
+
 
               {currentProduct.colors?.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">Màu sắc</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">Mặt số</p>
                   <div className="flex flex-wrap gap-2">
                     {currentProduct.colors.map((color) => (
                       <button
@@ -223,7 +253,7 @@ const ProductDetailPage = () => {
 
               {currentProduct.sizes?.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">Kích thước</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">Kích thước mặt</p>
                   <div className="flex flex-wrap gap-2">
                     {currentProduct.sizes.map((size) => (
                       <button
@@ -259,19 +289,21 @@ const ProductDetailPage = () => {
               )}
 
               {!hasWristOptions && (
-                <Input
-                  label="Chu vi cổ tay (mm)"
-                  name="wrist-size"
-                  value={wristSize}
-                  onChange={(event) => setWristSize(event.target.value)}
-                  placeholder="Ví dụ: 165"
-                  hint="Tùy chọn này dùng cho dịch vụ cắt dây miễn phí"
-                />
+                <div className="space-y-2 rounded-lg bg-[color:var(--color-gold)]/6 border border-[color:var(--color-gold)]/20 p-4">
+                  <Input
+                    label="Tùy chọn: Chu vi cổ tay (mm)"
+                    name="wrist-size"
+                    value={wristSize}
+                    onChange={(event) => setWristSize(event.target.value)}
+                    placeholder="Vd: 165 mm - để trống nếu không cần điều chỉnh"
+                    hint="💡 Dịch vụ đo, cắt, và điều chỉnh dây miễn phí. Gửi kích thước cổ tay để nhân viên thiết kế dây phù hợp trước khi giao hàng."
+                  />
+                </div>
               )}
 
-              <div className="flex items-center gap-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">Số lượng</p>
-                <div className="inline-flex items-center rounded-full border border-black/10 bg-[color:var(--color-surface-2)] p-1 dark:border-white/10">
+              <div className="flex items-center gap-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary whitespace-nowrap">Số lượng</p>
+                <div className="inline-flex items-center rounded-lg border border-black/10 bg-[color:var(--color-surface-2)] p-1.5 dark:border-white/10">
                   <button type="button" onClick={() => setQuantity((value) => Math.max(1, value - 1))} className="btn-base btn-ghost h-8 w-8 rounded-full p-0">
                     <Minus className="h-3.5 w-3.5" />
                   </button>
@@ -282,33 +314,55 @@ const ProductDetailPage = () => {
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto]">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <button
                   type="button"
                   onClick={handleAddToCart}
                   disabled={activeStock <= 0}
-                  className="btn-base btn-primary h-12"
+                  className="btn-base btn-primary h-13 flex-1 font-semibold tracking-wide shadow-lg shadow-[color:var(--color-gold)]/20 hover:shadow-xl transition-all disabled:shadow-none disabled:opacity-60"
                 >
-                  <ShoppingBag className="h-4 w-4" />
+                  <ShoppingBag className="h-5 w-5" />
                   {activeStock > 0 ? "Thêm vào giỏ hàng" : "Tạm hết hàng"}
                 </button>
 
-                <button type="button" onClick={() => toggleWishlist(currentProduct, !!user)} className="btn-base btn-secondary h-12 w-12 rounded-full p-0" aria-label="Yêu thích">
-                  <Heart className={`h-4 w-4 ${isWishlisted ? "fill-current text-[color:var(--color-gold)]" : ""}`} />
-                </button>
-                <button type="button" onClick={() => addToCompare(currentProduct)} className="btn-base btn-secondary h-12 w-12 rounded-full p-0" aria-label="So sánh">
-                  <ArrowLeftRight className="h-4 w-4" />
-                </button>
-                <button type="button" onClick={handleShare} className="btn-base btn-outline h-12 w-12 rounded-full p-0" aria-label="Chia sẻ">
-                  <Share2 className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-3 sm:gap-2">
+                  <button type="button" onClick={() => toggleWishlist(currentProduct, !!user)} className="btn-base btn-ghost h-13 w-13 rounded-full p-0 border border-black/10 dark:border-white/10 hover:border-[color:var(--color-gold)] hover:bg-[color:var(--color-gold)]/8 transition-all" aria-label="Yêu thích" title="Thêm vào danh sách yêu thích">
+                    <Heart className={`h-5 w-5 ${isWishlisted ? "fill-current text-[color:var(--color-gold)]" : ""}`} />
+                  </button>
+                  <button type="button" onClick={() => addToCompare(currentProduct)} className="btn-base btn-ghost h-13 w-13 rounded-full p-0 border border-black/10 dark:border-white/10 hover:border-[color:var(--color-gold)] hover:bg-[color:var(--color-gold)]/8 transition-all" aria-label="So sánh" title="So sánh với sản phẩm khác">
+                    <ArrowLeftRight className="h-5 w-5" />
+                  </button>
+                  <button type="button" onClick={handleShare} className="btn-base btn-ghost h-13 w-13 rounded-full p-0 border border-black/10 dark:border-white/10 hover:border-[color:var(--color-gold)] hover:bg-[color:var(--color-gold)]/8 transition-all" aria-label="Chia sẻ" title="Sao chép đường dẫn">
+                    <Share2 className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 border-t border-black/8 pt-5 dark:border-white/8 sm:grid-cols-4">
-                <div className="rounded-xl bg-surface-soft p-3 text-center text-xs text-secondary"><ShieldCheck className="mx-auto mb-1 h-4 w-4 text-[color:var(--color-gold)]" />Bảo hành 5 năm</div>
-                <div className="rounded-xl bg-surface-soft p-3 text-center text-xs text-secondary"><Truck className="mx-auto mb-1 h-4 w-4 text-[color:var(--color-gold)]" />Giao hàng toàn quốc</div>
-                <div className="rounded-xl bg-surface-soft p-3 text-center text-xs text-secondary">Trả góp 0%</div>
-                <div className="rounded-xl bg-surface-soft p-3 text-center text-xs text-secondary">Đổi trả 30 ngày</div>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 py-6">
+                <div className="rounded-lg bg-gradient-to-br from-[color:var(--color-gold)]/8 to-transparent border border-[color:var(--color-gold)]/20 p-4 text-center">
+                  <ShieldCheck className="mx-auto mb-2.5 h-5 w-5 text-[color:var(--color-gold)]" />
+                  <p className="text-xs font-semibold text-primary">Bảo hành</p>
+                  <p className="text-[10px] text-secondary mt-1">5 năm quốc tế</p>
+                </div>
+                <div className="rounded-lg bg-gradient-to-br from-[color:var(--color-gold)]/8 to-transparent border border-[color:var(--color-gold)]/20 p-4 text-center">
+                  <Truck className="mx-auto mb-2.5 h-5 w-5 text-[color:var(--color-gold)]" />
+                  <p className="text-xs font-semibold text-primary">Vận chuyển</p>
+                  <p className="text-[10px] text-secondary mt-1">Toàn quốc miễn phí</p>
+                </div>
+                <div className="rounded-lg bg-gradient-to-br from-green-500/8 to-transparent border border-green-500/20 p-4 text-center">
+                  <div className="mx-auto mb-2.5 h-5 w-5 flex items-center justify-center text-green-600 font-bold">0%</div>
+                  <p className="text-xs font-semibold text-primary">Trả góp</p>
+                  <p className="text-[10px] text-secondary mt-1">Linh hoạt</p>
+                </div>
+                <div className="rounded-lg bg-gradient-to-br from-blue-500/8 to-transparent border border-blue-500/20 p-4 text-center">
+                  <div className="mx-auto mb-2.5 h-5 w-5 flex items-center justify-center text-blue-600 text-sm font-bold">↔</div>
+                  <p className="text-xs font-semibold text-primary">Đổi trả</p>
+                  <p className="text-[10px] text-secondary mt-1">30 ngày</p>
+                </div>
+              </div>
+
+              <div className="border-t border-black/8 pt-6 dark:border-white/8">
+                <ProductTrustBadges product={currentProduct} stock={activeStock} />
               </div>
             </div>
           </section>
@@ -338,7 +392,22 @@ const ProductDetailPage = () => {
               className="pt-5"
             >
               {activeTab === "description" && (
-                <p className="max-w-4xl text-sm leading-relaxed text-secondary sm:text-base">{currentProduct.description}</p>
+                <div className="max-w-4xl space-y-5">
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <p className="text-sm leading-relaxed text-secondary sm:text-base">{currentProduct.description}</p>
+                  </div>
+                  {currentProduct.specs?.movement?.caliber && (
+                    <div className="bg-[color:var(--color-gold)]/8 border border-[color:var(--color-gold)]/20 rounded-lg p-4 space-y-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Công nghệ & Chế tác</p>
+                      <ul className="grid grid-cols-2 gap-3 text-xs text-secondary">
+                        <li>• <span className="font-medium">Chuyển động:</span> {translateSpecValue(currentProduct.specs?.movement?.type)}</li>
+                        <li>• <span className="font-medium">Caliber:</span> {currentProduct.specs?.movement?.caliber}</li>
+                        {currentProduct.specs?.movement?.powerReserve && <li>• <span className="font-medium">Dự trữ cót:</span> {currentProduct.specs?.movement?.powerReserve}</li>}
+                        {currentProduct.specs?.waterResistance && <li>• <span className="font-medium">Chống nước:</span> {currentProduct.specs?.waterResistance}</li>}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               )}
 
               {activeTab === "specs" && (
@@ -377,17 +446,18 @@ const ProductDetailPage = () => {
         </section>
 
         {relatedProducts.length > 0 && (
-          <section className="pt-4 pb-8">
+          <section className="pt-8 pb-8 border-t border-black/8 dark:border-white/8">
             <div className="mb-8 flex items-end justify-between">
               <div>
-                <p className="hero-kicker text-[color:var(--color-gold)]">Cùng đẳng cấp</p>
-                <h2 className="heading-section mt-2 text-2xl">Khám phá thêm</h2>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[color:var(--color-gold)]">Bộ sưu tập</p>
+                <h2 className="mt-3 text-3xl font-serif font-light text-primary">Những chiếc đồng hồ tương tự</h2>
+                <p className="mt-2 text-sm text-secondary leading-relaxed">Khám phá thêm những mẫu đồng hồ cao cấp trong cùng tầm giá và phong cách.</p>
               </div>
               <Link
                 to="/catalog"
-                className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary transition hover:text-[color:var(--color-gold)]"
+                className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary transition hover:text-[color:var(--color-gold)] whitespace-nowrap ml-4"
               >
-                Xem tất cả
+                Xem tất cả →
               </Link>
             </div>
             <div className="product-grid-4">

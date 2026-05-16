@@ -1,74 +1,38 @@
-import { useEffect, useState, useMemo } from "react";
-import { useInventoryStore } from "../../stores/useInventoryStore";
-import { useProductStore } from "../../stores/useProductStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, History, X, Search, ChevronLeft, ChevronRight, Edit3, PlusCircle, BookOpen } from "lucide-react";
-
-const PAGE_SIZE = 8;
+import { useInventoryManagement } from "../../hooks/useInventoryManagement";
 
 const InventoryTab = () => {
-    const { lowStockProducts, fetchLowStockProducts, adjustStock, fetchProductLogs, inventoryLogs, loading } = useInventoryStore();
-    const { allProducts: products, fetchAllProducts } = useProductStore();
-    const [selectedProduct, setSelectedProduct] = useState("");
-    const [showAdjustModal, setShowAdjustModal] = useState(false);
-    const [showLogsModal, setShowLogsModal] = useState(false);
-
-    // Form states
-    const [action, setAction] = useState("IN");
-    const [quantity, setQuantity] = useState(1);
-    const [note, setNote] = useState("");
-
-    // Search and pagination state
-    const [search, setSearch] = useState("");
-    const [currentPage, setCurrentPage] = useState(1);
-
-    useEffect(() => {
-        fetchLowStockProducts();
-        fetchAllProducts();
-    }, [fetchLowStockProducts, fetchAllProducts]);
-
-    const filteredProducts = useMemo(() => {
-        const q = search.toLowerCase().trim();
-        let list = (products || []).filter(p => 
-            !q || 
-            p.name?.toLowerCase().includes(q) || 
-            p.brand?.name?.toLowerCase().includes(q) ||
-            (typeof p.brand === 'string' && p.brand.toLowerCase().includes(q))
-        );
-        return list;
-    }, [products, search]);
-
-    const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
-    const paginatedProducts = filteredProducts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
-    const handleSearch = (e) => {
-        setSearch(e.target.value);
-        setCurrentPage(1);
-    };
-
-    const handleAdjustSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            await adjustStock(selectedProduct, action, quantity, note);
-            setShowAdjustModal(false);
-            setNote("");
-            setQuantity(1);
-            fetchLowStockProducts(); // Refresh
-        } catch {
-            // Error handled in store
-        }
-    };
-
-    const openLogs = async (productId) => {
-        setSelectedProduct(productId);
-        await fetchProductLogs(productId);
-        setShowLogsModal(true);
-    };
-
-    const openAdjust = (productId) => {
-        setSelectedProduct(productId);
-        setShowAdjustModal(true);
-    };
+    const {
+        lowStockProducts,
+        products,
+        loading,
+        selectedProduct,
+        setSelectedProduct,
+        showAdjustModal,
+        showLogsModal,
+        action,
+        setAction,
+        quantity,
+        setQuantity,
+        note,
+        setNote,
+        search,
+        handleSearch,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        paginatedProducts,
+        filteredProducts,
+        warehouseValue,
+        inventoryLogs,
+        openAdjust,
+        openBlankAdjust,
+        openLogs,
+        closeAdjustModal,
+        closeLogsModal,
+        handleAdjustSubmit,
+    } = useInventoryManagement();
 
     return (
         <div className="space-y-8">
@@ -77,7 +41,7 @@ const InventoryTab = () => {
                 <div className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border p-6 rounded-2xl shadow-sm">
                     <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Tổng giá trị kho</p>
                     <p className="text-3xl font-bold text-luxury-gold">
-                        {products?.reduce((sum, p) => sum + (p.stock * (p.costPrice || 0)), 0).toLocaleString("vi-VN")} ₫
+                        {warehouseValue.toLocaleString("vi-VN")} ₫
                     </p>
                 </div>
             </div>
@@ -117,7 +81,7 @@ const InventoryTab = () => {
                                         <td className="px-5 py-3 text-gray-500 dark:text-gray-400">{p.lowStockThreshold || 5} sản phẩm</td>
                                         <td className="px-5 py-3 text-right">
                                             <button 
-                                                onClick={() => { setAction("IN"); openAdjust(p._id); }}
+                                                onClick={() => openAdjust(p._id, "IN")}
                                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 shadow-sm transition-colors text-xs font-bold"
                                             >
                                                 <PlusCircle className="w-3.5 h-3.5" /> Nhập Kho Ngay
@@ -144,12 +108,12 @@ const InventoryTab = () => {
                                 type="text"
                                 placeholder="Tìm kiếm sản phẩm..."
                                 value={search}
-                                onChange={handleSearch}
+                                onChange={(e) => handleSearch(e.target.value)}
                                 className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-luxury-gold transition"
                             />
                         </div>
                         <button 
-                            onClick={() => { setSelectedProduct(""); setAction("ADJUST"); setShowAdjustModal(true); }}
+                            onClick={openBlankAdjust}
                             className="bg-luxury-gold font-bold text-luxury-dark px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-yellow-500 transition shadow w-full sm:w-auto justify-center"
                         >
                             <Edit3 className="w-4 h-4" /> Khởi tạo Kiểm kê
@@ -191,7 +155,7 @@ const InventoryTab = () => {
                                         </td>
                                         <td className="px-5 py-3 whitespace-nowrap text-right space-x-2">
                                             <button 
-                                                onClick={() => { setAction("ADJUST"); openAdjust(p._id); }} 
+                                                onClick={() => openAdjust(p._id, "ADJUST")} 
                                                 className="inline-flex items-center justify-center p-2 bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-luxury-gold hover:text-luxury-dark transition-colors"
                                                 title="Điều chỉnh số lượng"
                                             >
@@ -266,7 +230,7 @@ const InventoryTab = () => {
                                 <Edit3 className="w-5 h-5" /> Điều chỉnh tồn kho
                             </h3>
                             <button 
-                                onClick={() => setShowAdjustModal(false)}
+                                onClick={closeAdjustModal}
                                 className="p-2 bg-gray-100 dark:bg-luxury-border text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white rounded-full transition"
                             >
                                 <X className="w-5 h-5" />
@@ -345,7 +309,7 @@ const InventoryTab = () => {
                                 <History className="w-5 h-5" /> Lịch sử xuất / nhập kho
                             </h3>
                             <button 
-                                onClick={() => setShowLogsModal(false)}
+                                onClick={closeLogsModal}
                                 className="p-2 bg-gray-100 dark:bg-luxury-border text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white rounded-full transition"
                             >
                                 <X className="w-5 h-5" />

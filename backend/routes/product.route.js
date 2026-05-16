@@ -17,6 +17,7 @@ import {
 	bulkUpdateProducts,
 } from "../controllers/product.controller.js";
 import { adminRoute, managementRoute, protectRoute } from "../middleware/auth.middleware.js";
+import { validateBody, productSchemas } from "../middleware/validation.middleware.js";
 
 import multer from "multer";
 const upload = multer({ dest: "uploads/" });
@@ -33,8 +34,8 @@ router.get("/inventory/alerts", protectRoute, managementRoute, getInventoryAlert
 router.get("/category/:category", getProductsByCategory);
 router.get("/recommendations", getRecommendedProducts);
 router.get("/:id", getProductById);
-router.post("/", protectRoute, managementRoute, createProduct);
-router.put("/:id", protectRoute, managementRoute, updateProduct);
+router.post("/", protectRoute, managementRoute, validateBody(productSchemas.create), createProduct);
+router.put("/:id", protectRoute, managementRoute, validateBody(productSchemas.update), updateProduct);
 router.patch("/:id", protectRoute, managementRoute, toggleFeaturedProduct);
 router.delete("/:id", protectRoute, adminRoute, deleteProduct);
 // B1: Bulk operations
