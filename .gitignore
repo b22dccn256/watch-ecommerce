@@ -40,4 +40,19 @@ frontend/playwright-report/
 frontend/test-results/
 
 # Runtime log files - do not commit
-stripe-error.log
+stripe-error.log
+# IDE - Antigravity
+.gemini/
+.antigravity/
+GEMINI.md
+.geminiignore
+
+# IDE - VS Code
+.vscode/
+
+# IDE - Cursor
+.cursor/
+.cursorrules
+
+# IDE - Codex
+.codex/

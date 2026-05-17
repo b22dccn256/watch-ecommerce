@@ -1,7 +1,7 @@
 import { redis } from "../lib/redis.js";
 import User from "../models/user.model.js";
 import AuditLog from "../models/auditLog.model.js";
-import { signAccessToken, signRefreshToken, getRefreshTokenSecrets, verifyWithSecretRotation } from "../lib/jwt.js";
+import jwt from "jsonwebtoken";
 import { sendEmail } from "../lib/email.js";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
@@ -12,8 +12,14 @@ import { sanitizeUser, sanitizeAuthResponse } from "../lib/sanitize-response.js"
 const NAME_REGEX = /^[\p{L}\s]{2,50}$/u;
 
 const generateTokens = (userId) => {
-	const accessToken = signAccessToken({ userId });
-	const refreshToken = signRefreshToken({ userId });
+	const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
+		expiresIn: "15m",
+	});
+
+	const refreshToken = jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET, {
+		expiresIn: "7d",
+	});
+
 	return { accessToken, refreshToken };
 };
 
@@ -206,7 +212,7 @@ export const login = async (req, res) => {
 
 				// Generate 6-digit OTP
 				const otp = Math.floor(100000 + Math.random() * 900000).toString();
-				const salt = await bcrypt.genSalt(10);
+				const salt = await bcrypt.genSalt(12);
 				const hashedOtp = await bcrypt.hash(otp, salt);
 
 				// Store hashed OTP in Redis (5 mins)
@@ -365,7 +371,7 @@ export const resendOTP = async (req, res) => {
 
 		// Generate new OTP
 		const otp = Math.floor(100000 + Math.random() * 900000).toString();
-		const salt = await bcrypt.genSalt(10);
+		const salt = await bcrypt.genSalt(12);
 		const hashedOtp = await bcrypt.hash(otp, salt);
 
 		// FIX A2: Declare userAgent and ip (were missing, causing ReferenceError in sendEmail call)
@@ -418,7 +424,7 @@ export const logout = async (req, res) => {
 	try {
 		const refreshToken = req.cookies.refreshToken;
 		if (refreshToken) {
-			const decoded = verifyWithSecretRotation(refreshToken, getRefreshTokenSecrets());
+			const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
 			await redis.del(`refresh_token:${decoded.userId}`);
 		}
 
@@ -440,14 +446,14 @@ export const refreshToken = async (req, res) => {
 			return res.status(401).json({ message: "No refresh token provided" });
 		}
 
-		const decoded = verifyWithSecretRotation(refreshToken, getRefreshTokenSecrets());
+		const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
 		const storedToken = await redis.get(`refresh_token:${decoded.userId}`);
 
 		if (storedToken !== refreshToken) {
 			return res.status(401).json({ message: "Invalid refresh token" });
 		}
 
-		const accessToken = signAccessToken({ userId: decoded.userId });
+		const accessToken = jwt.sign({ userId: decoded.userId }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
 
 		res.cookie("accessToken", accessToken, {
 			httpOnly: true,

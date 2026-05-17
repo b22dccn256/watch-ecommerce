@@ -22,7 +22,7 @@ export const initiateAdminLogin = async (email, userAgent, ip) => {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(12);
     const hashedOtp = await bcrypt.hash(otp, salt);
 
     await redis.set(`otp:${email}`, hashedOtp, "EX", 5 * 60);
@@ -115,7 +115,7 @@ export const resendAdminOTP = async (email, userAgent, ip) => {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(12);
     const hashedOtp = await bcrypt.hash(otp, salt);
 
     await redis.set(`otp:${email}`, hashedOtp, "EX", 5 * 60);

@@ -107,6 +107,16 @@ export const reviewSchemas = {
 };
 
 export const couponSchemas = {
+	create: Joi.object({
+		code: Joi.string().max(50).required(),
+		type: Joi.string().valid("percent", "fixed").default("percent"),
+		discountValue: Joi.number().positive().required(),
+		minOrderAmount: Joi.number().min(0).default(0),
+		maxUses: Joi.number().integer().min(0).default(0),
+		expirationDate: Joi.date().iso().required(),
+		isActive: Joi.boolean().default(true),
+	}).unknown(false),
+
 	apply: Joi.object({
 		code: Joi.string().max(50).required(),
 	}).unknown(false),

@@ -31,7 +31,7 @@
         "sku": "GS-GA2100-1A1",
         "name": "Casio G-Shock GA-2100 (CasiOak)",
         "quantity": 1,
-        "priceAtPurchase": 2520000, 
+        "priceAtPurchase": 2520000,
         "image": "/images/gshock-ga2100.jpg"
       }
     ],

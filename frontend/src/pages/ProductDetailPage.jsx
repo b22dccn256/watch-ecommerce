@@ -190,16 +190,16 @@ const ProductDetailPage = () => {
                 </div>
               </div>
 
-              {/* Thumbnails without outer card */}
+              {/* Thumbnails with scale micro-interaction */}
               <div className="custom-scrollbar flex gap-4 overflow-x-auto pb-2">
                 {images.map((image, index) => (
                   <button
                     key={image + index}
                     type="button"
                     onClick={() => setActiveImage(index)}
-                    className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 transition-colors ${activeImage === index ? "border-[color:var(--color-gold)]" : "border-transparent hover:border-black/10 dark:hover:border-white/10"}`}
+                    className={`group h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 transition-all duration-200 ${activeImage === index ? "border-[color:var(--color-gold)] ring-2 ring-[color:var(--color-gold)]/20" : "border-transparent hover:border-black/10 dark:hover:border-white/10"}`}
                   >
-                    <img src={image} alt={`${currentProduct.name} ${index + 1}`} className="h-full w-full object-cover" />
+                    <img src={image} alt={`${currentProduct.name} ${index + 1}`} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" />
                   </button>
                 ))}
               </div>
@@ -314,29 +314,49 @@ const ProductDetailPage = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="space-y-3">
+                {/* Primary CTA: refined, not heavy black */}
                 <button
                   type="button"
                   onClick={handleAddToCart}
                   disabled={activeStock <= 0}
-                  className="btn-base btn-primary h-13 flex-1 font-semibold tracking-wide shadow-lg shadow-[color:var(--color-gold)]/20 hover:shadow-xl transition-all disabled:shadow-none disabled:opacity-60"
+                  className="group relative w-full overflow-hidden rounded-full border border-[color:var(--color-gold)] bg-transparent px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.18em] text-[color:var(--color-gold)] transition-all duration-300 hover:bg-[color:var(--color-gold)] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <ShoppingBag className="h-5 w-5" />
-                  {activeStock > 0 ? "Thêm vào giỏ hàng" : "Tạm hết hàng"}
+                  <span className="flex items-center justify-center gap-2.5">
+                    <ShoppingBag className="h-4 w-4" />
+                    {activeStock > 0 ? "Sở hữu ngay" : "Tạm hết hàng"}
+                  </span>
                 </button>
 
-                <div className="flex items-center gap-3 sm:gap-2">
-                  <button type="button" onClick={() => toggleWishlist(currentProduct, !!user)} className="btn-base btn-ghost h-13 w-13 rounded-full p-0 border border-black/10 dark:border-white/10 hover:border-[color:var(--color-gold)] hover:bg-[color:var(--color-gold)]/8 transition-all" aria-label="Yêu thích" title="Thêm vào danh sách yêu thích">
-                    <Heart className={`h-5 w-5 ${isWishlisted ? "fill-current text-[color:var(--color-gold)]" : ""}`} />
+                {/* Secondary CTA: ghost consult */}
+                <a
+                  href="#"
+                  className="flex w-full items-center justify-center gap-2.5 rounded-full border border-black/12 px-6 py-3.5 text-sm font-medium tracking-wide text-secondary transition-all duration-200 hover:border-black/20 hover:text-primary dark:border-white/12 dark:hover:border-white/20"
+                >
+                  Liên hệ tư vấn
+                </a>
+
+                {/* Micro-actions row */}
+                <div className="flex items-center justify-center gap-6 pt-1">
+                  <button type="button" onClick={() => toggleWishlist(currentProduct, !!user)} className="flex items-center gap-1.5 text-xs text-muted transition-colors hover:text-[color:var(--color-gold)]" aria-label="Yêu thích">
+                    <Heart className={`h-4 w-4 ${isWishlisted ? "fill-current text-[color:var(--color-gold)]" : ""}`} />
+                    <span>Yêu thích</span>
                   </button>
-                  <button type="button" onClick={() => addToCompare(currentProduct)} className="btn-base btn-ghost h-13 w-13 rounded-full p-0 border border-black/10 dark:border-white/10 hover:border-[color:var(--color-gold)] hover:bg-[color:var(--color-gold)]/8 transition-all" aria-label="So sánh" title="So sánh với sản phẩm khác">
-                    <ArrowLeftRight className="h-5 w-5" />
+                  <button type="button" onClick={() => addToCompare(currentProduct)} className="flex items-center gap-1.5 text-xs text-muted transition-colors hover:text-[color:var(--color-gold)]" aria-label="So sánh">
+                    <ArrowLeftRight className="h-4 w-4" />
+                    <span>So sánh</span>
                   </button>
-                  <button type="button" onClick={handleShare} className="btn-base btn-ghost h-13 w-13 rounded-full p-0 border border-black/10 dark:border-white/10 hover:border-[color:var(--color-gold)] hover:bg-[color:var(--color-gold)]/8 transition-all" aria-label="Chia sẻ" title="Sao chép đường dẫn">
-                    <Share2 className="h-5 w-5" />
+                  <button type="button" onClick={handleShare} className="flex items-center gap-1.5 text-xs text-muted transition-colors hover:text-[color:var(--color-gold)]" aria-label="Chia sẻ">
+                    <Share2 className="h-4 w-4" />
+                    <span>Chia sẻ</span>
                   </button>
                 </div>
               </div>
+
+              {/* Shipping trust micro-copy */}
+              <p className="text-center text-[10px] uppercase tracking-[0.16em] text-muted">
+                🔒 Giao hàng bảo mật · Được bảo hiểm toàn trình
+              </p>
 
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 py-6">
                 <div className="rounded-lg bg-gradient-to-br from-[color:var(--color-gold)]/8 to-transparent border border-[color:var(--color-gold)]/20 p-4 text-center">
@@ -483,7 +503,7 @@ const ProductDetailPage = () => {
             className="btn-base btn-primary h-11 px-5 shrink-0 shadow-lg shadow-black/20"
           >
             <ShoppingBag className="h-4 w-4" />
-            {activeStock > 0 ? "Thêm vào giỏ" : "Hết hàng"}
+            {activeStock > 0 ? "Sở hữu ngay" : "Hết hàng"}
           </button>
         </div>
       </div>

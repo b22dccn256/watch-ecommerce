@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema(
 				// Password is only required if the user doesn't have an OAuth ID
 				return !this.googleId && !this.facebookId && !this.githubId;
 			},
-			minlength: [6, "Password must be at least 6 characters long"],
+			minlength: [8, "Password must be at least 8 characters long"],
 		},
 		googleId: { type: String, unique: true, sparse: true },
 		facebookId: { type: String, unique: true, sparse: true },
@@ -139,7 +139,7 @@ userSchema.pre("save", async function () {
 	}
 
 	if (this.isModified("password")) {
-		const salt = await bcrypt.genSalt(10);
+		const salt = await bcrypt.genSalt(12);
 		this.password = await bcrypt.hash(this.password, salt);
 	}
 });
