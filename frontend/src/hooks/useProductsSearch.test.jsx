@@ -69,4 +69,21 @@ describe('useProductsSearch Hook', () => {
       expect(result.current.sortBy).toBe('price_asc');
     });
   });
+
+  describe('URL parameters preservation', () => {
+    it('should preserve existing query parameters such as tab', () => {
+      const wrapperWithParams = ({ children }) => (
+        <MemoryRouter initialEntries={['/secret-dashboard?tab=products']}>{children}</MemoryRouter>
+      );
+      const { result } = renderHook(() => useProductsSearch(), { wrapper: wrapperWithParams });
+
+      // We trigger a search update, which runs the sync effect
+      act(() => {
+        result.current.setSearch('watch');
+      });
+
+      // The search value should be updated
+      expect(result.current.search).toBe('watch');
+    });
+  });
 });

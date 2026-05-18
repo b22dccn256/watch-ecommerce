@@ -50,13 +50,15 @@ export const setCookies = (res, accessToken, refreshToken) => {
 	res.cookie("accessToken", accessToken, {
 		httpOnly: true,
 		secure: process.env.NODE_ENV === "production",
-		sameSite: "strict",
+		// In production keep Strict; in local dev allow Lax so browser will send cookies from frontend origin
+		sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
 		maxAge: 15 * 60 * 1000,
 	});
 	res.cookie("refreshToken", refreshToken, {
 		httpOnly: true,
 		secure: process.env.NODE_ENV === "production",
-		sameSite: "strict",
+		// In production keep Strict; in local dev allow Lax so browser will send cookies from frontend origin
+		sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
 		maxAge: 7 * 24 * 60 * 60 * 1000,
 	});
 };
@@ -170,7 +172,8 @@ export const login = async (email, password) => {
 		throw error;
 	}
 
-	if (user.role === "admin" && process.env.NODE_ENV !== "test") {
+	// Allow disabling admin 2FA for local/test runs using DISABLE_ADMIN_2FA=true
+	if (user.role === "admin" && process.env.DISABLE_ADMIN_2FA !== "true") {
 		return { requiresOTP: true, email: user.email };
 	}
 

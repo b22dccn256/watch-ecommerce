@@ -68,12 +68,18 @@ export const productSchemas = {
 export const cartSchemas = {
 	addItem: Joi.object({
 		productId: Joi.string().required(),
-		quantity: Joi.number().integer().min(1).max(100).required(),
-	}).unknown(false),
+		quantity: Joi.number().integer().min(1).max(100).optional(),
+		wristSize: Joi.string().allow(null, "").optional(),
+		selectedColor: Joi.string().allow(null, "").optional(),
+		selectedSize: Joi.string().allow(null, "").optional(),
+	}),
 
 	updateItem: Joi.object({
 		quantity: Joi.number().integer().min(1).max(100).required(),
-	}).unknown(false),
+		wristSize: Joi.string().allow(null, "").optional(),
+		selectedColor: Joi.string().allow(null, "").optional(),
+		selectedSize: Joi.string().allow(null, "").optional(),
+	}),
 };
 
 export const orderSchemas = {

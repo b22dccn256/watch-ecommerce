@@ -48,6 +48,8 @@ import { useSettingsStore } from "./stores/useSettingsStore";
 import { resources } from "./i18n";
 import { I18nContext } from "./contexts/I18nContext";
 import GlobalErrorBoundary from "./components/GlobalErrorBoundary";
+import { useStorefrontStore } from "./stores/useStorefrontStore";
+import PromoPopup from "./components/PromoPopup";
 
 // Scroll to top khi navigate
 const ScrollToTop = () => {
@@ -59,15 +61,21 @@ const ScrollToTop = () => {
 };
 
 function App() {
+	const location = useLocation();
 	const { user, checkAuth, checkingAuth } = useUserStore();
 	const [resendLoading, setResendLoading] = useState(false);
 	const [resendCooldown, setResendCooldown] = useState(0);
 	const cooldownRef = useRef(null);
 	const { getCartItems } = useCartStore();
 	const { fetchWishlist, mergeWishlist, syncFromLocalStorage } = useWishlistStore();
-	const { theme } = useThemeStore();
+	const { theme, setTheme } = useThemeStore();
 	const { isOpen, setIsOpen } = useCompareStore();
 	const { lang, currency } = useSettingsStore();
+	const { config, fetchConfig } = useStorefrontStore();
+
+	useEffect(() => {
+		fetchConfig();
+	}, [fetchConfig]);
 
 	useEffect(() => {
 		checkAuth();
@@ -80,13 +88,67 @@ function App() {
 
 	const t = (key) => resources[lang]?.translation[key] || key;
 
+	// 1. Theme Color Presets
 	useEffect(() => {
-		if (theme === "dark") {
-			document.documentElement.classList.add("dark");
+		const root = document.documentElement;
+		if (!config) return;
+
+		if (config.themePreset === "emerald") {
+			root.style.setProperty("--color-gold", "#10b981");
+		} else if (config.themePreset === "platinum") {
+			root.style.setProperty("--color-gold", "#475569");
 		} else {
-			document.documentElement.classList.remove("dark");
+			// Midnight Gold (Default)
+			root.style.setProperty("--color-gold", "#c7a06d");
+		}
+	}, [config]);
+
+	// 2. Initialize default themeMode on guest first-visit (preview live in dashboard)
+	useEffect(() => {
+		if (!config) return;
+		const isDashboard = window.location.pathname.startsWith("/secret-dashboard");
+		const initialized = sessionStorage.getItem("theme_initialized");
+
+		if (isDashboard || !initialized) {
+			const mode = config.themeMode || "dark";
+			if (mode === "system") {
+				const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+				setTheme(isDark ? "dark" : "light");
+			} else {
+				setTheme(mode);
+			}
+			if (!isDashboard) {
+				sessionStorage.setItem("theme_initialized", "true");
+			}
+		}
+	}, [config, setTheme]);
+
+	// 3. Render active theme class
+	useEffect(() => {
+		const root = document.documentElement;
+		if (theme === "dark") {
+			root.classList.add("dark");
+		} else {
+			root.classList.remove("dark");
 		}
 	}, [theme]);
+
+	// 4. Dynamic SEO Metadata Update
+	useEffect(() => {
+		if (!config) return;
+		if (config.seoTitle) {
+			document.title = config.seoTitle;
+		}
+		if (config.seoMetaDesc) {
+			let metaDesc = document.querySelector('meta[name="description"]');
+			if (!metaDesc) {
+				metaDesc = document.createElement('meta');
+				metaDesc.setAttribute('name', 'description');
+				document.head.appendChild(metaDesc);
+			}
+			metaDesc.setAttribute('content', config.seoMetaDesc);
+		}
+	}, [config]);
 
 	// Resend cooldown timer
 	useEffect(() => {
@@ -137,9 +199,10 @@ function App() {
 			<div className={`min-h-screen relative ${theme === 'dark' ? 'bg-[color:var(--color-bg)] text-[color:var(--color-primary)]' : 'bg-[color:var(--color-bg)] text-[color:var(--color-primary)]'}`}>
 				<ShimmerStyle />
 				<ScrollToTop />
-
-			<div className='relative pt-16 min-h-screen flex flex-col'>
-				<Navbar />
+            
+			<div className={`relative ${!location.pathname.startsWith('/secret-dashboard') ? (config?.announcementEnabled ? 'pt-24' : 'pt-16') : ''} min-h-screen flex flex-col`}>
+				{/* Hide customer-facing Navbar/Footer/overlays on admin routes */}
+				{!location.pathname.startsWith('/secret-dashboard') && <Navbar />}
 				{user && user.role !== "admin" && !user.emailVerified && (
 					<div className="mx-auto w-full max-w-screen-xl px-4 sm:px-6 md:px-8 py-2.5 bg-amber-50/95 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-200 flex justify-between items-center gap-3">
 						<div className="min-w-0">
@@ -219,7 +282,7 @@ function App() {
 						</motion.div>
 					</AnimatePresence>
 				</main>
-				<Footer />
+				{!location.pathname.startsWith('/secret-dashboard') && <Footer />}
 			</div>
 			<Toaster
 				toastOptions={{
@@ -236,9 +299,14 @@ function App() {
 					},
 				}}
 			/>
-			<ChatBot />
-			<MobileCTA />
-			<CompareModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
+						{!location.pathname.startsWith('/secret-dashboard') && (
+							<>
+								{(!config || config.showChatBot) && <ChatBot />}
+								<MobileCTA />
+								<CompareModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
+								<PromoPopup config={config} />
+							</>
+						)}
 			</div>
 		</I18nContext.Provider>
 		</GlobalErrorBoundary>

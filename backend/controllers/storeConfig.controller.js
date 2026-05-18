@@ -17,7 +17,35 @@ export const getConfig = async (req, res) => {
 // Admin updates storefront config
 export const updateConfig = async (req, res) => {
 	try {
-        const updatableFields = ["homeLayout", "gridColumns", "featuredCount", "heroSlogan", "bestSellerTitle", "flashSaleTitle", "showChatBot"];
+        const updatableFields = [
+            // Theme
+            "themePreset", "themeMode",
+            // Custom Colors
+            "primaryColor", "secondaryColor", "accentColor", "bgColor", "cardBgColor", "textPrimaryColor", "textSecondaryColor", "borderColor",
+            // Typography
+            "headingFont", "bodyFont", "headingScale", "bodyScale",
+            // Favicon & Mobile Logo
+            "favicon", "mobileLogoImage",
+            // Integrations
+            "googleAnalyticsId", "facebookPixelId", "tiktokPixelId",
+            // Cookie Consent
+            "cookieConsentEnabled", "cookieConsentTitle", "cookieConsentText",
+            // Custom CSS
+            "customCSS",
+            // Catalog
+            "productsPerPage", "defaultSort", "showOutOfStock",
+            // Home layout
+            "homeLayout", "gridColumns", "featuredCount", "heroSlogan", "bestSellerTitle", "flashSaleTitle", "showChatBot",
+            "flashSaleEndDate", "heroSlides",
+            "promoPopupEnabled", "promoPopupTitle", "promoPopupText", "promoPopupImage", "promoPopupDelay",
+            // Footer
+            "footerHotline", "footerEmail", "footerAddress", "footerAboutText", "footerCopyright", "footerColumns",
+            "footerFacebook", "footerInstagram", "footerZalo", "footerTiktok", "footerYoutube", "footerPinterest",
+            // Branding
+            "logoText", "logoSubtext", "logoImage", "announcementEnabled", "announcementText", "announcementBg", "announcementLink",
+            // SEO
+            "seoTitle", "seoMetaDesc", "navigationItems", "storeWorkingHours"
+        ];
         
         let config = await StoreConfig.findOne();
         if (!config) {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { X, Printer, CheckCircle, Clock, Truck, Package, XCircle, RotateCcw, AlertCircle } from "lucide-react";
 import ConfirmModal from "./ConfirmModal";
 import useOrderForm from "../hooks/useOrderForm";
@@ -71,7 +72,7 @@ export default function OrderDetailModal({ order: initialOrder, onClose, onSaved
 
   if (!order) return null;
 
-  return (
+  return createPortal(
     <>
       <ConfirmModal config={confirmConfig} onClose={() => setConfirmConfig(null)} />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -287,6 +288,7 @@ export default function OrderDetailModal({ order: initialOrder, onClose, onSaved
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }

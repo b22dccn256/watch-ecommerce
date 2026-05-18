@@ -40,6 +40,12 @@ const ProductCard = ({ product }) => {
       ? Math.round((1 - product.price / product.originalPrice) * 100)
       : 0;
 
+  // Compute isNew if backend didn't provide it: created within 14 days
+  const isNewLocal = product.isNew || (product.createdAt && (Date.now() - new Date(product.createdAt)) < 1000 * 60 * 60 * 24 * 14);
+
+  // Compute best seller badge if salesCount high enough
+  const isBestSeller = product.isBestSeller || (product.salesCount && product.salesCount >= 10);
+
   const imageSrc =
     product.image ||
     "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?q=80&w=1200&auto=format&fit=crop";
@@ -58,9 +64,8 @@ const ProductCard = ({ product }) => {
     try {
       setIsAdding(true);
       await addToCart(product);
-      toast.success("Đã thêm vào giỏ hàng");
-    } catch {
-      toast.error("Không thể thêm vào giỏ hàng");
+    } catch (err) {
+      console.error("Error adding to cart:", err);
     } finally {
       setIsAdding(false);
     }
@@ -104,7 +109,12 @@ const ProductCard = ({ product }) => {
                 −{discountPercent}%
               </span>
             )}
-            {product.isNew && (
+            {isBestSeller && (
+              <span className="rounded-[3px] border border-[color:var(--color-gold)]/10 bg-[color:var(--color-gold)]/12 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-gold)]">
+                Best
+              </span>
+            )}
+            {isNewLocal && (
               <span className="rounded-[3px] border border-[color:var(--color-gold)]/40 bg-[color:var(--color-gold)]/12 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-gold)] backdrop-blur-sm">
                 New
               </span>

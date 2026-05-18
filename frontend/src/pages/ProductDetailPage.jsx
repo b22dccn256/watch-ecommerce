@@ -152,7 +152,6 @@ const ProductDetailPage = () => {
     };
 
     addToCart(payload);
-    toast.success("Đã thêm vào giỏ hàng");
   };
 
   return (

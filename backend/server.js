@@ -160,6 +160,27 @@ if (!fs.existsSync(uploadDir)) {
 }
 app.use("/uploads", express.static(uploadDir));
 
+// Dev-only helper: create a session cookie for a user (test mode only)
+if (process.env.NODE_ENV === "test") {
+	app.post("/api/__dev/set-session", async (req, res) => {
+		try {
+			const { default: User } = await import("./models/user.model.js");
+			const AuthService = await import("./services/auth.service.js");
+			const email = (req.body && req.body.email) || req.query.email;
+			if (!email) return res.status(400).json({ message: "Email required" });
+			const user = await User.findOne({ email });
+			if (!user) return res.status(404).json({ message: "User not found" });
+			const { accessToken, refreshToken } = AuthService.generateTokens(user._id);
+			await AuthService.storeRefreshToken(user._id, refreshToken);
+			AuthService.setCookies(res, accessToken, refreshToken);
+			return res.json({ message: "Session set", email: user.email });
+		} catch (err) {
+			console.error("Dev set-session failed", err.message);
+			return res.status(500).json({ message: "Dev helper failed" });
+		}
+	});
+}
+
 app.use("/api/auth/oauth", oauthRoutes); // FIX D7: removed duplicate mount at /api/auth
 
 // Alias for Google callback to handle wrong redirect URL

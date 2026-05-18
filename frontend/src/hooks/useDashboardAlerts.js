@@ -1,11 +1,14 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import axios from '../lib/axios';
+import { useUserStore } from '../stores/useUserStore';
 
 /**
- * Hook quản lý dashboard alerts, notifications, và global search cho AdminPage.
+ * Hook quản lý dashboard alerts, notifications cho AdminPage.
+ * Chỉ fetch khi user đã xác thực (có token).
  * Tách logic ra khỏi AdminPage component để giảm kích thước và dễ test.
  */
 export function useDashboardAlerts() {
+  const { user } = useUserStore();
   const [tasks, setTasks] = useState({
     pendingOrders: 0,
     lowStock: 0,
@@ -20,6 +23,9 @@ export function useDashboardAlerts() {
   const fetchRef = useRef({ promise: null, lastFetched: 0 });
 
   const fetchDashboardAlerts = useCallback(async () => {
+    // Only fetch when user is authenticated (prevents 401 spam)
+    if (!user) return;
+
     const now = Date.now();
     const fs = fetchRef.current;
 
@@ -68,20 +74,23 @@ export function useDashboardAlerts() {
 
       setNotifications(notifs);
       setNotifCount(notifs.length);
+    }).catch(() => {
+      // Silently ignore auth errors — user may not be logged in yet
     }).finally(() => {
       fs.lastFetched = Date.now();
       fs.promise = null;
     });
 
     return fs.promise;
-  }, []);
+  }, [user]);
 
-  // Initial fetch + 30s polling
+  // Initial fetch + 30s polling (only when user is authenticated)
   useEffect(() => {
+    if (!user) return;
     fetchDashboardAlerts();
     const interval = setInterval(fetchDashboardAlerts, 30000);
     return () => clearInterval(interval);
-  }, [fetchDashboardAlerts]);
+  }, [fetchDashboardAlerts, user]);
 
   const markAllRead = useCallback(() => {
     setNotifications([]);

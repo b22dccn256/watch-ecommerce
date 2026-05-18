@@ -19,7 +19,7 @@ dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
 const ADMIN_EMAIL = (process.env.E2E_ADMIN_EMAIL || "admin@test.local").toLowerCase();
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || "Admin123!@#";
-const ADMIN_NAME = process.env.E2E_ADMIN_NAME || "E2E Admin";
+const ADMIN_NAME = process.env.E2E_ADMIN_NAME || "Admin User";
 
 const seedAdmin = async () => {
 	if (!process.env.MONGO_URI) {

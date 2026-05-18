@@ -10,7 +10,7 @@ import {
   ShoppingBag,
   User as UserIcon,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 import { useUserStore } from "../stores/useUserStore";
 import { useOrderStore } from "../stores/useOrderStore";
@@ -27,7 +27,18 @@ const ProfilePage = () => {
   const { user, loading: userLoading, logout, updateProfile, changePassword } = useUserStore();
   const { orders, loading: ordersLoading, fetchMyOrders, cancelOrder, requestReturnOrder } = useOrderStore();
 
-  const [activeTab, setActiveTab] = useState("profile");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(
+    ["profile", "orders", "password"].includes(tabParam) ? tabParam : "profile"
+  );
+
+  useEffect(() => {
+    if (["profile", "orders", "password"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
+
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [profileErrors, setProfileErrors] = useState({});
 
@@ -146,7 +157,10 @@ const ProfilePage = () => {
                 <button
                   key={tab.id}
                   type="button"
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setSearchParams({ tab: tab.id });
+                  }}
                   className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm transition ${active ? "bg-[color:var(--color-gold)]/12 text-[color:var(--color-gold)]" : "text-secondary hover:bg-surface-soft"}`}
                 >
                   <Icon className="h-4 w-4" />

@@ -31,7 +31,7 @@ export const useProductsSearch = () => {
 
   // Sync with URL parameters
   useEffect(() => {
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(searchParams);
 
     if (currentPage > 1) {
       params.set('page', currentPage);
@@ -51,8 +51,12 @@ export const useProductsSearch = () => {
       params.delete('sort');
     }
 
-    setSearchParams(params, { replace: true });
-  }, [currentPage, debouncedSearch, sortBy, setSearchParams]);
+    const currentString = searchParams.toString();
+    const nextString = params.toString();
+    if (currentString !== nextString) {
+      setSearchParams(params, { replace: true });
+    }
+  }, [currentPage, debouncedSearch, sortBy, searchParams, setSearchParams]);
 
   const resetSearch = () => {
     setSearch('');

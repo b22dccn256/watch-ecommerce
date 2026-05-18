@@ -9,11 +9,13 @@ export const getWishlistProducts = async (req, res) => {
 			return res.json([]);
 		}
 
-		// Trả về mảng các sản phẩm (map từ items)
-		const products = wishlist.items.map(item => ({
-			...item.product._doc,
-			addedAt: item.addedAt
-		}));
+		// Trả về mảng các sản phẩm (map từ items), lọc bỏ sản phẩm bị null (nếu đã bị xóa khỏi DB)
+		const products = wishlist.items
+			.filter(item => item.product)
+			.map(item => ({
+				...(item.product._doc || item.product),
+				addedAt: item.addedAt
+			}));
 
 		res.json(products);
 	} catch (error) {

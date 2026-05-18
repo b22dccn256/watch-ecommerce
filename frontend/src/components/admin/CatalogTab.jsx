@@ -181,26 +181,32 @@ const CatalogTab = () => {
       )}
 
       <AnimatePresence>
-        <BrandFormModal
-          isOpen={modals.isBrandOpen}
-          onClose={modals.closeBrand}
-          brandForm={brand.brandForm}
-          setBrandForm={brand.setBrandForm}
-          processImage={brand.processImage}
-          submitBrand={brand.submitBrand}
-          loading={brand.loading}
-        />
-        <CategoryFormModal
-          isOpen={modals.isCategoryOpen}
-          onClose={modals.closeCategory}
-          catForm={category.catForm}
-          setCatForm={category.setCatForm}
-          processImage={category.processImage}
-          submitCategory={category.submitCategory}
-          loading={category.loading}
-          rootCategories={category.rootCategories}
-          generateCategorySlug={category.generateCategorySlug}
-        />
+        {modals.isBrandOpen && (
+          <BrandFormModal
+            key="brand-modal"
+            isOpen={modals.isBrandOpen}
+            onClose={modals.closeBrand}
+            brandForm={brand.brandForm}
+            setBrandForm={brand.setBrandForm}
+            processImage={brand.processImage}
+            submitBrand={brand.submitBrand}
+            loading={brand.loading}
+          />
+        )}
+        {modals.isCategoryOpen && (
+          <CategoryFormModal
+            key="category-modal"
+            isOpen={modals.isCategoryOpen}
+            onClose={modals.closeCategory}
+            catForm={category.catForm}
+            setCatForm={category.setCatForm}
+            processImage={category.processImage}
+            submitCategory={category.submitCategory}
+            loading={category.loading}
+            rootCategories={category.rootCategories}
+            generateCategorySlug={category.generateCategorySlug}
+          />
+        )}
       </AnimatePresence>
     </div>
   );

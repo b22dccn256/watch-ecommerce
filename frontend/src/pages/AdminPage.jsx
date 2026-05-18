@@ -1,7 +1,7 @@
 import {
   PlusCircle, ShoppingBasket, LayoutDashboard, Users, Mail,
   Megaphone, ShieldCheck, Archive, Menu, X, Watch, LayoutTemplate, Tag, MessageSquare, Layers,
-  AlertTriangle, Clock, CheckCircle, Search, Bell, Settings
+  AlertTriangle, Clock, CheckCircle, Search, Bell, Settings, Home
 } from "lucide-react";
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -23,6 +23,7 @@ import ReviewsTab from "../components/admin/ReviewsTab";
 import CatalogTab from "../components/admin/CatalogTab";
 import { useProductStore } from "../stores/useProductStore";
 import { useUserStore } from "../stores/useUserStore";
+import PageShell from "../components/PageShell";
 
 const tabs = [
   { id: "analytics", label: "Dashboard",     icon: LayoutDashboard, roles: ["admin", "staff"] },
@@ -114,6 +115,15 @@ const AdminPage = () => {
 
   const SidebarNav = () => (
     <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto admin-scroll">
+      {/* Home link */}
+      <a
+        href="/"
+        className="admin-sidebar-link w-full text-left flex items-center gap-2.5 mb-2 text-gray-500 hover:text-luxury-gold transition-colors"
+      >
+        <Home className="w-4 h-4 flex-shrink-0" />
+        <span className="truncate text-xs">Trang chủ</span>
+      </a>
+      <div className="border-t border-gray-100 dark:border-luxury-border my-1" />
       {accessibleTabs.map(tab => (
         <button
           key={tab.id}
@@ -141,7 +151,7 @@ const AdminPage = () => {
     <div className="min-h-screen flex bg-gray-50 dark:bg-luxury-dark">
 
       {/* ── Desktop Sidebar — Dense ──────────── */}
-      <aside className="hidden md:flex flex-col w-48 flex-shrink-0 bg-white dark:bg-luxury-darker border-r border-gray-100 dark:border-luxury-border min-h-screen sticky top-0">
+      <aside className="hidden md:flex flex-col w-48 flex-shrink-0 bg-white dark:bg-luxury-darker border-r border-gray-100 dark:border-luxury-border h-screen sticky top-0 left-0">
         <div className="flex items-center gap-2 px-3 py-3 border-b border-gray-100 dark:border-luxury-border">
           <div className="w-6 h-6 rounded-md bg-luxury-gold flex items-center justify-center flex-shrink-0">
             <Watch className="w-3 h-3 text-black" />
@@ -154,17 +164,7 @@ const AdminPage = () => {
 
         <SidebarNav />
 
-        <div className="px-3 py-2.5 border-t border-gray-100 dark:border-luxury-border">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-luxury-gold/20 flex items-center justify-center text-[10px] font-bold text-luxury-gold flex-shrink-0">
-              {user?.name?.substring(0, 2)?.toUpperCase() || "AD"}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-semibold text-gray-800 dark:text-white truncate">{user?.name || "Admin"}</p>
-              <p className="text-[9px] text-gray-400 truncate">{user?.email || ""}</p>
-            </div>
-          </div>
-        </div>
+        
       </aside>
 
       {/* ── Mobile overlay sidebar ──────────────── */}
@@ -201,8 +201,9 @@ const AdminPage = () => {
       {/* ── Main Content ────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">
 
+        <div className="w-full px-4 sm:px-6 lg:px-8">
         {/* Mobile topbar — compact */}
-        <header className="sticky top-0 z-30 bg-white dark:bg-luxury-darker border-b border-gray-100 dark:border-luxury-border px-3 py-2 flex items-center justify-between md:hidden">
+        <header className="sticky top-0 z-30 bg-white dark:bg-luxury-darker border-b border-gray-100 dark:border-luxury-border px-3 py-2 flex items-center justify-between md:hidden admin-topbar">
           <div className="flex items-center gap-2">
             <button onClick={() => setSidebarOpen(true)} className="p-1.5 -ml-1.5 rounded-md text-gray-500 hover:text-luxury-gold hover:bg-gray-100 dark:hover:bg-luxury-border transition">
               <Menu className="w-4 h-4" />
@@ -212,6 +213,13 @@ const AdminPage = () => {
             </h1>
           </div>
           <div className="flex items-center gap-0.5">
+            <a
+              href="/"
+              className="p-1.5 rounded-md text-gray-500 hover:text-luxury-gold hover:bg-gray-100 dark:hover:bg-luxury-border transition-colors"
+              title="Về trang chủ"
+            >
+              <Home className="w-4 h-4" />
+            </a>
             <button onClick={() => setSearchOpen(true)} className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-luxury-border transition-colors">
               <Search className="w-4 h-4" />
             </button>
@@ -223,7 +231,7 @@ const AdminPage = () => {
         </header>
 
         {/* Desktop topbar — compact */}
-        <header className="hidden md:flex items-center justify-between px-4 py-2 border-b border-gray-100 dark:border-luxury-border bg-white dark:bg-luxury-darker sticky top-0 z-30 gap-4">
+        <header className="hidden md:flex items-center justify-between px-4 py-2 border-b border-gray-100 dark:border-luxury-border bg-white dark:bg-luxury-darker sticky top-0 z-30 gap-4 admin-topbar">
           <motion.div
             key={activeTab}
             initial={{ opacity: 0, x: -6 }}
@@ -345,10 +353,37 @@ const AdminPage = () => {
               </div>
             )}
           </div>
+          {/* Admin avatar / settings */}
+          <div className="ml-3 flex items-center gap-2">
+            <a
+              href="/"
+              className="p-2 rounded-lg bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border text-gray-500 hover:text-luxury-gold hover:border-luxury-gold/30 transition"
+              title="Về trang chủ"
+            >
+              <Home className="w-4 h-4" />
+            </a>
+            <button 
+              onClick={() => handleTabChange("settings")}
+              className="p-2 rounded-lg bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border text-gray-500 hover:text-luxury-gold transition"
+              title="Cài đặt"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => handleTabChange("users")}
+              className="flex items-center gap-2 p-1 px-2 rounded-lg bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border text-sm hover:border-luxury-gold/30 transition"
+              title={user?.name || 'Admin'}
+            >
+              <div className="w-6 h-6 rounded-full bg-luxury-gold/20 flex items-center justify-center text-[10px] font-bold text-luxury-gold">
+                {user?.name?.substring(0,2)?.toUpperCase() || 'AD'}
+              </div>
+              <span className="hidden md:inline text-xs text-gray-700 dark:text-gray-200">{user?.name || 'Admin'}</span>
+            </button>
+          </div>
         </header>
 
         {/* Tab content — compact */}
-        <main className="flex-1 p-3 md:p-4 overflow-auto space-y-3">
+        <main className="flex-1 p-3 md:p-4 overflow-auto space-y-3 admin-main">
           {/* Today's Tasks — compact, analytics tab only */}
           {activeTab === "analytics" && (tasks.pendingOrders > 0 || tasks.lowStock > 0) && (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
@@ -383,6 +418,7 @@ const AdminPage = () => {
             {renderTab()}
           </motion.div>
         </main>
+        </div>
       </div>
     </div>
   );

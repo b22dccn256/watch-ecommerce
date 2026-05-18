@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -22,14 +22,8 @@ import { useCartStore } from "../stores/useCartStore";
 import { useWishlistStore } from "../stores/useWishlistStore";
 import { useThemeStore } from "../stores/useThemeStore";
 import { useCompareStore } from "../stores/useCompareStore";
+import { useStorefrontStore } from "../stores/useStorefrontStore";
 import MiniCart from "./MiniCart";
-
-const menuItems = [
-  { to: "/", label: "Trang chủ" },
-  { to: "/catalog?reset=true", label: "Bộ sưu tập" },
-  { to: "/brands", label: "Thương hiệu" },
-  { to: "/about", label: "Về chúng tôi" },
-];
 
 const iconButtonClass =
   "relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white/75 text-primary transition hover:-translate-y-0.5 hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)] dark:border-white/10 dark:bg-[color:var(--color-surface-2)]";
@@ -64,6 +58,23 @@ const Navbar = () => {
     }),
     shallow
   );
+  const { config } = useStorefrontStore();
+
+  const menuItems = useMemo(() => {
+    if (config?.navigationItems && config.navigationItems.length > 0) {
+      return config.navigationItems.map(item => ({
+        to: item.link,
+        label: item.label
+      }));
+    }
+    return [
+      { to: "/", label: "Trang chủ" },
+      { to: "/catalog?reset=true", label: "Bộ sưu tập" },
+      { to: "/brands", label: "Thương hiệu" },
+      { to: "/about", label: "Về chúng tôi" },
+      { to: "/contact", label: "Hỗ trợ" }
+    ];
+  }, [config]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -92,15 +103,49 @@ const Navbar = () => {
 
   return (
     <header className="fixed inset-x-0 top-0 z-[90] border-b border-black/5 bg-[color:var(--color-surface)] dark:border-white/5">
+      {config?.announcementEnabled && (
+        <div className={`w-full py-1.5 px-4 text-center text-[10px] sm:text-xs font-bold tracking-[0.05em] transition-all select-none ${
+          config.announcementBg === "dark"
+            ? "bg-black text-white"
+            : config.announcementBg === "light"
+            ? "bg-gray-100 text-black border-b border-gray-200"
+            : "bg-[color:var(--color-gold)] text-black"
+        }`}>
+          {config.announcementLink ? (
+            <Link to={config.announcementLink} className="hover:underline inline-flex items-center justify-center gap-1.5">
+              {config.announcementText}
+            </Link>
+          ) : (
+            <span>{config.announcementText}</span>
+          )}
+        </div>
+      )}
       <div className="mx-auto flex h-16 max-w-screen-2xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link to="/" className="group inline-flex items-center gap-3">
-          <div className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-gold)]/45 bg-[color:var(--color-gold)]/15">
-            <span className="text-[11px] font-bold tracking-[0.08em] text-[color:var(--color-gold)]">LW</span>
-          </div>
-          <div className="leading-none">
-            <p className="hero-title text-sm tracking-[0.28em] text-primary transition group-hover:text-[color:var(--color-gold)]">LUXURY</p>
-            <p className="mt-1 text-[9px] uppercase tracking-[0.34em] text-muted">Watch Gallery</p>
-          </div>
+          {config?.logoImage ? (
+            <img
+              src={config.logoImage}
+              alt={config.logoText || "Logo"}
+              className="h-8 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          ) : (
+            <>
+              <div className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-gold)]/45 bg-[color:var(--color-gold)]/15">
+                <span className="text-[11px] font-bold tracking-[0.08em] text-[color:var(--color-gold)]">
+                  {config?.logoSubtext || "LW"}
+                </span>
+              </div>
+              <div className="leading-none">
+                <p className="hero-title text-sm tracking-[0.28em] text-primary transition group-hover:text-[color:var(--color-gold)]">
+                  {config?.logoText ? config.logoText.split(" ")[0] : "LUXURY"}
+                </p>
+                <p className="mt-1 text-[9px] uppercase tracking-[0.34em] text-muted">
+                  {config?.logoText ? config.logoText.split(" ").slice(1).join(" ") : "Watch Gallery"}
+                </p>
+              </div>
+            </>
+          )}
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">
@@ -197,7 +242,7 @@ const Navbar = () => {
                     <Link to="/profile" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-secondary transition hover:bg-[color:var(--color-surface-2)] hover:text-primary">
                       <UserRound className="h-4 w-4" /> Tài khoản
                     </Link>
-                    <Link to="/order-lookup" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-secondary transition hover:bg-[color:var(--color-surface-2)] hover:text-primary">
+                    <Link to="/profile?tab=orders" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-secondary transition hover:bg-[color:var(--color-surface-2)] hover:text-primary">
                       <ShoppingBag className="h-4 w-4" /> Đơn hàng
                     </Link>
                     {["admin", "staff"].includes(user.role) && (

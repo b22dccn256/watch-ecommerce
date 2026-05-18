@@ -16,10 +16,12 @@ import {
   Wallet,
   Youtube,
   Loader2,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 import axios from "../lib/axios";
+import { useStorefrontStore } from "../stores/useStorefrontStore";
 
 const footerColumns = [
   {
@@ -45,16 +47,16 @@ const footerColumns = [
   },
 ];
 
-const socials = [
-  [Facebook, "https://www.facebook.com/HocvienPTIT", "Facebook"],
-  [Instagram, "https://www.instagram.com/gdgoc.ptit/", "Instagram"],
-  [Twitter, "https://x.com/elonmusk", "X"],
-  [Youtube, "https://www.youtube.com/@dhcstech", "YouTube"],
-];
-
 const Footer = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { config } = useStorefrontStore();
+
+  const dynamicSocials = [
+    { icon: Facebook, href: config?.footerFacebook || "https://facebook.com", label: "Facebook" },
+    { icon: Instagram, href: config?.footerInstagram || "https://instagram.com", label: "Instagram" },
+    { icon: MessageSquare, href: config?.footerZalo || "https://zalo.me", label: "Zalo" },
+  ];
 
   const handleSubscribe = async (event) => {
     event.preventDefault();
@@ -82,7 +84,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="section-divider mt-10 border-t border-black/6 bg-[color:var(--color-surface)] dark:border-white/6">
+    <footer className="section-divider mt-10 border-t border-black/6 bg-[color:var(--color-surface)] dark:border-white/6 animate-fade-in">
       <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-center gap-3 border-b border-black/8 py-5 text-xs uppercase tracking-[0.16em] text-secondary dark:border-white/8 sm:justify-between">
           <span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-[color:var(--color-gold)]" />Miễn phí giao hàng từ 2.000.000 đ</span>
@@ -112,7 +114,7 @@ const Footer = () => {
             </p>
 
             <div className="flex gap-2">
-              {socials.map(([Icon, href, label]) => (
+              {dynamicSocials.map(({ icon: Icon, href, label }) => (
                 <motion.a
                   key={label}
                   href={href}
@@ -146,10 +148,22 @@ const Footer = () => {
           <section className="space-y-5">
             <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-primary">Liên hệ</h3>
             <div className="space-y-3 text-sm text-secondary">
-              <p className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 text-[color:var(--color-gold)]" />123 Đường ABC, Quận 1, TP.HCM</p>
-              <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-[color:var(--color-gold)]" />1900 XXX XXX</p>
-              <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-[color:var(--color-gold)]" />info@luxurywatch.vn</p>
-              <p className="flex items-start gap-2"><Clock className="mt-0.5 h-4 w-4 text-[color:var(--color-gold)]" />Thứ 2 đến Chủ nhật: 09:00 - 21:00</p>
+              <p className="flex items-start gap-2">
+                <MapPin className="mt-0.5 h-4 w-4 text-[color:var(--color-gold)] flex-shrink-0" />
+                <span>{config?.footerAddress || "123 Đường ABC, Quận 1, TP.HCM"}</span>
+              </p>
+              <p className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-[color:var(--color-gold)] flex-shrink-0" />
+                <span>{config?.footerHotline || "1900 XXX XXX"}</span>
+              </p>
+              <p className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-[color:var(--color-gold)] flex-shrink-0" />
+                <span className="break-all">{config?.footerEmail || "info@luxurywatch.vn"}</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <Clock className="mt-0.5 h-4 w-4 text-[color:var(--color-gold)] flex-shrink-0" />
+                <span>{config?.storeWorkingHours || "Thứ 2 đến Chủ nhật: 09:00 - 21:00"}</span>
+              </p>
             </div>
 
             <form onSubmit={handleSubscribe} className="space-y-2 rounded-xl border border-black/10 bg-surface-soft p-3 dark:border-white/10">

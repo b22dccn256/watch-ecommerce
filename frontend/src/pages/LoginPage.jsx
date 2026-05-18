@@ -39,20 +39,21 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       const result = await login(email, password);
+      console.debug("login result:", result);
       if (result === "OTP_REQUIRED") {
         setStep("otp");
         setOtpExpiry(300);
         setResendCooldown(60);
       }
     } catch (err) { 
-      // Handled in store
+      console.error("login error:", err);
     }
   };
 
   const handleVerifySubmit = async (e) => {
     e.preventDefault();
     try { await verifyOTP(email, otp); } catch (err) { 
-      // Handled in store
+      console.error("verifyOTP error:", err);
     }
   };
 

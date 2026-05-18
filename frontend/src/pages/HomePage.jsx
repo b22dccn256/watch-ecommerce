@@ -7,7 +7,9 @@ import { useProductStore } from "../stores/useProductStore";
 import { useCampaignStore } from "../stores/useCampaignStore";
 import { useStorefrontStore } from "../stores/useStorefrontStore";
 import HeroBanner from "../components/HeroBanner";
+import PageShell from "../components/PageShell";
 import ProductCard from "../components/ProductCard";
+import RecentlyViewed from "../components/RecentlyViewed";
 import FlashSaleSection from "../components/FlashSaleSection";
 import BestSellersSection from "../components/BestSellerSection";
 import ChatBot from "../components/ChatBot";
@@ -65,7 +67,7 @@ const HomePage = () => {
   // B-02: tinh timeLeft cho Flash Sale campaign dau tien
   const flashCampaign = campaigns?.find(c => c.isActive && c.endDate);
   useEffect(() => {
-    if (!flashCampaign) return;
+    if (!flashCampaign?.endDate) return;
     const tick = () => {
       const diff = Math.max(0, new Date(flashCampaign.endDate) - Date.now());
       const h = Math.floor(diff / 3600000);
@@ -80,7 +82,14 @@ const HomePage = () => {
 
   const showSkeleton = !config || (loading && products.length === 0);
   const gridCols = Number(config?.gridColumns) || 4;
-  const featured = products.slice(0, config?.featuredCount || 4);
+  // Ensure featured count aligns with grid columns to avoid an uneven last row
+  const rawCount = config?.featuredCount || 4;
+  let desired = Math.min(rawCount, products.length);
+  if (desired < gridCols) desired = Math.min(gridCols, products.length);
+  if (desired % gridCols !== 0) {
+    desired = Math.floor(desired / gridCols) * gridCols || Math.min(gridCols, products.length);
+  }
+  const featured = products.slice(0, desired);
   // B-02 + B-03: products cho Flash Sale va Best Sellers
   const flashProducts = flashCampaign?.products?.slice(0, gridCols) || [];
   const bestSellers = products
@@ -136,14 +145,16 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen overflow-hidden">
-      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+      <PageShell>
 
         {/* A3: Hero - chi hien neu co trong homeLayout */}
         {(config?.homeLayout || ["hero"]).includes("hero") && (
           <div className="pt-2 sm:pt-4">
-            <HeroBanner slogan={config.heroSlogan} />
+            <HeroBanner config={config} slogan={config.heroSlogan} />
           </div>
         )}
+
+        {/* NOTE: prominent search bar removed to avoid duplication with header search */}
 
         {/* ── Featured Products — Compact ── */}
         <section className="py-10 sm:py-14">
@@ -174,11 +185,13 @@ const HomePage = () => {
             whileInView="visible"
             viewport={{ once: true, amount: 0.05 }}
             variants={containerVariants}
-            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            className="flex flex-wrap gap-4 justify-center"
           >
             {featured.map((product) => (
-              <motion.div key={String(product._id)} variants={itemVariants}>
-                <ProductCard product={product} />
+              <motion.div key={String(product._id)} variants={itemVariants} className="w-full sm:w-1/2 lg:w-1/4">
+                <div className="px-2">
+                  <ProductCard product={product} />
+                </div>
               </motion.div>
             ))}
           </motion.div>
@@ -215,6 +228,9 @@ const HomePage = () => {
             ))}
           </div>
         </section>
+
+        {/* Recently Viewed */}
+        <RecentlyViewed />
 
         {/* ── Editorial Story — Compact Asymmetric ── */}
         <section className="grid gap-4 py-10 sm:py-14 lg:grid-cols-[1.15fr_0.85fr]">
@@ -285,12 +301,10 @@ const HomePage = () => {
           </motion.div>
         </section>
 
-      </div>
+      </PageShell>
 
       {/* A3: Render sections theo thu tu homeLayout */}
       {renderSections()}
-
-      {config.showChatBot && <ChatBot />}
     </div>
   );
 };

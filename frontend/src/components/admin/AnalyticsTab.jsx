@@ -10,7 +10,7 @@ import {
 } from "recharts";
 import useAnalyticsData from "../../hooks/useAnalyticsData";
 
-const DAYS_OPTIONS = [
+  const DAYS_OPTIONS = [
   { label: "7 ngày", value: 7 },
   { label: "30 ngày", value: 30 },
   { label: "90 ngày", value: 90 },
@@ -80,7 +80,7 @@ const DeltaBadge = ({ delta }) => {
   );
 };
 
-const KpiCard = ({ title, value, icon: Icon, gradient, delta, loading }) => {
+  const KpiCard = ({ title, value, icon: Icon, gradient, delta, loading }) => {
   if (loading) return <KpiSkeleton />;
   return (
     <div className="card-admin transition hover:border-[color:var(--color-gold)]/25">
@@ -90,11 +90,12 @@ const KpiCard = ({ title, value, icon: Icon, gradient, delta, loading }) => {
         </div>
         <DeltaBadge delta={delta} />
       </div>
-      <p className="text-[11px] text-secondary font-medium leading-tight">{title}</p>
-      <p className="text-lg font-bold text-primary mt-0.5 tracking-tight">{value}</p>
+        <p className="text-[11px] text-secondary font-medium leading-tight">{title}</p>
+        <p className="text-lg font-bold text-primary mt-0.5 tracking-tight">{value}</p>
     </div>
   );
 };
+
 
 const CardShell = ({ title, icon: Icon, children, action }) => (
   <div className="rounded-xl border border-black/6 bg-surface p-4">
@@ -116,6 +117,28 @@ const AnalyticsTab = () => {
     topProducts, bottomProducts, plData,
     hasChart, revDelta, saleDelta, exportCsv,
   } = useAnalyticsData();
+
+  // Date range selector state
+  const [rangeType, setRangeType] = useState(7); // 7,30,90 or 'custom'
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
+
+  const applyRange = (type) => {
+    if (type === 'custom') {
+      // compute days diff if both dates present
+      if (customStart && customEnd) {
+        const s = new Date(customStart);
+        const e = new Date(customEnd);
+        const diff = Math.max(1, Math.ceil((e - s) / (1000 * 60 * 60 * 24)) + 1);
+        setDays(diff);
+      }
+    } else {
+      setDays(type);
+    }
+    setRangeType(type);
+  };
+
+  const noTransactions = (data.totalRevenue === 0 || !data.totalRevenue) && (data.totalSales === 0 || !data.totalSales);
 
   const chartRef = useRef(null);
   const [chartReady, setChartReady] = useState(false);
@@ -150,36 +173,27 @@ const AnalyticsTab = () => {
         </div>
       </div>
 
-      {/* KPI Grid — Dense */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KpiCard loading={isLoading} title="Tổng người dùng" value={data.users.toLocaleString()} icon={Users} gradient="bg-emerald-500" />
-        <KpiCard loading={isLoading} title="Tổng sản phẩm" value={data.products.toLocaleString()} icon={Package} gradient="bg-blue-500" />
-        <KpiCard loading={isLoading} title="Đơn hàng" value={data.totalSales.toLocaleString()} icon={ShoppingCart} gradient="bg-violet-500" delta={saleDelta} />
-        <KpiCard loading={isLoading} title="Doanh thu" value={formatVND(data.totalRevenue) + " ₫"} icon={DollarSign} gradient="bg-amber-500" delta={revDelta} />
-      </div>
-
-      {/* Secondary KPIs — Compact */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {[
-          { label: "Giá trị đơn TB (AOV)", value: formatVND(data.aov) + " ₫" },
-          { label: "Đơn đã thanh toán", value: (data.totalOrdersPlaced || 0).toLocaleString() + " đơn" },
-          {
-            label: "Tỷ lệ chuyển đổi",
-            value: (() => {
-              const r = data.conversionRate > 0 ? data.conversionRate : data.totalSales > 0 ? (data.totalOrdersPlaced / data.totalSales) * 100 : 0;
-              return r > 0 ? r.toFixed(2) + "%" : "—";
-            })()
-          },
-        ].map(item => (
-          <div key={item.label} className="card-admin">
-            {isLoading ? <KpiSkeleton /> : (
-              <>
-                <p className="text-[11px] text-secondary font-medium">{item.label}</p>
-                <p className="text-base font-bold text-primary mt-0.5">{item.value}</p>
-              </>
-            )}
+      {/* KPI Groups: Sales vs Operations */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div className="space-y-3">
+          <p className="text-xs font-semibold text-secondary">Khối Bán hàng</p>
+          <div className="grid grid-cols-2 gap-3">
+            <KpiCard loading={isLoading} title="Đơn hàng" value={data.totalSales.toLocaleString()} icon={ShoppingCart} gradient="bg-violet-500" delta={saleDelta} />
+            <KpiCard loading={isLoading} title="Doanh thu" value={formatVND(data.totalRevenue) + " ₫"} icon={DollarSign} gradient="bg-amber-500" delta={revDelta} />
+            <KpiCard loading={isLoading} title="Giá trị đơn trung bình (AOV)" value={formatVND(data.aov) + " ₫"} icon={DollarSign} gradient="bg-emerald-400" />
+            <KpiCard loading={isLoading} title="Tỷ lệ chuyển đổi" value={(data.conversionRate > 0 ? data.conversionRate.toFixed(2) + '%' : '—')} icon={TrendingUp} gradient="bg-blue-400" />
           </div>
-        ))}
+        </div>
+
+        <div className="space-y-3">
+          <p className="text-xs font-semibold text-secondary">Khối Vận hành</p>
+          <div className="grid grid-cols-2 gap-3">
+            <KpiCard loading={isLoading} title="Tổng người dùng" value={data.users.toLocaleString()} icon={Users} gradient="bg-emerald-500" />
+            <KpiCard loading={isLoading} title="Tổng sản phẩm" value={data.products.toLocaleString()} icon={Package} gradient="bg-blue-500" />
+            <KpiCard loading={isLoading} title="Hàng sắp hết" value={String((data.lowStockCount || 0))} icon={AlertTriangle} gradient="bg-amber-400" />
+            <KpiCard loading={isLoading} title="Đơn đã thanh toán" value={(data.totalOrdersPlaced || 0).toLocaleString() + " đơn"} icon={Download} gradient="bg-violet-200" />
+          </div>
+        </div>
       </div>
 
       {/* Revenue Chart */}
@@ -187,20 +201,36 @@ const AnalyticsTab = () => {
         title="Doanh thu & Đơn hàng"
         icon={TrendingUp}
         action={
-          <div className="flex gap-1.5">
-            {DAYS_OPTIONS.map(opt => (
+          <div className="flex items-center gap-2">
+            <div className="flex gap-1.5">
+              {DAYS_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => applyRange(opt.value)}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
+                    days === opt.value && rangeType !== 'custom'
+                      ? "bg-[color:var(--color-gold)] text-white"
+                      : "bg-[color:var(--color-surface-2)] text-secondary hover:text-primary"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
               <button
-                key={opt.value}
-                onClick={() => setDays(opt.value)}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
-                  days === opt.value
-                    ? "bg-[color:var(--color-gold)] text-white"
-                    : "bg-[color:var(--color-surface-2)] text-secondary hover:text-primary"
-                }`}
+                onClick={() => { setRangeType('custom'); }}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${rangeType === 'custom' ? "bg-[color:var(--color-gold)] text-white" : "bg-[color:var(--color-surface-2)] text-secondary"}`}
               >
-                {opt.label}
+                Tùy chỉnh
               </button>
-            ))}
+            </div>
+            {rangeType === 'custom' && (
+              <div className="flex items-center gap-2">
+                <input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)} className="text-xs px-2 py-1 border rounded-md" />
+                <span className="text-xs text-secondary">→</span>
+                <input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)} className="text-xs px-2 py-1 border rounded-md" />
+                <button onClick={() => applyRange('custom')} className="px-3 py-1 rounded-lg text-xs font-semibold bg-[color:var(--color-gold)] text-white">Áp dụng</button>
+              </div>
+            )}
           </div>
         }
       >
@@ -263,26 +293,35 @@ const AnalyticsTab = () => {
 
       {/* Top Products & Low Stock */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <CardShell title="Top 8 Bán chạy" icon={Trophy}>
-          {isLoading ? (
-            <div className="space-y-3">{Array(5).fill(0).map((_, i) => <SkeletonBlock key={i} h="h-10" />)}</div>
-          ) : topProducts.length === 0 ? (
-            <p className="text-xs text-muted py-4 text-center">Chưa có dữ liệu</p>
-          ) : topProducts.map((p, i) => (
-            <div key={p._id} className="flex items-center gap-3 py-2.5 border-b border-black/5 dark:border-white/5 last:border-0">
-              <span className="text-[10px] font-bold text-muted w-5 flex-shrink-0">#{i + 1}</span>
-              {p.image && <img src={p.image} alt={p.name} className="w-8 h-8 rounded object-cover flex-shrink-0" />}
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-primary truncate">{p.name}</p>
-                <p className="text-[10px] text-muted">{p.brand?.name}</p>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <p className="text-xs font-bold text-[color:var(--color-gold)]">{(p.salesCount || 0).toLocaleString()} bán</p>
-                <p className="text-[10px] text-muted">Tồn: {p.stock}</p>
-              </div>
+        {noTransactions ? (
+          <CardShell title="Dữ liệu giao dịch" icon={Trophy}>
+            <div className="py-8 text-center">
+              <p className="text-sm text-muted">Chưa có dữ liệu giao dịch trong khoảng thời gian đã chọn.</p>
+              <p className="text-xs text-muted mt-2">Hãy chờ có đơn hàng hoặc thay đổi bộ lọc thời gian.</p>
             </div>
-          ))}
-        </CardShell>
+          </CardShell>
+        ) : (
+          <CardShell title="Top 8 Bán chạy" icon={Trophy}>
+            {isLoading ? (
+              <div className="space-y-3">{Array(5).fill(0).map((_, i) => <SkeletonBlock key={i} h="h-10" />)}</div>
+            ) : topProducts.length === 0 ? (
+              <p className="text-xs text-muted py-4 text-center">Chưa có dữ liệu</p>
+            ) : topProducts.map((p, i) => (
+              <div key={p._id} className="flex items-center gap-3 py-2.5 border-b border-black/5 dark:border-white/5 last:border-0">
+                <span className="text-[10px] font-bold text-muted w-5 flex-shrink-0">#{i + 1}</span>
+                {p.image && <img src={p.image} alt={p.name} className="w-8 h-8 rounded object-cover flex-shrink-0" />}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-primary truncate">{p.name}</p>
+                  <p className="text-[10px] text-muted">{p.brand?.name}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-xs font-bold text-[color:var(--color-gold)]">{(p.salesCount || 0).toLocaleString()} bán</p>
+                  <p className="text-[10px] text-muted">Tồn: {p.stock}</p>
+                </div>
+              </div>
+            ))}
+          </CardShell>
+        )}
 
         <CardShell title="Tồn Kho Thấp" icon={AlertTriangle}>
           {isLoading ? (

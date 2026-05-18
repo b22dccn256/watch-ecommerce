@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowRight, Sparkles } from "lucide-react";
 
 import axios from "../lib/axios";
 
-const HeroBanner = ({ slogan }) => {
+const HeroBanner = ({ config, slogan }) => {
   const [heroBanners, setHeroBanners] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const hasFetchedRef = useRef(false);
@@ -41,118 +41,154 @@ const HeroBanner = ({ slogan }) => {
     };
   }, []);
 
+  const slides = useMemo(() => {
+    if (config?.heroSlides && config.heroSlides.length > 0) {
+      return config.heroSlides.filter(s => s.active !== false);
+    }
+    if (heroBanners.length > 0) {
+      return heroBanners.map(b => ({
+        image: b.imageUrl,
+        mobileImage: "",
+        title: b.title || "Kiệt tác Thời gian",
+        subtitle: slogan || "Tuyển chọn đồng hồ cao cấp với trải nghiệm tinh gọn.",
+        link: b.link || "/catalog?reset=true"
+      }));
+    }
+    return [
+      {
+        image: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=1600",
+        mobileImage: "",
+        title: "Kiệt tác Thời gian",
+        subtitle: slogan || "Tuyển chọn đồng hồ cao cấp với trải nghiệm tinh gọn, rõ ràng và sang trọng.",
+        link: "/catalog?reset=true"
+      }
+    ];
+  }, [config, heroBanners, slogan]);
+
   useEffect(() => {
-    if (heroBanners.length < 2) return;
+    if (slides.length < 2) return;
 
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % heroBanners.length);
-    }, 5600);
+      setCurrentIndex((prev) => (prev + 1) % slides.length);
+    }, 6000);
 
     return () => clearInterval(timer);
-  }, [heroBanners.length]);
+  }, [slides.length]);
 
-  const activeBanner = useMemo(() => heroBanners[currentIndex] || null, [heroBanners, currentIndex]);
+  const activeSlide = useMemo(() => slides[currentIndex] || {}, [slides, currentIndex]);
 
   const next = () => {
-    if (!heroBanners.length) return;
-    setCurrentIndex((prev) => (prev + 1) % heroBanners.length);
+    if (!slides.length) return;
+    setCurrentIndex((prev) => (prev + 1) % slides.length);
   };
 
   const prev = () => {
-    if (!heroBanners.length) return;
-    setCurrentIndex((prev) => (prev - 1 + heroBanners.length) % heroBanners.length);
+    if (!slides.length) return;
+    setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
   };
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-black/6 bg-[color:var(--color-surface)] px-4 pb-4 pt-4 shadow-[var(--shadow-card)] sm:px-6 sm:pt-6 lg:min-h-[52vh] lg:px-8 lg:pt-8">
-      {/* Subtle single gradient — less visual noise */}
-      <div className="pointer-events-none absolute -right-16 -top-8 h-48 w-48 rounded-full bg-[color:var(--color-gold)]/8 blur-3xl" />
-
-      <div className="relative z-10 grid gap-5 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+    <section className="relative overflow-hidden rounded-[24px] border border-black/10 dark:border-white/5 h-[360px] sm:h-[440px] lg:h-[500px] shadow-[var(--shadow-card)] animate-fade-in group/banner bg-black">
+      {/* Background Slide Image with Cross-fade transition */}
+      <AnimatePresence mode="wait">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="space-y-4"
+          key={currentIndex}
+          initial={{ opacity: 0, scale: 1.01 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.7, ease: "easeInOut" }}
+          className="absolute inset-0 w-full h-full"
         >
-          <p className="hero-kicker inline-flex items-center gap-2 text-[color:var(--color-gold)]">
-            <Sparkles className="h-3 w-3" />
-            Fine Timepieces · Global Maisons
-          </p>
-
-          <h1 className="text-[clamp(1.8rem,1.2rem+2.2vw,3.2rem)] font-display font-bold leading-[1.08] text-primary">
-            {(slogan || "A Quiet Theater\nfor Great Timepieces")
-              .split("\n")
-              .map((line, i, arr) => (
-                <span key={i}>
-                  {line}
-                  {i < arr.length - 1 && <br />}
-                </span>
-              ))}
-          </h1>
-
-          <p className="max-w-lg text-sm text-secondary sm:text-base">
-            Tuyển chọn đồng hồ cao cấp với trải nghiệm tinh gọn, rõ ràng và sang trọng.
-          </p>
-
-          <div className="flex flex-wrap gap-2.5">
-            <Link to="/catalog" className="btn-base btn-primary h-10 px-5 text-sm">
-              Khám phá bộ sưu tập
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-            <Link to="/brands" className="btn-base btn-outline h-10 px-5 text-sm">
-              Xem thương hiệu
-            </Link>
-          </div>
-
-          {heroBanners.length > 1 && (
-            <div className="flex items-center gap-1.5">
-              <button type="button" onClick={prev} className="btn-base btn-secondary h-8 w-8 rounded-full p-0" aria-label="Banner trước">
-                <ChevronLeft className="h-3.5 w-3.5" />
-              </button>
-              <button type="button" onClick={next} className="btn-base btn-secondary h-8 w-8 rounded-full p-0" aria-label="Banner sau">
-                <ChevronRight className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          )}
+          <img
+            src={activeSlide.image || "https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=1600"}
+            alt={activeSlide.title || "Luxury watch campaign"}
+            className="w-full h-full object-cover"
+            onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=1600"; }}
+          />
+          {/* Rich Gradient Overlay for premium feel and text legibility */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent dark:from-black/90 dark:via-black/50 dark:to-transparent" />
         </motion.div>
+      </AnimatePresence>
 
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.08 }}
-          className="relative"
-        >
-          <div className="relative mx-auto max-w-[460px] lg:mr-0">
-            <div className="group relative overflow-hidden rounded-2xl border border-black/8 bg-black shadow-[var(--shadow-elevated)]">
-              <img
-                src={activeBanner?.imageUrl || "/banner-2.jpg"}
-                alt={activeBanner?.title || "Luxury watch campaign"}
-                className="h-[280px] w-full object-cover transition-transform duration-[700ms] ease-out group-hover:scale-[1.03] sm:h-[340px]"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 px-5 pb-5">
-                <p className="text-[8px] uppercase tracking-[0.28em] text-white/55">Limited capsule</p>
-                <p className="font-display mt-1.5 text-xl text-white sm:text-[1.5rem]">Permanence in Motion</p>
-              </div>
+      {/* Floating Content Wrapper - Left Aligned */}
+      <div className="absolute inset-0 flex items-center z-10 px-6 sm:px-12 lg:px-20">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`content-${currentIndex}`}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="max-w-2xl space-y-4 sm:space-y-5 text-left text-white"
+          >
+            <p className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.25em] text-[color:var(--color-gold)]">
+              <Sparkles className="h-3.5 w-3.5 animate-pulse text-[color:var(--color-gold)]" />
+              Fine Timepieces · Global Maisons
+            </p>
+
+            <h1 className="font-display font-bold text-2xl sm:text-4xl lg:text-5xl leading-[1.1] tracking-tight text-white drop-shadow-md whitespace-pre-line">
+              {activeSlide.title || "Kiệt tác Thời gian"}
+            </h1>
+
+            <p className="text-xs sm:text-sm md:text-base text-white/70 max-w-lg leading-relaxed font-light drop-shadow-sm">
+              {activeSlide.subtitle || "Tuyển chọn đồng hồ cao cấp với trải nghiệm tinh gọn, rõ ràng và sang trọng."}
+            </p>
+
+            <div className="flex flex-wrap gap-3 pt-2 sm:pt-4">
+              <Link
+                to={activeSlide.link || "/catalog?reset=true"}
+                className="btn-base bg-[color:var(--color-gold)] text-black hover:bg-[color:var(--color-gold-light)] h-10 sm:h-11 px-5 sm:px-6 text-xs sm:text-sm font-semibold rounded-xl flex items-center gap-2 shadow-[0_4px_20px_rgba(var(--color-gold-rgb),0.3)] transition-all duration-200 transform hover:-translate-y-0.5"
+              >
+                Khám phá bộ sưu tập
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                to="/brands"
+                className="btn-base border border-white/20 text-white hover:bg-white/10 h-10 sm:h-11 px-5 sm:px-6 text-xs sm:text-sm font-semibold rounded-xl flex items-center transition-all duration-200"
+              >
+                Xem thương hiệu
+              </Link>
             </div>
-
-            {activeBanner?.link && (
-              <Link to={activeBanner.link} aria-label={activeBanner.title || "Xem banner"} className="absolute inset-0" />
-            )}
-          </div>
-        </motion.div>
+          </motion.div>
+        </AnimatePresence>
       </div>
 
-      {heroBanners.length > 1 && (
-        <div className="relative z-10 mt-4 flex items-center justify-center gap-1.5">
-          {heroBanners.map((banner, index) => (
+      {/* Floating Modern Arrow Controls (emerges on hover) */}
+      {slides.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={prev}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 h-9 w-9 sm:h-11 sm:w-11 rounded-full border border-white/15 bg-black/15 text-white hover:bg-black/50 hover:border-white/30 flex items-center justify-center backdrop-blur-sm opacity-0 group-hover/banner:opacity-100 transition-all duration-300 transform -translate-x-2 group-hover/banner:translate-x-0"
+            aria-label="Slide trước"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={next}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 h-9 w-9 sm:h-11 sm:w-11 rounded-full border border-white/15 bg-black/15 text-white hover:bg-black/50 hover:border-white/30 flex items-center justify-center backdrop-blur-sm opacity-0 group-hover/banner:opacity-100 transition-all duration-300 transform translate-x-2 group-hover/banner:translate-x-0"
+            aria-label="Slide sau"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </>
+      )}
+
+      {/* Dot Indicators at the bottom */}
+      {slides.length > 1 && (
+        <div className="absolute bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+          {slides.map((_, index) => (
             <button
-              key={banner._id || index}
+              key={index}
               type="button"
               onClick={() => setCurrentIndex(index)}
-              aria-label={`Chọn banner ${index + 1}`}
-              className={`h-1.5 rounded-full transition-all ${index === currentIndex ? "w-6 bg-[color:var(--color-gold)]" : "w-1.5 bg-black/15 hover:bg-black/30 dark:bg-white/20"}`}
+              aria-label={`Chọn slide ${index + 1}`}
+              className={`h-1 rounded-full transition-all duration-300 ${
+                index === currentIndex
+                  ? "w-6 bg-[color:var(--color-gold)]"
+                  : "w-1.5 bg-white/30 hover:bg-white/60"
+              }`}
             />
           ))}
         </div>

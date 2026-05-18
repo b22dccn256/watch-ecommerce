@@ -5,8 +5,13 @@ let transporter;
 const getTransporter = async () => {
     if (transporter) return transporter;
 
-    // 1. Try Gmail if credentials provided
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    // Honor explicit developer override to always use Ethereal for testing
+    const forceEthereal = (process.env.USE_ETHEREAL || process.env.FORCE_ETHEREAL || "").toString().toLowerCase();
+    if (forceEthereal === "1" || forceEthereal === "true") {
+        console.log("ℹ️  USE_ETHEREAL set — forcing Ethereal transport for emails");
+    } else {
+        // 1. Try Gmail if credentials provided
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
         try {
             const gmailTransporter = nodemailer.createTransport({
                 service: "gmail",
@@ -28,7 +33,7 @@ const getTransporter = async () => {
             console.log("🔄 Falling back to Ethereal Email...");
         }
     }
-
+    }
     // 2. Fallback to Ethereal
     try {
         const testAccount = await nodemailer.createTestAccount();
