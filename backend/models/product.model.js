@@ -164,7 +164,15 @@ const productSchema = new mongoose.Schema(
 	{ timestamps: true }
 );
 
-// --- AUDIT MIDDLEWARE ---
+// ── Compound indexes for common admin query patterns ──
+productSchema.index({ deletedAt: 1, createdAt: -1 });  // default admin sort
+productSchema.index({ deletedAt: 1, brand: 1 });        // brand filter
+productSchema.index({ deletedAt: 1, categoryId: 1 });   // category filter
+productSchema.index({ deletedAt: 1, type: 1 });         // machine type filter
+productSchema.index({ deletedAt: 1, isFeatured: 1 });   // featured filter
+productSchema.index({ deletedAt: 1, price: 1 });        // price sort/filter
+
+// ── AUDIT MIDDLEWARE ──
 productSchema.pre("save", async function () {
 	// Skip if nothing changed
 	if (!this.isModified()) return;

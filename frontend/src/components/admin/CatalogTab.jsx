@@ -122,14 +122,14 @@ const CatalogTab = () => {
                   className="absolute top-2 right-10 opacity-0 group-hover:opacity-100 p-1.5 bg-blue-500/10 text-blue-500 rounded-lg transition"
                   title="Sửa thương hiệu"
                 >
-                  <Pencil className="w-4 h-4" />
+                  <Pencil className="w-4 h-4 pointer-events-none" />
                 </button>
                 <button
                   type="button"
                   onClick={() => brand.deleteBrand(b._id, b.name)}
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1.5 bg-red-500/10 text-red-500 rounded-lg transition"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4 pointer-events-none" />
                 </button>
               </div>
               <div className="p-4">
@@ -178,14 +178,14 @@ const CatalogTab = () => {
                       className="p-1.5 text-muted transition hover:text-blue-500 rounded-lg hover:bg-blue-500/8"
                       title="Sửa danh mục"
                     >
-                      <Pencil className="w-4 h-4" />
+                      <Pencil className="w-4 h-4 pointer-events-none" />
                     </button>
                     <button
                       type="button"
                       onClick={() => category.deleteCategory(parentCat._id, parentCat.name)}
                       className="p-1.5 text-muted transition hover:text-red-500 rounded-lg hover:bg-red-500/8"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4 pointer-events-none" />
                     </button>
                   </div>
                 </div>
@@ -210,14 +210,14 @@ const CatalogTab = () => {
                             className="p-1 text-muted transition hover:text-blue-500"
                             title="Sửa danh mục con"
                           >
-                            <Pencil className="w-3.5 h-3.5" />
+                            <Pencil className="w-3.5 h-3.5 pointer-events-none" />
                           </button>
                           <button
                             type="button"
                             onClick={() => category.deleteCategory(child._id, child.name)}
                             className="p-1 text-muted transition hover:text-red-500"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3.5 h-3.5 pointer-events-none" />
                           </button>
                         </div>
                       </div>

@@ -106,22 +106,28 @@ app.use(
 );
 
 // ── Rate Limiting ─────────────────────────────────────────────────────────────
-// Chặt hơn cho auth routes (chống brute-force)
-app.use("/api/auth", rateLimit({
+// Auth rate limiter - Bypass for resend-verification in dev
+const authLimiter = rateLimit({
 	windowMs: 15 * 60 * 1000, // 15 phút
 	max: 30,
 	standardHeaders: true,
 	legacyHeaders: false,
-	message: { message: "Quá nhiều yêu cầu từ IP này, vui lòng thử lại sau 15 phút." }
-}));
+	message: { message: "Quá nhiều yêu cầu từ IP này, vui lòng thử lại sau 15 phút." },
+	// Skip rate limit check for resend-verification in dev mode
+	skip: (req) => req.path === "/resend-verification" && process.env.NODE_ENV !== "production"
+});
 
-// Chung cho tất cả API còn lại
-app.use("/api", rateLimit({
+app.use("/api/auth", authLimiter);
+
+// General API rate limiter
+const apiLimiter = rateLimit({
 	windowMs: 15 * 60 * 1000,
 	max: process.env.NODE_ENV === "production" ? 300 : 10000, // Tăng lên 10000 trong dev
 	standardHeaders: true,
 	legacyHeaders: false,
-}));
+});
+
+app.use("/api", apiLimiter);
 
 // ── Body Parsing ──────────────────────────────────────────────────────────────
 // Stripe webhook cần raw body — phải đặt TRƯỚC express.json()

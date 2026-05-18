@@ -31,7 +31,7 @@ const ProductsTable = ({
 						{/* Checkbox */}
 						<th className="px-2.5 py-2.5 w-8">
 							<button onClick={onToggleSelectAll} className="text-gray-400 hover:text-luxury-gold transition">
-								{allPageSelected ? <CheckSquare className="w-3.5 h-3.5 text-luxury-gold" /> : <Square className="w-3.5 h-3.5" />}
+								{allPageSelected ? <CheckSquare className="w-3.5 h-3.5 text-luxury-gold pointer-events-none" /> : <Square className="w-3.5 h-3.5 pointer-events-none" />}
 							</button>
 						</th>
 						<th className="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sản phẩm</th>
@@ -68,7 +68,7 @@ const ProductsTable = ({
 								>
 									<td className="px-2.5 py-2">
 										<button onClick={() => onToggleSelect(product._id)} className="text-gray-400 hover:text-luxury-gold transition">
-											{isSelected ? <CheckSquare className="w-3.5 h-3.5 text-luxury-gold" /> : <Square className="w-3.5 h-3.5" />}
+											{isSelected ? <CheckSquare className="w-3.5 h-3.5 text-luxury-gold pointer-events-none" /> : <Square className="w-3.5 h-3.5 pointer-events-none" />}
 										</button>
 									</td>
 									<td className="px-3 py-2 whitespace-nowrap">
@@ -110,7 +110,7 @@ const ProductsTable = ({
 											className={`p-1 rounded-md transition-colors ${product.isFeatured ? "bg-yellow-400 text-gray-900 shadow-sm" : "bg-gray-100 dark:bg-gray-600 text-gray-400 hover:bg-yellow-500 hover:text-white"}`}
 											title={product.isFeatured ? "Bỏ nổi bật" : "Đặt nổi bật"}
 										>
-											<Star className="h-3 w-3" />
+											<Star className="h-3 w-3 pointer-events-none" />
 										</button>
 									</td>
 									<td className="px-3 py-2 whitespace-nowrap">
@@ -120,14 +120,14 @@ const ProductsTable = ({
 												className="p-1 text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-md transition-colors"
 												title="Chỉnh sửa sản phẩm"
 											>
-												<Pencil className="h-3.5 w-3.5" />
+												<Pencil className="h-3.5 w-3.5 pointer-events-none" />
 											</button>
 											<button
 												onClick={() => onDelete(product._id)}
 												className="p-1.5 text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors"
 												title="Xóa sản phẩm"
 											>
-												<Trash className="h-3.5 w-3.5" />
+												<Trash className="h-3.5 w-3.5 pointer-events-none" />
 											</button>
 										</div>
 									</td>

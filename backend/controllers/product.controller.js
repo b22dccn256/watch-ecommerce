@@ -20,6 +20,7 @@ import XLSX from 'xlsx';
 
 export const getAllProducts = async (req, res) => {
   try {
+    console.time('[timing] getAllProducts');
     const { page, limit, sort, ...filters } = req.query;
     const query = await buildProductQuery(filters);
     let productsQuery = Product.find(query).populate('brand', 'name').populate('categoryId', 'name');
@@ -33,11 +34,13 @@ export const getAllProducts = async (req, res) => {
         Product.countDocuments(query),
       ]);
       const processed = await CampaignService.applyCampaignToProducts(products);
+      console.timeEnd('[timing] getAllProducts');
       return res.json({ products: processed, totalPages: Math.ceil(total / limitNum), currentPage: pageNum });
     }
 
     const products  = await productsQuery;
     const processed = await CampaignService.applyCampaignToProducts(products);
+    console.timeEnd('[timing] getAllProducts');
     return res.json({ products: processed });
   } catch (error) {
     console.error('[ProductCtrl] getAllProducts:', error.message);

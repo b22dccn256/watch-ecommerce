@@ -111,6 +111,9 @@ export const getProfile = async (req, res) => {
 export const verifyEmail = async (req, res) => {
 	try {
 		const token = req.body?.token || req.query?.token;
+		console.log("🔍 [verifyEmail] token received:", token ? "✓ token found" : "✗ token missing");
+		console.log("📦 [verifyEmail] req.body:", req.body);
+		console.log("📦 [verifyEmail] req.query:", req.query);
 		if (!token) return res.status(400).json({ message: "Token required" });
 
 		const result = await AuthService.verifyEmail(token);
@@ -281,5 +284,43 @@ export const getAuditLogs = async (req, res) => {
 		return res.json({ logs, pagination: { currentPage: page, totalPages: Math.ceil(totalLogs / limit), totalLogs, limit } });
 	} catch (error) {
 		return res.status(500).json({ message: error.message });
+	}
+};
+
+// ============================================================================
+// DEBUG ENDPOINT (DEV ONLY) - Get verification link without email delay
+// ============================================================================
+export const getVerificationLinkDebug = async (req, res) => {
+	try {
+		if (process.env.NODE_ENV === "production") {
+			return res.status(403).json({ message: "Not available in production" });
+		}
+
+		const { email } = req.body;
+		if (!email) return res.status(400).json({ message: "Email required" });
+
+		const user = await User.findOne({ email });
+		if (!user) return res.status(404).json({ message: "User not found" });
+
+		if (user.emailVerified) {
+			return res.json({ message: "Account already verified" });
+		}
+
+		// Generate a new verification token
+		const verifyToken = user.generateEmailVerificationToken();
+		await user.save();
+
+		const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${verifyToken}`;
+
+		return res.json({
+			message: "✅ Verification link generated (DEV ONLY)",
+			email: user.email,
+			verificationUrl: verifyUrl,
+			token: verifyToken,
+			expiresIn: "24 hours"
+		});
+	} catch (error) {
+		const statusCode = error.statusCode || 500;
+		return res.status(statusCode).json({ message: error.message });
 	}
 };

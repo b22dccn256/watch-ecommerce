@@ -14,6 +14,8 @@ const readCookie = (name) => {
 };
 
 axiosInstance.interceptors.request.use((config) => {
+	// attach timing metadata for client-side diagnostics
+	try { config.metadata = { startTime: Date.now() }; } catch (e) {}
 	const method = (config.method || "get").toLowerCase();
 	if (["post", "put", "patch", "delete"].includes(method)) {
 		const csrfToken = readCookie("csrfToken");
@@ -40,10 +42,27 @@ const processQueue = (error, token = null) => {
 };
 
 axiosInstance.interceptors.response.use(
-	(response) => response,
+	(response) => {
+		try {
+			const meta = response.config?.metadata;
+			if (meta && meta.startTime) {
+				const elapsed = Date.now() - meta.startTime;
+				console.log(`[axios] ${response.config.method?.toUpperCase() || 'GET'} ${response.config.url} ${elapsed}ms`);
+			}
+		} catch (e) {}
+		return response;
+	},
 	async (error) => {
+		try {
+			const meta = error.config?.metadata;
+			if (meta && meta.startTime) {
+				const elapsed = Date.now() - meta.startTime;
+				console.log(`[axios] ERROR ${error.config?.method?.toUpperCase() || 'GET'} ${error.config?.url} ${elapsed}ms`);
+			}
+		} catch (e) {}
+
 		const originalRequest = error.config;
-		
+
 		// Whitelist logic
 		const whitelistUrls = ["/auth/refresh-token", "/auth/login", "/auth/logout", "/auth/profile"];
 		const requestUrl = originalRequest?.url || "";

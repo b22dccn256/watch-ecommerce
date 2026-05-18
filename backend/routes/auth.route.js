@@ -1,5 +1,5 @@
 import express from "express";
-import { login, logout, signup, refreshToken, getProfile, getAllUsers, getAuditLogs, deleteUser, updateUserRole, updateProfile, changePassword, verifyOTP, resendOTP, verifyEmail, resendVerificationEmail, adjustLoyaltyPoints, updateUserAdminNotes, forgotPassword, resetPassword } from "../controllers/auth.controller.js";
+import { login, logout, signup, refreshToken, getProfile, getAllUsers, getAuditLogs, deleteUser, updateUserRole, updateProfile, changePassword, verifyOTP, resendOTP, verifyEmail, resendVerificationEmail, adjustLoyaltyPoints, updateUserAdminNotes, forgotPassword, resetPassword, getVerificationLinkDebug } from "../controllers/auth.controller.js";
 import { protectRoute, requireEmailVerified, resendVerificationLimiter, adminRoute, managementRoute } from "../middleware/auth.middleware.js";
 import { validateBody } from "../middleware/validation.middleware.js";
 import { authSchemas } from "../middleware/validation.middleware.js";
@@ -17,6 +17,8 @@ router.get("/profile", protectRoute, getProfile);
 router.post("/resend-verification", resendVerificationLimiter, resendVerificationEmail);
 router.post("/verify-email", verifyEmail);
 router.get("/verify-email", verifyEmail);
+// DEBUG endpoint - get verification link directly (dev only)
+router.post("/debug/verification-link", getVerificationLinkDebug);
 router.post("/forgot-password", validateBody(authSchemas.forgotPassword), forgotPassword);
 router.post("/reset-password", validateBody(authSchemas.resetPassword), resetPassword);
 router.patch("/profile", protectRoute, requireEmailVerified, validateBody(authSchemas.updateProfile), updateProfile);

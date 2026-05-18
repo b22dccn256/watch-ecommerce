@@ -19,11 +19,12 @@ const CategoryFormModal = ({
   const isEditing = !!editingId;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] p-4 bg-black/60 backdrop-blur-sm overflow-y-auto" onClick={onClose}>
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-lg bg-white dark:bg-luxury-darker border rounded-xl shadow-2xl p-6"
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="w-full max-w-lg bg-white dark:bg-luxury-darker border rounded-xl shadow-2xl p-6 mb-8"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-xl font-bold mb-6 text-luxury-gold flex gap-2">

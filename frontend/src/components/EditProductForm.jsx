@@ -51,8 +51,15 @@ const EditProductForm = ({ product, onSuccess, onClose }) => {
 	});
 
 	useEffect(() => {
-		fetchBrands();
-	}, [fetchBrands]);
+		// Chỉ fetch nếu brands chưa có sẵn (đã được ProductsList fetch từ trước)
+		(async () => {
+			if (brands.length === 0) {
+				console.time('[timing] EditProductForm:fetchBrands');
+				await fetchBrands();
+				console.timeEnd('[timing] EditProductForm:fetchBrands');
+			}
+		})();
+	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();

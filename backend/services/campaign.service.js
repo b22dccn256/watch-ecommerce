@@ -1,5 +1,27 @@
 import Campaign from "../models/campaign.model.js";
 
+// ── Cache active campaigns for 30 seconds to avoid repeated DB hits ──
+let _campaignCache = { data: null, fetchedAt: 0 };
+const CAMPAIGN_CACHE_TTL = 30000; // 30s
+
+async function getActiveCampaignsCached() {
+    const now = Date.now();
+    if (_campaignCache.data && (now - _campaignCache.fetchedAt) < CAMPAIGN_CACHE_TTL) {
+        return _campaignCache.data;
+    }
+    console.time('[timing] Campaign.find Active');
+    _campaignCache.data = await Campaign.find({ status: "Active", isActive: true }).lean();
+    console.timeEnd('[timing] Campaign.find Active');
+    _campaignCache.fetchedAt = now;
+    return _campaignCache.data;
+}
+
+// Helper to bust cache after campaign changes
+export function bustCampaignCache() {
+    _campaignCache.data = null;
+    _campaignCache.fetchedAt = 0;
+}
+
 class CampaignService {
     /**
      * A.3 Fix: Adapter between Campaign.group (string) and Product.categoryId (ObjectId).
@@ -47,11 +69,10 @@ class CampaignService {
         const productList = isArray ? products : [products];
 
         try {
-            // Find all active campaigns
-            const activeCampaigns = await Campaign.find({
-                status: "Active",
-                isActive: true
-            });
+            // Use cached campaigns instead of querying DB every time
+            console.time('[timing] applyCampaignToProducts');
+            const activeCampaigns = await getActiveCampaignsCached();
+            console.log(`[timing] activeCampaignsCount=${activeCampaigns.length}`);
 
             if (activeCampaigns.length === 0) {
                 return isArray ? productList : productList[0];
@@ -84,6 +105,7 @@ class CampaignService {
                 return product;
             });
 
+            console.timeEnd('[timing] applyCampaignToProducts');
             return isArray ? processedProducts : processedProducts[0];
         } catch (error) {
             console.error("Error applying campaigns to products:", error);

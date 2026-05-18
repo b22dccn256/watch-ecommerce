@@ -3,7 +3,9 @@ import Brand from "../models/brand.model.js";
 // Lấy danh sách tất cả các brand đang hoạt động
 export const getAllBrands = async (req, res) => {
     try {
+        console.time('[timing] getAllBrands');
         const brands = await Brand.find({ isActive: true }).sort("name");
+        console.timeEnd('[timing] getAllBrands');
         res.json(brands);
     } catch (error) {
         console.error("Error in getAllBrands:", error.message);

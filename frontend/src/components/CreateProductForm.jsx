@@ -34,9 +34,9 @@ const CreateProductForm = ({ onSuccess }) => {
 	const { createProduct, loading, brands, fetchBrands, categories, fetchCategories } = useProductStore();
 
 	useEffect(() => {
-		fetchBrands();
-		fetchCategories();
-	}, [fetchBrands, fetchCategories]);
+		if (brands.length === 0) fetchBrands();
+		if (categories.length === 0) fetchCategories();
+	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();

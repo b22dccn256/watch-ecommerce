@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useLocation, useNavigate, useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, XCircle, Loader, Mail, RefreshCw, ArrowRight, ShieldCheck } from "lucide-react";
@@ -10,6 +10,7 @@ const VerifyEmailPage = () => {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const params = useParams();
+	const verifyAttemptedRef = useRef(false); // Prevent double verification in StrictMode
 
 	const [status, setStatus] = useState("loading"); // loading | success | error | no_token | email_sent | already_verified
 	const [message, setMessage] = useState("Đang xác minh tài khoản của bạn...");
@@ -21,10 +22,14 @@ const VerifyEmailPage = () => {
 
 	// ── Verify token on mount ──
 	useEffect(() => {
+		// Prevent double verification due to StrictMode in development
+		if (verifyAttemptedRef.current) return;
+
 		const queryParams = new URLSearchParams(location.search);
 		const token = params.token || queryParams.get("token");
 
 		if (!token) {
+			verifyAttemptedRef.current = true;
 			if (pendingEmail) {
 				// After signup — email was already sent, user just needs to check inbox
 				setStatus("email_sent");
@@ -36,6 +41,7 @@ const VerifyEmailPage = () => {
 			return;
 		}
 
+		verifyAttemptedRef.current = true;
 		axios.post("/auth/verify-email", { token })
 			.then(async (res) => {
 				if (res.data?.alreadyVerified) {

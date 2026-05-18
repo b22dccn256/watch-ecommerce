@@ -1,4 +1,5 @@
 import Campaign from "../models/campaign.model.js";
+import { bustCampaignCache } from "../services/campaign.service.js";
 
 export const createCampaign = async (req, res) => {
     try {
@@ -59,6 +60,7 @@ export const createCampaign = async (req, res) => {
             status
         });
 
+        bustCampaignCache();
         res.status(201).json(newCampaign);
     } catch (error) {
         console.error("Error creating campaign:", error);
@@ -105,6 +107,7 @@ export const toggleCampaignStatus = async (req, res) => {
         }
 
         await campaign.save();
+        bustCampaignCache();
         res.json(campaign);
     } catch (error) {
         res.status(500).json({ message: "Lỗi máy chủ", error: error.message });
@@ -115,6 +118,7 @@ export const deleteCampaign = async (req, res) => {
     try {
         const campaign = await Campaign.findByIdAndDelete(req.params.id);
         if (!campaign) return res.status(404).json({ message: "Campaign not found" });
+        bustCampaignCache();
         res.json({ message: "Xoá chiến dịch thành công" });
     } catch (error) {
         res.status(500).json({ message: "Lỗi máy chủ", error: error.message });
