@@ -77,6 +77,39 @@ export const useCategoryManagement = ({ categories, onRefresh }) => {
     [handleError, onRefresh]
   );
 
+  const updateCategory = useCallback(
+    async (catId, e) => {
+      e.preventDefault();
+      setLoading(true);
+      try {
+        await axios.put(`/categories/${catId}`, {
+          ...catForm,
+          parentCategory: catForm.parentCategory || null,
+          slug: catForm.slug || generateCategorySlug(catForm.name),
+        });
+        toast.success('Cập nhật danh mục thành công!');
+        resetCatForm();
+        await onRefresh?.();
+        return true;
+      } catch (error) {
+        handleError(error, { context: 'useCategoryManagement.update', showToast: true });
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [catForm, handleError, onRefresh, resetCatForm]
+  );
+
+  const startEditCategory = useCallback((cat) => {
+    setCatForm({
+      name: cat.name || '',
+      parentCategory: cat.parentCategory?._id || cat.parentCategory || '',
+      image: cat.image || '',
+      slug: cat.slug || '',
+    });
+  }, []);
+
   const rootCategories = categories?.filter((c) => !c.parentCategory) || [];
 
   return {
@@ -85,7 +118,9 @@ export const useCategoryManagement = ({ categories, onRefresh }) => {
     setCatForm,
     processImage,
     submitCategory,
+    updateCategory,
     deleteCategory,
+    startEditCategory,
     resetCatForm,
     rootCategories,
     generateCategorySlug,

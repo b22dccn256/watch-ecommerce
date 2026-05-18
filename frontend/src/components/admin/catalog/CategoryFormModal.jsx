@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { PlusCircle, Grid } from 'lucide-react';
+import { PlusCircle, Pencil, Grid } from 'lucide-react';
 
 const CategoryFormModal = ({
   isOpen,
@@ -8,11 +8,15 @@ const CategoryFormModal = ({
   setCatForm,
   processImage,
   submitCategory,
+  updateCategory,
   loading,
   rootCategories,
   generateCategorySlug,
+  editingId,
 }) => {
   if (!isOpen) return null;
+
+  const isEditing = !!editingId;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
@@ -23,11 +27,12 @@ const CategoryFormModal = ({
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-xl font-bold mb-6 text-luxury-gold flex gap-2">
-          <PlusCircle className="w-6 h-6" /> Tạo Danh Mục
+          {isEditing ? <Pencil className="w-6 h-6" /> : <PlusCircle className="w-6 h-6" />}
+          {isEditing ? 'Chỉnh Sửa Danh Mục' : 'Tạo Danh Mục'}
         </h3>
         <form
           onSubmit={async (e) => {
-            const ok = await submitCategory(e);
+            const ok = isEditing ? await updateCategory(editingId, e) : await submitCategory(e);
             if (ok) onClose();
           }}
           className="space-y-4"
@@ -68,7 +73,7 @@ const CategoryFormModal = ({
             >
               <option value="">-- Không có (Danh mục gốc) --</option>
               {rootCategories.map((c) => (
-                <option key={c._id} value={c._id}>
+                <option key={c._id} value={c._id} disabled={editingId === c._id}>
                   {c.name}
                 </option>
               ))}
@@ -88,7 +93,7 @@ const CategoryFormModal = ({
               Hủy
             </button>
             <button type="submit" disabled={loading} className="px-6 py-2 bg-luxury-gold text-luxury-dark rounded-lg text-sm font-bold">
-              {loading ? 'Đang xử lý...' : 'Lưu danh mục'}
+              {loading ? 'Đang xử lý...' : isEditing ? 'Cập nhật' : 'Lưu danh mục'}
             </button>
           </div>
         </form>

@@ -72,13 +72,44 @@ export const useBrandManagement = ({ products, onRefresh }) => {
     [products, handleError, onRefresh]
   );
 
+  const updateBrand = useCallback(
+    async (brandId, e) => {
+      e.preventDefault();
+      setLoading(true);
+      try {
+        await axios.put(`/brands/${brandId}`, brandForm);
+        toast.success('Cập nhật thương hiệu thành công!');
+        resetBrandForm();
+        await onRefresh?.();
+        return true;
+      } catch (error) {
+        handleError(error, { context: 'useBrandManagement.update', showToast: true });
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [brandForm, handleError, onRefresh, resetBrandForm]
+  );
+
+  const startEditBrand = useCallback((brand) => {
+    setBrandForm({
+      name: brand.name || '',
+      description: brand.description || '',
+      isAuthorizedDealer: brand.isAuthorizedDealer !== false,
+      logo: brand.logo || '',
+    });
+  }, []);
+
   return {
     loading,
     brandForm,
     setBrandForm,
     processImage,
     submitBrand,
+    updateBrand,
     deleteBrand,
+    startEditBrand,
     resetBrandForm,
   };
 };

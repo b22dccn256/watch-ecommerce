@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion';
-import { PlusCircle, ImagePlus } from 'lucide-react';
+import { PlusCircle, Pencil, ImagePlus } from 'lucide-react';
 
-const BrandFormModal = ({ isOpen, onClose, brandForm, setBrandForm, processImage, submitBrand, loading }) => {
+const BrandFormModal = ({ isOpen, onClose, brandForm, setBrandForm, processImage, submitBrand, updateBrand, loading, editingId }) => {
   if (!isOpen) return null;
+
+  const isEditing = !!editingId;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
@@ -14,11 +16,12 @@ const BrandFormModal = ({ isOpen, onClose, brandForm, setBrandForm, processImage
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-xl font-bold mb-6 text-luxury-gold flex gap-2">
-          <PlusCircle className="w-6 h-6" /> Tạo Thương Hiệu
+          {isEditing ? <Pencil className="w-6 h-6" /> : <PlusCircle className="w-6 h-6" />}
+          {isEditing ? 'Chỉnh Sửa Thương Hiệu' : 'Tạo Thương Hiệu'}
         </h3>
         <form
           onSubmit={async (e) => {
-            const ok = await submitBrand(e);
+            const ok = isEditing ? await updateBrand(editingId, e) : await submitBrand(e);
             if (ok) onClose();
           }}
           className="space-y-4"
@@ -66,7 +69,7 @@ const BrandFormModal = ({ isOpen, onClose, brandForm, setBrandForm, processImage
               Hủy
             </button>
             <button type="submit" disabled={loading} className="px-6 py-2 bg-luxury-gold text-luxury-dark rounded-lg text-sm font-bold">
-              {loading ? 'Đang xử lý...' : 'Lưu thương hiệu'}
+              {loading ? 'Đang xử lý...' : isEditing ? 'Cập nhật' : 'Lưu thương hiệu'}
             </button>
           </div>
         </form>

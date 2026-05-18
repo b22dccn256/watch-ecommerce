@@ -33,7 +33,7 @@ const ProductsList = () => {
 	const { search, setSearch, debouncedSearch, currentPage, setCurrentPage, sortBy, setSortBy } = useProductsSearch();
 	
 	// Get products from hook
-	const { products, loading, totalPages, totalCount, fetchProducts, bulkDelete, bulkToggleFeatured } = useProductsList();
+	const { products, loading, totalPages, totalCount, fetchProducts, deleteProduct, bulkDelete, bulkToggleFeatured } = useProductsList();
 	
 	// For bulk select, we need to initialize it with current products
 	const { selectedIds, toggleSelect, toggleSelectAll, allPageSelected, selectedCount, clearSelection } = useProductsBulkSelect(products);
@@ -42,7 +42,7 @@ const ProductsList = () => {
 	const { 
 		openCreateModal, isCreateOpen, 
 		openEditModal, closeEditModal, isEditOpen, getEditingProduct,
-		openDeleteConfirm, isDeleteConfirmOpen 
+		openDeleteConfirm, isDeleteConfirmOpen, getProductToDelete
 	} = useProductsModal();
 
 	// Local state for import/export operations only
@@ -54,6 +54,12 @@ const ProductsList = () => {
 
 	// Store functions
 	const { fetchAllProducts } = useProductStore();
+
+	// ============ Pre-fetch brands on mount để edit modal mở nhanh ============
+	const { fetchBrands } = useProductStore();
+	useEffect(() => {
+		fetchBrands();
+	}, [fetchBrands]);
 
 	// ============ Fetch products when search/sort/pagination changes ============
 	useEffect(() => {
@@ -384,6 +390,24 @@ const ProductsList = () => {
 					</div>
 				</AnimatePresence>
 			)}
+
+			{/* Delete Single Product Confirmation */}
+			<ConfirmModal
+				name="deleteConfirm"
+				title="Xóa sản phẩm?"
+				message="Bạn có chắc muốn xóa sản phẩm này không? Thao tác này không thể hoàn tác."
+				onConfirm={async () => {
+					const product = getProductToDelete();
+					if (product) {
+						const success = await deleteProduct(product.productId);
+						if (success) {
+							fetchProducts({ page: currentPage, limit: PAGE_SIZE, search: debouncedSearch, sort: sortBy });
+						}
+					}
+				}}
+				confirmText="Xóa"
+				isDangerous
+			/>
 
 			{/* Bulk Delete Confirmation */}
 			<ConfirmModal

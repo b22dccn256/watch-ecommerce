@@ -90,49 +90,22 @@ const Modal = ({
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes fade-in {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
-
         @keyframes scale-in {
-          from {
-            opacity: 0;
-            transform: scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
         }
-
         @keyframes slide-up {
-          from {
-            opacity: 0;
-            transform: translateY(12px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-
-        .animation-fade-in {
-          animation: fade-in 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .animation-scale-in {
-          animation: scale-in 0.2s ease-out;
-        }
-
-        .animation-slide-up {
-          animation: slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
+        .animation-fade-in { animation: fade-in 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .animation-scale-in { animation: scale-in 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .animation-slide-up { animation: slide-up 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
       `}</style>
     </>
   );

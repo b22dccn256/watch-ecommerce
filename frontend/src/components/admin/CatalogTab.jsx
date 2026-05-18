@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Layers, PlusCircle, Trash2, ShieldCheck, Grid, CornerDownRight } from 'lucide-react';
+import { Layers, PlusCircle, Trash2, ShieldCheck, Grid, CornerDownRight, Pencil } from 'lucide-react';
 import { useProductStore } from '../../stores/useProductStore';
 import useCatalogData from '../../hooks/useCatalogData';
 import useBrandManagement from '../../hooks/useBrandManagement';
@@ -11,6 +12,8 @@ import CategoryFormModal from './catalog/CategoryFormModal';
 const CatalogTab = () => {
   const { fetchBrands, fetchCategories } = useProductStore();
   const { activeSection, setActiveSection, brands, categories, products, categoryTree } = useCatalogData();
+  const [editingBrandId, setEditingBrandId] = useState(null);
+  const [editingCategoryId, setEditingCategoryId] = useState(null);
 
   const refreshCatalog = async () => {
     await Promise.all([fetchBrands(), fetchCategories()]);
@@ -21,8 +24,27 @@ const CatalogTab = () => {
   const modals = useCatalogModals();
 
   const openCreate = () => {
-    if (activeSection === 'brands') modals.openBrand();
-    else modals.openCategory();
+    if (activeSection === 'brands') {
+      setEditingBrandId(null);
+      brand.resetBrandForm();
+      modals.openBrand();
+    } else {
+      setEditingCategoryId(null);
+      category.resetCatForm();
+      modals.openCategory();
+    }
+  };
+
+  const openEditBrand = (b) => {
+    brand.startEditBrand(b);
+    setEditingBrandId(b._id);
+    modals.openBrand();
+  };
+
+  const openEditCategory = (cat) => {
+    category.startEditCategory(cat);
+    setEditingCategoryId(cat._id);
+    modals.openCategory();
   };
 
   return (
@@ -96,6 +118,14 @@ const CatalogTab = () => {
                 }
                 <button
                   type="button"
+                  onClick={() => openEditBrand(b)}
+                  className="absolute top-2 right-10 opacity-0 group-hover:opacity-100 p-1.5 bg-blue-500/10 text-blue-500 rounded-lg transition"
+                  title="Sửa thương hiệu"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
                   onClick={() => brand.deleteBrand(b._id, b.name)}
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1.5 bg-red-500/10 text-red-500 rounded-lg transition"
                 >
@@ -141,13 +171,23 @@ const CatalogTab = () => {
                       <p className="text-[10px] text-muted font-mono">/{parentCat.slug}</p>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => category.deleteCategory(parentCat._id, parentCat.name)}
-                    className="p-1.5 text-muted transition hover:text-red-500 rounded-lg hover:bg-red-500/8"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => openEditCategory(parentCat)}
+                      className="p-1.5 text-muted transition hover:text-blue-500 rounded-lg hover:bg-blue-500/8"
+                      title="Sửa danh mục"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => category.deleteCategory(parentCat._id, parentCat.name)}
+                      className="p-1.5 text-muted transition hover:text-red-500 rounded-lg hover:bg-red-500/8"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Children */}
@@ -163,13 +203,23 @@ const CatalogTab = () => {
                           <p className="text-sm font-medium text-primary">{child.name}</p>
                           <span className="text-[10px] text-muted font-mono">/{child.slug}</span>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => category.deleteCategory(child._id, child.name)}
-                          className="p-1 text-muted transition hover:text-red-500"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => openEditCategory(child)}
+                            className="p-1 text-muted transition hover:text-blue-500"
+                            title="Sửa danh mục con"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => category.deleteCategory(child._id, child.name)}
+                            className="p-1 text-muted transition hover:text-red-500"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -185,26 +235,30 @@ const CatalogTab = () => {
           <BrandFormModal
             key="brand-modal"
             isOpen={modals.isBrandOpen}
-            onClose={modals.closeBrand}
+            onClose={() => { modals.closeBrand(); setEditingBrandId(null); }}
             brandForm={brand.brandForm}
             setBrandForm={brand.setBrandForm}
             processImage={brand.processImage}
             submitBrand={brand.submitBrand}
+            updateBrand={brand.updateBrand}
             loading={brand.loading}
+            editingId={editingBrandId}
           />
         )}
         {modals.isCategoryOpen && (
           <CategoryFormModal
             key="category-modal"
             isOpen={modals.isCategoryOpen}
-            onClose={modals.closeCategory}
+            onClose={() => { modals.closeCategory(); setEditingCategoryId(null); }}
             catForm={category.catForm}
             setCatForm={category.setCatForm}
             processImage={category.processImage}
             submitCategory={category.submitCategory}
+            updateCategory={category.updateCategory}
             loading={category.loading}
             rootCategories={category.rootCategories}
             generateCategorySlug={category.generateCategorySlug}
+            editingId={editingCategoryId}
           />
         )}
       </AnimatePresence>
