@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, RefreshCw, ShieldCheck, Sparkles, Truck } from "lucide-react";
 
 import { useProductStore } from "../stores/useProductStore";
 import { useCampaignStore } from "../stores/useCampaignStore";
@@ -13,11 +13,31 @@ import BestSellersSection from "../components/BestSellerSection";
 import ChatBot from "../components/ChatBot";
 import { SkeletonProductCard } from "../components/SkeletonLoaders";
 
-// Brand pillars
-const PILLARS = [
-  { label: "Bảo hành quốc tế", sub: "5 năm toàn diện" },
-  { label: "Giao hàng miễn phí", sub: "Từ 2.000.000 ₫" },
-  { label: "Đổi trả 30 ngày", sub: "Không điều kiện" },
+const TRUST_CARDS = [
+  {
+    label: "Bộ sưu tập",
+    value: "500+ mẫu",
+    sub: "Tuyển chọn tinh gọn theo quiet luxury",
+    icon: Sparkles,
+  },
+  {
+    label: "Bảo hành",
+    value: "5 năm",
+    sub: "Hậu mãi toàn diện cho từng chiếc đồng hồ",
+    icon: ShieldCheck,
+  },
+  {
+    label: "Đổi trả",
+    value: "30 ngày",
+    sub: "Quy trình rõ ràng, hỗ trợ nhanh",
+    icon: RefreshCw,
+  },
+  {
+    label: "Giao hàng",
+    value: "2h nội thành",
+    sub: "Áp dụng khu vực trung tâm phù hợp",
+    icon: Truck,
+  },
 ];
 
 // Stagger variants
@@ -120,31 +140,31 @@ const HomePage = () => {
 
         {/* A3: Hero - chi hien neu co trong homeLayout */}
         {(config?.homeLayout || ["hero"]).includes("hero") && (
-          <div className="pt-4 sm:pt-8">
+          <div className="pt-2 sm:pt-4">
             <HeroBanner slogan={config.heroSlogan} />
           </div>
         )}
 
-        {/* ── Featured Products — Editorial ── */}
-        <section className="py-24 sm:py-32">
+        {/* ── Featured Products — Compact ── */}
+        <section className="py-10 sm:py-14">
           {/* Section header */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.5 }}
-            className="mb-12 flex items-end justify-between"
+            className="mb-6 flex items-end justify-between"
           >
             <div>
               <p className="hero-kicker text-[color:var(--color-gold)]">Featured pieces</p>
-              <h2 className="hero-title text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mt-3">Tuyển chọn tinh hoa</h2>
+              <h2 className="hero-title text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mt-2">Tuyển chọn tinh hoa</h2>
             </div>
             <Link
               to="/catalog"
-              className="group hidden items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted transition-colors duration-300 hover:text-[color:var(--color-gold)] sm:inline-flex"
+              className="group hidden items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted transition-colors duration-200 hover:text-[color:var(--color-gold)] sm:inline-flex"
             >
               Xem tất cả
-              <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+              <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-1" />
             </Link>
           </motion.div>
 
@@ -154,63 +174,69 @@ const HomePage = () => {
             whileInView="visible"
             viewport={{ once: true, amount: 0.05 }}
             variants={containerVariants}
-            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
+            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
           >
             {featured.map((product) => (
-              <motion.div key={product._id} variants={itemVariants}>
+              <motion.div key={String(product._id)} variants={itemVariants}>
                 <ProductCard product={product} />
               </motion.div>
             ))}
           </motion.div>
 
           {/* Mobile CTA */}
-          <div className="mt-10 flex justify-center sm:hidden">
-            <Link to="/catalog" className="btn-base btn-outline h-11 px-8">
-              Xem tất cả <ArrowRight className="h-4 w-4" />
+          <div className="mt-6 flex justify-center sm:hidden">
+            <Link to="/catalog" className="btn-base btn-outline h-10 px-6 text-sm">
+              Xem tất cả <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         </section>
 
-        {/* ── Brand Pillars ── */}
-        <section className="border-y border-[color:var(--color-border)] py-12">
-          <div className="grid gap-10 sm:grid-cols-3">
-            {PILLARS.map((p, i) => (
+        {/* ── Trust Band — Compact ── */}
+        <section className="py-6 sm:py-8">
+          <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+            {TRUST_CARDS.map((card, i) => (
               <motion.div
-                key={p.label}
-                initial={{ opacity: 0, y: 8 }}
+                key={card.label}
+                initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.09 }}
-                className="text-center"
+                transition={{ duration: 0.4, delay: i * 0.08 }}
+                className="card-premium flex items-start gap-3 p-3.5 sm:p-4"
               >
-                <p className="text-sm font-semibold tracking-[0.06em] text-primary">{p.label}</p>
-                <p className="mt-1 text-sm text-muted">{p.sub}</p>
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-[color:var(--color-gold)]/20 bg-[color:var(--color-gold)]/8 text-[color:var(--color-gold)]">
+                  <card.icon className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted">{card.label}</p>
+                  <p className="mt-0.5 text-base font-semibold text-primary">{card.value}</p>
+                  <p className="mt-0.5 text-xs leading-snug text-secondary">{card.sub}</p>
+                </div>
               </motion.div>
             ))}
           </div>
         </section>
 
-        {/* ── Editorial Story — Asymmetric ── */}
-        <section className="grid gap-6 py-24 sm:py-32 lg:grid-cols-[1.15fr_0.85fr]">
+        {/* ── Editorial Story — Compact Asymmetric ── */}
+        <section className="grid gap-4 py-10 sm:py-14 lg:grid-cols-[1.15fr_0.85fr]">
           {/* Text side */}
           <motion.div
             initial={{ opacity: 0, x: -16 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="premium-surface flex flex-col justify-between overflow-hidden rounded-[1.6rem] p-8 sm:p-12"
+            className="premium-surface flex flex-col justify-between overflow-hidden rounded-2xl p-6 sm:p-8"
           >
             <div>
               <p className="hero-kicker text-[color:var(--color-gold)]">Editorial story</p>
-              <h2 className="heading-section mt-5 max-w-md text-[1.75rem] sm:text-[2.2rem]">
+              <h2 className="heading-section mt-3 max-w-md text-[1.5rem] sm:text-[1.8rem]">
                 Nhịp điệu sống cùng<br />cơ khí chính xác
               </h2>
-              <p className="mt-5 max-w-lg text-sm leading-relaxed text-secondary sm:text-base">
+              <p className="mt-3 max-w-lg text-sm leading-relaxed text-secondary sm:text-base">
                 Bộ sưu tập được tuyển theo ngôn ngữ tinh gọn: tỷ lệ mặt số, hoàn thiện vỏ, độ mượt dây đeo
                 và cảm giác đeo trong từng ngữ cảnh đời sống.
               </p>
             </div>
-            <Link to="/catalog" className="btn-base btn-outline mt-10 h-11 w-fit px-7">
+            <Link to="/catalog" className="btn-base btn-outline mt-6 h-10 w-fit px-6 text-sm">
               Khám phá bộ sưu tập
             </Link>
           </motion.div>
@@ -221,7 +247,7 @@ const HomePage = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-            className="group relative overflow-hidden rounded-[1.6rem] border border-black/10 bg-black"
+            className="group relative overflow-hidden rounded-2xl border border-black/6 bg-black"
           >
             <img
               src="https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=1400&auto=format&fit=crop"

@@ -41,7 +41,13 @@ export const issueCsrfToken = (req, res) => {
 };
 
 export const csrfProtection = (req, res, next) => {
+	// For non-mutating requests, ensure a CSRF cookie exists so the SPA
+	// can read it and send it back in the X-CSRF-Token header later
 	if (!MUTATING_METHODS.has(req.method)) {
+		if (!req.cookies?.csrfToken) {
+			const token = crypto.randomBytes(32).toString("hex");
+			setCsrfCookie(res, token);
+		}
 		return next();
 	}
 

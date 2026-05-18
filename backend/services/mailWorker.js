@@ -34,18 +34,18 @@ const worker = new Worker(
 					finalHtml = `
 						<div style="font-family: Arial, sans-serif; color: #1f2937; max-width: 1000px; margin: auto; padding: 40px 16px; background: #f7f5ef; border-radius: 18px;">
 							<div style="max-width: 680px; margin: auto; background: #fff; border-radius: 16px; border: 1px solid #e3e3e3; padding: 28px;">
-								<h2 style="font-size: 24px; color: #D4AF37; margin-bottom: 16px; text-align: center;">Xác thực Email Luxury Watch</h2>
+								<h2 style="font-size: 24px; color: #b7925a; margin-bottom: 16px; text-align: center;">Xác minh tài khoản Luxury Watch</h2>
 								<p style="font-size: 16px; color: #374151; line-height: 1.6;">Chào <strong>${job.data.userName || "Khách Hàng"}</strong>,</p>
-								<p style="font-size: 16px; color: #374151; line-height: 1.6;">Cảm ơn bạn đã đăng ký tài khoản tại Luxury Watch. Nhấn nút dưới đây để xác nhận email và hoàn tất việc kích hoạt tài khoản.</p>
+								<p style="font-size: 16px; color: #374151; line-height: 1.6;">Cảm ơn bạn đã đăng ký tài khoản tại Luxury Watch. Nhấn nút bên dưới để xác minh email và hoàn tất kích hoạt tài khoản.</p>
 								<div style="text-align: center; margin: 24px 0;">
-									<a href="${job.data.verifyUrl}" target="_blank" rel="noreferrer" style="background: #D4AF37; color: #1f1f1f; text-decoration: none; font-weight: 700; padding: 12px 26px; border-radius: 999px; font-size: 16px; display: inline-block;">Xác thực email ngay</a>
+									<a href="${job.data.verifyUrl}" target="_blank" rel="noreferrer" style="background: #b7925a; color: #fff; text-decoration: none; font-weight: 700; padding: 12px 26px; border-radius: 8px; font-size: 16px; display: inline-block;">Xác minh tài khoản</a>
 								</div>
 								<p style="font-size: 14px; color: #6b7280; line-height: 1.5;">Nếu nút không hoạt động, sao chép và dán liên kết dưới đây vào trình duyệt:</p>
 								<p style="font-size: 13px; color: #9ca3af; word-break: break-all;">${job.data.verifyUrl}</p>
 								<p style="font-size: 14px; color: #6b7280; line-height: 1.5;">Liên kết này có hiệu lực trong 15 phút và chỉ sử dụng một lần.</p>
-								<p style="font-size: 14px; color: #6b7280; margin-top: 18px;">Trân trọng,<br/><strong>Team Luxury Watch</strong></p>
+								<p style="font-size: 14px; color: #6b7280; margin-top: 18px;">Trân trọng,<br/><strong>Đội ngũ Luxury Watch</strong></p>
 							</div>
-							<div style="text-align:center; font-size:12px; color:#9ca3af; margin-top:12px;">Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</div>
+							<div style="text-align:center; font-size:12px; color:#9ca3af; margin-top:12px;">Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.</div>
 						</div>
 					`;
 				} else if (job.name === "order-status-update") {

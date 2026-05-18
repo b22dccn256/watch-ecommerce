@@ -88,7 +88,7 @@ export const sendEmail = async (to, subject, html) => {
         const previewUrl = nodemailer.getTestMessageUrl(info);
         if (previewUrl) {
             console.log("--------------------------------------------------");
-            console.log("📧 OTP EMAIL SENT");
+            console.log(`📧 EMAIL SENT (${subject})`);
             console.log("Preview URL: " + previewUrl);
             console.log("--------------------------------------------------");
         }

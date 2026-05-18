@@ -244,6 +244,10 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 		set({ loading: true });
 		const { searchTerm, filters, currentPage, sort } = get();
 
+		// Only send price filters when user has explicitly set them (differ from defaults)
+		const effectiveMinPrice = filters.minPrice > 0 ? filters.minPrice : undefined;
+		const effectiveMaxPrice = filters.maxPrice < 1_000_000_000 ? filters.maxPrice : undefined;
+
 		const queryParams = {
 			q: searchTerm || undefined,
 			page: currentPage,
@@ -251,8 +255,8 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 			sort: sort,
 			category: extraParams.category,
 			brands: filters.brands.join(","),
-			minPrice: filters.minPrice,
-			maxPrice: filters.maxPrice,
+			minPrice: effectiveMinPrice,
+			maxPrice: effectiveMaxPrice,
 			machineType: filters.machineType.map(t => t.toLowerCase()).join(","),
 			strapMaterial: filters.strapMaterial.join(","),
 			colors: filters.colors.join(","),

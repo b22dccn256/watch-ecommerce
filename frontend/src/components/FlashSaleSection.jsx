@@ -12,32 +12,32 @@ const FlashSaleSection = ({ products, timeLeft, addToCart, campaignName, title, 
 	}[gridCols] || "md:grid-cols-3 lg:grid-cols-4";
 
 	return (
-		<div className="section-divider py-16 md:py-24 bg-[linear-gradient(180deg,#fff7f0_0%,#ffffff_32%,#ffffff_100%)] dark:bg-[linear-gradient(180deg,#250909_0%,#140d0b_40%,#0f0c08_100%)] relative mt-12 md:mt-24">
+		<div className="section-divider py-10 md:py-14 bg-[linear-gradient(180deg,#fff7f0_0%,#ffffff_25%,#ffffff_100%)] dark:bg-[linear-gradient(180deg,#1a0e0e_0%,#100c09_30%,#0d0b08_100%)] relative">
 			<div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
-				<div className="editorial-surface rounded-[2rem] px-6 py-6 md:px-8 md:py-8 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.35)] mb-10 md:mb-14">
-					<div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-						<div className="space-y-3">
-							<div className="flex items-center gap-3">
-								<span className="bg-black text-white font-bold tracking-widest uppercase text-xs px-3 py-1 rounded-full inline-block">
+				<div className="editorial-surface rounded-2xl px-5 py-5 md:px-6 md:py-6 mb-6 md:mb-8">
+					<div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+						<div className="space-y-2">
+							<div className="flex items-center gap-2.5">
+								<span className="bg-black text-white font-bold tracking-widest uppercase text-[10px] px-2.5 py-0.5 rounded-full inline-block">
 									Ưu Đãi
 								</span>
-								<span className="text-[color:var(--color-gold)] font-semibold">{campaignName || "Sự Kiện Đặc Quyền"}</span>
+								<span className="text-[color:var(--color-gold)] text-sm font-semibold">{campaignName || "Sự Kiện Đặc Quyền"}</span>
 							</div>
-							<h2 className="hero-title text-4xl md:text-5xl font-bold text-gray-900 dark:text-white flex items-center gap-4">
+							<h2 className="hero-title text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
 								{title || "Ưu Đãi Đặc Biệt"}
-								<Zap className="w-8 h-8 md:w-10 md:h-10 text-[color:var(--color-gold)] fill-[color:var(--color-gold)]" />
+								<Zap className="w-6 h-6 md:w-7 md:h-7 text-[color:var(--color-gold)] fill-[color:var(--color-gold)]" />
 							</h2>
 						</div>
 
-						<div className="flex flex-wrap gap-3 text-center">
+						<div className="flex flex-wrap gap-2 text-center">
 							{Object.entries(timeLeft).map(([label, value]) => {
 								if (label === 'days' && value === 0) return null;
 								return (
-									<div key={label} className="min-w-[84px] bg-white/70 dark:bg-zinc-900/80 backdrop-blur-md px-4 py-3 rounded-2xl border border-black/5 dark:border-white/10 shadow-sm transition-all duration-500">
-										<div className="text-3xl md:text-4xl font-bold text-yellow-600 dark:text-yellow-400">
+									<div key={label} className="min-w-[64px] sm:min-w-[72px] bg-white/70 dark:bg-zinc-900/80 backdrop-blur-md px-3 py-2 rounded-xl border border-black/5 dark:border-white/8 shadow-sm">
+										<div className="text-2xl md:text-3xl font-bold text-yellow-600 dark:text-yellow-400">
 											{value.toString().padStart(2, "0")}
 										</div>
-										<div className="text-[10px] md:text-xs uppercase tracking-widest text-gray-500 font-bold">
+										<div className="text-[9px] md:text-[10px] uppercase tracking-widest text-gray-500 font-bold">
 											{label === "days" ? "NGÀY" : label === "hours" ? "GIỜ" : label === "minutes" ? "PHÚT" : "GIÂY"}
 										</div>
 									</div>
@@ -47,10 +47,10 @@ const FlashSaleSection = ({ products, timeLeft, addToCart, campaignName, title, 
 					</div>
 				</div>
 
-				<div className={`grid grid-cols-1 sm:grid-cols-2 ${gridColsClass} gap-6 md:gap-8`}>
+				<div className={`grid grid-cols-1 sm:grid-cols-2 ${gridColsClass} gap-4 md:gap-5`}>
 					{products.map((product) => (
 						<ProductCard
-							key={product._id}
+							key={String(product._id)}
 							product={product.salePercentage ? product : { ...product, discount: Math.floor(Math.random() * 30) + 10 }}
 							addToCart={addToCart}
 						/>

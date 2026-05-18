@@ -1,13 +1,13 @@
 import {
   PlusCircle, ShoppingBasket, LayoutDashboard, Users, Mail,
   Megaphone, ShieldCheck, Archive, Menu, X, Watch, LayoutTemplate, Tag, MessageSquare, Layers,
-  AlertTriangle, Clock, CheckCircle, Search, Bell, ChevronDown, Settings
+  AlertTriangle, Clock, CheckCircle, Search, Bell, Settings
 } from "lucide-react";
-import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "../lib/axios";
-import { toast } from "react-hot-toast";
+import { useDashboardAlerts } from "../hooks/useDashboardAlerts";
 
 import AnalyticsTab from "../components/admin/AnalyticsTab";
 import ProductsList from "../components/admin/ProductsList";
@@ -53,64 +53,13 @@ const AdminPage = () => {
   const activeTab = useMemo(() => resolveTabFromParams(searchParams, accessibleTabs), [searchParams, accessibleTabs]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const [tasks, setTasks] = useState({ pendingOrders: 0, lowStock: 0, pendingReviews: 0, unansweredQuestions: 0 });
+  // Dashboard alerts & notifications — extracted to useDashboardAlerts hook
+  const { tasks, notifications, notifCount, notifOpen, setNotifOpen, markAllRead } = useDashboardAlerts();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState({ products: [], orders: [] });
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [notifOpen, setNotifOpen] = useState(false);
-  const [notifCount, setNotifCount] = useState(0);
-  const notifFetchRef = useRef({ promise: null, lastFetched: 0 });
-
-  const fetchDashboardAlerts = useCallback(async () => {
-    const now = Date.now();
-    const fs = notifFetchRef.current;
-    if (fs.promise) return fs.promise;
-    if (now - fs.lastFetched < 15000) return;
-    fs.promise = Promise.allSettled([
-      axios.get("/orders?status=pending&limit=5"),
-      axios.get("/products/inventory/alerts?limit=3"),
-      axios.get("/reviews?status=pending&limit=1"),
-      axios.get("/questions?answered=false&limit=1"),
-    ]).then(([ordersRes, inventoryRes, reviewsRes, questionsRes]) => {
-      setTasks({
-        pendingOrders: ordersRes.status === "fulfilled" ? (ordersRes.value.data?.pagination?.totalOrders || 0) : 0,
-        lowStock: inventoryRes.status === "fulfilled" ? (inventoryRes.value.data?.totalAlerts || 0) : 0,
-        pendingReviews: reviewsRes.status === "fulfilled" ? (reviewsRes.value.data?.pagination?.totalReviews || 0) : 0,
-        unansweredQuestions: questionsRes.status === "fulfilled" ? (questionsRes.value.data?.totalQuestions || 0) : 0,
-      });
-      const notifs = [];
-      if (ordersRes.status === "fulfilled") {
-        (ordersRes.value.data?.orders || []).slice(0, 5).forEach(o => notifs.push({
-          id: o._id, type: "order",
-          title: "Đơn hàng mới chờ xử lý",
-          desc: "#" + (o.orderCode || o._id?.slice(0, 8).toUpperCase()) + " — " + (o.shippingDetails?.fullName || ""),
-          time: o.createdAt, tab: "orders",
-        }));
-      }
-      if (inventoryRes.status === "fulfilled") {
-        (inventoryRes.value.data?.products || []).slice(0, 3).forEach(p => notifs.push({
-          id: "inv_" + p._id, type: "inventory",
-          title: "Hàng sắp hết kho",
-          desc: (p.name || "Sản phẩm") + " — còn " + p.stock + " cái",
-          time: new Date().toISOString(), tab: "inventory",
-        }));
-      }
-      setNotifications(notifs);
-      setNotifCount(notifs.length);
-    }).finally(() => {
-      fs.lastFetched = Date.now();
-      fs.promise = null;
-    });
-    return fs.promise;
-  }, []);
-
-  useEffect(() => {
-    fetchDashboardAlerts();
-    const interval = setInterval(fetchDashboardAlerts, 30000);
-    return () => clearInterval(interval);
-  }, [fetchDashboardAlerts]);
 
   useEffect(() => {
     if (!searchQuery.trim() || searchQuery.length < 2) {
@@ -191,28 +140,28 @@ const AdminPage = () => {
   return (
     <div className="min-h-screen flex bg-gray-50 dark:bg-luxury-dark">
 
-      {/* ── Desktop Sidebar ─────────────────────── */}
-      <aside className="hidden md:flex flex-col w-56 flex-shrink-0 bg-white dark:bg-luxury-darker border-r border-gray-100 dark:border-luxury-border min-h-screen sticky top-0">
-        <div className="flex items-center gap-2.5 px-4 py-4 border-b border-gray-100 dark:border-luxury-border">
-          <div className="w-7 h-7 rounded-lg bg-luxury-gold flex items-center justify-center flex-shrink-0">
-            <Watch className="w-3.5 h-3.5 text-black" />
+      {/* ── Desktop Sidebar — Dense ──────────── */}
+      <aside className="hidden md:flex flex-col w-48 flex-shrink-0 bg-white dark:bg-luxury-darker border-r border-gray-100 dark:border-luxury-border min-h-screen sticky top-0">
+        <div className="flex items-center gap-2 px-3 py-3 border-b border-gray-100 dark:border-luxury-border">
+          <div className="w-6 h-6 rounded-md bg-luxury-gold flex items-center justify-center flex-shrink-0">
+            <Watch className="w-3 h-3 text-black" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold text-gray-900 dark:text-white truncate">Watch Admin</p>
-            <p className="text-[10px] text-gray-400 truncate capitalize">{currentRole}</p>
+            <p className="text-[11px] font-bold text-gray-900 dark:text-white truncate">Watch Admin</p>
+            <p className="text-[9px] text-gray-400 truncate capitalize">{currentRole}</p>
           </div>
         </div>
 
         <SidebarNav />
 
-        <div className="px-4 py-3 border-t border-gray-100 dark:border-luxury-border">
+        <div className="px-3 py-2.5 border-t border-gray-100 dark:border-luxury-border">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-luxury-gold/20 flex items-center justify-center text-[11px] font-bold text-luxury-gold flex-shrink-0">
+            <div className="w-6 h-6 rounded-full bg-luxury-gold/20 flex items-center justify-center text-[10px] font-bold text-luxury-gold flex-shrink-0">
               {user?.name?.substring(0, 2)?.toUpperCase() || "AD"}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-semibold text-gray-800 dark:text-white truncate">{user?.name || "Admin"}</p>
-              <p className="text-[10px] text-gray-400 truncate">{user?.email || ""}</p>
+              <p className="text-[10px] font-semibold text-gray-800 dark:text-white truncate">{user?.name || "Admin"}</p>
+              <p className="text-[9px] text-gray-400 truncate">{user?.email || ""}</p>
             </div>
           </div>
         </div>
@@ -230,16 +179,16 @@ const AdminPage = () => {
             <motion.aside
               initial={{ x: -240 }} animate={{ x: 0 }} exit={{ x: -240 }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              className="fixed left-0 top-0 bottom-0 z-50 w-56 flex flex-col bg-white dark:bg-luxury-darker border-r border-gray-100 dark:border-luxury-border md:hidden"
+              className="fixed left-0 top-0 bottom-0 z-50 w-48 flex flex-col bg-white dark:bg-luxury-darker border-r border-gray-100 dark:border-luxury-border md:hidden"
             >
-              <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 dark:border-luxury-border">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-luxury-gold flex items-center justify-center">
-                    <Watch className="w-3.5 h-3.5 text-black" />
+              <div className="flex items-center justify-between px-3 py-3 border-b border-gray-100 dark:border-luxury-border">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-md bg-luxury-gold flex items-center justify-center">
+                    <Watch className="w-3 h-3 text-black" />
                   </div>
-                  <p className="text-xs font-bold text-gray-900 dark:text-white">Watch Admin</p>
+                  <p className="text-[11px] font-bold text-gray-900 dark:text-white">Watch Admin</p>
                 </div>
-                <button onClick={() => setSidebarOpen(false)} className="p-1.5 rounded-lg text-gray-400 hover:text-white transition">
+                <button onClick={() => setSidebarOpen(false)} className="p-1 rounded-md text-gray-400 hover:text-white transition">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -252,34 +201,34 @@ const AdminPage = () => {
       {/* ── Main Content ────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">
 
-        {/* Mobile topbar */}
-        <header className="sticky top-0 z-30 bg-white dark:bg-luxury-darker border-b border-gray-100 dark:border-luxury-border px-4 py-3 flex items-center justify-between md:hidden">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setSidebarOpen(true)} className="p-2 -ml-2 rounded-lg text-gray-500 hover:text-luxury-gold hover:bg-gray-100 dark:hover:bg-luxury-border transition">
-              <Menu className="w-5 h-5" />
+        {/* Mobile topbar — compact */}
+        <header className="sticky top-0 z-30 bg-white dark:bg-luxury-darker border-b border-gray-100 dark:border-luxury-border px-3 py-2 flex items-center justify-between md:hidden">
+          <div className="flex items-center gap-2">
+            <button onClick={() => setSidebarOpen(true)} className="p-1.5 -ml-1.5 rounded-md text-gray-500 hover:text-luxury-gold hover:bg-gray-100 dark:hover:bg-luxury-border transition">
+              <Menu className="w-4 h-4" />
             </button>
-            <h1 className="text-sm font-bold text-luxury-gold truncate max-w-[120px]">
+            <h1 className="text-sm font-bold text-luxury-gold truncate max-w-[100px]">
               {accessibleTabs.find(t => t.id === activeTab)?.label}
             </h1>
           </div>
-          <div className="flex items-center gap-1">
-            <button onClick={() => setSearchOpen(true)} className="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-luxury-border transition-colors">
+          <div className="flex items-center gap-0.5">
+            <button onClick={() => setSearchOpen(true)} className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-luxury-border transition-colors">
               <Search className="w-4 h-4" />
             </button>
-            <button onClick={() => setNotifOpen(o => !o)} className="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-luxury-border transition-colors relative">
+            <button onClick={() => setNotifOpen(o => !o)} className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-luxury-border transition-colors relative">
               <Bell className="w-4 h-4" />
-              {notifCount > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />}
+              {notifCount > 0 && <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full" />}
             </button>
           </div>
         </header>
 
-        {/* Desktop topbar */}
-        <header className="hidden md:flex items-center justify-between px-6 py-3 border-b border-gray-100 dark:border-luxury-border bg-white dark:bg-luxury-darker sticky top-0 z-30 gap-4">
+        {/* Desktop topbar — compact */}
+        <header className="hidden md:flex items-center justify-between px-4 py-2 border-b border-gray-100 dark:border-luxury-border bg-white dark:bg-luxury-darker sticky top-0 z-30 gap-4">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, x: -8 }}
+            initial={{ opacity: 0, x: -6 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.18 }}
+            transition={{ duration: 0.15 }}
             className="flex items-center gap-2 flex-shrink-0"
           >
             {(() => {
@@ -369,7 +318,7 @@ const AdminPage = () => {
               <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-luxury-darker border border-gray-100 dark:border-luxury-border rounded-xl shadow-2xl z-50 overflow-hidden">
                 <div className="px-4 py-3 border-b border-gray-100 dark:border-luxury-border flex items-center justify-between">
                   <p className="text-xs font-bold text-gray-900 dark:text-white">Thông báo</p>
-                  {notifCount > 0 && <span className="text-[10px] text-red-400 font-bold">{notifCount} mới</span>}
+                  {notifCount > 0 && <span className="text-[10px] text-luxury-gold font-bold">{notifCount} mới</span>}
                 </div>
                 <div className="max-h-64 overflow-y-auto divide-y divide-gray-50 dark:divide-luxury-border/30 admin-scroll">
                   {notifications.length === 0 ? (
@@ -387,7 +336,7 @@ const AdminPage = () => {
                 </div>
                 {notifications.length > 0 && (
                   <div className="px-4 py-2 border-t border-gray-100 dark:border-luxury-border">
-                    <button onClick={() => { setNotifications([]); setNotifCount(0); setNotifOpen(false); }}
+                    <button onClick={markAllRead}
                       className="text-[10px] text-gray-400 hover:text-luxury-gold transition">
                       Đánh dấu tất cả đã đọc
                     </button>
@@ -398,25 +347,25 @@ const AdminPage = () => {
           </div>
         </header>
 
-        {/* Tab content */}
-        <main className="flex-1 p-4 md:p-6 overflow-auto space-y-5">
-          {/* Today's Tasks — analytics tab only */}
+        {/* Tab content — compact */}
+        <main className="flex-1 p-3 md:p-4 overflow-auto space-y-3">
+          {/* Today's Tasks — compact, analytics tab only */}
           {activeTab === "analytics" && (tasks.pendingOrders > 0 || tasks.lowStock > 0) && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
               {[
-                { label: "Đơn chờ xử lý",       count: tasks.pendingOrders,        icon: Clock,         color: "text-amber-400 bg-amber-400/10 border-amber-400/20", tab: "orders" },
-                { label: "Hàng sắp hết",          count: tasks.lowStock,             icon: AlertTriangle, color: "text-red-400 bg-red-400/10 border-red-400/20",       tab: "inventory" },
-                { label: "Review chờ duyệt",      count: tasks.pendingReviews,       icon: MessageSquare, color: "text-blue-400 bg-blue-400/10 border-blue-400/20",     tab: "reviews" },
-                { label: "Câu hỏi chưa trả lời", count: tasks.unansweredQuestions,  icon: CheckCircle,   color: "text-purple-400 bg-purple-400/10 border-purple-400/20", tab: "reviews" },
+                { label: "Đơn chờ xử lý",       count: tasks.pendingOrders,        icon: Clock,         color: "text-luxury-gold bg-luxury-gold/8 border-luxury-gold/20", tab: "orders" },
+                { label: "Hàng sắp hết",          count: tasks.lowStock,             icon: AlertTriangle, color: "text-luxury-gold bg-luxury-gold/8 border-luxury-gold/20",       tab: "inventory" },
+                { label: "Review chờ duyệt",      count: tasks.pendingReviews,       icon: MessageSquare, color: "text-luxury-gold bg-luxury-gold/8 border-luxury-gold/20",     tab: "reviews" },
+                { label: "Câu hỏi chưa trả lời", count: tasks.unansweredQuestions,  icon: CheckCircle,   color: "text-luxury-gold bg-luxury-gold/8 border-luxury-gold/20", tab: "reviews" },
               ].map(item => (
                 <button
                   key={item.label}
                   onClick={() => handleTabChange(item.tab)}
-                  className={`flex items-center gap-3 p-3 rounded-xl border ${item.color} hover:scale-[1.02] transition-transform text-left w-full`}
+                  className={`flex items-center gap-2.5 p-2.5 rounded-lg border ${item.color} hover:scale-[1.01] transition-transform text-left w-full`}
                 >
-                  <item.icon className="w-4 h-4 flex-shrink-0" />
+                  <item.icon className="w-3.5 h-3.5 flex-shrink-0" />
                   <div>
-                    <p className="text-lg font-bold leading-none">{item.count}</p>
+                    <p className="text-base font-bold leading-none">{item.count}</p>
                     <p className="text-[10px] font-medium opacity-80 mt-0.5 leading-tight">{item.label}</p>
                   </div>
                 </button>

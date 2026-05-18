@@ -32,7 +32,7 @@ export const useUserStore = createWithEqualityFn((set, get) => ({
 			});
 			set({ loading: false });
 			localStorage.setItem("pendingVerifyEmail", normalizedEmail);
-			toast.success(res.data.message || "Đăng ký thành công! Vui lòng xác thực email.");
+			toast.success(res.data.message || "Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản.");
 			return { success: true, email: normalizedEmail };
 		} catch (error) {
 			set({ loading: false });
@@ -49,10 +49,10 @@ export const useUserStore = createWithEqualityFn((set, get) => ({
 
 		try {
 			const res = await axios.post("/auth/resend-verification", { email });
-			toast.success(res.data.message || "Email xác thực đã được gửi lại");
+			toast.success(res.data.message || "Email xác minh đã được gửi lại");
 			return true;
 		} catch (error) {
-			toast.error(error.response?.data?.message || "Không thể gửi lại email xác thực");
+			toast.error(error.response?.data?.message || "Không thể gửi lại email xác minh");
 			return false;
 		}
 	},
@@ -62,7 +62,7 @@ export const useUserStore = createWithEqualityFn((set, get) => ({
 		try {
 			const res = await axios.post("/auth/login", { email, password });
 
-			if (res.data.message === "OTP_REQUIRED") {
+			if (res.data.requiresOTP) {
 				set({ loading: false });
 				return "OTP_REQUIRED";
 			}
@@ -130,7 +130,10 @@ export const useUserStore = createWithEqualityFn((set, get) => ({
 			const response = await axios.get("/auth/profile", { skipRefresh: true });
 			set({ user: response.data, checkingAuth: false });
 		} catch (error) {
-			console.error(error.message);
+			// 401 = not logged in — completely expected, not an error
+			if (error.response?.status !== 401) {
+				console.error("checkAuth error:", error.message);
+			}
 			set({ checkingAuth: false, user: null });
 		}
 	},

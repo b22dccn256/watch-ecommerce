@@ -236,7 +236,7 @@ const CatalogPage = () => {
 							</div>
 						)}
 
-						{!loading && (
+						{!loading && products.length > 0 && (
 							<p className="text-sm text-gray-500 mb-8 border-b border-black/10 dark:border-zinc-800 pb-4">
 								Tìm thấy <span className="text-luxury-gold font-bold">{totalCount ?? products.length}</span> sản phẩm phù hợp
 							</p>
@@ -249,10 +249,20 @@ const CatalogPage = () => {
 								))}
 							</div>
 						) : products.length === 0 ? (
-							<div className="text-center py-20 bg-white/80 dark:bg-zinc-900/30 rounded-2xl border border-black/5 dark:border-zinc-800/50">
-								<svg className="w-16 h-16 mx-auto text-gray-400 dark:text-zinc-700 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-								<h2 className="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">Không tìm thấy sản phẩm</h2>
-								<p className="text-gray-500 max-w-md mx-auto">Thử điều chỉnh lại bộ lọc hoặc khoảng giá để tìm thấy chiếc đồng hồ ưng ý nhất của bạn.</p>
+							<div className="text-center py-16 bg-white/80 dark:bg-zinc-900/30 rounded-2xl border border-black/5 dark:border-zinc-800/50 px-4">
+								<svg className="w-14 h-14 mx-auto text-muted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+								<h2 className="text-lg font-medium text-primary mb-2">Không tìm thấy sản phẩm</h2>
+								{activeChips.length > 0 || searchParams.get("q") ? (
+									<>
+										<p className="text-sm text-secondary max-w-md mx-auto mb-4">Thử điều chỉnh lại bộ lọc hoặc khoảng giá để tìm thấy chiếc đồng hồ ưng ý nhất.</p>
+										<button onClick={clearAllFilters} className="btn-base btn-outline h-9 px-5 text-xs">Xóa tất cả bộ lọc</button>
+									</>
+								) : (
+									<>
+										<p className="text-sm text-secondary max-w-md mx-auto mb-4">Danh mục hiện chưa có sản phẩm nào. Quản trị viên có thể thêm sản phẩm từ bảng điều khiển.</p>
+										<Link to="/secret-dashboard?tab=products" className="btn-base btn-primary h-9 px-5 text-xs">Thêm sản phẩm đầu tiên</Link>
+									</>
+								)}
 							</div>
 						) : (
 							<motion.div

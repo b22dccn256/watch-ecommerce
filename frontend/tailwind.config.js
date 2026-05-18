@@ -31,7 +31,7 @@ export default {
 				'wider-luxury': '0.2em',
 			},
 			spacing: {
-				'section': '5rem',
+				'section': '3.5rem',
 			},
 			backdropBlur: {
 				'xs': '2px',

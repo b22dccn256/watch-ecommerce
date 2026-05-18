@@ -64,21 +64,21 @@ const CartPage = () => {
   };
 
   return (
-    <div className="min-h-screen pb-16">
+    <div className="min-h-screen pb-20 sm:pb-10 pt-20 md:pt-24">
       <CheckoutStepper currentStep={1} />
 
-      <div className="mx-auto max-w-screen-2xl space-y-8 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-screen-2xl space-y-6 px-4 sm:px-6 lg:px-8">
         {cart.length > 0 && (
-          <div className="space-y-3">
+          <div className="space-y-2">
             <p className="hero-kicker text-[color:var(--color-gold)]">Shopping bag</p>
-            <h1 className="hero-title text-4xl">Giỏ hàng của bạn</h1>
+            <h1 className="hero-title text-3xl">Giỏ hàng của bạn</h1>
           </div>
         )}
 
         {cart.length === 0 ? (
           <EmptyState />
         ) : (
-          <div className="grid gap-8 xl:grid-cols-[1fr_360px]">
+          <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
             <section className="space-y-4">
               <ShippingProgress subtotal={subtotal} />
 

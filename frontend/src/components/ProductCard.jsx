@@ -69,8 +69,8 @@ const ProductCard = ({ product }) => {
   return (
     <>
       <motion.article
-        whileHover={{ y: -6 }}
-        transition={{ type: "spring", stiffness: 220, damping: 26 }}
+        whileHover={{ y: -4 }}
+        transition={{ type: "spring", stiffness: 240, damping: 28 }}
         className="group relative cursor-pointer"
       >
         {/* ── Image Block ── */}
@@ -88,24 +88,24 @@ const ProductCard = ({ product }) => {
             loading="lazy"
             onLoad={() => setImageReady(true)}
             onError={() => setImageReady(true)}
-            className={`h-full w-full object-cover transition-transform duration-[600ms] ease-out ${
-              imageReady ? "opacity-100 group-hover:scale-[1.06]" : "opacity-0"
+            className={`h-full w-full object-cover transition-transform duration-[500ms] ease-out ${
+              imageReady ? "opacity-100 group-hover:scale-[1.04]" : "opacity-0"
             }`}
           />
           {!imageReady && <div className="skeleton-shimmer skeleton-shimmer-premium absolute inset-0" />}
 
-          {/* Dark vignette on hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent opacity-0 transition-opacity duration-[500ms] group-hover:opacity-100" />
+          {/* Subtle hover overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent opacity-0 transition-opacity duration-[400ms] group-hover:opacity-100" />
 
           {/* Badges — top left */}
-          <div className="absolute left-3 top-3 z-20 flex gap-1.5">
+          <div className="absolute left-2.5 top-2.5 z-20 flex gap-1.5">
             {discountPercent > 0 && (
-              <span className="rounded-[3px] border border-white/20 bg-black/80 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-white">
+              <span className="rounded-[3px] border border-white/20 bg-black/80 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-white">
                 −{discountPercent}%
               </span>
             )}
             {product.isNew && (
-              <span className="rounded-[3px] border border-[color:var(--color-gold)]/50 bg-[color:var(--color-gold)]/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-[color:var(--color-gold)] backdrop-blur-sm">
+              <span className="rounded-[3px] border border-[color:var(--color-gold)]/40 bg-[color:var(--color-gold)]/12 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-gold)] backdrop-blur-sm">
                 New
               </span>
             )}
@@ -113,32 +113,32 @@ const ProductCard = ({ product }) => {
 
           {/* Out of stock overlay */}
           {isOutOfStock && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/45 backdrop-blur-[2px]">
-              <span className="rounded-[3px] border border-white/30 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.22em] text-white">
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
+              <span className="rounded-[3px] border border-white/25 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-white">
                 Tạm hết hàng
               </span>
             </div>
           )}
 
-          {/* Hover action bar — bottom of image */}
-          <div className="card-reveal absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between px-3 pb-4">
+          {/* Hover action bar — desktop: reveal on hover. Mobile: always show icon row */}
+          <div className="card-reveal absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between px-3 pb-3">
             {/* Add to cart CTA */}
             <button
               type="button"
               onClick={handleAddToCart}
               disabled={isOutOfStock || isAdding}
-              className="flex items-center gap-2 rounded-[4px] border border-white/25 bg-black/65 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-white backdrop-blur-sm transition-colors duration-300 hover:border-[color:var(--color-gold)] hover:bg-[color:var(--color-gold)] hover:text-black disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-[4px] border border-white/20 bg-black/60 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-white backdrop-blur-sm transition-colors duration-200 hover:border-[color:var(--color-gold)] hover:bg-[color:var(--color-gold)] hover:text-black disabled:opacity-50"
             >
               <ShoppingBag className="h-3 w-3" />
               {isAdding ? "…" : "Thêm vào giỏ"}
             </button>
 
             {/* Icon actions */}
-            <div className="flex gap-1.5">
+            <div className="flex gap-1">
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); toggleWishlist(product, !!user); }}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-[4px] border border-white/25 bg-black/65 text-white backdrop-blur-sm transition hover:bg-white hover:text-black"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-[3px] border border-white/20 bg-black/60 text-white backdrop-blur-sm transition hover:bg-white hover:text-black"
                 aria-label="Yêu thích"
               >
                 <Heart className={`h-3.5 w-3.5 ${isWishlisted ? "fill-current text-[color:var(--color-gold)]" : ""}`} />
@@ -146,24 +146,35 @@ const ProductCard = ({ product }) => {
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); setShowQuickView(true); }}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-[4px] border border-white/25 bg-black/65 text-white backdrop-blur-sm transition hover:bg-white hover:text-black"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-[3px] border border-white/20 bg-black/60 text-white backdrop-blur-sm transition hover:bg-white hover:text-black"
                 aria-label="Xem nhanh"
               >
                 <Eye className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
+
+          {/* ── Mobile: Always-visible add-to-cart icon (bottom-right) ── */}
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            disabled={isOutOfStock || isAdding}
+            className="absolute bottom-2.5 right-2.5 z-20 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-black/65 text-white shadow-lg backdrop-blur-sm transition-colors duration-200 hover:bg-[color:var(--color-gold)] hover:text-black disabled:opacity-40 sm:hidden"
+            aria-label="Thêm vào giỏ"
+          >
+            <ShoppingBag className="h-4 w-4" />
+          </button>
         </div>
 
-        {/* ── Info Block ── */}
-        <div className="pt-4 space-y-2">
+        {/* ── Info Block — Compact ── */}
+        <div className="pt-3 space-y-1.5">
           {/* Brand kicker */}
-          <p className="text-[9px] font-semibold uppercase tracking-[0.34em] text-muted">{brand}</p>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.28em] text-muted truncate">{brand}</p>
 
-          {/* Product name — Serif */}
+          {/* Product name */}
           <h3
             onClick={openDetail}
-            className="font-serif text-[1.0625rem] leading-snug text-primary line-clamp-2 transition-colors duration-300 hover:text-[color:var(--color-gold)]"
+            className="font-display text-[0.95rem] leading-snug text-primary line-clamp-2 transition-colors duration-200 hover:text-[color:var(--color-gold)]"
           >
             {product.name}
           </h3>
@@ -171,24 +182,24 @@ const ProductCard = ({ product }) => {
           {/* Price row */}
           <div className="flex items-end justify-between pt-0.5">
             <div>
-              <p className="text-[1.25rem] font-light tracking-[-0.03em] text-primary">
+              <p className="text-[1.1rem] font-light tracking-[-0.02em] text-primary">
                 {product.price?.toLocaleString("vi-VN")} đ
               </p>
               {product.originalPrice && (
-                <p className="text-[11px] text-muted line-through">
+                <p className="text-[10px] text-muted line-through">
                   {product.originalPrice?.toLocaleString("vi-VN")} đ
                 </p>
               )}
             </div>
 
-            {/* Compare icon — minimal */}
+            {/* Compare icon — always visible on desktop, hidden by mobile bag on mobile */}
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 isCompared ? removeFromCompare(product._id) : addToCompare(product);
               }}
-              className="mb-0.5 text-muted transition-colors duration-300 hover:text-[color:var(--color-gold)]"
+              className="mb-0.5 hidden text-muted transition-colors duration-200 hover:text-[color:var(--color-gold)] sm:inline-block"
               aria-label="So sánh"
             >
               <ArrowLeftRight className={`h-4 w-4 ${isCompared ? "text-[color:var(--color-gold)]" : ""}`} />

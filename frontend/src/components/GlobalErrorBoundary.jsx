@@ -28,7 +28,7 @@ class GlobalErrorBoundary extends React.Component {
 				<div className="min-h-screen flex items-center justify-center px-4 bg-gray-50 dark:bg-[#0f0c08] text-gray-900 dark:text-white">
 					<div className="max-w-lg w-full rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-8 text-center shadow-xl">
 						<p className="text-sm uppercase tracking-widest text-gray-500 mb-2">System Error</p>
-						<h1 className="text-3xl font-bold mb-3">Ứng dụng gặp sự cố</h1>
+						<h1 className="text-2xl font-bold mb-3">Ứng dụng gặp sự cố</h1>
 						<p className="text-gray-600 dark:text-gray-300 mb-2">{this.state.errorMessage}</p>
 						<p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Bạn có thể tải lại trang hoặc quay về trang chủ.</p>
 						<div className="flex flex-col sm:flex-row gap-3 justify-center">

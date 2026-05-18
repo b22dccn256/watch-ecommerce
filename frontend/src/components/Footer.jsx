@@ -82,7 +82,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="section-divider mt-16 border-t border-black/10 bg-[color:var(--color-surface)] dark:border-white/10">
+    <footer className="section-divider mt-10 border-t border-black/6 bg-[color:var(--color-surface)] dark:border-white/6">
       <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-center gap-3 border-b border-black/8 py-5 text-xs uppercase tracking-[0.16em] text-secondary dark:border-white/8 sm:justify-between">
           <span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-[color:var(--color-gold)]" />Miễn phí giao hàng từ 2.000.000 đ</span>
@@ -94,7 +94,7 @@ const Footer = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.4 }}
-          className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.1fr_0.7fr_0.7fr_1fr]"
+          className="grid gap-8 py-10 sm:grid-cols-2 lg:grid-cols-[1.1fr_0.7fr_0.7fr_1fr]"
         >
           <section className="space-y-5">
             <div className="inline-flex items-center gap-3">
@@ -184,6 +184,7 @@ const Footer = () => {
             <Link to="/terms" className="transition hover:text-[color:var(--color-gold)]">Điều khoản</Link>
           </div>
         </div>
+
       </div>
     </footer>
   );

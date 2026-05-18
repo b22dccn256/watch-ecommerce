@@ -293,7 +293,7 @@ const ProductsList = () => {
 							<div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700">
 								<div>
 									<h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-										<Eye className="w-5 h-5 text-emerald-500" /> Xem trước Import Excel
+										<Eye className="w-5 h-5 text-luxury-gold" /> Xem trước Import Excel
 									</h2>
 									<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
 										{importPreview.message} (Hiển thị tối đa 50 dòng đầu)
@@ -331,13 +331,13 @@ const ProductsList = () => {
 												</td>
 												<td className="px-3 py-2 text-gray-600 dark:text-gray-300">{row.brand}</td>
 												<td className="px-3 py-2 text-gray-600 dark:text-gray-300">{row.category}</td>
-												<td className="px-3 py-2 text-right font-semibold text-emerald-600 dark:text-emerald-400">
+												<td className="px-3 py-2 text-right font-semibold text-luxury-gold">
 													{Number(row.price).toLocaleString("vi-VN")} ₫
 												</td>
 												<td className="px-3 py-2 text-right">{row.stock}</td>
 												<td className="px-3 py-2">
 													{row.validation === "OK" ? (
-														<span className="text-emerald-500 font-semibold">✓</span>
+														<span className="text-luxury-gold font-semibold">✓</span>
 													) : (
 														<span className="text-red-400 flex items-center gap-1">
 															<AlertTriangle className="w-3 h-3" />
@@ -411,7 +411,7 @@ const ProductsList = () => {
 			<CampaignPickerModal
 				isOpen={useModalStore((s) => s.isOpen('campaignPicker'))}
 				onClose={() => useModalStore.getState().closeModal('campaignPicker')}
-				selectedProductIds={selectedIds}
+				selectedIds={selectedIds}
 			/>
 		</div>
 	);

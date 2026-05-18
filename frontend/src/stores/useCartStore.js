@@ -128,7 +128,10 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 			get().calculateTotals();
 		} catch (error) {
 			set({ cart: [] });
-			toast.error(error.response?.data?.message || "An error occurred fetching cart");
+			// 401 = not authenticated — expected during login flow, not a user-facing error
+			if (error.response?.status !== 401) {
+				toast.error(error.response?.data?.message || "An error occurred fetching cart");
+			}
 		}
 	},
 	clearSelectedCart: () => {

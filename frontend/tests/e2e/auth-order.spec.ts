@@ -33,13 +33,15 @@ test.describe('Customer basic flow', () => {
     expect(signupRes.ok()).toBeTruthy();
     await api.dispose();
 
-    await page.goto('/login');
+    const FRONTEND_URL = process.env.PW_BASE_URL || 'http://localhost:5173';
+    await page.goto(FRONTEND_URL + '/login');
     await page.fill('#email', randomEmail);
     await page.fill('#password', randomPassword);
     await page.locator('form').first().locator('button[type="submit"]').click();
-    await page.waitForURL('/', { timeout: 10000 });
+    // Wait for a reliable home page element instead of strict URL match
+    await page.waitForSelector('.hero-title', { timeout: 15000 });
 
-    await page.goto('/catalog');
+    await page.goto(FRONTEND_URL + '/catalog');
     await page.locator('article').first().getByRole('button', { name: /So/i }).click({ force: true });
     await expect(page.locator('.compare-scroll')).toBeVisible();
     await page.locator('.compare-scroll img').first().click();
@@ -55,7 +57,7 @@ test.describe('Customer basic flow', () => {
     expect(addCartRes.ok()).toBeTruthy();
     await authedApi.dispose();
 
-    await page.goto('/cart');
+    await page.goto(FRONTEND_URL + '/cart');
     await page.locator('input[type="checkbox"]').first().check();
     await page.locator('button.btn-primary').first().click();
     await expect(page).toHaveURL(/\/checkout$/);

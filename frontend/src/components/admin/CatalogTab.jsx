@@ -11,6 +11,7 @@ import CategoryFormModal from './catalog/CategoryFormModal';
 const CatalogTab = () => {
   const { fetchBrands, fetchCategories } = useProductStore();
   const { activeSection, setActiveSection, brands, categories, products, categoryTree } = useCatalogData();
+
   const refreshCatalog = async () => {
     await Promise.all([fetchBrands(), fetchCategories()]);
   };
@@ -26,84 +27,148 @@ const CatalogTab = () => {
 
   return (
     <div className="space-y-8 min-h-[600px]">
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-            <Layers className="text-luxury-gold w-8 h-8" />
+          <h2 className="text-2xl font-semibold text-primary flex items-center gap-3">
+            <Layers className="w-6 h-6 text-[color:var(--color-gold)]" />
             Danh mục & Thương hiệu
-          </h1>
-          <p className="text-gray-500 dark:text-luxury-text-muted text-sm">
+          </h2>
+          <p className="text-sm text-secondary">
             Quản lý Master Data: thương hiệu đối tác, cấu trúc cây danh mục.
           </p>
         </div>
-        <button type="button" onClick={openCreate} className="flex items-center gap-2 px-6 py-3 bg-luxury-gold text-luxury-dark rounded-xl text-sm font-bold shadow-lg">
-          <PlusCircle className="w-4 h-4" /> THÊM {activeSection === 'brands' ? 'THƯƠNG HIỆU' : 'DANH MỤC'}
+        <button
+          type="button"
+          onClick={openCreate}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-[color:var(--color-gold)] text-[color:var(--color-gold)] text-sm font-semibold transition hover:bg-[color:var(--color-gold)] hover:text-white"
+        >
+          <PlusCircle className="w-4 h-4" />
+          THÊM {activeSection === 'brands' ? 'THƯƠNG HIỆU' : 'DANH MỤC'}
         </button>
       </div>
 
-      <div className="flex gap-2 border-b border-gray-100 dark:border-luxury-border pb-px">
-        <button type="button" onClick={() => setActiveSection('brands')} className={`px-6 py-4 text-sm font-bold border-b-2 ${activeSection === 'brands' ? 'border-luxury-gold text-luxury-gold' : 'border-transparent text-gray-500'}`}>
+      {/* Section Tabs */}
+      <div className="flex gap-1 border-b border-black/8 dark:border-white/8 pb-px">
+        <button
+          type="button"
+          onClick={() => setActiveSection('brands')}
+          className={`px-5 py-3 text-sm font-semibold border-b-2 transition ${
+            activeSection === 'brands'
+              ? 'border-[color:var(--color-gold)] text-[color:var(--color-gold)]'
+              : 'border-transparent text-secondary hover:text-primary'
+          }`}
+        >
           Thương Hiệu ({brands.length})
         </button>
-        <button type="button" onClick={() => setActiveSection('categories')} className={`px-6 py-4 text-sm font-bold border-b-2 ${activeSection === 'categories' ? 'border-luxury-gold text-luxury-gold' : 'border-transparent text-gray-500'}`}>
+        <button
+          type="button"
+          onClick={() => setActiveSection('categories')}
+          className={`px-5 py-3 text-sm font-semibold border-b-2 transition ${
+            activeSection === 'categories'
+              ? 'border-[color:var(--color-gold)] text-[color:var(--color-gold)]'
+              : 'border-transparent text-secondary hover:text-primary'
+          }`}
+        >
           Cấu Trúc Danh Mục ({categories.length})
         </button>
       </div>
 
+      {/* Brands Grid */}
       {activeSection === 'brands' && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {brands.length === 0 && <p className="text-gray-500 col-span-full">Chưa có thương hiệu nào.</p>}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5"
+        >
+          {brands.length === 0 && (
+            <p className="text-secondary col-span-full text-sm text-center py-12">Chưa có thương hiệu nào.</p>
+          )}
           {brands.map((b) => (
-            <div key={b._id} className="bg-white dark:bg-luxury-dark rounded-2xl border overflow-hidden group">
-              <div className="h-32 bg-gray-50 dark:bg-black/20 flex items-center justify-center p-6 relative">
-                {b.logo ? <img src={b.logo} alt={b.name} className="max-h-full max-w-full object-contain" /> : <span className="font-bold text-3xl text-gray-300">{b.name.substring(0, 2).toUpperCase()}</span>}
-                <button type="button" onClick={() => brand.deleteBrand(b._id, b.name)} className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1.5 bg-red-50 text-red-500 rounded-lg">
+            <div
+              key={b._id}
+              className="rounded-2xl border border-black/8 dark:border-white/8 bg-surface overflow-hidden group transition hover:border-[color:var(--color-gold)]/30"
+            >
+              <div className="h-32 bg-[color:var(--color-surface-2)] flex items-center justify-center p-6 relative">
+                {b.logo
+                  ? <img src={b.logo} alt={b.name} className="max-h-full max-w-full object-contain" />
+                  : <span className="font-bold text-3xl text-muted">{b.name.substring(0, 2).toUpperCase()}</span>
+                }
+                <button
+                  type="button"
+                  onClick={() => brand.deleteBrand(b._id, b.name)}
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1.5 bg-red-500/10 text-red-500 rounded-lg transition"
+                >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
-              <div className="p-5">
-                <h3 className="font-bold text-lg flex items-center gap-2">
+              <div className="p-4">
+                <h3 className="font-semibold text-primary flex items-center gap-2">
                   {b.name}
                   {b.isAuthorizedDealer && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
                 </h3>
-                <p className="text-xs text-gray-500 line-clamp-2 mt-2">{b.description || 'Chưa có mô tả'}</p>
+                <p className="text-xs text-secondary line-clamp-2 mt-1">{b.description || 'Chưa có mô tả'}</p>
               </div>
             </div>
           ))}
         </motion.div>
       )}
 
+      {/* Categories Tree */}
       {activeSection === 'categories' && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-luxury-dark border rounded-xl p-6">
-          {categoryTree.length === 0 && <p className="text-gray-500 text-center py-8">Chưa có danh mục nào.</p>}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-black/8 dark:border-white/8 bg-surface p-5"
+        >
+          {categoryTree.length === 0 && (
+            <p className="text-secondary text-center py-10 text-sm">Chưa có danh mục nào.</p>
+          )}
           <div className="space-y-2">
             {categoryTree.map((parentCat) => (
-              <div key={parentCat._id} className="border rounded-lg overflow-hidden">
-                <div className="flex items-center justify-between p-4 bg-white dark:bg-luxury-darker border-b">
+              <div key={parentCat._id} className="rounded-xl border border-black/8 dark:border-white/8 overflow-hidden">
+                {/* Parent row */}
+                <div className="flex items-center justify-between px-4 py-3 bg-[color:var(--color-surface-2)]">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                      {parentCat.image ? <img src={parentCat.image} alt="" className="w-6 h-6 object-cover" /> : <Grid className="w-5 h-5 text-gray-400" />}
+                    <div className="w-9 h-9 rounded-lg bg-surface border border-black/8 dark:border-white/8 flex items-center justify-center">
+                      {parentCat.image
+                        ? <img src={parentCat.image} alt="" className="w-5 h-5 object-cover rounded" />
+                        : <Grid className="w-4 h-4 text-muted" />
+                      }
                     </div>
                     <div>
-                      <p className="font-bold">{parentCat.name}</p>
-                      <p className="text-xs text-gray-400 font-mono">/{parentCat.slug}</p>
+                      <p className="font-semibold text-sm text-primary">{parentCat.name}</p>
+                      <p className="text-[10px] text-muted font-mono">/{parentCat.slug}</p>
                     </div>
                   </div>
-                  <button type="button" onClick={() => category.deleteCategory(parentCat._id, parentCat.name)} className="p-2 text-gray-400 hover:text-red-500">
+                  <button
+                    type="button"
+                    onClick={() => category.deleteCategory(parentCat._id, parentCat.name)}
+                    className="p-1.5 text-muted transition hover:text-red-500 rounded-lg hover:bg-red-500/8"
+                  >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
+
+                {/* Children */}
                 {parentCat.children?.length > 0 && (
-                  <div className="p-3 space-y-1">
+                  <div className="p-2 space-y-1">
                     {parentCat.children.map((child) => (
-                      <div key={child._id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/80 ml-8">
-                        <div className="flex items-center gap-3">
-                          <CornerDownRight className="w-4 h-4 text-gray-300" />
-                          <p className="font-semibold text-sm">{child.name}</p>
-                          <span className="text-xs text-gray-400 font-mono">/{child.slug}</span>
+                      <div
+                        key={child._id}
+                        className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-[color:var(--color-surface-2)] ml-8 transition"
+                      >
+                        <div className="flex items-center gap-2">
+                          <CornerDownRight className="w-3.5 h-3.5 text-muted" />
+                          <p className="text-sm font-medium text-primary">{child.name}</p>
+                          <span className="text-[10px] text-muted font-mono">/{child.slug}</span>
                         </div>
-                        <button type="button" onClick={() => category.deleteCategory(child._id, child.name)} className="p-1.5 text-gray-400 hover:text-red-500">
-                          <Trash2 className="w-4 h-4" />
+                        <button
+                          type="button"
+                          onClick={() => category.deleteCategory(child._id, child.name)}
+                          className="p-1 text-muted transition hover:text-red-500"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     ))}

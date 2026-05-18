@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { Toaster, toast } from "react-hot-toast";
 
 import HomePage from "./pages/HomePage";
@@ -34,6 +35,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ChatBot from "./components/ChatBot";
 import CompareModal from "./components/CompareModal";
+import MobileCTA from "./components/MobileCTA";
 import LoadingSpinner from "./components/LoadingSpinner";
 import { useUserStore } from "./stores/useUserStore";
 import { useCartStore } from "./stores/useCartStore";
@@ -59,6 +61,8 @@ const ScrollToTop = () => {
 function App() {
 	const { user, checkAuth, checkingAuth } = useUserStore();
 	const [resendLoading, setResendLoading] = useState(false);
+	const [resendCooldown, setResendCooldown] = useState(0);
+	const cooldownRef = useRef(null);
 	const { getCartItems } = useCartStore();
 	const { fetchWishlist, mergeWishlist, syncFromLocalStorage } = useWishlistStore();
 	const { theme } = useThemeStore();
@@ -69,6 +73,11 @@ function App() {
 		checkAuth();
 	}, [checkAuth]);
 
+	// Fetch CSRF token on app startup
+	useEffect(() => {
+		axios.get("/csrf-token");
+	}, []);
+
 	const t = (key) => resources[lang]?.translation[key] || key;
 
 	useEffect(() => {
@@ -78,6 +87,14 @@ function App() {
 			document.documentElement.classList.remove("dark");
 		}
 	}, [theme]);
+
+	// Resend cooldown timer
+	useEffect(() => {
+		if (resendCooldown > 0) {
+			cooldownRef.current = setInterval(() => setResendCooldown((p) => p - 1), 1000);
+		}
+		return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
+	}, [resendCooldown]);
 
 	// Initialize Wishlist and handle Multi-tab Sync
 	useEffect(() => {
@@ -94,7 +111,7 @@ function App() {
 	}, [fetchWishlist, user, syncFromLocalStorage]);
 
 	useEffect(() => {
-		if (!user) return;
+		if (!user || !user.emailVerified && user.role !== "admin") return;
 
 		const syncCartAndFetch = async () => {
 			await useCartStore.getState().syncLocalCartToServer();
@@ -117,48 +134,54 @@ function App() {
 	return (
 		<GlobalErrorBoundary>
 		<I18nContext.Provider value={{ t, lang, currency }}>
-			<div className={`min-h-screen relative theme-transition ${theme === 'dark' ? 'bg-luxury-dark text-white' : 'bg-white text-black'}`}>
+			<div className={`min-h-screen relative ${theme === 'dark' ? 'bg-[color:var(--color-bg)] text-[color:var(--color-primary)]' : 'bg-[color:var(--color-bg)] text-[color:var(--color-primary)]'}`}>
 				<ShimmerStyle />
 				<ScrollToTop />
-			<div className='absolute inset-0 overflow-hidden pointer-events-none'>
-				<div className='absolute inset-0'>
-					<div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-full ${theme === 'dark'
-							? 'bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.15)_0%,rgba(46,95,74,0.05)_45%,rgba(15,15,15,0.9)_100%)]'
-							: 'bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.1)_0%,rgba(240,240,240,0.4)_45%,rgba(255,255,255,1)_100%)]'
-						}`} />
-				</div>
-			</div>
 
-			<div className='relative pt-20 min-h-screen flex flex-col'>
+			<div className='relative pt-16 min-h-screen flex flex-col'>
 				<Navbar />
 				{user && user.role !== "admin" && !user.emailVerified && (
-					<div className="mx-auto w-full max-w-screen-xl px-4 sm:px-6 md:px-8 py-3 bg-gradient-to-r from-amber-200 to-amber-300 border-b border-amber-400 text-amber-900 shadow-sm flex justify-between items-center gap-3">
-						<div>
-							<p className="font-semibold">Email của bạn chưa được xác thực</p>
-							<p className="text-sm">Vui lòng kiểm tra email và click link xác thực để tránh bị hạn chế tạo đơn hàng.</p>
+					<div className="mx-auto w-full max-w-screen-xl px-4 sm:px-6 md:px-8 py-2.5 bg-amber-50/95 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-200 flex justify-between items-center gap-3">
+						<div className="min-w-0">
+							<p className="text-sm font-semibold">Tài khoản cần xác minh bảo mật</p>
+							<p className="text-xs text-amber-700 dark:text-amber-300/80 mt-0.5">Chúng tôi đã gửi email xác minh. Vui lòng mở email và nhấn nút xác thực để kích hoạt tài khoản.</p>
 						</div>
 						<button
-							className={`px-4 py-2 rounded-md font-semibold ${resendLoading ? 'bg-gray-300 text-gray-700' : 'bg-amber-500 text-white hover:bg-amber-600'}`}
+							className={`shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+								resendLoading || resendCooldown > 0
+									? 'bg-amber-200/50 dark:bg-amber-800/30 text-amber-500 cursor-not-allowed'
+									: 'bg-amber-500 text-white hover:bg-amber-600'
+							}`}
 							onClick={async () => {
+								if (resendLoading || resendCooldown > 0) return;
 								try {
 									setResendLoading(true);
 									const res = await axios.post('/auth/resend-verification', { email: user.email });
-									toast.success(res.data.message || 'Đã gửi lại email xác thực');
+									toast.success(res.data.message || 'Đã gửi lại email xác minh');
+									setResendCooldown(60);
 								} catch (err) {
-									const msg = err?.response?.data?.message || 'Gửi lại email xác thực thất bại';
+									const msg = err?.response?.data?.message || 'Gửi lại email xác minh thất bại';
 									toast.error(msg);
 								} finally {
 									setResendLoading(false);
 								}
 							}}
-							disabled={resendLoading}
+							disabled={resendLoading || resendCooldown > 0}
 						>
-							{resendLoading ? 'Đang gửi...' : 'Gửi lại email xác thực'}
+							{resendLoading ? 'Đang gửi...' : resendCooldown > 0 ? `Gửi lại (${resendCooldown}s)` : 'Gửi lại email xác minh'}
 						</button>
 					</div>
 				)}
-				<main className='flex-1'>
-					<Routes>
+				<main className='flex-1 pb-20 sm:pb-0'>
+					<AnimatePresence mode="wait">
+						<motion.div
+							key={location.pathname}
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							transition={{ duration: 0.12 }}
+						>
+					<Routes location={location}>
 							<Route path='/' element={isVerifiedUser ? <HomePage /> : user ? <Navigate to='/verify-email' /> : <HomePage />} />
 							<Route path='/signup' element={!user ? <SignUpPage /> : <Navigate to='/' />} />
 							<Route path='/login' element={!user ? <LoginPage /> : <Navigate to='/' />} />
@@ -193,6 +216,8 @@ function App() {
 						<Route path="/order-tracking/:trackingToken?" element={<OrderTrackingPage />} />
 						<Route path='*' element={<NotFoundPage />} />
 					</Routes>
+						</motion.div>
+					</AnimatePresence>
 				</main>
 				<Footer />
 			</div>
@@ -212,6 +237,7 @@ function App() {
 				}}
 			/>
 			<ChatBot />
+			<MobileCTA />
 			<CompareModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
 			</div>
 		</I18nContext.Provider>

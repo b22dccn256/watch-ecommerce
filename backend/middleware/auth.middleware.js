@@ -50,7 +50,7 @@ export const requireEmailVerified = (req, res, next) => {
 	}
 
 	if (!req.user.emailVerified) {
-		return res.status(403).json({ message: "Vui lòng xác thực email trước khi thực hiện hành động này." });
+		return res.status(403).json({ message: "Vui lòng xác minh email trước khi thực hiện hành động này." });
 	}
 
 	next();

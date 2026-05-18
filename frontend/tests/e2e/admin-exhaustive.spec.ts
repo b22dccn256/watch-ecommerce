@@ -71,9 +71,13 @@ test.describe.serial('Admin exhaustive', () => {
   };
 
   const gotoAdmin = async (page) => {
-    await page.context().addCookies(authCookies);
-    await page.goto('/secret-dashboard');
-    await expect(page.getByText('Watch Admin')).toBeVisible();
+    // Prefer stored storageState file when available
+    const storagePath = fs.existsSync(AUTH_STATE_PATH) ? AUTH_STATE_PATH : null;
+    const { createAuthenticatedPage } = await import('./helpers/auth');
+    const authPage = await createAuthenticatedPage(page, { storageStatePath: storagePath, email: ADMIN_EMAIL, password: ADMIN_PASSWORD });
+    await authPage.goto('/secret-dashboard');
+    await expect(authPage.getByText('Watch Admin')).toBeVisible();
+    return authPage;
   };
 
   const openTab = async (page, tabId) => {
@@ -222,124 +226,124 @@ test.describe.serial('Admin exhaustive', () => {
   });
 
   test('Dashboard + Analytics', async ({ page }) => {
-    await gotoAdmin(page);
-    await openTab(page, 'analytics');
-    await expect(page).toHaveURL(/tab=analytics/);
+    const authPage = await gotoAdmin(page);
+    await openTab(authPage, 'analytics');
+    await expect(authPage).toHaveURL(/tab=analytics/);
   });
 
   test('Orders', async ({ page }) => {
-    await gotoAdmin(page);
-    await openTab(page, 'orders');
-    await expect(page).toHaveURL(/tab=orders/);
+    const authPage = await gotoAdmin(page);
+    await openTab(authPage, 'orders');
+    await expect(authPage).toHaveURL(/tab=orders/);
 
-    const detailButtons = page.getByRole('button', { name: 'Chi tiết' });
+    const detailButtons = authPage.getByRole('button', { name: 'Chi tiết' });
     if (await detailButtons.count()) {
       await detailButtons.first().click();
-      await page.getByRole('button', { name: /Lưu thay đổi/i }).click();
-      // await expect(page.getByText('Đã lưu chi tiết')).toBeVisible();
+      await authPage.getByRole('button', { name: /Lưu thay đổi/i }).click();
+      // await expect(authPage.getByText('Đã lưu chi tiết')).toBeVisible();
     }
   });
 
   test('Products CRUD + Bulk', async ({ page }) => {
-    await gotoAdmin(page);
-    await openTab(page, 'products');
-    await expect(page).toHaveURL(/tab=products/);
+    const authPage = await gotoAdmin(page);
+    await openTab(authPage, 'products');
+    await expect(authPage).toHaveURL(/tab=products/);
 
-    await page.waitForTimeout(800);
-    const firstRowCheckbox = page.locator('table tbody tr').first().locator('button').first();
+    await authPage.waitForTimeout(800);
+    const firstRowCheckbox = authPage.locator('table tbody tr').first().locator('button').first();
     await firstRowCheckbox.click();
   });
 
   test('Catalog: Brands + Categories', async ({ page }) => {
-    await gotoAdmin(page);
-    await openTab(page, 'catalog');
+    const authPage = await gotoAdmin(page);
+    await openTab(authPage, 'catalog');
 
     const imagePath = path.resolve(__dirname, '../../public/banner-2.jpg');
-    await page.locator('button:has(svg.lucide-circle-plus)').nth(1).click();
-    await page.getByPlaceholder('VD: Rolex').fill(`E2E Brand UI ${Date.now()}`);
-    await page.locator('input[type="file"]').first().setInputFiles(imagePath);
-    await page.locator('form').first().locator('button[type="submit"]').click();
-    await expect(page.getByPlaceholder('VD: Rolex')).toBeHidden({ timeout: 10000 });
+    await authPage.locator('button:has(svg.lucide-circle-plus)').nth(1).click();
+    await authPage.getByPlaceholder('VD: Rolex').fill(`E2E Brand UI ${Date.now()}`);
+    await authPage.locator('input[type="file"]').first().setInputFiles(imagePath);
+    await authPage.locator('form').first().locator('button[type="submit"]').click();
+    await expect(authPage.getByPlaceholder('VD: Rolex')).toBeHidden({ timeout: 10000 });
 
-    await openTab(page, 'catalog');
-    await page.locator('div.flex.gap-2.border-b button').nth(1).click();
-    await page.locator('button:has(svg.lucide-circle-plus)').nth(1).click();
-    await page.getByPlaceholder('VD: Dress Watches').fill(`E2E Cat UI ${Date.now()}`);
-    await page.locator('input[type="file"]').first().setInputFiles(imagePath);
-    await page.locator('form').first().locator('button[type="submit"]').click();
-    await expect(page.getByPlaceholder('VD: Dress Watches')).toBeHidden({ timeout: 10000 });
+    await openTab(authPage, 'catalog');
+    await authPage.locator('div.flex.gap-2.border-b button').nth(1).click();
+    await authPage.locator('button:has(svg.lucide-circle-plus)').nth(1).click();
+    await authPage.getByPlaceholder('VD: Dress Watches').fill(`E2E Cat UI ${Date.now()}`);
+    await authPage.locator('input[type="file"]').first().setInputFiles(imagePath);
+    await authPage.locator('form').first().locator('button[type="submit"]').click();
+    await expect(authPage.getByPlaceholder('VD: Dress Watches')).toBeHidden({ timeout: 10000 });
   });
 
   test('Inventory', async ({ page }) => {
-    await gotoAdmin(page);
-    await openTab(page, 'inventory');
+    const authPage = await gotoAdmin(page);
+    await openTab(authPage, 'inventory');
 
-    await page.getByRole('button', { name: /Kh.*i t.*o Ki.*m k.*/i }).click();
-    await page.locator('select').first().selectOption(temp.productId);
-    await page.locator('select').nth(1).selectOption('ADJUST');
-    await page.locator('input[type="number"]').first().fill('2');
-    await page.locator('textarea').first().fill('E2E adjust');
-    await page.locator('button[type="submit"]').first().click();
+    await authPage.getByRole('button', { name: /Kh.*i t.*o Ki.*m k.*/i }).click();
+    await authPage.locator('select').first().selectOption(temp.productId);
+    await authPage.locator('select').nth(1).selectOption('ADJUST');
+    await authPage.locator('input[type="number"]').first().fill('2');
+    await authPage.locator('textarea').first().fill('E2E adjust');
+    await authPage.locator('button[type="submit"]').first().click();
   });
 
   test('Marketing + Campaigns + Banners', async ({ page }) => {
-    await gotoAdmin(page);
-    await openTab(page, 'marketing');
+    const authPage = await gotoAdmin(page);
+    await openTab(authPage, 'marketing');
 
     const start = new Date(Date.now() + 2 * 60 * 1000);
     const end = new Date(Date.now() + 26 * 60 * 60 * 1000);
 
-    await page.getByPlaceholder('VD: Flash Sale 8/3').fill(`E2E Campaign UI ${Date.now()}`);
-    await page.getByPlaceholder('15').fill('12');
-    await page.locator('input[type="datetime-local"]').nth(0).fill(formatDateInput(start));
-    await page.locator('input[type="datetime-local"]').nth(1).fill(formatDateInput(end));
-    await page.getByRole('button', { name: /K.*ch ho.*t chi.*n d.*ch/i }).click();
+    await authPage.getByPlaceholder('VD: Flash Sale 8/3').fill(`E2E Campaign UI ${Date.now()}`);
+    await authPage.getByPlaceholder('15').fill('12');
+    await authPage.locator('input[type="datetime-local"]').nth(0).fill(formatDateInput(start));
+    await authPage.locator('input[type="datetime-local"]').nth(1).fill(formatDateInput(end));
+    await authPage.getByRole('button', { name: /K.*ch ho.*t chi.*n d.*ch/i }).click();
   });
 
   test('Email module', async ({ page }) => {
-    await gotoAdmin(page);
-    await openTab(page, 'email');
-    await expect(page).toHaveURL(/tab=email/);
-    await expect(page.getByRole('button', { name: /T.*O M.*I/i })).toBeVisible();
+    const authPage = await gotoAdmin(page);
+    await openTab(authPage, 'email');
+    await expect(authPage).toHaveURL(/tab=email/);
+    await expect(authPage.getByRole('button', { name: /T.*O M.*I/i })).toBeVisible();
   });
 
   test('Reviews & Q&A', async ({ page }) => {
-    await gotoAdmin(page);
-    await openTab(page, 'reviews');
-    await expect(page).toHaveURL(/tab=reviews/);
+    const authPage = await gotoAdmin(page);
+    await openTab(authPage, 'reviews');
+    await expect(authPage).toHaveURL(/tab=reviews/);
   });
 
   test('Coupons', async ({ page }) => {
-    await gotoAdmin(page);
-    await openTab(page, 'coupons');
+    const authPage = await gotoAdmin(page);
+    await openTab(authPage, 'coupons');
 
-    await page.getByRole('button', { name: /T.*O M.* M.*I/i }).click();
+    await authPage.getByRole('button', { name: /T.*O M.* M.*I/i }).click();
     temp.couponCode = `E2E${Date.now().toString().slice(-6)}`;
-    await page.getByPlaceholder('VD: SUMMER2024').fill(temp.couponCode);
-    await page.locator('input[type="number"]').first().fill('10');
-    await page.locator('input[type="datetime-local"]').first().fill(formatDateInput(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)));
-    await page.locator('button[type="submit"]').first().click();
+    await authPage.getByPlaceholder('VD: SUMMER2024').fill(temp.couponCode);
+    await authPage.locator('input[type="number"]').first().fill('10');
+    await authPage.locator('input[type="datetime-local"]').first().fill(formatDateInput(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)));
+    await authPage.locator('button[type="submit"]').first().click();
   });
 
   test('Users (loyalty + notes)', async ({ page }) => {
-    await gotoAdmin(page);
-    await openTab(page, 'users');
-    await expect(page).toHaveURL(/tab=users/);
+    const authPage = await gotoAdmin(page);
+    await openTab(authPage, 'users');
+    await expect(authPage).toHaveURL(/tab=users/);
   });
 
   test('AI System', async ({ page }) => {
-    await gotoAdmin(page);
-    await openTab(page, 'ai');
+    const authPage = await gotoAdmin(page);
+    await openTab(authPage, 'ai');
 
-    await page.getByRole('button', { name: /K.*ch ho.*t AI Ph.* Duy.*t/i }).click();
-    await page.getByRole('button', { name: /Qu.*t & D.*n D.*p Spam/i }).click();
+    await authPage.getByRole('button', { name: /K.*ch ho.*t AI Ph.* Duy.*t/i }).click();
+    await authPage.getByRole('button', { name: /Qu.*t & D.*n D.*p Spam/i }).click();
   });
 
   test('Store Settings', async ({ page }) => {
-    await gotoAdmin(page);
-    await openTab(page, 'settings');
+    const authPage = await gotoAdmin(page);
+    await openTab(authPage, 'settings');
 
-    await page.locator('textarea[name="heroSlogan"]').fill('E2E slogan');
-    await page.getByRole('button', { name: /L.*U & XU.*T B.*N NGAY/i }).click();
+    await authPage.locator('textarea[name="heroSlogan"]').fill('E2E slogan');
+    await authPage.getByRole('button', { name: /L.*U & XU.*T B.*N NGAY/i }).click();
   });
 });

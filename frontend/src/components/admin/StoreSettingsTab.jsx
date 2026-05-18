@@ -77,7 +77,7 @@ const StoreSettingsTab = () => {
 				{/* A3: SECTION MANAGER */}
 				<div className="bg-white dark:bg-black/20 p-6 flex flex-col gap-4 rounded-2xl border border-gray-100 dark:border-white/5">
 					<h3 className="font-bold text-lg flex items-center gap-2 border-b border-gray-100 dark:border-white/5 pb-4">
-						<Layers className="w-5 h-5 text-purple-500" /> Bật/Tắt & Sắp xếp Sections Trang Chủ
+						<Layers className="w-5 h-5 text-luxury-gold" /> Bật/Tắt & Sắp xếp Sections Trang Chủ
 					</h3>
 					<p className="text-xs text-gray-400 -mt-2">Dùng nút ↑↓ để đổi thứ tự. Nhấn biểu tượng mắt để ẩn/hiện từng section.</p>
 					<div className="space-y-2">
@@ -100,7 +100,7 @@ const StoreSettingsTab = () => {
 											<ChevronDown className="w-4 h-4" />
 										</button>
 										<button type="button" onClick={() => toggleSection(item.key)}
-											className={`p-1.5 rounded-lg transition ml-1 ${item.enabled ? "text-emerald-400 hover:bg-emerald-400/10" : "text-gray-400 hover:bg-white/10"}`}
+											className={`p-1.5 rounded-lg transition ml-1 ${item.enabled ? "text-luxury-gold hover:bg-luxury-gold/10" : "text-gray-400 hover:bg-white/10"}`}
 											title={item.enabled ? "Tắt section" : "Bật section"}>
 											{item.enabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
 										</button>
@@ -138,7 +138,7 @@ const StoreSettingsTab = () => {
 				{/* LAYOUT SETTINGS */}
 				<div className="bg-white dark:bg-black/20 p-6 flex flex-col gap-6 rounded-2xl border border-gray-100 dark:border-white/5">
 					<h3 className="font-bold text-lg flex items-center gap-2 border-b border-gray-100 dark:border-white/5 pb-4">
-						<Grid className="w-5 h-5 text-emerald-500" /> Bố cục Lưới & Hiển thị
+						<Grid className="w-5 h-5 text-luxury-gold" /> Bố cục Lưới & Hiển thị
 					</h3>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 						<div>
@@ -175,7 +175,7 @@ const StoreSettingsTab = () => {
 							<div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${formData.showChatBot ? "transform translate-x-4" : ""}`}></div>
 						</div>
 						<div className="flex items-center gap-3">
-							<MessageSquareText className="w-5 h-5 text-emerald-500" />
+							<MessageSquareText className="w-5 h-5 text-luxury-gold" />
 							<span className="font-medium text-sm">Bật nút Trợ lý AI Cố vấn</span>
 						</div>
 					</label>

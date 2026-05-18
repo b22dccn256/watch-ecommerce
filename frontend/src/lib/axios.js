@@ -72,14 +72,7 @@ axiosInstance.interceptors.response.use(
 				return axiosInstance(originalRequest);
 			} catch (refreshError) {
 				processQueue(refreshError, null);
-				
-				// Lazy load to avert circular dependency and logout
-				if (typeof window !== "undefined") {
-					import("../stores/useUserStore").then(({ useUserStore }) => {
-						useUserStore.getState().logout();
-					});
-				}
-				
+				// Silently fail — checkAuth will handle re-login on next page load
 				return Promise.reject(refreshError);
 			} finally {
 				isRefreshing = false;

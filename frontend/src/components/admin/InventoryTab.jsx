@@ -49,7 +49,7 @@ const InventoryTab = () => {
             {/* Low Stock Alerts */}
             <section className="bg-red-50/50 dark:bg-red-900/10 rounded-2xl p-6 border border-red-100 dark:border-red-900/30 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
-                <h2 className="text-xl font-bold flex items-center text-red-600 dark:text-red-400 mb-4">
+                <h2 className="text-lg font-bold flex items-center text-luxury-gold mb-4">
                     <AlertCircle className="w-6 h-6 mr-2" />
                     Cảnh báo Tồn kho Thiếu Hụt
                 </h2>

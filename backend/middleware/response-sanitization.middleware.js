@@ -63,6 +63,21 @@ export const sanitizeData = (obj, fieldsToRemove = SENSITIVE_FIELDS, visited = n
 		return new Date(obj);
 	}
 
+	// Handle Buffer (convert to hex string)
+	if (Buffer.isBuffer(obj)) {
+		return obj.toString("hex");
+	}
+
+	// Handle MongoDB ObjectId (has toHexString method, iterate with Object.entries exposes internals)
+	if (typeof obj.toHexString === "function" && obj._bsontype === "ObjectId") {
+		return obj.toHexString();
+	}
+
+	// Handle Mongoose documents (call toJSON to get plain object, then sanitize)
+	if (typeof obj.toJSON === "function" && !Array.isArray(obj) && !(obj instanceof Date) && !Buffer.isBuffer(obj)) {
+		return sanitizeData(obj.toJSON(), fieldsToRemove, visited);
+	}
+
 	// Mark as visited
 	visited.add(obj);
 

@@ -20,7 +20,10 @@ export const useWishlistStore = createWithEqualityFn((set, get) => ({
 			set({ wishlist: res.data, loading: false });
 		} catch (error) {
 			set({ loading: false });
-			console.error("Error fetching wishlist:", error);
+			// 401 = not authenticated — expected, not an error
+			if (error.response?.status !== 401) {
+				console.error("Error fetching wishlist:", error.message);
+			}
 		}
 	},
 

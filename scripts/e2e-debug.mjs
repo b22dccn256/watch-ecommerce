@@ -1,0 +1,26 @@
+import { chromium, request } from 'playwright';
+(async () => {
+  const BACKEND = 'http://localhost:5000';
+  const FRONTEND = 'http://localhost:5173';
+  const api = await request.newContext({ baseURL: BACKEND });
+  const loginRes = await api.post('/api/auth/login', { data: { email: 'admin@test.local', password: 'Admin123!@#' } });
+  console.log('login status', loginRes.status());
+  const body = await loginRes.json().catch(() => null);
+  console.log('login body', body);
+  const state = await api.storageState();
+  console.log('storageState:', JSON.stringify(state, null, 2));
+  const browser = await chromium.launch({ headless: true });
+  const context = await browser.newContext();
+  await context.addCookies(state.cookies);
+  const cookiesFor5173 = await context.cookies(FRONTEND + '/');
+  console.log('cookies for 5173:', cookiesFor5173);
+  const cookiesFor5000 = await context.cookies(BACKEND + '/');
+  console.log('cookies for 5000:', cookiesFor5000);
+  const page = await context.newPage();
+  await page.goto(FRONTEND + '/secret-dashboard');
+  console.log('navigated to secret-dashboard, url=', page.url());
+  const html = await page.content();
+  console.log('page HTML snippet:', html.slice(0, 400));
+  await browser.close();
+  await api.dispose();
+})();

@@ -92,6 +92,17 @@ const state = {
       tags: ["VIP"],
       adminNotes: "Existing admin note",
     },
+    // Additional admin for E2E tests that use default admin@test.local credentials
+    {
+      _id: nextId("user"),
+      name: "E2E Admin",
+      email: process.env.E2E_ADMIN_EMAIL_2 || "admin@test.local",
+      password: process.env.E2E_ADMIN_PASSWORD_2 || "Admin123!@#",
+      role: "admin",
+      rewardPoints: 50,
+      tags: ["E2E"],
+      adminNotes: "Secondary admin for E2E tests",
+    },
     {
       _id: nextId("user"),
       name: "E2E Customer",

@@ -60,7 +60,7 @@ const WishlistPage = () => {
 				>
 					<div>
 						<p className='hero-kicker text-[11px] text-[color:var(--color-gold)] mb-3'>Client Selection</p>
-						<h1 className='hero-title text-4xl md:text-5xl font-bold mb-4 text-primary'>Danh sách yêu thích</h1>
+						<h1 className='hero-title text-3xl md:text-4xl font-bold mb-4 text-primary'>Danh sách yêu thích</h1>
 						<p className='text-secondary dark:text-luxury-text-muted max-w-2xl leading-relaxed'>
 							Nơi lưu giữ những tuyệt tác thời gian bạn đang khao khát sở hữu.
 							Hãy để chúng tôi giúp bạn hiện thực hóa giấc mơ luxury của mình.
@@ -105,7 +105,7 @@ const EmptyWishlist = () => (
 		<div className='bg-[color:var(--color-gold)]/10 p-8 rounded-full mb-8'>
 			<Heart className='w-20 h-20 text-[color:var(--color-gold)]' />
 		</div>
-		<h2 className='hero-title text-3xl font-bold mb-4 text-primary'>Chưa có sản phẩm yêu thích</h2>
+		<h2 className='hero-title text-2xl font-bold mb-4 text-primary'>Chưa có sản phẩm yêu thích</h2>
 		<p className='text-secondary mb-10 max-w-md mx-auto'>
 			Bạn chưa thêm bất kỳ sản phẩm nào vào danh sách mong muốn.
 			Hãy khám phá bộ sưu tập của chúng tôi để tìm thấy chiếc đồng hồ hoàn mỹ dành riêng cho bạn.

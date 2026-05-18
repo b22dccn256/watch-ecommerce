@@ -1,10 +1,12 @@
 import { test, expect, request as playwrightRequest } from '@playwright/test';
 import { skipIfBackendUnavailable } from './helpers/backend';
+import { createAuthenticatedPage } from './helpers/auth';
 
 const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL || 'admin@test.local';
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || 'Admin123!@#';
 const ADMIN_OTP = process.env.E2E_ADMIN_OTP || '';
 const BACKEND_URL = process.env.E2E_BACKEND_URL || 'http://localhost:5000';
+const FRONTEND_URL = process.env.PW_BASE_URL || 'http://localhost:5173';
 
 const ensureAdminLogin = async (page) => {
   const api = await playwrightRequest.newContext({ baseURL: BACKEND_URL });
@@ -25,11 +27,10 @@ const ensureAdminLogin = async (page) => {
   }
 
   const state = await api.storageState();
-  await page.context().addCookies(state.cookies);
   await api.dispose();
-
-  await page.goto('/secret-dashboard');
-  await expect(page.getByText('Watch Admin')).toBeVisible();
+  const authPage = await createAuthenticatedPage(page, { email: ADMIN_EMAIL, password: ADMIN_PASSWORD });
+  await authPage.goto(FRONTEND_URL + '/secret-dashboard');
+  await expect(authPage.getByText('Watch Admin')).toBeVisible();
 };
 
 test.describe('UsersTab - E2E Tests', () => {

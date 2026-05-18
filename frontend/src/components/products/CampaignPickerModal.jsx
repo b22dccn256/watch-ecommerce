@@ -1,6 +1,10 @@
 import { motion } from "framer-motion";
 
-const CampaignPickerModal = ({ selectedIds, onClose, onSuccess }) => (
+const CampaignPickerModal = ({ selectedIds = [], onClose, onSuccess, isOpen = true }) => {
+	if (!isOpen) return null;
+	const selectedCount = Array.isArray(selectedIds) ? selectedIds.length : 0;
+
+	return (
 	<motion.div
 		initial={{ opacity: 0 }}
 		animate={{ opacity: 1 }}
@@ -17,7 +21,7 @@ const CampaignPickerModal = ({ selectedIds, onClose, onSuccess }) => (
 		>
 			<h3 className="text-lg font-bold text-gray-900 dark:text-white">Gán chiến dịch</h3>
 			<p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-				Đã chọn {selectedIds.length} sản phẩm. Tính năng chọn chiến dịch đang được hoàn thiện.
+				Đã chọn {selectedCount} sản phẩm. Tính năng chọn chiến dịch đang được hoàn thiện.
 			</p>
 			<div className="mt-5 flex justify-end gap-3">
 				<button
@@ -35,6 +39,7 @@ const CampaignPickerModal = ({ selectedIds, onClose, onSuccess }) => (
 			</div>
 		</motion.div>
 	</motion.div>
-);
+	);
+};
 
 export default CampaignPickerModal;

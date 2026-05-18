@@ -10,18 +10,18 @@ const BestSellersSection = ({ products, addToCart, title, gridCols }) => {
     }[gridCols] || "md:grid-cols-3 lg:grid-cols-4";
 
     return (
-        <div className="section-divider py-20 md:py-24 max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="editorial-surface rounded-[2rem] px-6 py-6 md:px-8 md:py-8 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.35)] mb-10">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                    <div className="space-y-3 max-w-2xl">
-                        <h2 className="hero-title text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">{title || "Sản phẩm Bán chạy"}</h2>
+        <div className="section-divider py-10 md:py-14 max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="editorial-surface rounded-2xl px-5 py-5 md:px-6 md:py-6 mb-6 md:mb-8">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
+                    <div className="space-y-1 max-w-2xl">
+                        <h2 className="hero-title text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{title || "Sản phẩm Bán chạy"}</h2>
                     </div>
                 </div>
             </div>
 
-            <div className={`grid grid-cols-1 sm:grid-cols-2 ${gridColsClass} gap-6 md:gap-8`}>
+            <div className={`grid grid-cols-1 sm:grid-cols-2 ${gridColsClass} gap-4 md:gap-5`}>
                 {products.map((product) => (
-                    <ProductCard key={product._id} product={product} addToCart={addToCart} isBestSeller />
+                    <ProductCard key={String(product._id)} product={product} addToCart={addToCart} isBestSeller />
                 ))}
             </div>
         </div>

@@ -149,7 +149,7 @@ const UsersTab = () => {
 			case 'VIP':
 				return 'text-luxury-gold border-luxury-gold/30 bg-luxury-gold/10';
 			case 'Potential':
-				return 'text-blue-500 border-blue-200 bg-blue-50 dark:bg-blue-900/10 dark:border-blue-800';
+				return 'text-luxury-gold border-luxury-gold/20 bg-luxury-gold/5';
 			default:
 				return 'text-gray-500 border-gray-200 bg-gray-50 dark:bg-luxury-darker dark:border-luxury-border';
 		}
@@ -181,7 +181,7 @@ const UsersTab = () => {
 				{/* Header */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
 					<div className="space-y-2">
-						<h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+						<h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
 							Quản Lý Người Dùng
 						</h1>
 						<p className="text-gray-500 dark:text-luxury-text-muted text-sm">

@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { X, Printer, CheckCircle, Clock, Truck, Package, XCircle, RotateCcw, AlertCircle } from "lucide-react";
 import ConfirmModal from "./ConfirmModal";
-import axios from "../lib/axios";
-import { toast } from "react-hot-toast";
+import useOrderForm from "../hooks/useOrderForm";
+import useOrderStatus from "../hooks/useOrderStatus";
+import toast from "react-hot-toast";
 
 const STATUS_SEQUENCE = [
   { key: 'pending',               label: 'Chờ xử lý',      icon: Clock },
@@ -11,18 +12,6 @@ const STATUS_SEQUENCE = [
   { key: 'shipped',               label: 'Đang giao',      icon: Truck },
   { key: 'delivered',             label: 'Đã giao',        icon: CheckCircle },
 ];
-
-const STATUS_LABELS = {
-  pending:               'Chờ xử lý',
-  awaiting_verification: 'Chờ xác minh TT',
-  confirmed:             'Đã xác nhận',
-  processing:            'Đang xử lý',
-  shipped:               'Đang giao',
-  delivered:             'Đã giao',
-  cancelled:             'Đã hủy',
-  return_requested:      'Yêu cầu trả hàng',
-  returned:              'Đã trả hàng',
-};
 
 const PAYMENT_LABELS = {
   cod:    'COD (Thanh toán khi nhận)',
@@ -38,90 +27,18 @@ const PAYMENT_STATUS_STYLES = {
   cancelled:'bg-surface text-muted',
 };
 
-const NEXT_STATUS_OPTIONS = {
-  pending:               ['confirmed', 'cancelled'],
-  awaiting_verification: ['confirmed', 'cancelled'],
-  confirmed:             ['processing', 'cancelled'],
-  processing:            ['shipped', 'cancelled'],
-  shipped:               ['delivered'],
-  delivered:             ['return_requested'],
-  return_requested:      ['returned', 'delivered'],
-  returned:              [],
-  cancelled:             [],
-};
-
 export default function OrderDetailModal({ order: initialOrder, onClose, onSaved }) {
-  const [order, setOrder] = useState(initialOrder);
-  const [confirmConfig, setConfirmConfig] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [statusChanging, setStatusChanging] = useState(false);
-  const [form, setForm] = useState({
-    carrier: '',
-    carrierTrackingNumber: '',
-    refundAmount: '',
-    internalNotes: '',
-  });
+  const { order, setOrder, nextOptions, statusChanging, confirmConfig, setConfirmConfig, handleChangeStatus, STATUS_LABELS } = useOrderStatus(initialOrder);
+  const { form, handleChange, saveDetails: performSave, saving } = useOrderForm(initialOrder);
 
-  useEffect(() => {
-    setOrder(initialOrder);
-    setForm({
-      carrier: initialOrder?.carrier || '',
-      carrierTrackingNumber: initialOrder?.carrierTrackingNumber || '',
-      refundAmount: initialOrder?.refundAmount || '',
-      internalNotes: initialOrder?.internalNotes || '',
-    });
-  }, [initialOrder]);
+  const currentStepIndex = useMemo(() => {
+    return STATUS_SEQUENCE.findIndex(s => s.key === order?.status);
+  }, [order?.status]);
 
-  if (!order) return null;
-
-  const nextOptions = NEXT_STATUS_OPTIONS[order.status] || [];
-  const currentStepIndex = STATUS_SEQUENCE.findIndex(s => s.key === order.status);
-
-  const performStatusUpdate = async (newStatus) => {
-    setStatusChanging(true);
-    try {
-      const res = await axios.patch(`/orders/${order._id}/status`, { status: newStatus });
-      setOrder(res.data?.order || { ...order, status: newStatus });
-      toast.success(`Đã chuyển sang "${STATUS_LABELS[newStatus] || newStatus}"`);
-      if (onSaved) onSaved();
-    } catch (e) {
-      toast.error(e.response?.data?.message || 'Lỗi khi cập nhật trạng thái');
-    } finally {
-      setStatusChanging(false);
-      setConfirmConfig(null);
-    }
-  };
-
-  const handleChangeStatus = (newStatus) => {
-    if (newStatus === order.status) return;
-    if (newStatus === 'cancelled') {
-      setConfirmConfig({
-        title: 'Hủy đơn hàng',
-        message: `Bạn chắc chắn muốn hủy đơn #${order.orderCode}? Tồn kho sẽ được hoàn trả.`,
-        variant: 'danger',
-        confirmLabel: 'Hủy đơn',
-        onConfirm: () => performStatusUpdate(newStatus),
-      });
-    } else {
-      performStatusUpdate(newStatus);
-    }
-  };
-
-  const saveDetails = async () => {
-    setSaving(true);
-    try {
-      await axios.patch(`/orders/${order._id}`, {
-        carrier: form.carrier,
-        carrierTrackingNumber: form.carrierTrackingNumber,
-        refundAmount: form.refundAmount ? Number(form.refundAmount) : undefined,
-        internalNotes: form.internalNotes,
-      });
-      toast.success('Đã lưu thay đổi');
-      if (onSaved) onSaved();
-    } catch (e) {
-      toast.error(e.response?.data?.message || 'Lỗi khi lưu');
-    } finally {
-      setSaving(false);
+  const handleSave = async () => {
+    const success = await performSave(order._id);
+    if (success && onSaved) {
+      onSaved();
     }
   };
 
@@ -129,18 +46,18 @@ export default function OrderDetailModal({ order: initialOrder, onClose, onSaved
     try {
       const win = window.open('', '_blank');
       if (!win) return toast.error('Không thể mở cửa sổ in');
-      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Đơn hàng #${order.orderCode}</title>
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Đơn hàng #${order?.orderCode}</title>
         <style>body{font-family:sans-serif;padding:24px;max-width:600px;margin:auto}h2{margin-bottom:4px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #eee;padding:8px 12px;text-align:left}th{background:#f5f5f5}</style>
         </head><body>
-        <h2>Đơn hàng #${order.orderCode || order._id}</h2>
-        <p>Ngày: ${new Date(order.createdAt).toLocaleString('vi-VN')}</p>
-        <p>Khách: ${order.shippingDetails?.fullName || order.user?.name || ''} · ${order.shippingDetails?.phoneNumber || ''}</p>
-        <p>Địa chỉ: ${order.shippingDetails?.address || ''}, ${order.shippingDetails?.city || ''}</p>
-        <p>PT thanh toán: ${PAYMENT_LABELS[order.paymentMethod] || order.paymentMethod}</p>
+        <h2>Đơn hàng #${order?.orderCode || order?._id}</h2>
+        <p>Ngày: ${new Date(order?.createdAt).toLocaleString('vi-VN')}</p>
+        <p>Khách: ${order?.shippingDetails?.fullName || order?.user?.name || ''} · ${order?.shippingDetails?.phoneNumber || ''}</p>
+        <p>Địa chỉ: ${order?.shippingDetails?.address || ''}, ${order?.shippingDetails?.city || ''}</p>
+        <p>PT thanh toán: ${PAYMENT_LABELS[order?.paymentMethod] || order?.paymentMethod}</p>
         <table><thead><tr><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th></tr></thead><tbody>
-        ${(order.products || []).map(p => `<tr><td>${p.product?.name || p.name}</td><td>${p.quantity}</td><td>${(p.price || 0).toLocaleString('vi-VN')} ₫</td></tr>`).join('')}
+        ${(order?.products || []).map(p => `<tr><td>${p.product?.name || p.name}</td><td>${p.quantity}</td><td>${(p.price || 0).toLocaleString('vi-VN')} ₫</td></tr>`).join('')}
         </tbody></table>
-        <p style="margin-top:16px;font-size:18px;font-weight:bold">Tổng: ${order.totalAmount?.toLocaleString('vi-VN')} ₫</p>
+        <p style="margin-top:16px;font-size:18px;font-weight:bold">Tổng: ${order?.totalAmount?.toLocaleString('vi-VN')} ₫</p>
         </body></html>`;
       win.document.open();
       win.document.write(html);
@@ -151,6 +68,8 @@ export default function OrderDetailModal({ order: initialOrder, onClose, onSaved
       toast.error('Lỗi khi in hóa đơn');
     }
   };
+
+  if (!order) return null;
 
   return (
     <>
@@ -305,7 +224,7 @@ export default function OrderDetailModal({ order: initialOrder, onClose, onSaved
                   <label className="text-[10px] text-muted uppercase tracking-wide">Đơn vị vận chuyển</label>
                   <input
                     value={form.carrier}
-                    onChange={(e) => setForm((f) => ({ ...f, carrier: e.target.value }))}
+                    onChange={(e) => handleChange('carrier', e.target.value)}
                     placeholder="VD: Giao Hàng Nhanh"
                     className="mt-1 w-full rounded-lg border border-black/10 bg-surface px-3 py-2 text-sm text-primary outline-none focus:border-[color:var(--color-gold)] dark:border-white/10"
                   />
@@ -314,7 +233,7 @@ export default function OrderDetailModal({ order: initialOrder, onClose, onSaved
                   <label className="text-[10px] text-muted uppercase tracking-wide">Mã vận đơn</label>
                   <input
                     value={form.carrierTrackingNumber}
-                    onChange={(e) => setForm((f) => ({ ...f, carrierTrackingNumber: e.target.value }))}
+                    onChange={(e) => handleChange('carrierTrackingNumber', e.target.value)}
                     placeholder="VD: GHNXXXXXXX"
                     className="mt-1 w-full rounded-lg border border-black/10 bg-surface px-3 py-2 text-sm text-primary outline-none focus:border-[color:var(--color-gold)] dark:border-white/10"
                   />
@@ -324,7 +243,7 @@ export default function OrderDetailModal({ order: initialOrder, onClose, onSaved
                   <textarea
                     rows={2}
                     value={form.internalNotes}
-                    onChange={(e) => setForm((f) => ({ ...f, internalNotes: e.target.value }))}
+                    onChange={(e) => handleChange('internalNotes', e.target.value)}
                     placeholder="Ghi chú cho nhân viên..."
                     className="mt-1 w-full rounded-lg border border-black/10 bg-surface px-3 py-2 text-sm text-primary outline-none focus:border-[color:var(--color-gold)] dark:border-white/10 resize-none"
                   />
@@ -353,7 +272,7 @@ export default function OrderDetailModal({ order: initialOrder, onClose, onSaved
           {/* Footer actions */}
           <div className="mt-5 flex gap-3 border-t border-black/8 pt-4 dark:border-white/8">
             <button
-              onClick={saveDetails}
+              onClick={handleSave}
               disabled={saving}
               className="flex-1 rounded-full border border-[color:var(--color-gold)] bg-transparent px-4 py-2.5 text-sm font-semibold text-[color:var(--color-gold)] transition hover:bg-[color:var(--color-gold)] hover:text-white disabled:opacity-60"
             >
