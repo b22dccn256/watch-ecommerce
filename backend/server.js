@@ -48,6 +48,7 @@ import mailRoutes from "./routes/mail.route.js";
 import reviewRoutes from "./routes/review.route.js";
 import questionRoutes from "./routes/question.route.js";
 import storeConfigRoutes from "./routes/storeConfig.route.js";
+import adminIpnRoutes from "./routes/admin.ipn.route.js";
 import { sanitizeInput } from "./middleware/sanitize.middleware.js";
 import { csrfProtection, issueCsrfToken } from "./middleware/csrf.middleware.js";
 import { responseSanitizationMiddleware } from "./middleware/response-sanitization.middleware.js";
@@ -214,6 +215,7 @@ app.use("/api/mail", mailRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/questions", questionRoutes);
 app.use("/api/settings", storeConfigRoutes);
+app.use("/api/admin/ipns", adminIpnRoutes);
 
 if (process.env.NODE_ENV === "production") {
 	app.use(express.static(path.join(__dirname, "/frontend/dist")));

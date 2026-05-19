@@ -8,7 +8,8 @@ dotenv.config();
 // In vnpay 1.x, we initialize like this:
 export const vnpayInstance = new VNPay({
     tmnCode: process.env.VNP_TMN_CODE || 'TESTCODE',
-    secureSecret: process.env.VNP_SECRET || 'TESTSECRET12345678TESTSECRET1234',
+    // Prefer VNP_HASH_SECRET (used in .env) but accept legacy VNP_SECRET if present
+    secureSecret: process.env.VNP_HASH_SECRET || process.env.VNP_SECRET || 'TESTSECRET12345678TESTSECRET1234',
     vnpayHost: 'https://sandbox.vnpayment.vn',
     testMode: true,
     hashAlgorithm: 'SHA512',
@@ -17,8 +18,10 @@ export const vnpayInstance = new VNPay({
 });
 
 export const createVNPayPayment = (order, req) => {
-    if (!process.env.VNP_TMN_CODE || !process.env.VNP_SECRET) {
-        throw new Error("VNPAY chưa cấu hình VNP_TMN_CODE hoặc VNP_SECRET");
+    // Require TMN code and secure secret. Support VNP_HASH_SECRET (current .env) and legacy VNP_SECRET.
+    const vnpSecret = process.env.VNP_HASH_SECRET || process.env.VNP_SECRET;
+    if (!process.env.VNP_TMN_CODE || !vnpSecret) {
+        throw new Error("VNPAY chưa cấu hình VNP_TMN_CODE hoặc VNP_HASH_SECRET/VNP_SECRET");
     }
     try {
         const ipAddr = req?.headers?.['x-forwarded-for'] || req?.connection?.remoteAddress || '127.0.0.1';

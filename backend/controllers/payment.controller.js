@@ -10,6 +10,7 @@ import mongoose from "mongoose";
 import User from "../models/user.model.js";
 import { emailQueue } from "./mail.controller.js";
 import { createVNPayPayment, createMoMoPayment, createZaloPayPayment, vnpayInstance } from "../services/payment.service.js";
+import { alertPaymentIssue } from '../lib/payment-alerts.js';
 import { createCODOrder, createQROrder } from "./order.controller.js";
 import { getCouponDiscountAmount } from "../lib/coupon.js";
 import { processIPN } from "../services/ipn.service.js";
@@ -28,7 +29,8 @@ const getClientIp = (req) => {
 
 // Verify VNPay secure hash theo thuật toán
 const verifyVnpaySignature = (query) => {
-	const secretKey = process.env.VNPAY_HASH_SECRET || "";
+	// Use VNP_HASH_SECRET (preferred) or fallback to legacy VNPAY_HASH_SECRET / VNP_SECRET
+	const secretKey = process.env.VNP_HASH_SECRET || process.env.VNPAY_HASH_SECRET || process.env.VNP_SECRET || "";
 	if (!secretKey) {
 		return false;
 	}
@@ -264,7 +266,8 @@ export const createCheckoutSession = async (req, res) => {
 		if (req.user && totalAmount >= 5000000) {
 			await createNewCoupon(req.user._id);
 		}
-		res.status(200).json(sessionResponse);
+		// Return trackingToken and orderCode so frontend can poll order status
+		res.status(200).json({ ...sessionResponse, trackingToken: newOrder.trackingToken, orderCode: newOrder.orderCode, orderId: newOrder._id });
 	} catch (error) {
 		if (sessionOpts) {
 			await sessionOpts.abortTransaction();
@@ -376,7 +379,23 @@ export const stripeWebhook = async (req, res) => {
 	let event;
 
 	try {
-		event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+		if (process.env.STRIPE_WEBHOOK_SECRET) {
+			event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+		} else {
+			// In development/test, allow processing without webhook secret by parsing payload.
+			if (process.env.NODE_ENV === 'production') {
+				console.error('STRIPE_WEBHOOK_SECRET missing in production');
+				return res.status(500).send('Stripe webhook not configured');
+			}
+			console.warn('STRIPE_WEBHOOK_SECRET not set — skipping signature verification (dev only)');
+			try {
+				const body = req.body && typeof req.body === 'object' && !(req.body instanceof Buffer) ? req.body : JSON.parse(req.body.toString());
+				event = body;
+			} catch (parseErr) {
+				console.error('Failed to parse webhook payload without signature:', parseErr.message);
+				return res.status(400).send('Invalid webhook payload');
+			}
+		}
 	} catch (err) {
 		console.error("⚠️ Webhook signature verification failed.", err.message);
 		return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -413,6 +432,7 @@ export const vnpayIpn = async (req, res) => {
 	if (!verifyVnpaySignature(body)) {
 		console.warn("[vnpay-ipn] signature verification failed", logMeta);
 		await ProcessedIPN.create({ provider, transactionId, orderCode, status: "failed", payload: body });
+		alertPaymentIssue({ level: 'warn', type: 'vnpay-signature', message: 'Signature verification failed on VNPay IPN', meta: { orderCode, transactionId, clientIp } });
 		return res.status(200).json({ RspCode: "97", Message: "Checksum failed" });
 	}
 
@@ -451,6 +471,7 @@ export const vnpayIpn = async (req, res) => {
 		});
 	} catch (error) {
 		console.error("[vnpay-ipn] error", { error, provider, transactionId, orderCode, clientIp });
+		alertPaymentIssue({ level: 'error', type: 'vnpay-processing', message: 'Error processing VNPay IPN', meta: { error: error?.message, orderCode, transactionId, clientIp } });
 		return res.status(200).json({ RspCode: "99", Message: "Unknown error" });
 	}
 };

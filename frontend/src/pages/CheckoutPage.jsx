@@ -48,6 +48,8 @@ const CheckoutPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [qrData, setQrData] = useState(null);
+  const [pendingTrackingToken, setPendingTrackingToken] = useState(null);
+  const pollRef = useRef(null);
 
   const isStripeBlocked = total > STRIPE_MAX_AMOUNT;
 
@@ -119,13 +121,57 @@ const CheckoutPage = () => {
         toast.success("Đặt hàng COD thành công");
       }
 
-      window.location.href = res.data.url;
+      // For VNPay sandbox flow, open the payment URL in a new tab instead of replacing current page
+      if (selectedPayment === 'vnpay') {
+        window.open(res.data.url, '_blank', 'noopener,noreferrer');
+        toast.success('Đã mở trang thanh toán VNPay trong tab mới. Vui lòng hoàn tất thanh toán và quay lại.');
+        if (res.data.trackingToken) {
+          setPendingTrackingToken(res.data.trackingToken);
+        }
+      } else {
+        window.location.href = res.data.url;
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || "Không thể xử lý thanh toán");
     } finally {
       setIsProcessing(false);
     }
   };
+
+  // Poll order tracking endpoint while pendingTrackingToken is set
+  useEffect(() => {
+    if (!pendingTrackingToken) return;
+    let attempts = 0;
+    const maxAttempts = 60; // 5 minutes if interval 5s
+    const intervalMs = 5000;
+
+    const check = async () => {
+      try {
+        const resp = await axios.get(`/orders/track/${pendingTrackingToken}`);
+        if (resp.data && resp.data.paymentStatus === 'paid') {
+          toast.success('Thanh toán đã được xác nhận. Cảm ơn bạn!');
+          setPendingTrackingToken(null);
+          clearSelectedCart();
+          paymentDoneRef.current = true;
+          navigate(`/purchase-success?order_id=${resp.data.orderId}`);
+        }
+      } catch (err) {
+        // ignore 404 until order appears
+      }
+      attempts++;
+      if (attempts >= maxAttempts) {
+        toast('Không nhận được xác nhận thanh toán sau một thời gian. Vui lòng kiểm tra lại sau.');
+        setPendingTrackingToken(null);
+      }
+    };
+
+    // run immediately then set interval
+    check();
+    pollRef.current = setInterval(check, intervalMs);
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [pendingTrackingToken]);
 
   const confirmQrPayment = async () => {
     if (isConfirming) return;

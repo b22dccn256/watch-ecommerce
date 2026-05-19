@@ -49,6 +49,16 @@ export const ipWhitelist = (provider) => {
 		}
 
 		const allowed = whiteList.some((entry) => isIpInCidr(ip, entry));
+
+		// Dev helper: allow localhost when not in production
+		if (!allowed && process.env.NODE_ENV !== "production") {
+			const localIps = ["127.0.0.1", "::1"];
+			if (localIps.includes(ip)) {
+				console.info(`[IPWhitelist] dev allow localhost ip=${ip}`);
+				next();
+				return;
+			}
+		}
 		if (!allowed) {
 			console.warn(`[IPWhitelist] provider=${provider} reject ip=${ip}`);
 			return res.status(403).json({ message: "IP không được phép" });

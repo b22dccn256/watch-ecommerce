@@ -44,6 +44,7 @@ const EditProductForm = ({ product, onSuccess, onClose }) => {
 		originalPrice: product?.originalPrice ?? "",
 		category: product?.category || "",
 		image: product?.image || "",
+		images: Array.isArray(product?.images) && product.images.length > 0 ? product.images : (product?.image ? [product.image] : []),
 		stock: product?.stock ?? "",
 		brand: typeof product?.brand === "object" ? (product?.brand?._id || "") : (product?.brand || ""),
 		type: product?.type || "",
@@ -97,18 +98,27 @@ const EditProductForm = ({ product, onSuccess, onClose }) => {
 	};
 
 	// ── Image helpers ─────────────────────────────────────────
+
 	const processImageFile = (file) => {
 		if (!file) return;
 		const reader = new FileReader();
-		reader.onloadend = () => setFormData((prev) => ({ ...prev, image: reader.result }));
+		reader.onloadend = () => setFormData((prev) => ({ ...prev, images: [...prev.images, reader.result] }));
 		reader.readAsDataURL(file);
 	};
 
-	const handleImageChange = (e) => processImageFile(e.target.files[0]);
+	const handleImageChange = (e) => {
+		if (!e.target.files) return;
+		Array.from(e.target.files).forEach(processImageFile);
+	};
+
 	const handleDrop = (e) => {
 		e.preventDefault();
 		setDragOver(false);
-		processImageFile(e.dataTransfer.files[0]);
+		Array.from(e.dataTransfer.files || []).forEach(processImageFile);
+	};
+
+	const removeImageAt = (index) => {
+		setFormData((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
 	};
 
 	// ── Discount preview ─────────────────────────────────────
@@ -292,13 +302,19 @@ const EditProductForm = ({ product, onSuccess, onClose }) => {
 							onDragLeave={() => setDragOver(false)}
 							onDrop={handleDrop}
 						>
-							{formData.image ? (
-								<div className="flex items-center gap-4 w-full">
-									<img src={formData.image} alt="Preview" className="h-20 w-20 object-cover rounded-lg border border-luxury-gold/30 flex-shrink-0" />
-									<div className="flex-1 min-w-0">
-										<p className="text-sm font-medium text-gray-700 dark:text-gray-300">Ảnh hiện tại</p>
-										<p className="text-xs text-gray-400 mt-0.5">Click để thay đổi</p>
+							{formData.images && formData.images.length > 0 ? (
+								<div className="w-full">
+									<div className="grid grid-cols-3 gap-3">
+										{formData.images.map((src, idx) => (
+											<div key={idx} className="relative">
+												<img src={src} alt={`img-${idx}`} className="h-20 w-full object-cover rounded-lg border border-luxury-gold/30" />
+												<button type="button" onClick={() => removeImageAt(idx)} className="absolute top-1 right-1 p-1 bg-white rounded-full shadow">
+													<X className="w-3 h-3 text-red-500" />
+												</button>
+											</div>
+										))}
 									</div>
+									<p className="text-xs text-gray-400 mt-2">Kéo để thay đổi hoặc chọn thêm file (nhiều ảnh được hỗ trợ)</p>
 								</div>
 							) : (
 								<>
@@ -310,7 +326,7 @@ const EditProductForm = ({ product, onSuccess, onClose }) => {
 								</>
 							)}
 						</div>
-						<input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+						<input ref={fileInputRef} type="file" accept="image/*" className="hidden" multiple onChange={handleImageChange} />
 					</div>
 				</div>
 			</div>

@@ -1,0 +1,19 @@
+[
+  {
+    "_id": "6a0c212410f9ae1981a5a5cf",
+    "provider": "vnpay",
+    "transactionId": "TXN123",
+    "orderCode": "ORDER123",
+    "status": "failed",
+    "payload": {
+      "vnp_TxnRef": "ORDER123",
+      "vnp_TransactionNo": "TXN123",
+      "vnp_Amount": "100000",
+      "vnp_SecureHash": "FAKEHASH"
+    },
+    "processedAt": "2026-05-19T08:36:52.638Z",
+    "createdAt": "2026-05-19T08:36:52.641Z",
+    "updatedAt": "2026-05-19T08:36:52.641Z",
+    "__v": 0
+  }
+]

@@ -17,6 +17,19 @@ const PaymentReturnPage = ({ method }) => {
         if (processedRef.current) return;
         processedRef.current = true;
 
+        // Guard against external VNPay sandbox script referencing an undeclared `timer` variable
+        try {
+            if (typeof window !== 'undefined' && typeof window.timer === 'undefined') {
+                // define a harmless global to avoid ReferenceError in third-party scripts
+                // VNPay sandbox scripts sometimes call/update `timer` without declaring it.
+                // Setting null prevents Uncaught ReferenceError while being inert.
+                // eslint-disable-next-line no-undef
+                window.timer = window.timer || null;
+            }
+        } catch (e) {
+            // ignore
+        }
+
         const processReturn = async () => {
             try {
                 const query = Object.fromEntries(searchParams.entries());
@@ -41,8 +54,8 @@ const PaymentReturnPage = ({ method }) => {
                 }
 
                 if (!verification) {
-                    setStatus("failed");
-                    setMessage("Không thể xác minh giao dịch từ hệ thống.");
+                    setStatus("pending");
+                    setMessage("Không thể xác minh ngay — hệ thống đang đối soát. Vui lòng kiểm tra lại trong mục theo dõi đơn hàng hoặc bấm 'Kiểm tra trạng thái'.");
                     return;
                 }
 
@@ -51,7 +64,7 @@ const PaymentReturnPage = ({ method }) => {
                     setStatus("success");
                     setMessage("Giao dịch thành công! Đơn hàng của bạn đang được chuẩn bị.");
                 } else if (verification.status === "pending") {
-                    setStatus("failed");
+                    setStatus("pending");
                     setMessage("Thanh toán đang được đối soát. Vui lòng kiểm tra lại sau trong mục theo dõi đơn hàng.");
                 } else {
                     setStatus("failed");
@@ -101,6 +114,33 @@ const PaymentReturnPage = ({ method }) => {
                         >
                             Tiếp tục mua sắm <ShoppingBag className="w-4 h-4" />
                         </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (status === 'pending') {
+        return (
+            <div className="min-h-screen py-24 flex items-center justify-center bg-gray-50 dark:bg-[#0f0c08]">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl max-w-md w-full text-center border border-gray-100 dark:border-gray-700">
+                    <h2 className="text-2xl font-bold mb-2">Thanh toán đang đối soát</h2>
+                    <p className="text-gray-500 mb-4">{message}</p>
+                    <div className="flex gap-3 justify-center">
+                        <button onClick={async () => {
+                            setStatus('loading');
+                            try {
+                                const query = Object.fromEntries(searchParams.entries());
+                                const res = await axios.post('/payments/verify-return', { method, query });
+                                const v = res.data;
+                                if (v.status === 'success') { clearSelectedCart(); setStatus('success'); setMessage('Giao dịch thành công!'); }
+                                else if (v.status === 'pending') { setStatus('pending'); setMessage('Thanh toán vẫn đang đối soát.'); }
+                                else { setStatus('failed'); setMessage(v.message || 'Giao dịch không thành công'); }
+                            } catch (err) {
+                                setStatus('failed'); setMessage('Lỗi kiểm tra trạng thái.');
+                            }
+                        }} className="btn-base btn-primary">Kiểm tra trạng thái</button>
+                        <Link to="/order-tracking" className="btn-base btn-outline">Theo dõi đơn hàng</Link>
                     </div>
                 </div>
             </div>

@@ -181,13 +181,26 @@ export const getInventoryAlerts = async (req, res) => {
 
 export const createProduct = async (req, res) => {
   try {
-    const { name, description, price, image, categoryId, stock, brand, type, customAttributes, lowStockThreshold, isActive, metaTitle, metaDescription } = req.body;
+    const { name, description, price, image, images, categoryId, stock, brand, type, customAttributes, lowStockThreshold, isActive, metaTitle, metaDescription } = req.body;
 
-    const imageUrl = image ? await handleProductImage(image) : '';
+    // Support multiple images: `images` may be an array of base64 or urls. Process them and set main `image` to first.
+    let imageUrl = '';
+    let imagesUrls = [];
+    if (Array.isArray(images) && images.length > 0) {
+      for (const img of images) {
+        const url = await handleProductImage(img);
+        if (url) imagesUrls.push(url);
+      }
+      imageUrl = imagesUrls[0] || '';
+    } else if (image) {
+      imageUrl = await handleProductImage(image);
+      if (imageUrl) imagesUrls = [imageUrl];
+    }
 
     const product = new Product({
       name, description, price,
       image: imageUrl,
+      images: imagesUrls,
       categoryId, stock, brand, type,
       customAttributes: customAttributes || [],
       lowStockThreshold, isActive, metaTitle, metaDescription,
@@ -207,7 +220,7 @@ export const updateProduct = async (req, res) => {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
-    const { name, description, price, image, categoryId, stock, brand, type, customAttributes, lowStockThreshold, isActive, metaTitle, metaDescription } = req.body;
+    const { name, description, price, image, images, categoryId, stock, brand, type, customAttributes, lowStockThreshold, isActive, metaTitle, metaDescription } = req.body;
 
     if (name)                           product.name              = name;
     if (description)                    product.description       = description;
@@ -222,9 +235,20 @@ export const updateProduct = async (req, res) => {
     if (metaTitle !== undefined)        product.metaTitle         = metaTitle;
     if (metaDescription !== undefined)  product.metaDescription   = metaDescription;
 
-    // Smart image handling: upload new and delete old via service
-    if (image && image !== product.image) {
+    // Smart image handling: support `images` array. Upload new images and replace product.images.
+    if (Array.isArray(images) && images.length > 0) {
+      const newUrls = [];
+      for (const img of images) {
+        const url = await handleProductImage(img);
+        if (url) newUrls.push(url);
+      }
+      if (newUrls.length > 0) {
+        product.images = newUrls;
+        product.image = newUrls[0];
+      }
+    } else if (image && image !== product.image) {
       product.image = await handleProductImage(image, product.image);
+      if (product.image && (!product.images || product.images.length === 0)) product.images = [product.image];
     }
 
     product.$locals = { userId: req.user._id };
