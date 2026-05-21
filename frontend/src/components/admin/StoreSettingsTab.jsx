@@ -7,13 +7,11 @@ import {
 	Cookie, ShoppingBag, Monitor, Smartphone, Star, Zap
 } from "lucide-react";
 import { useStorefrontStore } from "../../stores/useStorefrontStore";
-import axios from "../../lib/axios";
 
 const ALL_SECTIONS = [
 	{ key: "hero",       label: "Hero Banner",        desc: "Banner động dạng Slide trượt đầu trang kèm slogan" },
 	{ key: "flashSale",  label: "Flash Sale",          desc: "Khu vực khuyến mãi, sản phẩm sale & đếm ngược" },
 	{ key: "bestSeller", label: "Sản phẩm Bán Chạy",  desc: "Grid sản phẩm được lọc theo doanh số bán cao nhất" },
-	{ key: "newsletter", label: "Đăng ký nhận tin",    desc: "Form đăng ký nhận tin tức & email khuyến mãi từ cửa hàng" },
 ];
 
 const THEME_PRESETS = [
@@ -175,25 +173,13 @@ const StoreSettingsTab = () => {
 		const reader = new FileReader();
 		reader.onload = async (e) => {
 			setUploadingIndex({ index: indexOrKey, field });
-			try {
-				const res = await axios.post("/banners", {
-					title: `Upload-${Date.now()}`,
-					image: e.target.result,
-				});
-				if (res.data && res.data.imageUrl) {
-					if (indexOrKey === "branding" || indexOrKey === "advanced") {
-						// Direct field update for branding/advanced uploads
-						setFormData(prev => ({ ...prev, [field]: res.data.imageUrl }));
-					} else {
-						handleSlideChange(indexOrKey, field, res.data.imageUrl);
-					}
-				}
-			} catch (err) {
-				console.error("Lỗi upload ảnh:", err);
-				alert("Lỗi khi tải ảnh lên máy chủ Cloudinary!");
-			} finally {
-				setUploadingIndex(null);
+			const imageValue = e.target.result;
+			if (indexOrKey === "branding" || indexOrKey === "advanced") {
+				setFormData((prev) => ({ ...prev, [field]: imageValue }));
+			} else {
+				handleSlideChange(indexOrKey, field, imageValue);
 			}
+			setUploadingIndex(null);
 		};
 		reader.readAsDataURL(file);
 	};
@@ -288,18 +274,19 @@ const StoreSettingsTab = () => {
 		{ id: "sections",    label: "Sections trang chủ",  icon: Layers },
 		{ id: "branding",    label: "Bản sắc & Menu",      icon: Type },
 		{ id: "theme",       label: "Chủ đề & Màu sắc",    icon: Palette },
-		{ id: "colors",      label: "Bảng màu Tuỳ chỉnh",  icon: Paintbrush },
-		{ id: "typography",  label: "Kiểu chữ & Phông",    icon: Type },
-		{ id: "slides",      label: "Quản lý Slide Banner", icon: ImageIcon },
+		{ id: "slides",      label: "Slide Hero (Đầu trang chủ)", icon: ImageIcon },
 		{ id: "marketing",   label: "Văn bản & Tiêu đề",   icon: Megaphone },
 		{ id: "popup",       label: "Pop-up Đón khách VIP", icon: Sparkles },
 		{ id: "footer",      label: "Thông tin Chân trang", icon: Globe },
 		{ id: "footerDetail",label: "Footer Nâng cao",     icon: Star },
-		{ id: "integrations",label: "Tích hợp & Theo dõi", icon: BarChart3 },
-		{ id: "catalog",     label: "Cấu hình Catalog",    icon: ShoppingBag },
-		{ id: "advanced",    label: "CSS & Nâng cao",      icon: Code2 },
 		{ id: "seo",         label: "SEO & Giờ mở cửa",    icon: Globe },
-		{ id: "layout",      label: "Bố cục & AI Assistant", icon: Sliders },
+		{ id: "layout",      label: "Bố cục",              icon: Sliders },
+		// Orphan tabs — stored in DB but not yet consumed by user frontend (đang phát triển)
+		{ id: "colors",      label: "🎨 Màu Tuỳ chỉnh",     icon: Paintbrush, dev: true },
+		{ id: "typography",  label: "🔤 Kiểu chữ",         icon: Type, dev: true },
+		{ id: "integrations",label: "📊 Tích hợp",          icon: BarChart3, dev: true },
+		{ id: "catalog",     label: "📦 Cấu hình Catalog",  icon: ShoppingBag, dev: true },
+		{ id: "advanced",    label: "🎯 CSS & Nâng cao",    icon: Code2, dev: true },
 	];
 
 	return (
@@ -727,45 +714,9 @@ const StoreSettingsTab = () => {
 
 								<div className="space-y-4 bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-gray-800">
 									<h4 className="text-xs font-bold uppercase tracking-wider text-luxury-gold">Tỉ lệ Kích thước</h4>
-									<div className="space-y-4">
-										<div>
-											<label className="block text-[11px] font-bold text-gray-400 mb-2">Tỉ lệ chữ Tiêu đề: {formData.headingScale}%</label>
-											<input
-												type="range"
-												min="70"
-												max="150"
-												value={formData.headingScale ?? 100}
-												onChange={(e) => setFormData(prev => ({ ...prev, headingScale: Number(e.target.value) }))}
-												className="w-full accent-luxury-gold"
-											/>
-											<div className="flex justify-between text-[9px] text-gray-500"><span>70%</span><span>100%</span><span>150%</span></div>
-										</div>
-										<div>
-											<label className="block text-[11px] font-bold text-gray-400 mb-2">Tỉ lệ chữ Nội dung: {formData.bodyScale}%</label>
-											<input
-												type="range"
-												min="70"
-												max="150"
-												value={formData.bodyScale ?? 100}
-												onChange={(e) => setFormData(prev => ({ ...prev, bodyScale: Number(e.target.value) }))}
-												className="w-full accent-luxury-gold"
-											/>
-											<div className="flex justify-between text-[9px] text-gray-500"><span>70%</span><span>100%</span><span>150%</span></div>
-										</div>
-									</div>
-
-									{/* Typography Preview */}
-									<div className="mt-4 p-3 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-black/30">
-										<p className="text-[10px] text-gray-400 mb-2">Xem trước:</p>
-										<h3 className="font-bold mb-1" style={{
-											fontFamily: formData.headingFont || undefined,
-											fontSize: `${(formData.headingScale ?? 100) * 0.24}px`,
-										}}>Tiêu Đề Sang Trọng</h3>
-										<p style={{
-											fontFamily: formData.bodyFont || undefined,
-											fontSize: `${(formData.bodyScale ?? 100) * 0.14}px`,
-										}}>Đây là đoạn văn bản nội dung mẫu hiển thị font chữ thân thiện và dễ đọc cho khách hàng của bạn.</p>
-									</div>
+									<p className="text-xs text-gray-500 leading-relaxed">
+										Đã lược bỏ slider điều chỉnh scale để giữ phần quản trị gọn hơn. Nếu cần thay đổi nhịp chữ, hãy dùng theme preset hoặc bảng màu tuỳ chỉnh.
+									</p>
 								</div>
 							</div>
 						</div>
@@ -1092,22 +1043,14 @@ const StoreSettingsTab = () => {
 								</div>
 							</div>
 
-							{/* Custom CSS */}
+							{/* Custom CSS editor intentionally removed to keep the admin UI focused and predictable. */}
 							<div className="space-y-3 bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-gray-800">
 								<h4 className="text-xs font-bold uppercase tracking-wider text-luxury-gold flex items-center gap-1.5">
 									<Code2 className="w-3.5 h-3.5" /> CSS Tuỳ Chỉnh Toàn Trang
 								</h4>
-								<textarea
-									value={formData.customCSS || ""}
-									onChange={(e) => setFormData(prev => ({ ...prev, customCSS: e.target.value }))}
-									className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-white/10 bg-black/30 dark:bg-black/50 text-xs font-mono outline-none focus:border-luxury-gold min-h-[200px]"
-									placeholder={`/* Ví dụ: */
-/* .product-card { border-radius: 16px; } */
-/* .btn-primary { text-transform: uppercase; } */
-/* .hero-section { min-height: 80vh; } */`}
-									spellCheck={false}
-								/>
-								<p className="text-[10px] text-gray-500">CSS sẽ được tự động nhúng vào mọi trang. Hãy cẩn thận khi chỉnh sửa - lỗi CSS có thể làm hỏng giao diện.</p>
+								<p className="text-xs text-gray-500 leading-relaxed">
+									Mục chỉnh sửa CSS nâng cao đã được ẩn để tránh làm loãng phạm vi quản trị. Thiết kế giao diện hiện được điều khiển qua theme, bảng màu và logo.
+								</p>
 							</div>
 						</div>
 					)}

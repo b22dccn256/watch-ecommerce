@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, RefreshCw, ShieldCheck, Sparkles, Truck } from "lucide-react";
+import { RefreshCw, ShieldCheck, Sparkles, Truck } from "lucide-react";
 
 import { useProductStore } from "../stores/useProductStore";
 import { useCampaignStore } from "../stores/useCampaignStore";
 import { useStorefrontStore } from "../stores/useStorefrontStore";
 import HeroBanner from "../components/HeroBanner";
 import PageShell from "../components/PageShell";
-import ProductCard from "../components/ProductCard";
 import RecentlyViewed from "../components/RecentlyViewed";
 import FlashSaleSection from "../components/FlashSaleSection";
 import BestSellersSection from "../components/BestSellerSection";
+import FeaturedProducts from "../components/FeaturedProducts";
+import CampaignBannerSection from "../components/CampaignBannerSection";
 import ChatBot from "../components/ChatBot";
 import { SkeletonProductCard } from "../components/SkeletonLoaders";
 
@@ -41,16 +42,6 @@ const TRUST_CARDS = [
     icon: Truck,
   },
 ];
-
-// Stagger variants
-const containerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.1 } },
-};
-const itemVariants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
-};
 
 const HomePage = () => {
   const { fetchFeaturedProducts, products, loading } = useProductStore();
@@ -136,7 +127,7 @@ const HomePage = () => {
             />
           ) : null;
         case "newsletter":
-          return null; // placeholder for future newsletter component
+          return null; // newsletter section handled by Footer subscribe form
         default:
           return null;
       }
@@ -156,53 +147,11 @@ const HomePage = () => {
 
         {/* NOTE: prominent search bar removed to avoid duplication with header search */}
 
-        {/* ── Featured Products — Compact ── */}
-        <section className="py-10 sm:py-14">
-          {/* Section header */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.5 }}
-            className="mb-6 flex items-end justify-between"
-          >
-            <div>
-              <p className="hero-kicker text-[color:var(--color-gold)]">Featured pieces</p>
-              <h2 className="hero-title text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mt-2">Tuyển chọn tinh hoa</h2>
-            </div>
-            <Link
-              to="/catalog"
-              className="group hidden items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted transition-colors duration-200 hover:text-[color:var(--color-gold)] sm:inline-flex"
-            >
-              Xem tất cả
-              <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-1" />
-            </Link>
-          </motion.div>
+        {/* ── Featured Products — Grid same as BestSellers ── */}
+        <FeaturedProducts featuredProducts={featured} gridCols={gridCols} />
 
-          {/* Product grid — staggered */}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.05 }}
-            variants={containerVariants}
-            className="flex flex-wrap gap-4 justify-center"
-          >
-            {featured.map((product) => (
-              <motion.div key={String(product._id)} variants={itemVariants} className="w-full sm:w-1/2 lg:w-1/4">
-                <div className="px-2">
-                  <ProductCard product={product} />
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* Mobile CTA */}
-          <div className="mt-6 flex justify-center sm:hidden">
-            <Link to="/catalog" className="btn-base btn-outline h-10 px-6 text-sm">
-              Xem tất cả <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-        </section>
+        {/* ── Campaign & Promotion Banners (Giữa trang chủ) ── */}
+        <CampaignBannerSection />
 
         {/* ── Trust Band — Compact ── */}
         <section className="py-6 sm:py-8">

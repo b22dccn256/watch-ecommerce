@@ -143,6 +143,7 @@ export const getAllOrders = async (req, res) => {
         let ordersQuery = Order.find(filter)
             .populate("user", "name email")
             .populate("products.product", "name price image")
+            .populate("coupon")
             .sort({ createdAt: -1 });
 
         if (limit !== "all") {
@@ -169,6 +170,39 @@ export const getAllOrders = async (req, res) => {
     } catch (error) {
         console.error("Error in getAllOrders:", error.message);
         res.status(500).json({ message: "Server error" });
+    }
+};
+
+export const exportOrders = async (req, res) => {
+    try {
+        const { format = 'csv', status } = req.query;
+        const filter = {};
+        if (status && status !== 'Tất cả') filter.status = status;
+
+        const orders = await Order.find(filter)
+            .populate('user', 'name email')
+            .populate('products.product', 'name price')
+            .sort({ createdAt: -1 });
+
+        if (format === 'csv') {
+            const headers = ['orderCode', 'userEmail', 'status', 'paymentStatus', 'totalAmount', 'createdAt', 'shippingName', 'shippingPhone', 'products'];
+            const rows = orders.map(o => {
+                const userEmail = o.user?.email || '';
+                const shippingName = o.shippingDetails?.fullName || '';
+                const shippingPhone = o.shippingDetails?.phoneNumber || '';
+                const products = (o.products || []).map(p => `${p.product?.name || p.product}_${p.quantity}@${p.price}`).join('; ');
+                return [o.orderCode, userEmail, o.status, o.paymentStatus, o.totalAmount, o.createdAt.toISOString(), shippingName, shippingPhone, `"${products}"`].join(',');
+            });
+
+            res.setHeader('Content-Type', 'text/csv');
+            res.setHeader('Content-Disposition', 'attachment; filename="orders-export.csv"');
+            return res.send(headers.join(',') + '\n' + rows.join('\n'));
+        }
+
+        res.json(orders);
+    } catch (error) {
+        console.error('Error in exportOrders:', error.message);
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -202,7 +236,13 @@ export const updateOrderDetails = async (req, res) => {
              order.refundAmount = refundAmount;
         }
 
-        if (carrier !== undefined) order.carrier = carrier;
+        const VALID_CARRIERS = ["DHL Express", "GHTK", "Viettel Post", "J&T Express", "VNPost", "Other"];
+        if (carrier !== undefined) {
+            if (!VALID_CARRIERS.includes(carrier)) {
+                return res.status(400).json({ message: `Đơn vị vận chuyển không hợp lệ. Hợp lệ: ${VALID_CARRIERS.join(", ")}` });
+            }
+            order.carrier = carrier;
+        }
         if (carrierTrackingNumber !== undefined) order.carrierTrackingNumber = carrierTrackingNumber;
 
         await order.save();
@@ -218,7 +258,8 @@ export const getOrderById = async (req, res) => {
     try {
         let order = await Order.findById(req.params.id)
             .populate("user", "name email")
-            .populate("products.product", "name price image");
+            .populate("products.product", "name price image")
+            .populate("coupon");
 
         if (!order) return res.status(404).json({ message: "Order not found" });
 
@@ -242,7 +283,8 @@ export const getMyOrders = async (req, res) => {
         const ordersFetched = await Order.find({ user: req.user._id })
             .sort({ createdAt: -1 })
             .populate("user", "name email")
-            .populate("products.product", "name price image");
+            .populate("products.product", "name price image")
+            .populate("coupon");
 
         const orders = await Promise.all(ordersFetched.map(ensureOrderProductsPopulated));
         res.json(orders);

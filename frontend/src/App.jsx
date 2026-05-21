@@ -29,6 +29,7 @@ import VerifyEmailPage from "./pages/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import BrandsPage from "./pages/BrandsPage";
+import FAQPage from "./pages/FAQPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 import Navbar from "./components/Navbar";
@@ -133,7 +134,7 @@ function App() {
 		}
 	}, [theme]);
 
-	// 4. Dynamic SEO Metadata Update
+	// 4. Dynamic SEO Metadata, Favicon & Custom CSS Update
 	useEffect(() => {
 		if (!config) return;
 		if (config.seoTitle) {
@@ -147,6 +148,29 @@ function App() {
 				document.head.appendChild(metaDesc);
 			}
 			metaDesc.setAttribute('content', config.seoMetaDesc);
+		}
+		// Dynamic favicon
+		if (config.favicon) {
+			let favicon = document.querySelector('link[rel="icon"]');
+			if (!favicon) {
+				favicon = document.createElement('link');
+				favicon.setAttribute('rel', 'icon');
+				document.head.appendChild(favicon);
+			}
+			favicon.setAttribute('href', config.favicon);
+		}
+		// Dynamic custom CSS injection
+		const styleId = 'storefront-custom-css';
+		let styleEl = document.getElementById(styleId);
+		if (config.customCSS) {
+			if (!styleEl) {
+				styleEl = document.createElement('style');
+				styleEl.id = styleId;
+				document.head.appendChild(styleEl);
+			}
+			styleEl.textContent = config.customCSS;
+		} else if (styleEl) {
+			styleEl.remove();
 		}
 	}, [config]);
 
@@ -270,6 +294,8 @@ function App() {
 						<Route path='/order-lookup' element={<OrderLookupPage />} />
 						<Route path='/privacy-policy' element={<PrivacyPolicyPage />} />
 						<Route path='/terms' element={<TermsOfServicePage />} />
+						<Route path='/faq' element={<FAQPage />} />
+						<Route path='/support' element={<FAQPage />} />
 						<Route path='/purchase-success' element={<PurchaseSuccessPage />} />
 							<Route path='/purchase-cancel' element={privateRoute(<PurchaseCancelPage />)} />
 						<Route path='/payment/vnpay-return' element={<PaymentReturnPage method="vnpay" />} />

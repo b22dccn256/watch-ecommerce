@@ -4,6 +4,16 @@
   "type": "module",
   "private": true,
   "description": "Backend API — run npm install from repo root for full dependencies",
+  "scripts": {
+    "test": "node --test test/**/*.test.mjs",
+    "test:ci": "node --test --test-reporter spec test/**/*.test.mjs",
+    "test:coupon": "node --test test/coupon.test.mjs test/coupon-enhanced.test.mjs",
+    "test:auth": "node --test test/auth-validation.test.mjs test/auth-change-password.test.mjs test/auth-reset-password.test.mjs",
+    "test:order": "node --test test/order-cod-flow.test.mjs test/order-details.test.mjs test/order-service.test.mjs",
+    "test:cms": "node --test test/store-config.test.mjs",
+    "test:api": "node --test test/admin-api.test.mjs test/user-api.test.mjs test/payment-order.test.mjs",
+    "test:all": "node --test test/*.test.mjs"
+  },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@zalopay-oss/zalopay-nodejs": "^0.4.0",
@@ -16,6 +26,7 @@
     "dotenv": "^16.6.1",
     "express": "^4.22.1",
     "express-rate-limit": "^8.3.1",
+    "groq-sdk": "^1.2.0",
     "handlebars": "^4.7.8",
     "helmet": "^8.1.0",
     "ioredis": "^5.10.0",

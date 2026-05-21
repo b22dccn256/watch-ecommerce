@@ -42,8 +42,8 @@ const ProfilePage = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [profileErrors, setProfileErrors] = useState({});
 
-  const [profileData, setProfileData] = useState({ name: "", phone: "" });
-  const [passwordData, setPasswordData] = useState({ oldPassword: "", newPassword: "", confirmPassword: "" });
+  const [profileData, setProfileData] = useState({ name: "", phone: "", address: "", gender: "", birthday: "" });
+  const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const [showPassword, setShowPassword] = useState({ old: false, next: false, confirm: false });
 
   useEffect(() => {
@@ -52,6 +52,9 @@ const ProfilePage = () => {
     setProfileData({
       name: user.name || "",
       phone: user.phone || "",
+      address: user.address || "",
+      gender: user.gender || "",
+      birthday: user.birthday ? new Date(user.birthday).toISOString().split("T")[0] : "",
     });
 
     fetchMyOrders();
@@ -84,7 +87,7 @@ const ProfilePage = () => {
     const success = await changePassword(passwordData);
     if (!success) return;
 
-    setPasswordData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+    setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
   };
 
   const statusText = (status) => {
@@ -93,7 +96,7 @@ const ProfilePage = () => {
         return "Đang chờ";
       case "confirmed":
         return "Đã xác nhận";
-      case "shipping":
+      case "shipped":
         return "Đang giao";
       case "return_requested":
         return "Chờ duyệt trả hàng";
@@ -111,7 +114,7 @@ const ProfilePage = () => {
 
   const statusDotClass = (status) => {
     if (["delivered", "completed"].includes(status)) return "bg-[color:var(--color-gold)]";
-    if (status === "shipping") return "bg-gray-500";
+    if (status === "shipped") return "bg-gray-500";
     if (["pending", "confirmed", "cancelled", "return_requested", "returned"].includes(status)) return "bg-gray-400";
     return "bg-gray-400";
   };
@@ -213,6 +216,33 @@ const ProfilePage = () => {
                       placeholder="0912345678"
                     />
                     <Input
+                      label="Địa chỉ"
+                      name="address"
+                      value={profileData.address}
+                      onChange={(event) => setProfileData((prev) => ({ ...prev, address: event.target.value }))}
+                      placeholder="Số nhà, đường, quận, thành phố"
+                    />
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Giới tính</label>
+                      <select
+                        value={profileData.gender}
+                        onChange={(e) => setProfileData((prev) => ({ ...prev, gender: e.target.value }))}
+                        className="input-base h-11 w-full rounded-lg"
+                      >
+                        <option value="">Chọn giới tính</option>
+                        <option value="male">Nam</option>
+                        <option value="female">Nữ</option>
+                        <option value="other">Khác</option>
+                      </select>
+                    </div>
+                    <Input
+                      label="Ngày sinh"
+                      name="birthday"
+                      type="date"
+                      value={profileData.birthday}
+                      onChange={(event) => setProfileData((prev) => ({ ...prev, birthday: event.target.value }))}
+                    />
+                    <Input
                       label="Email"
                       value={user?.email || ""}
                       disabled
@@ -290,7 +320,7 @@ const ProfilePage = () => {
                   </div>
 
                   {[
-                    ["oldPassword", "Mật khẩu hiện tại", "old"],
+                    ["currentPassword", "Mật khẩu hiện tại", "old"],
                     ["newPassword", "Mật khẩu mới", "next"],
                     ["confirmPassword", "Xác nhận mật khẩu", "confirm"],
                   ].map(([field, label, flag]) => (

@@ -96,9 +96,16 @@ if (isCronEnabled) {
 
         for (const order of abandonedOrders) {
             try {
-                // Use updateOne to avoid triggering schema validators on legacy/incomplete docs
-                await Order.updateOne({ _id: order._id }, { $set: { status: "cancelled", paymentStatus: "cancelled" } });
-                await OrderService.restoreStock(order.products);
+                // Use OrderService to ensure trackingEvents, inventory logs, and proper state transitions
+                order.status = "cancelled";
+                order.paymentStatus = "cancelled";
+                order.trackingEvents.push({
+                    status: "cancelled",
+                    message: "Hệ thống tự động hủy đơn Stripe hết hạn thanh toán.",
+                    timestamp: new Date()
+                });
+                await order.save();
+                await OrderService.restoreStock(order.products, null, order._id, "Hệ thống tự động hủy đơn Stripe hết hạn thanh toán (Cron)");
                 console.log("[Cron] Cancelled abandoned Stripe order " + order._id + " and restored stock.");
             } catch (err) {
                 console.error('[Cron] Failed to cancel order', order._id, err.message);
@@ -145,3 +152,108 @@ if (isCronEnabled) {
     }
     });
 } // end isCronEnabled
+
+// AI Automation Cron Jobs
+if (isCronEnabled) {
+    // AI tự động xác nhận đơn COD (mỗi 30 phút)
+    cron.schedule("*/30 * * * *", async () => {
+        try {
+            // Check for AI keys: Gemini preferred, Groq fallback
+            const geminiKey = process.env.GEMINI_API_KEY;
+            const groqKey = process.env.GROQ_API_KEY;
+
+            if (!geminiKey && !groqKey) {
+                console.log("[Cron AI] Chưa cấu hình GEMINI_API_KEY hoặc GROQ_API_KEY, bỏ qua auto-confirm.");
+                return;
+            }
+
+            const pendingOrders = await Order.find({
+                status: "pending",
+                paymentMethod: "cod",
+                createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+            }).limit(20);
+
+            if (pendingOrders.length === 0) return;
+
+            let model, providerName;
+
+            if (geminiKey) {
+                const { GoogleGenerativeAI } = await import("@google/generative-ai");
+                const genAI = new GoogleGenerativeAI(geminiKey);
+                const geminiModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+                providerName = "Gemini";
+                model = async (prompt) => {
+                    const result = await geminiModel.generateContent(prompt);
+                    return result.response.text().replace(/```json|```/g, "").trim();
+                };
+            } else {
+                const { default: Groq } = await import("groq-sdk");
+                const groq = new Groq({ apiKey: groqKey });
+                providerName = "Groq";
+                model = async (prompt) => {
+                    const completion = await groq.chat.completions.create({
+                        model: "llama-3.3-70b-versatile",
+                        messages: [
+                            { role: "system", content: "Trả về JSON: {\"isSpam\":bool,\"reason\":\"string\"}" },
+                            { role: "user", content: prompt },
+                        ],
+                        temperature: 0.2,
+                        max_tokens: 150,
+                        response_format: { type: "json_object" },
+                    });
+                    return completion.choices[0]?.message?.content || "";
+                };
+            }
+
+            let confirmed = 0, cancelled = 0;
+
+            for (const order of pendingOrders) {
+                const prompt = `Phân tích đơn hàng sau có phải spam không. Tên: ${order.shippingDetails?.fullName || "?"}, SĐT: ${order.shippingDetails?.phoneNumber || "?"}, Địa chỉ: ${order.shippingDetails?.address || "?"}. Trả JSON: {"isSpam":bool,"reason":"string"}`;
+                try {
+                    const text = await model(prompt);
+                    const analysis = JSON.parse(text);
+                    if (analysis.isSpam) {
+                        // Use OrderService.updateOrderStatus for proper trackingEvents, inventory restore
+                        try {
+                            await OrderService.updateOrderStatus(order._id, "cancelled", null);
+                        } catch { /* fallback */ }
+                        cancelled++;
+                    } else {
+                        // Use OrderService.updateOrderStatus for proper trackingEvents, paymentStatus, paidAt, loyalty points
+                        try {
+                            await OrderService.updateOrderStatus(order._id, "confirmed", null);
+                        } catch { /* fallback */ }
+                        confirmed++;
+                    }
+                } catch { /* skip individual failures */ }
+            }
+
+            if (confirmed > 0 || cancelled > 0) {
+                console.log(`[Cron AI ${providerName}] Auto-processed ${pendingOrders.length} COD orders: ${confirmed} confirmed, ${cancelled} cancelled.`);
+            }
+        } catch (err) {
+            console.error("[Cron AI] Error:", err.message);
+        }
+    });
+
+    // AI dọn dẹp tài khoản spam hàng ngày lúc 2h sáng
+    cron.schedule("0 2 * * *", async () => {
+        try {
+            const users = await User.find({ role: "customer" });
+            let deleted = 0;
+            for (const user of users) {
+                const isSpam = /test|bot|demo|spam|fake|123/i.test(user.name) || /test|bot|fake/i.test(user.email);
+                if (isSpam) {
+                    const orders = await Order.countDocuments({ user: user._id });
+                    if (orders === 0) {
+                        await User.findByIdAndDelete(user._id);
+                        deleted++;
+                    }
+                }
+            }
+            if (deleted > 0) console.log(`[Cron AI] Cleaned ${deleted} spam accounts.`);
+        } catch (err) {
+            console.error("[Cron AI Cleanup] Error:", err.message);
+        }
+    });
+}

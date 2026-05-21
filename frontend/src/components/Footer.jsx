@@ -7,6 +7,7 @@ import {
   CreditCard,
   Facebook,
   Instagram,
+  Link2,
   Mail,
   MapPin,
   Phone,
@@ -23,26 +24,26 @@ import { toast } from "react-hot-toast";
 import axios from "../lib/axios";
 import { useStorefrontStore } from "../stores/useStorefrontStore";
 
-const footerColumns = [
+const DEFAULT_FOOTER_COLUMNS = [
   {
     title: "Danh mục",
     links: [
-      ["Đồng hồ nam", "/category/men"],
-      ["Đồng hồ nữ", "/category/women"],
-      ["Luxury", "/category/luxury"],
-      ["Thể thao", "/category/sport"],
-      ["Thương hiệu", "/brands"],
+      { label: "Đồng hồ nam", link: "/category/men" },
+      { label: "Đồng hồ nữ", link: "/category/women" },
+      { label: "Luxury", link: "/category/luxury" },
+      { label: "Thể thao", link: "/category/sport" },
+      { label: "Thương hiệu", link: "/brands" },
     ],
   },
   {
     title: "Hỗ trợ",
     links: [
-      ["Về chúng tôi", "/about"],
-      ["Chính sách giao hàng", "/delivery-policy"],
-      ["Đổi trả và bảo hành", "/warranty"],
-      ["Hướng dẫn chọn size", "/size-guide"],
-      ["Tra cứu đơn hàng", "/order-lookup"],
-      ["Liên hệ", "/contact"],
+      { label: "Về chúng tôi", link: "/about" },
+      { label: "Chính sách giao hàng", link: "/delivery-policy" },
+      { label: "Đổi trả và bảo hành", link: "/warranty" },
+      { label: "Hướng dẫn chọn size", link: "/size-guide" },
+      { label: "Tra cứu đơn hàng", link: "/order-lookup" },
+      { label: "Liên hệ", link: "/contact" },
     ],
   },
 ];
@@ -56,7 +57,14 @@ const Footer = () => {
     { icon: Facebook, href: config?.footerFacebook || "https://facebook.com", label: "Facebook" },
     { icon: Instagram, href: config?.footerInstagram || "https://instagram.com", label: "Instagram" },
     { icon: MessageSquare, href: config?.footerZalo || "https://zalo.me", label: "Zalo" },
+    ...(config?.footerTiktok ? [{ icon: Twitter, href: config.footerTiktok, label: "TikTok" }] : []),
+    ...(config?.footerYoutube ? [{ icon: Youtube, href: config.footerYoutube, label: "Youtube" }] : []),
+    ...(config?.footerPinterest ? [{ icon: Link2, href: config.footerPinterest, label: "Pinterest" }] : []),
   ];
+
+  const footerColumns = (config?.footerColumns && config.footerColumns.length > 0)
+    ? config.footerColumns
+    : DEFAULT_FOOTER_COLUMNS;
 
   const handleSubscribe = async (event) => {
     event.preventDefault();
@@ -110,7 +118,7 @@ const Footer = () => {
             </div>
 
             <p className="max-w-sm text-sm leading-relaxed text-secondary">
-              Tuyển chọn đồng hồ cao cấp từ những thương hiệu danh tiếng, kết hợp trải nghiệm mua sắm tinh gọn và dịch vụ hậu mãi chuyên nghiệp.
+              {config?.footerAboutText || "Tuyển chọn đồng hồ cao cấp từ những thương hiệu danh tiếng, kết hợp trải nghiệm mua sắm tinh gọn và dịch vụ hậu mãi chuyên nghiệp."}
             </p>
 
             <div className="flex gap-2">
@@ -134,13 +142,17 @@ const Footer = () => {
             <section key={column.title}>
               <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-primary">{column.title}</h3>
               <ul className="space-y-3 text-sm text-secondary">
-                {column.links.map(([label, to]) => (
-                  <li key={to}>
-                    <Link to={to} className="transition hover:text-[color:var(--color-gold)]">
-                      {label}
-                    </Link>
-                  </li>
-                ))}
+                {column.links.map((link) => {
+                  const label = link.label || link[0];
+                  const to = link.link || link[1];
+                  return (
+                    <li key={to}>
+                      <Link to={to} className="transition hover:text-[color:var(--color-gold)]">
+                        {label}
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </section>
           ))}
@@ -186,7 +198,7 @@ const Footer = () => {
         </motion.div>
 
         <div className="flex flex-col items-center justify-between gap-4 border-t border-black/8 py-6 text-xs text-muted dark:border-white/8 sm:flex-row">
-          <p>© 2026 Luxury Watch. All rights reserved.</p>
+          <p>{config?.footerCopyright?.replace("{year}", new Date().getFullYear()) || `© ${new Date().getFullYear()} Luxury Watch. All rights reserved.`}</p>
           <div className="flex items-center gap-3">
             <CreditCard className="h-4 w-4" />
             <Wallet className="h-4 w-4" />

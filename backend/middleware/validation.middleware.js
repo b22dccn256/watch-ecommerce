@@ -27,11 +27,17 @@ export const authSchemas = {
 	resetPassword: Joi.object({
 		token: Joi.string().required(),
 		newPassword: Joi.string().min(8).required(),
+		confirmPassword: Joi.string().valid(Joi.ref("newPassword")).required().messages({
+			"any.only": "Mật khẩu xác nhận không khớp",
+		}),
 	}).unknown(false),
 
 	changePassword: Joi.object({
 		currentPassword: Joi.string().required(),
 		newPassword: Joi.string().min(8).required(),
+		confirmPassword: Joi.string().valid(Joi.ref("newPassword")).required().messages({
+			"any.only": "Mật khẩu xác nhận không khớp",
+		}),
 	}).unknown(false),
 
 	updateProfile: Joi.object({
@@ -62,7 +68,7 @@ export const productSchemas = {
 		stock: Joi.number().integer().min(0).optional(),
 		images: Joi.array().items(Joi.string().uri()).optional(),
 		specifications: Joi.object().optional(),
-	}).unknown(false),
+	}).unknown(true),
 };
 
 export const cartSchemas = {
@@ -100,6 +106,28 @@ export const orderSchemas = {
 		}).required(),
 		phoneNumber: Joi.string().pattern(/^[0-9+\-\s()]+$/).required(),
 		paymentMethod: Joi.string().valid("credit_card", "debit_card", "paypal", "vnpay", "momo", "zalopay").required(),
+	}).unknown(false),
+
+	// Non-Stripe order schema (used by createNonStripeOrder - cod/qr)
+	nonStripeOrder: Joi.object({
+		products: Joi.array().items(
+			Joi.object({
+				_id: Joi.string().required(),
+				quantity: Joi.number().integer().min(1).required(),
+				price: Joi.number().positive().required(),
+				wristSize: Joi.string().allow(null, "").optional(),
+				selectedColor: Joi.string().allow(null, "").optional(),
+				selectedSize: Joi.string().allow(null, "").optional(),
+			})
+		).min(1).required(),
+		couponCode: Joi.string().allow(null, "").optional(),
+		shippingDetails: Joi.object({
+			fullName: Joi.string().required(),
+			address: Joi.string().required(),
+			city: Joi.string().required(),
+			phoneNumber: Joi.string().required(),
+			email: Joi.string().email().optional(),
+		}).required(),
 	}).unknown(false),
 };
 

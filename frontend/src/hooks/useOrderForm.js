@@ -30,7 +30,7 @@ export default function useOrderForm(initialOrder) {
     if (!orderId) return;
     setSaving(true);
     try {
-      await axios.patch(`/orders/${orderId}`, {
+      await axios.patch(`/orders/${orderId}/details`, {
         carrier: form.carrier,
         carrierTrackingNumber: form.carrierTrackingNumber,
         refundAmount: form.refundAmount ? Number(form.refundAmount) : undefined,

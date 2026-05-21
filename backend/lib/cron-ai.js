@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import User from "../models/user.model.js";
 import Order from "../models/order.model.js";
+import OrderService from "../services/order.service.js";
 
 const isCronEnabled = process.env.ENABLE_CRON === "true";
 
@@ -16,11 +17,18 @@ if (isCronEnabled) {
             // Mô phỏng: Tự động Approve các đơn COD sau 24h không có rủi ro hủy.
             const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-            const autoConfirmedOrders = await Order.updateMany(
-                { status: "pending", paymentMethod: "cod", createdAt: { $lte: oneDayAgo } },
-                { $set: { status: "confirmed" } }
-            );
-            console.log(`✅ [AI System] Đã tự động xác nhận ${autoConfirmedOrders.modifiedCount} đơn đặt hàng COD hợp lệ.`);
+            const pendingOrders = await Order.find({
+                status: "pending", paymentMethod: "cod", createdAt: { $lte: oneDayAgo }
+            });
+
+            let confirmed = 0;
+            for (const order of pendingOrders) {
+                try {
+                    await OrderService.updateOrderStatus(order._id, "confirmed", null);
+                    confirmed++;
+                } catch { /* skip individual failures */ }
+            }
+            console.log(`✅ [AI System] Đã tự động xác nhận ${confirmed} đơn đặt hàng COD hợp lệ.`);
 
             // 2. Dọn dẹp tài khoản không hợp lệ/spam
             // Mô hình học máy phát hiện spam bằng regex naming patterns và hành vi abandon.
