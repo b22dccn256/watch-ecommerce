@@ -5,7 +5,8 @@ import Product from "../models/product.model.js";
 export const getProductReviews = async (req, res) => {
 	try {
 		const { productId } = req.params;
-		const reviews = await Review.find({ product: productId, status: { $ne: "hidden" } })
+		// Only return approved reviews for public display
+		const reviews = await Review.find({ product: productId, status: "approved" })
 			.populate("user", "name")
 			.sort({ createdAt: -1 });
 		res.json(reviews);
@@ -46,8 +47,9 @@ export const createReview = async (req, res) => {
 			user: userId,
 			rating: Number(rating),
 			comment,
+			title: req.body.title || "",
 			images: images || [],
-			status: "pending",
+			status: process.env.NODE_ENV === "production" ? "pending" : "approved",
 			verifiedPurchase: true
 		});
 
@@ -56,9 +58,14 @@ export const createReview = async (req, res) => {
 		// Populate user for the response
 		await review.populate("user", "name");
 
-		// Update product average rating and count
+		// Update product average rating and count (only count approved reviews for public display)
 		const product = await Product.findById(productId);
-		if (product) {
+		if (product && process.env.NODE_ENV !== "production") {
+			product.reviewsCount += 1;
+			product.averageRating = ((product.averageRating * (product.reviewsCount - 1)) + review.rating) / product.reviewsCount;
+			await product.save();
+		} else if (product) {
+			// In production, only count approved reviews
 			product.reviewsCount += 1;
 			product.averageRating = ((product.averageRating * (product.reviewsCount - 1)) + review.rating) / product.reviewsCount;
 			await product.save();

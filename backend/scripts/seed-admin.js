@@ -37,6 +37,7 @@ const seedAdmin = async () => {
 		user.password = ADMIN_PASSWORD;
 		user.role = "admin";
 		user.emailVerified = true;
+		user.gender = user.gender || 'other';
 		await user.save();
 		console.log(`[seed-admin] Updated admin: ${ADMIN_EMAIL}`);
 	} else {
@@ -45,6 +46,7 @@ const seedAdmin = async () => {
 			email: ADMIN_EMAIL,
 			password: ADMIN_PASSWORD,
 			role: "admin",
+			gender: 'other',
 			emailVerified: true,
 		});
 		console.log(`[seed-admin] Created admin: ${ADMIN_EMAIL}`);

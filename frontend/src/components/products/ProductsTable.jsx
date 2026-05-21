@@ -106,7 +106,7 @@ const ProductsTable = ({
 									</td>
 									<td className="px-3 py-2 whitespace-nowrap">
 										<button
-											onClick={() => onToggleFeatured(product._id)}
+											onClick={() => onToggleFeatured(product._id, product.isFeatured)}
 											className={`p-1 rounded-md transition-colors ${product.isFeatured ? "bg-yellow-400 text-gray-900 shadow-sm" : "bg-gray-100 dark:bg-gray-600 text-gray-400 hover:bg-yellow-500 hover:text-white"}`}
 											title={product.isFeatured ? "Bỏ nổi bật" : "Đặt nổi bật"}
 										>

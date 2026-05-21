@@ -29,11 +29,14 @@ export const useCouponStore = createWithEqualityFn((set, get) => ({
 				// Mock data if backend is not ready to avoid empty screen
 				if (error.response?.status === 404) {
 					const fallback = [
-						{ _id: "1", code: "WELCOME10", type: "percent", discountValue: 10, minOrderAmount: 0, usedCount: 15, maxUses: 100, expirationDate: new Date(Date.now() + 864000000).toISOString(), isActive: true },
-						{ _id: "2", code: "TET2026", type: "fixed", discountValue: 500000, minOrderAmount: 2000000, usedCount: 200, maxUses: 200, expirationDate: new Date(Date.now() - 864000000).toISOString(), isActive: false },
+						{ _id: "dev-1", code: "WELCOME10", type: "percent", discountValue: 10, minOrderAmount: 0, usedCount: 15, maxUses: 100, expirationDate: new Date(Date.now() + 864000000).toISOString(), isActive: true },
+						{ _id: "dev-2", code: "TET2026", type: "fixed", discountValue: 500000, minOrderAmount: 2000000, usedCount: 200, maxUses: 200, expirationDate: new Date(Date.now() - 864000000).toISOString(), isActive: false },
 					];
 					set({ coupons: fallback, loading: false });
-					toast.error("Backend chưa có endpoint GET /coupons. Đang hiển thị dữ liệu mẫu.");
+					// Only show toast if we actually have no coupons (first load in dev)
+					if (get().coupons.length === 0) {
+						toast("Đang dùng dữ liệu mẫu cho coupons", { icon: "💡" });
+					}
 					return fallback;
 				}
 				set({ loading: false });

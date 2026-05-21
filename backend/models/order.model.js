@@ -43,6 +43,25 @@ const orderSchema = new mongoose.Schema(
 			required: true,
 			min: 0,
 		},
+		subtotal: {
+			type: Number,
+			default: 0,
+			min: 0,
+		},
+		discountAmount: {
+			type: Number,
+			default: 0,
+			min: 0,
+		},
+		shippingFee: {
+			type: Number,
+			default: 0,
+			min: 0,
+		},
+		couponCode: {
+			type: String,
+			default: "",
+		},
 		orderCode: {
 			type: String,
 			unique: true,
@@ -155,6 +174,17 @@ const orderSchema = new mongoose.Schema(
 	},
 	{ timestamps: true }
 );
+
+// Virtual field to dynamically populate Coupon based on couponCode
+orderSchema.virtual("coupon", {
+	ref: "Coupon",
+	localField: "couponCode",
+	foreignField: "code",
+	justOne: true,
+});
+
+orderSchema.set("toJSON", { virtuals: true });
+orderSchema.set("toObject", { virtuals: true });
 
 // ── Performance Indexes ───────────────────────────────────────────────────────
 // Tăng tốc getMyOrders (sort mới nhất trước)

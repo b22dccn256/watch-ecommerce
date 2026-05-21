@@ -1,0 +1,11 @@
+{
+	"watch": ["backend"],
+	"ext": "js,mjs,cjs,json",
+	"ignore": [
+		"backend/logs/**",
+		"backend/uploads/**",
+		"backend/exports/**",
+		"frontend/**",
+		"node_modules/**"
+	]
+}

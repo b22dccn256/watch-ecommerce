@@ -80,7 +80,7 @@ const DeltaBadge = ({ delta }) => {
   );
 };
 
-  const KpiCard = ({ title, value, icon: Icon, gradient, delta, loading }) => {
+  const KpiCard = ({ title, value, icon: Icon, gradient, delta, loading, badge, subtext }) => {
   if (loading) return <KpiSkeleton />;
   return (
     <div className="card-admin transition hover:border-[color:var(--color-gold)]/25">
@@ -88,10 +88,14 @@ const DeltaBadge = ({ delta }) => {
         <div className={`w-7 h-7 rounded-md flex items-center justify-center ${gradient}`}>
           <Icon className="w-3.5 h-3.5 text-white" />
         </div>
-        <DeltaBadge delta={delta} />
+          <div className="flex items-center gap-1.5">
+            {badge}
+            <DeltaBadge delta={delta} />
+          </div>
       </div>
         <p className="text-[11px] text-secondary font-medium leading-tight">{title}</p>
         <p className="text-lg font-bold text-primary mt-0.5 tracking-tight">{value}</p>
+          {subtext && <p className="text-[10px] text-muted mt-0.5">{subtext}</p>}
     </div>
   );
 };
@@ -108,6 +112,24 @@ const CardShell = ({ title, icon: Icon, children, action }) => (
     </div>
     {children}
   </div>
+);
+
+const PieStatsCard = ({ title, loading, data, emptyMessage, legendFormatter, tooltipFormatter }) => (
+  <CardShell title={title}>
+    {loading ? <ChartSkeleton /> : !data?.length ? (
+      <EmptyChart message={emptyMessage} />
+    ) : (
+      <ResponsiveContainer width="100%" height={200}>
+        <PieChart>
+          <Pie data={data} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={4} dataKey="value">
+            {data.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+          </Pie>
+          <Tooltip formatter={tooltipFormatter} />
+          <Legend formatter={legendFormatter} />
+        </PieChart>
+      </ResponsiveContainer>
+    )}
+  </CardShell>
 );
 
 /* ── Main component ── */
@@ -177,9 +199,25 @@ const AnalyticsTab = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <div className="space-y-3">
           <p className="text-xs font-semibold text-secondary">Khối Bán hàng</p>
-          <div className="grid grid-cols-2 gap-3">
-            <KpiCard loading={isLoading} title="Đơn hàng" value={data.totalSales.toLocaleString()} icon={ShoppingCart} gradient="bg-violet-500" delta={saleDelta} />
-            <KpiCard loading={isLoading} title="Doanh thu" value={formatVND(data.totalRevenue) + " ₫"} icon={DollarSign} gradient="bg-amber-500" delta={revDelta} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            <KpiCard
+              loading={isLoading}
+              title="Đơn hàng"
+              value={data.totalSales.toLocaleString()}
+              icon={ShoppingCart}
+              gradient="bg-violet-500"
+              delta={saleDelta}
+              badge={data.cancellationRate > 0 ? <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-red-500/20 bg-red-500/10 text-red-500">{data.cancellationRate.toFixed(1)}% hủy/hoàn</span> : null}
+            />
+            <KpiCard loading={isLoading} title="Doanh thu thực tế" value={formatVND(data.totalRevenue) + " ₫"} icon={DollarSign} gradient="bg-amber-500" delta={revDelta} />
+            <KpiCard
+              loading={isLoading}
+              title="Dòng tiền dự kiến"
+              value={formatVND(data.pendingRevenue || 0) + " ₫"}
+              icon={ArrowUpRight}
+              gradient="bg-sky-500"
+              subtext={data.pendingCount ? `${data.pendingCount.toLocaleString()} đơn đang đi đường` : "Chưa phát sinh dòng tiền dự kiến"}
+            />
             <KpiCard loading={isLoading} title="Giá trị đơn trung bình (AOV)" value={formatVND(data.aov) + " ₫"} icon={DollarSign} gradient="bg-emerald-400" />
             <KpiCard loading={isLoading} title="Tỷ lệ chuyển đổi" value={(data.conversionRate > 0 ? data.conversionRate.toFixed(2) + '%' : '—')} icon={TrendingUp} gradient="bg-blue-400" />
           </div>
@@ -256,40 +294,49 @@ const AnalyticsTab = () => {
         )}
       </CardShell>
 
-      {/* Payment & Wrist Size */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <CardShell title="Doanh thu theo Thanh toán">
-          {isLoading ? <ChartSkeleton /> : !data.paymentStats?.length ? (
-            <EmptyChart message="Chưa có dữ liệu thanh toán" />
-          ) : (
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie data={data.paymentStats} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={4} dataKey="value">
-                  {data.paymentStats.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % 4]} />)}
-                </Pie>
-                <Tooltip formatter={v => formatVND(v) + " ₫"} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-        </CardShell>
-
-        <CardShell title="Top Size Cổ Tay">
-          {isLoading ? <ChartSkeleton /> : !data.wristSizeStats?.length ? (
-            <EmptyChart message="Chưa có dữ liệu size" />
-          ) : (
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={data.wristSizeStats} layout="vertical" margin={{ left: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(0,0,0,0.06)" />
-                <XAxis type="number" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                <YAxis type="category" dataKey="size" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                <Tooltip cursor={{ fill: "transparent" }} />
-                <Bar dataKey="count" fill="#c9a96e" radius={[0, 4, 4, 0]} maxBarSize={20} name="Số lượng" />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </CardShell>
+      {/* Payment & Watch Insights */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <PieStatsCard
+          title="Doanh thu theo Thanh toán"
+          loading={isLoading}
+          data={data.paymentStats}
+          emptyMessage="Chưa có dữ liệu thanh toán"
+          tooltipFormatter={(v) => [formatVND(v) + " ₫", "Doanh thu"]}
+          legendFormatter={(v) => v}
+        />
+        <PieStatsCard
+          title="Máy Cơ vs Máy Pin"
+          loading={isLoading}
+          data={data.watchTypeStats}
+          emptyMessage="Chưa có dữ liệu phân loại máy"
+          tooltipFormatter={(v, _, payload) => [`${v} chiếc`, payload?.payload?.name || "Loại máy"]}
+          legendFormatter={(v) => v}
+        />
+        <PieStatsCard
+          title="Màu mặt số được chuộng"
+          loading={isLoading}
+          data={data.dialColorStats}
+          emptyMessage="Chưa có dữ liệu màu mặt số"
+          tooltipFormatter={(v, _, payload) => [`${v} chiếc`, payload?.payload?.name || "Màu mặt số"]}
+          legendFormatter={(v) => v}
+        />
       </div>
+
+      <CardShell title="Top Size Cổ Tay">
+        {isLoading ? <ChartSkeleton /> : !data.wristSizeStats?.length ? (
+          <EmptyChart message="Chưa có dữ liệu size" />
+        ) : (
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={data.wristSizeStats} layout="vertical" margin={{ left: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(0,0,0,0.06)" />
+              <XAxis type="number" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+              <YAxis type="category" dataKey="size" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+              <Tooltip cursor={{ fill: "transparent" }} />
+              <Bar dataKey="count" fill="#c9a96e" radius={[0, 4, 4, 0]} maxBarSize={20} name="Số lượng" />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </CardShell>
 
       {/* Top Products & Low Stock */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

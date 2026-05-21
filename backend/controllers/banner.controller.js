@@ -3,7 +3,7 @@ import cloudinary from "../lib/cloudinary.js";
 
 export const getBanners = async (req, res) => {
 	try {
-		const banners = await Banner.find().sort({ createdAt: -1 });
+		const banners = await Banner.find().sort({ order: 1, createdAt: -1 });
 		res.json(banners);
 	} catch (error) {
 		res.status(500).json({ message: "Server error", error: error.message });
@@ -26,6 +26,10 @@ export const createBanner = async (req, res) => {
 			imageUrl: uploadResponse.secure_url,
 			link: link || "",
 		});
+
+		// Place new banner at the end by default
+		const last = await Banner.findOne().sort({ order: -1 }).select('order');
+		newBanner.order = (last?.order || 0) + 1;
 
 		await newBanner.save();
 		res.status(201).json(newBanner);
@@ -66,6 +70,28 @@ export const toggleBannerStatus = async (req, res) => {
 		banner.status = banner.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
 		await banner.save();
 		res.json(banner);
+	} catch (error) {
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+export const reorderBanners = async (req, res) => {
+	try {
+		const { orderedIds } = req.body;
+		if (!Array.isArray(orderedIds)) {
+			return res.status(400).json({ message: "orderedIds must be an array" });
+		}
+
+		const bulkOps = orderedIds.map((id, index) => ({
+			updateOne: {
+				filter: { _id: id },
+				update: { $set: { order: index } },
+			},
+		}));
+
+		await Banner.bulkWrite(bulkOps);
+		const updated = await Banner.find().sort({ order: 1 });
+		res.json(updated);
 	} catch (error) {
 		res.status(500).json({ message: "Server error", error: error.message });
 	}

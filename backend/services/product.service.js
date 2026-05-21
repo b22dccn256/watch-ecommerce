@@ -19,7 +19,7 @@ import XLSX from 'xlsx';
  * Build a MongoDB filter query from URL query params.
  * @param {object} filters - Destructured from req.query
  */
-export async function buildProductQuery({ q, search, category, brands, machineType, minPrice, maxPrice, colors, sizes, minRating } = {}) {
+export async function buildProductQuery({ q, search, category, brands, machineType, strapMaterial, minPrice, maxPrice, colors, sizes, minRating } = {}) {
   const query = { deletedAt: null };
 
   // Support both `q` and `search` param names
@@ -51,7 +51,11 @@ export async function buildProductQuery({ q, search, category, brands, machineTy
     }
   }
 
-  if (machineType) query.type = { $in: machineType.split(',') };
+  if (machineType) query.type = { $in: machineType.split(',').map(t => new RegExp(`^${t.trim()}$`, 'i')) };
+
+  if (strapMaterial) {
+    query['specs.strap.material'] = { $in: strapMaterial.split(',').map(s => new RegExp(s.trim(), 'i')) };
+  }
 
   if (minPrice || maxPrice) {
     query.price = {};

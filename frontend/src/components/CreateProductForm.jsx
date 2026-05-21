@@ -3,12 +3,12 @@ import { PlusCircle, Loader, ImagePlus, Tag, DollarSign, X, Plus } from "lucide-
 import { useProductStore } from "../stores/useProductStore";
 
 const machineTypes = [
-	{ value: "Mechanical", label: "Cơ lên cót" },
-	{ value: "Quartz", label: "Bộ máy pin" },
-	{ value: "Automatic", label: "Cơ tự động" },
-	{ value: "Solar", label: "Năng lượng ánh sáng" },
-	{ value: "Digital", label: "Điện tử" },
-	{ value: "Smartwatch", label: "Đồng hồ thông minh" },
+	{ value: "mechanical", label: "Cơ lên cót" },
+	{ value: "quartz", label: "Bộ máy pin" },
+	{ value: "automatic", label: "Cơ tự động" },
+	{ value: "solar", label: "Năng lượng ánh sáng" },
+	{ value: "digital", label: "Điện tử" },
+	{ value: "smartwatch", label: "Đồng hồ thông minh" },
 ];
 
 const inputCls = "w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold focus:ring-1 focus:ring-luxury-gold/40 transition";
@@ -26,6 +26,12 @@ const CreateProductForm = ({ onSuccess }) => {
 		brand: "",
 		type: "",
 		wristSizeOptions: [],
+		colors: "",
+		sizes: "",
+		specsStrapMaterial: "",
+		specsCaseMaterial: "",
+		specsCaseDiameter: "",
+		specsWaterResistance: "",
 	});
 
 	const [dragOver, setDragOver] = useState(false);
@@ -50,9 +56,19 @@ const CreateProductForm = ({ onSuccess }) => {
 				stock: finalStock,
 				price: Number(newProduct.price),
 				originalPrice: newProduct.originalPrice ? Number(newProduct.originalPrice) : undefined,
-				wristSizeOptions: newProduct.wristSizeOptions.filter(o => o.size.trim() !== "")
+				wristSizeOptions: newProduct.wristSizeOptions.filter(o => o.size.trim() !== ""),
+				colors: newProduct.colors ? newProduct.colors.split(',').map(s => s.trim()).filter(Boolean) : [],
+				sizes: newProduct.sizes ? newProduct.sizes.split(',').map(s => s.trim()).filter(Boolean) : [],
+				specs: {
+					case: {
+						material: newProduct.specsCaseMaterial || undefined,
+						diameter: newProduct.specsCaseDiameter || undefined,
+					},
+					strap: { material: newProduct.specsStrapMaterial || undefined },
+					waterResistance: newProduct.specsWaterResistance || undefined,
+				},
 			});
-			setNewProduct({ name: "", description: "", price: "", originalPrice: "", category: "", image: "", stock: "", brand: "", type: "", wristSizeOptions: [] });
+			setNewProduct({ name: "", description: "", price: "", originalPrice: "", category: "", image: "", stock: "", brand: "", type: "", wristSizeOptions: [], colors: "", sizes: "", specsCaseMaterial: "", specsCaseDiameter: "", specsStrapMaterial: "", specsWaterResistance: "" });
 			if (onSuccess) onSuccess();
 		} catch {
 			console.error("error creating a product");
@@ -292,6 +308,70 @@ const CreateProductForm = ({ onSuccess }) => {
 							ref={fileInputRef}
 							type="file" accept="image/*" className="hidden"
 							onChange={handleImageChange}
+						/>
+					</div>
+				</div>
+			</div>
+
+			{/* ── Thuộc tính sản phẩm ── */}
+			<div className="pt-4 border-t border-gray-100 dark:border-luxury-border">
+				<h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Thuộc tính sản phẩm</h3>
+				<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+					<div>
+						<label className={labelCls}>Màu sắc</label>
+						<input type="text" value={newProduct.colors}
+							onChange={(e) => setNewProduct({ ...newProduct, colors: e.target.value })}
+							className={inputCls} placeholder="Đen, Bạc, Xanh dương..."
+						/>
+						<p className="text-[10px] text-gray-400 mt-0.5">Phân cách bằng dấu phẩy</p>
+					</div>
+					<div>
+						<label className={labelCls}>Kích thước mặt</label>
+						<input type="text" value={newProduct.sizes}
+							onChange={(e) => setNewProduct({ ...newProduct, sizes: e.target.value })}
+							className={inputCls} placeholder="36mm, 40mm, 44mm"
+						/>
+						<p className="text-[10px] text-gray-400 mt-0.5">Phân cách bằng dấu phẩy</p>
+					</div>
+					<div>
+						<label className={labelCls}>Chất liệu dây</label>
+						<select value={newProduct.specsStrapMaterial}
+							onChange={(e) => setNewProduct({ ...newProduct, specsStrapMaterial: e.target.value })}
+							className={inputCls}>
+							<option value="">Chọn</option>
+							<option>Da</option>
+							<option>Thép không gỉ</option>
+							<option>Cao su</option>
+							<option>Vải NATO</option>
+							<option>Ceramic</option>
+							<option>Titanium</option>
+						</select>
+					</div>
+					<div>
+						<label className={labelCls}>Chất liệu vỏ</label>
+						<select value={newProduct.specsCaseMaterial}
+							onChange={(e) => setNewProduct({ ...newProduct, specsCaseMaterial: e.target.value })}
+							className={inputCls}>
+							<option value="">Chọn</option>
+							<option>Thép không gỉ</option>
+							<option>Titanium</option>
+							<option>Vàng 18K</option>
+							<option>Ceramic</option>
+							<option>Nhựa</option>
+						</select>
+					</div>
+					<div>
+						<label className={labelCls}>Đường kính mặt</label>
+						<input type="text" value={newProduct.specsCaseDiameter}
+							onChange={(e) => setNewProduct({ ...newProduct, specsCaseDiameter: e.target.value })}
+							className={inputCls} placeholder="40 mm"
+						/>
+					</div>
+					<div>
+						<label className={labelCls}>Chống nước</label>
+						<input type="text" value={newProduct.specsWaterResistance}
+							onChange={(e) => setNewProduct({ ...newProduct, specsWaterResistance: e.target.value })}
+							className={inputCls} placeholder="30m / 100m / 300m"
 						/>
 					</div>
 				</div>

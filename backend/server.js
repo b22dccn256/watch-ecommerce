@@ -216,6 +216,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/questions", questionRoutes);
 app.use("/api/settings", storeConfigRoutes);
 app.use("/api/admin/ipns", adminIpnRoutes);
+app.use("/api/ai", aiRoutes);
 
 if (process.env.NODE_ENV === "production") {
 	app.use(express.static(path.join(__dirname, "/frontend/dist")));
@@ -250,15 +251,8 @@ const server = app.listen(PORT, () => {
 
 server.on('error', (err) => {
 	if (err.code === 'EADDRINUSE') {
-		const altPort = parseInt(PORT, 10) + 1 || 5001;
-		console.warn(`Port ${PORT} in use, attempting to listen on ${altPort}`);
-		// try to listen on the next port
-		server.close(() => {
-			app.listen(altPort, () => {
-				console.log(`Server started on fallback port http://localhost:${altPort}`);
-				connectDB();
-			});
-		});
+		console.error(`Port ${PORT} is already in use. Stop the existing process and start the backend again.`);
+		process.exit(1);
 	} else {
 		console.error('Server error:', err);
 		process.exit(1);

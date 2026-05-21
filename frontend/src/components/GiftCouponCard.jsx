@@ -62,7 +62,7 @@ const GiftCouponCard = () => {
 					<h3 className='text-lg font-medium text-primary'>Mã đã áp dụng</h3>
 
 					<p className='mt-2 text-sm text-muted'>
-						{coupon.code} - Giảm {coupon.discountPercentage}%
+						{coupon.code} - Giảm {coupon.type === "fixed" ? `${coupon.discountValue.toLocaleString("vi-VN")}₫` : `${coupon.discountValue || coupon.discountPercentage}%`}
 					</p>
 
 					<motion.button
@@ -81,7 +81,7 @@ const GiftCouponCard = () => {
 				<div className='mt-4'>
 					<h3 className='text-lg font-medium text-primary'>Mã giảm giá dành cho bạn:</h3>
 					<p className='mt-2 text-sm text-muted'>
-						{coupon.code} - Giảm {coupon.discountPercentage}%
+						{coupon.code} - Giảm {coupon.type === "fixed" ? `${coupon.discountValue.toLocaleString("vi-VN")}₫` : `${coupon.discountValue || coupon.discountPercentage}%`}
 					</p>
 				</div>
 			)}

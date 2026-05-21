@@ -2,19 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import { Save, Loader, ImagePlus, Tag, DollarSign, X, Plus } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
 
-const categories = [
-	"Cơ Tự Động (Automatic)",
-	"Cơ Lên Cót Tay (Hand-wound)",
-	"Bộ Máy Pin (Quartz)",
-	"Năng Lượng Ánh Sáng (Solar)",
-	"Đồng Hồ Điện Tử (Digital)",
-	"Đồng Hồ Thông Minh (Smartwatch)",
-];
-
 const machineTypes = [
 	{ value: "mechanical", label: "Cơ lên cót" },
 	{ value: "quartz", label: "Bộ máy pin" },
 	{ value: "automatic", label: "Cơ tự động" },
+	{ value: "solar", label: "Năng lượng ánh sáng" },
 	{ value: "digital", label: "Điện tử" },
 	{ value: "smartwatch", label: "Đồng hồ thông minh" },
 ];
@@ -32,7 +24,7 @@ const labelCls = "block text-xs font-semibold text-gray-500 dark:text-gray-400 u
  *  - onClose {Function}   called when user cancels
  */
 const EditProductForm = ({ product, onSuccess, onClose }) => {
-	const { updateProduct, loading, brands, fetchBrands } = useProductStore();
+	const { updateProduct, loading, brands, fetchBrands, categories, fetchCategories } = useProductStore();
 	const fileInputRef = useRef(null);
 	const [dragOver, setDragOver] = useState(false);
 
@@ -42,23 +34,25 @@ const EditProductForm = ({ product, onSuccess, onClose }) => {
 		description: product?.description || "",
 		price: product?.price ?? "",
 		originalPrice: product?.originalPrice ?? "",
-		category: product?.category || "",
+		category: product?.categoryId?._id || product?.categoryId || product?.category || "",
 		image: product?.image || "",
 		images: Array.isArray(product?.images) && product.images.length > 0 ? product.images : (product?.image ? [product.image] : []),
 		stock: product?.stock ?? "",
 		brand: typeof product?.brand === "object" ? (product?.brand?._id || "") : (product?.brand || ""),
 		type: product?.type || "",
 		wristSizeOptions: Array.isArray(product?.wristSizeOptions) ? product.wristSizeOptions : [],
+		colors: Array.isArray(product?.colors) ? product.colors.join(', ') : (product?.colors || ""),
+		sizes: Array.isArray(product?.sizes) ? product.sizes.join(', ') : (product?.sizes || ""),
+		specsStrapMaterial: product?.specs?.strap?.material || "",
+		specsCaseMaterial: product?.specs?.case?.material || "",
+		specsCaseDiameter: product?.specs?.case?.diameter || "",
+		specsWaterResistance: product?.specs?.waterResistance || "",
 	});
 
 	useEffect(() => {
-		// Chỉ fetch nếu brands chưa có sẵn (đã được ProductsList fetch từ trước)
 		(async () => {
-			if (brands.length === 0) {
-				console.time('[timing] EditProductForm:fetchBrands');
-				await fetchBrands();
-				console.timeEnd('[timing] EditProductForm:fetchBrands');
-			}
+			if (brands.length === 0) await fetchBrands();
+			if (categories.length === 0) await fetchCategories();
 		})();
 	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -75,6 +69,16 @@ const EditProductForm = ({ product, onSuccess, onClose }) => {
 			price: Number(formData.price),
 			originalPrice: formData.originalPrice ? Number(formData.originalPrice) : undefined,
 			wristSizeOptions: formData.wristSizeOptions.filter((o) => o.size?.trim() !== ""),
+			colors: typeof formData.colors === 'string' ? formData.colors.split(',').map(s => s.trim()).filter(Boolean) : (formData.colors || []),
+			sizes: typeof formData.sizes === 'string' ? formData.sizes.split(',').map(s => s.trim()).filter(Boolean) : (formData.sizes || []),
+			specs: {
+				case: {
+					material: formData.specsCaseMaterial || undefined,
+					diameter: formData.specsCaseDiameter || undefined,
+				},
+				strap: { material: formData.specsStrapMaterial || undefined },
+				waterResistance: formData.specsWaterResistance || undefined,
+			},
 		});
 
 		if (onSuccess) onSuccess();
@@ -274,7 +278,9 @@ const EditProductForm = ({ product, onSuccess, onClose }) => {
 							className={inputCls}
 						>
 							<option value="">Chọn danh mục</option>
-							{categories.map((c) => <option key={c} value={c}>{c}</option>)}
+							{Array.isArray(categories) && categories.map((c) => (
+								<option key={c._id} value={c._id}>{c.name}</option>
+							))}
 						</select>
 					</div>
 
@@ -327,6 +333,70 @@ const EditProductForm = ({ product, onSuccess, onClose }) => {
 							)}
 						</div>
 						<input ref={fileInputRef} type="file" accept="image/*" className="hidden" multiple onChange={handleImageChange} />
+					</div>
+				</div>
+			</div>
+
+			{/* ── Thuộc tính sản phẩm ── */}
+			<div className="pt-4 border-t border-gray-100 dark:border-luxury-border">
+				<h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Thuộc tính sản phẩm</h3>
+				<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+					<div>
+						<label className={labelCls}>Màu sắc</label>
+						<input type="text" value={formData.colors}
+							onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
+							className={inputCls} placeholder="Đen, Bạc, Xanh dương..."
+						/>
+						<p className="text-[10px] text-gray-400 mt-0.5">Phân cách bằng dấu phẩy</p>
+					</div>
+					<div>
+						<label className={labelCls}>Kích thước mặt</label>
+						<input type="text" value={formData.sizes}
+							onChange={(e) => setFormData({ ...formData, sizes: e.target.value })}
+							className={inputCls} placeholder="36mm, 40mm, 44mm"
+						/>
+						<p className="text-[10px] text-gray-400 mt-0.5">Phân cách bằng dấu phẩy</p>
+					</div>
+					<div>
+						<label className={labelCls}>Chất liệu dây</label>
+						<select value={formData.specsStrapMaterial}
+							onChange={(e) => setFormData({ ...formData, specsStrapMaterial: e.target.value })}
+							className={inputCls}>
+							<option value="">Chọn</option>
+							<option>Da</option>
+							<option>Thép không gỉ</option>
+							<option>Cao su</option>
+							<option>Vải NATO</option>
+							<option>Ceramic</option>
+							<option>Titanium</option>
+						</select>
+					</div>
+					<div>
+						<label className={labelCls}>Chất liệu vỏ</label>
+						<select value={formData.specsCaseMaterial}
+							onChange={(e) => setFormData({ ...formData, specsCaseMaterial: e.target.value })}
+							className={inputCls}>
+							<option value="">Chọn</option>
+							<option>Thép không gỉ</option>
+							<option>Titanium</option>
+							<option>Vàng 18K</option>
+							<option>Ceramic</option>
+							<option>Nhựa</option>
+						</select>
+					</div>
+					<div>
+						<label className={labelCls}>Đường kính mặt</label>
+						<input type="text" value={formData.specsCaseDiameter}
+							onChange={(e) => setFormData({ ...formData, specsCaseDiameter: e.target.value })}
+							className={inputCls} placeholder="40 mm"
+						/>
+					</div>
+					<div>
+						<label className={labelCls}>Chống nước</label>
+						<input type="text" value={formData.specsWaterResistance}
+							onChange={(e) => setFormData({ ...formData, specsWaterResistance: e.target.value })}
+							className={inputCls} placeholder="30m / 100m / 300m"
+						/>
 					</div>
 				</div>
 			</div>

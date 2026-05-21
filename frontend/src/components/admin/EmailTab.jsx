@@ -58,10 +58,10 @@ const EmailTab = () => {
 					<p className="text-gray-500 dark:text-luxury-text-muted text-sm">Hệ thống gửi tin và chăm sóc khách hàng tự động.</p>
 				</div>
 				<button
-					onClick={() => toast("Tính năng đang phát triển: New Template Builder", { icon: "⏳" })}
-					className="flex items-center gap-2 px-6 py-3 bg-luxury-gold text-luxury-dark rounded-xl text-sm font-bold hover:bg-white hover:scale-105 transition-all shadow-lg"
+					onClick={() => setActiveTab("campaigns")}
+					className="flex items-center gap-2 px-6 py-3 bg-luxury-gold text-luxury-dark rounded-xl text-sm font-bold hover:bg-yellow-500 hover:scale-105 transition-all shadow-lg"
 				>
-					<Plus className="w-4 h-4" /> TẠO MỚI
+					<Plus className="w-4 h-4" /> TẠO CHIẾN DỊCH MỚI
 				</button>
 			</div>
 

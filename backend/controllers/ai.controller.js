@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 import Product from "../models/product.model.js";
 import CampaignService from "../services/campaign.service.js";
 
@@ -10,37 +11,99 @@ const getProductBrandName = (brand) => {
     return brand.name || brand.title || "Không rõ";
 };
 
+// ═══════════════════════════════════════════════════════════════
+// AI Provider Selection: Gemini > Groq > Fallback Bot
+// ═══════════════════════════════════════════════════════════════
+
+const getAIClient = () => {
+    // Priority 1: Google Gemini
+    if (process.env.GEMINI_API_KEY) {
+        return {
+            provider: "gemini",
+            client: new GoogleGenerativeAI(process.env.GEMINI_API_KEY),
+            model: "gemini-2.0-flash",
+        };
+    }
+    // Priority 2: Groq (fast, cheap)
+    if (process.env.GROQ_API_KEY) {
+        return {
+            provider: "groq",
+            client: new Groq({ apiKey: process.env.GROQ_API_KEY }),
+            model: "llama-3.3-70b-versatile",
+        };
+    }
+    return null;
+};
+
+const callAI = async (systemPrompt, userMessage, jsonMode = false) => {
+    const ai = getAIClient();
+    if (!ai) return null;
+
+    try {
+        if (ai.provider === "groq") {
+            const messages = [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userMessage },
+            ];
+            const completion = await ai.client.chat.completions.create({
+                model: ai.model,
+                messages,
+                temperature: 0.2,
+                max_tokens: jsonMode ? 150 : 300,
+                ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
+            });
+            return completion.choices[0]?.message?.content?.trim() || "";
+        }
+
+        if (ai.provider === "gemini") {
+            const model = ai.client.getGenerativeModel({
+                model: ai.model,
+                generationConfig: { temperature: 0.2, topP: 0.8, topK: 20, maxOutputTokens: jsonMode ? 150 : 300 },
+            });
+            const result = await model.generateContent(`${systemPrompt}\n\n${userMessage}`);
+            return result.response.text().trim();
+        }
+    } catch (err) {
+        console.error(`[AI ${ai.provider}] Error:`, err.message);
+    }
+    return null;
+};
+
 const parseBudgetRange = (message) => {
-    const normalized = message.toLowerCase().replace(/,/g, ".").replace(/\s+/g, " ");
+    const normalized = (message || "").toLowerCase().replace(/,/g, ".").replace(/\s+/g, " ");
     const currencyMatch = normalized.match(/(\d+(?:\.\d+)?)\s*(triệu|tr|trieu|trệu|m)/);
 
     if (!currencyMatch) return null;
 
     const amount = Number(currencyMatch[1]);
-    if (!Number.isFinite(amount)) return null;
+    if (!Number.isFinite(amount) || amount <= 0) return null; // Fix: reject zero/negative
 
-    const valueInVnd = amount * 1_000_000;
+    const valueInVnd = Math.round(amount * 1_000_000); // Fix: avoid floating point issues
     const hasBelowIntent = normalized.includes("dưới") || normalized.includes("tối đa") || normalized.includes("không quá") || normalized.includes("under") || normalized.includes("less than") || normalized.includes("<=") || normalized.includes("≤");
-    const hasRangeIntent = normalized.includes("từ") && (normalized.includes("đến") || normalized.includes("tới") || normalized.includes("-") || normalized.includes(" to "));
     const hasApproxIntent = normalized.includes("khoảng") || normalized.includes("tầm") || normalized.includes("around") || normalized.includes("about") || normalized.includes("~");
 
     if (hasBelowIntent) {
         return { maxPrice: valueInVnd, label: `dưới ${currencyMatch[1]} triệu` };
     }
 
-    const rangeMatch = normalized.match(/(?:từ|from)\s*(\d+(?:\.\d+)?)\s*(triệu|tr|trieu|trệu|m)\s*(?:đến|tới|to|-)\s*(\d+(?:\.\d+)?)\s*(triệu|tr|trieu|trệu|m)/);
+    // Fix: Support "từ 5 đến 15 triệu" (missing unit after first number)
+    const rangeMatch = normalized.match(/(?:từ|from)\s*(\d+(?:\.\d+)?)\s*(triệu|tr|trieu|trệu|m)?\s*(?:đến|tới|to|-)\s*(\d+(?:\.\d+)?)\s*(triệu|tr|trieu|trệu|m)/);
     if (rangeMatch) {
+        const minUnit = rangeMatch[2] ? 1_000_000 : 1_000_000; // If unit missing after first number, still treat as triệu
+        const maxUnit = rangeMatch[4] ? 1_000_000 : 1_000_000;
         return {
-            minPrice: Number(rangeMatch[1]) * 1_000_000,
-            maxPrice: Number(rangeMatch[3]) * 1_000_000,
+            minPrice: Math.round(Number(rangeMatch[1]) * minUnit),
+            maxPrice: Math.round(Number(rangeMatch[3]) * maxUnit),
             label: `từ ${rangeMatch[1]} đến ${rangeMatch[3]} triệu`,
         };
     }
 
+    // Fix: Detect "từ X" without explicit range → use hasApproxIntent
+    const hasRangeIntent = normalized.includes("từ") && (normalized.includes("đến") || normalized.includes("tới") || normalized.includes("-") || normalized.includes(" to "));
     if (hasApproxIntent || hasRangeIntent) {
         return {
-            minPrice: valueInVnd * 0.85,
-            maxPrice: valueInVnd * 1.15,
+            minPrice: Math.round(valueInVnd * 0.85),
+            maxPrice: Math.round(valueInVnd * 1.15),
             label: `khoảng ${currencyMatch[1]} triệu`,
         };
     }
@@ -155,48 +218,36 @@ export const chatWithAI = async (req, res) => {
             return res.status(400).json({ message: "Vui lòng cung cấp nội dung tin nhắn" });
         }
 
+        // ── Step 1: Try budget parsing (fast, no AI needed) ──
         const budget = parseBudgetRange(message);
         if (budget) {
             const matches = await fetchBudgetMatches(budget);
-            return res.json({ response: formatBudgetResponse(matches, budget) });
+            return res.json({ response: formatBudgetResponse(matches, budget), provider: "built-in" });
         }
 
-        // Lấy danh sách sản phẩm thực từ DB
-        const productContext = await buildProductContext();
-        const fullSystemPrompt = BASE_SYSTEM_PROMPT + productContext;
+        // ── Step 2: Try AI (Gemini > Groq) ──
+        const ai = getAIClient();
+        if (ai) {
+            try {
+                const productContext = await buildProductContext();
+                const fullSystemPrompt = BASE_SYSTEM_PROMPT + productContext;
 
-        const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            console.log("⚠️ GEMINI_API_KEY is missing. Using fallback bot.");
-            return res.json({ response: getFallbackBotResponse(message) });
-        }
-
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({
-            model: "gemma-3-1b-it",
-            generationConfig: {
-                temperature: 0.2,
-                topP: 0.8,
-                topK: 20,
-                maxOutputTokens: 220,
-            },
-        });
-
-        const result = await model.generateContent(`${fullSystemPrompt}\n\nKhách hàng: ${message}\nTrợ lý:`);
-        const responseText = result.response.text().trim();
-
-        if (/\b(dưới|tối đa|không quá|khoảng|tầm|from|under|less than)\b/i.test(message)) {
-            const budgetMatches = await fetchBudgetMatches(parseBudgetRange(message) || {});
-            if (budgetMatches.length > 0) {
-                return res.json({ response: formatBudgetResponse(budgetMatches, parseBudgetRange(message)) });
+                const aiResponse = await callAI(fullSystemPrompt, `Khách hàng: ${message}\nTrợ lý:`);
+                if (aiResponse) {
+                    return res.json({ response: aiResponse, provider: ai.provider });
+                }
+            } catch (aiErr) {
+                console.error(`[AI ${ai.provider}] Chat error:`, aiErr.message);
             }
         }
 
-        res.json({ response: responseText });
+        // ── Step 3: Fallback to keyword bot ──
+        console.log("⚠️ No AI provider available. Using fallback bot.");
+        return res.json({ response: getFallbackBotResponse(message), provider: "fallback" });
+
     } catch (error) {
         console.error("AI Error:", error.message);
-        console.log("⚠️ Chuyển sang Bot dự phòng Offline...");
-        return res.json({ response: getFallbackBotResponse(req.body?.message || "") });
+        return res.json({ response: getFallbackBotResponse(req.body?.message || ""), provider: "fallback" });
     }
 };
 
@@ -209,55 +260,44 @@ import { emailQueue } from "./mail.controller.js";
 
 export const confirmOrdersAI = async (req, res) => {
     try {
-        console.log("🤖 [AI System] Analyzing pending orders for auto-confirmation using Gemini...");
+        const ai = getAIClient();
+        if (!ai) {
+            return res.status(500).json({ message: "Chưa cấu hình GROQ_API_KEY hoặc GEMINI_API_KEY để chạy AI Automation." });
+        }
+
+        console.log(`🤖 [AI System] Analyzing pending orders using ${ai.provider}...`);
         
-        // Find pending COD orders
         const pendingOrders = await Order.find({ status: "pending", paymentMethod: "cod" }).populate("user");
         
         let confirmedCount = 0;
         let cancelledCount = 0;
 
-        const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            return res.status(500).json({ message: "Thiếu cấu hình GEMINI_API_KEY để chạy AI Automation." });
-        }
-
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemma-3-1b-it" });
-
-        for (const order of pendingOrders) {
-            const prompt = `Bạn là hệ thống AI phân tích rủi ro đơn hàng thương mại điện tử. 
+        const ANALYSIS_PROMPT = `Bạn là hệ thống AI phân tích rủi ro đơn hàng thương mại điện tử.
 Đánh giá xem đơn hàng sau có phải là đơn hàng ảo/spam không.
 Các yếu tố rủi ro: tên người dùng chứa bot/test/admin/spam, số điện thoại không có thực, địa chỉ chuỗi vô nghĩa.
+Trả về JSON: {"isSpam": true/false, "reason": "giải thích ngắn gọn tiếng Việt"}`;
 
-Thông tin đơn hàng:
-- Tên khách hàng: ${order.shippingDetails?.fullName || order.user?.name || "Không rõ"}
+        const providerLabel = ai.provider === "gemini" ? "Gemini" : "Groq";
+
+        for (const order of pendingOrders) {
+            const userPrompt = `Thông tin đơn hàng:
+- Tên: ${order.shippingDetails?.fullName || order.user?.name || "Không rõ"}
 - Email: ${order.shippingDetails?.email || order.user?.email || "Không rõ"}
 - SĐT: ${order.shippingDetails?.phoneNumber || "Không rõ"}
 - Địa chỉ: ${order.shippingDetails?.address || ""}, ${order.shippingDetails?.city || ""}
-- Giá trị đơn hàng: ${order.totalAmount}
-
-Trả về ĐÚNG MỘT JSON với cấu trúc (KHÔNG bọc bằng markdown, chỉ trả về chuỗi JSON phẳng hợp lệ):
-{
-  "isSpam": true hoặc false,
-  "reason": "Giải thích ngắn gọn lý do bằng tiếng Việt"
-}`;
+- Giá trị: ${order.totalAmount}đ`;
 
             try {
-                const result = await model.generateContent(prompt);
-                let text = result.response.text().trim();
-                
-                // Remove markdown code blocks if any
-                if (text.startsWith("\`\`\`")) {
-                    text = text.replace(/^\`\`\`(json)?/, "").replace(/\`\`\`$/, "").trim();
-                }
+                const text = await callAI(ANALYSIS_PROMPT, userPrompt, true);
+                if (!text) continue;
 
-                const aiAnalysis = JSON.parse(text);
+                const cleaned = text.replace(/```json|```/g, "").trim();
+                const aiAnalysis = JSON.parse(cleaned);
 
                 if (aiAnalysis.isSpam) {
                     order.status = "cancelled";
                     order.internalNotes = (order.internalNotes ? order.internalNotes + "\n" : "") + 
-                                          `[AI Gemini] Tự động hủy lúc ${new Date().toLocaleString("vi-VN")}: ${aiAnalysis.reason}`;
+                                          `[AI ${providerLabel}] Tự động hủy lúc ${new Date().toLocaleString("vi-VN")}: ${aiAnalysis.reason}`;
                     
                     // Thêm sự kiện tracking
                     order.trackingEvents.push({
@@ -280,7 +320,7 @@ Trả về ĐÚNG MỘT JSON với cấu trúc (KHÔNG bọc bằng markdown, ch
                 } else {
                     order.status = "confirmed";
                     order.internalNotes = (order.internalNotes ? order.internalNotes + "\n" : "") + 
-                                          `[AI Gemini] Xác nhận tự động lúc ${new Date().toLocaleString("vi-VN")}: ${aiAnalysis.reason}`;
+                                          `[AI ${providerLabel}] Xác nhận tự động lúc ${new Date().toLocaleString("vi-VN")}: ${aiAnalysis.reason}`;
                     
                     // Thêm sự kiện tracking
                     order.trackingEvents.push({

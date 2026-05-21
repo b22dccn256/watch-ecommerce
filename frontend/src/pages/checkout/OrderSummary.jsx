@@ -36,7 +36,7 @@ const OrderSummary = ({ checkoutItems, subtotal, total, shippingFee, coupon, isC
           {coupon && isCouponApplied && (
             <div className="flex items-center justify-between text-[color:var(--color-gold)]">
               <span>Giảm giá ({coupon.code})</span>
-              <span>-{coupon.discountPercentage}%</span>
+              <span>{coupon.type === "fixed" ? `-${coupon.discountValue.toLocaleString("vi-VN")} đ` : `-${coupon.discountValue || coupon.discountPercentage}%`}</span>
             </div>
           )}
           <div className="flex items-center justify-between text-secondary">

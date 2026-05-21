@@ -166,16 +166,32 @@ import OrderService from './order.service.js';
 import { stripe } from '../lib/stripe.js';
 export const handlePaymentSuccess = async (session) => {
 	if (session.metadata.couponCode) {
-		await Coupon.findOneAndUpdate(
-			{
-				code: session.metadata.couponCode,
-				userId: session.metadata.userId,
-			},
-			{
-				isActive: false,
-			}
-		);
-	}
+        const code = session.metadata.couponCode.toUpperCase();
+        try {
+            const coupon = await Coupon.findOne({ code });
+            if (coupon) {
+                // If coupon is user-bound, ensure metadata userId matches
+                if (coupon.userId && session.metadata.userId && String(coupon.userId) !== String(session.metadata.userId)) {
+                    // Do not apply coupon for mismatched user
+                } else {
+                    const update = await Coupon.findOneAndUpdate(
+                        { code },
+                        {
+                            $inc: { usedCount: 1 },
+                            $push: { usageHistory: { usedAt: new Date(), orderId: session.metadata.orderId, userId: session.metadata.userId !== 'guest' ? session.metadata.userId : null } }
+                        },
+                        { new: true }
+                    );
+
+                    if (update && update.maxUses > 0 && (update.usedCount || 0) >= update.maxUses) {
+                        await Coupon.findOneAndUpdate({ code }, { isActive: false });
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Error updating coupon usage in webhook:', e.message);
+        }
+    }
 
 	const orderId = session.metadata.orderId;
 	const order = await Order.findById(orderId);

@@ -87,9 +87,9 @@ export async function processIPN({ provider, transactionId, orderCode, isSuccess
     );
     await session.commitTransaction();
 
-    // Restore stock outside transaction (best-effort)
+    // Restore stock outside transaction (best-effort with full error context)
     await OrderService.restoreStock(order.products, null, order._id, `${provider} IPN Failed`).catch(err =>
-      console.error(`[IPNService] Stock restore failed for order ${orderCode}:`, err.message)
+      console.error(`[IPNService] Stock restore failed for order ${orderCode} (${provider}):`, err.message, err.stack)
     );
 
     return { alreadyProcessed: false, success: false, order };

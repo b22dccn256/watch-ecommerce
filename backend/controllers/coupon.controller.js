@@ -14,7 +14,7 @@ export const getCoupon = async (req, res) => {
 export const validateCoupon = async (req, res) => {
 	try {
 		const { code } = req.body;
-		const coupon = await Coupon.findOne({ code: code, userId: req.user._id, isActive: true });
+		const coupon = await Coupon.findOne({ code: code?.trim().toUpperCase(), isActive: true });
 
 		if (!coupon) {
 			return res.status(404).json({ message: "Coupon not found" });
@@ -24,6 +24,18 @@ export const validateCoupon = async (req, res) => {
 			coupon.isActive = false;
 			await coupon.save();
 			return res.status(404).json({ message: "Coupon expired" });
+		}
+
+		if (coupon.maxUses && coupon.maxUses > 0 && (coupon.usedCount || 0) >= coupon.maxUses) {
+			coupon.isActive = false;
+			await coupon.save();
+			return res.status(400).json({ message: "Coupon đã hết lượt sử dụng" });
+		}
+
+		// If coupon is tied to a user, require authentication and ownership
+		if (coupon.userId) {
+			if (!req.user) return res.status(403).json({ message: "Coupon này chỉ dành cho người dùng đã đăng nhập" });
+			if (String(coupon.userId) !== String(req.user._id)) return res.status(403).json({ message: "Bạn không có quyền sử dụng coupon này" });
 		}
 
 		res.json({

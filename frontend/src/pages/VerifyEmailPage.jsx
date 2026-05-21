@@ -20,6 +20,17 @@ const VerifyEmailPage = () => {
 
 	const pendingEmail = localStorage.getItem("pendingVerifyEmail") || "";
 
+	// ── Dev mode: show hint about backend terminal ──
+	useEffect(() => {
+		if (import.meta.env.DEV && pendingEmail && status === "email_sent") {
+			console.log(
+				`%c🔗 DEV MODE: Link xác minh cho ${pendingEmail} đã được in ra terminal Backend.`,
+				"color: #D4AF37; font-size: 14px; font-weight: bold;"
+			);
+			console.log("%cMở terminal chạy backend server để lấy link xác minh.", "color: #aaa;");
+		}
+	}, [pendingEmail, status]);
+
 	// ── Verify token on mount ──
 	useEffect(() => {
 		// Prevent double verification due to StrictMode in development

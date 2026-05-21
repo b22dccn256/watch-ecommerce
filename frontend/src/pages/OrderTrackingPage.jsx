@@ -15,7 +15,9 @@ import {
     User,
 } from "lucide-react";
 import { useOrderStore } from "../stores/useOrderStore";
+import { useUserStore } from "../stores/useUserStore";
 import { SkeletonPageShell } from "../components/SkeletonLoaders";
+import ReviewForm from "../components/ReviewForm";
 
 const statusLabel = {
     pending: "Đã đặt hàng",
@@ -45,6 +47,7 @@ const OrderTrackingPage = () => {
     const { trackingToken } = useParams();
     const navigate = useNavigate();
     const { fetchOrderTracking, currentOrder, loading, error } = useOrderStore();
+    const user = useUserStore((s) => s.user);
 
     useEffect(() => {
         if (trackingToken && trackingToken !== "search") {
@@ -207,13 +210,29 @@ const OrderTrackingPage = () => {
                             <h3 className="font-semibold text-primary mb-3">Sản phẩm</h3>
                             <div className="space-y-3">
                                 {currentOrder.products.map((item, index) => (
-                                    <div key={`${item.product?._id || index}-${index}`} className="flex items-center gap-3 rounded-lg bg-surface-soft p-2.5 text-sm">
-                                        <img src={item.product?.image || "/placeholder.png"} alt={item.product?.name} className="h-12 w-12 rounded-md object-cover" />
+                                    <div
+                                        key={`${item.product?._id || index}-${index}`}
+                                        className="flex items-center gap-3 rounded-lg bg-surface-soft p-2.5 text-sm"
+                                    >
+                                        <img
+                                            src={item.product?.image || "/placeholder.png"}
+                                            alt={item.product?.name}
+                                            className="h-12 w-12 rounded-md object-cover"
+                                        />
                                         <div className="min-w-0 flex-1">
-                                            <p className="truncate text-primary font-medium">{item.product?.name}</p>
+                                            <p className="truncate text-primary font-medium">
+                                                {item.product?.name}
+                                            </p>
                                             <p className="text-xs text-muted">SL: {item.quantity}</p>
+                                            {currentOrder.status === "delivered" && user && (
+                                                <div className="mt-2">
+                                                    <ReviewForm productId={item.product?._id || item.product} />
+                                                </div>
+                                            )}
                                         </div>
-                                        <p className="font-semibold text-[color:var(--color-gold)]">{item.product?.price?.toLocaleString("vi-VN")} đ</p>
+                                        <p className="font-semibold text-[color:var(--color-gold)]">
+                                            {item.product?.price?.toLocaleString("vi-VN")} đ
+                                        </p>
                                     </div>
                                 ))}
                             </div>

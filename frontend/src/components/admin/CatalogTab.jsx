@@ -16,7 +16,7 @@ const CatalogTab = () => {
   const [editingCategoryId, setEditingCategoryId] = useState(null);
 
   const refreshCatalog = async () => {
-    await Promise.all([fetchBrands(), fetchCategories()]);
+    await Promise.all([fetchBrands(true), fetchCategories(true)]);
   };
 
   const brand = useBrandManagement({ products, onRefresh: refreshCatalog });

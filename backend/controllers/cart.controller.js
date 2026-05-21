@@ -105,7 +105,11 @@ export const updateCartItemAttributes = async (req, res) => {
 export const addToCart = async (req, res) => {
 	try {
 		const { productId, wristSize, selectedColor, selectedSize } = req.body;
+		if (!productId || typeof productId !== "string" || productId.length !== 24 || !/^[0-9a-fA-F]{24}$/.test(productId)) {
+			return res.status(400).json({ message: "Mã sản phẩm không hợp lệ" });
+		}
 		const user = req.user;
+		if (!user) return res.status(401).json({ message: "Unauthorized - user missing" });
 		const product = await Product.findById(productId);
 		if (!product) return res.status(404).json({ message: "Product not found" });
 
@@ -144,6 +148,7 @@ export const addToCart = async (req, res) => {
 		await user.save();
 		res.status(200).json({ message: "Added to cart" });
 	} catch (error) {
+		console.error("Error in addToCart:", error);
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
 };
@@ -274,9 +279,15 @@ export const calculateCartTotals = async (req, res) => {
 			return res.status(400).json({ message: "Danh sách sản phẩm không hợp lệ" });
 		}
 
-		const coupon = (couponCode && req.user)
-			? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true })
+		let coupon = couponCode
+			? await Coupon.findOne({ code: couponCode.trim().toUpperCase(), isActive: true })
 			: null;
+
+		if (coupon && coupon.userId) {
+			if (!req.user || String(coupon.userId) !== String(req.user._id)) {
+				coupon = null; // coupon reserved for another user
+			}
+		}
 
 		const totals = await OrderService.calculateTotals(items, coupon, city);
 

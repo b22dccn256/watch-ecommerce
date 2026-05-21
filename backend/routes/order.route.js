@@ -3,6 +3,7 @@ import express from "express";
 import { protectRoute, managementRoute, optionalRoute } from "../middleware/auth.middleware.js";
 import {
     getAllOrders,
+    exportOrders,
     updateOrderStatus,
     updateOrderDetails,
     getOrderById,
@@ -26,6 +27,9 @@ router.post("/lookup", lookupOrder);
 // Route cho admin: Lấy tất cả đơn hàng (thống kê doanh thu, lọc theo status)
 router.get("/", protectRoute, managementRoute, getAllOrders);
 
+// Admin export orders (CSV)
+router.get("/export", protectRoute, managementRoute, exportOrders);
+
 // Route cho admin: Cập nhật status đơn hàng (ví dụ: từ paid → shipped)
 router.patch("/:id/status", protectRoute, managementRoute, updateOrderStatus);
 
@@ -46,10 +50,10 @@ router.patch("/:id/cancel", protectRoute, cancelOrder);
 router.get("/:id", protectRoute, getOrderById);
 
 // COD route with validation
-router.post("/cod", optionalRoute, validateBody(orderSchemas.create), createCODOrder);
+router.post("/cod", optionalRoute, validateBody(orderSchemas.nonStripeOrder), createCODOrder);
 
 // QR Route with validation
-router.post("/qr", optionalRoute, validateBody(orderSchemas.create), createQROrder);
+router.post("/qr", optionalRoute, validateBody(orderSchemas.nonStripeOrder), createQROrder);
 
 // User tự xác nhận đã chuyển khoản QR
 router.post("/:id/confirm-qr-payment", protectRoute, confirmQRPayment);

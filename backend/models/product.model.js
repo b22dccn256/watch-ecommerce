@@ -17,6 +17,11 @@ const productSchema = new mongoose.Schema(
 			required: true,
 			index: true,
 		},
+		originalPrice: {
+			type: Number,
+			min: 0,
+			default: null,
+		},
 		costPrice: {
 			type: Number,
 			min: 0,
@@ -120,9 +125,24 @@ const productSchema = new mongoose.Schema(
 			type: String,
 			default: "",
 		},
+		gender: {
+			type: String,
+			enum: ["male", "female", "unisex"],
+			default: "unisex",
+			index: true,
+		},
+		tags: {
+			type: [String],
+			default: [],
+		},
+		sku: {
+			type: String,
+			default: "",
+			sparse: true,
+		},
 		type: {
 			type: String,
-			enum: ["mechanical", "quartz", "automatic", "digital", "smartwatch"],
+			enum: ["mechanical", "quartz", "automatic", "solar", "digital", "smartwatch"],
 			lowercase: true,
 			required: true,
 			index: true,
@@ -142,23 +162,35 @@ const productSchema = new mongoose.Schema(
 		},
 		specs: {
 			movement: {
-				type: { type: String, default: "Automatic" },
+				type: { type: String, default: "Cơ tự động" },
 				caliber: { type: String, default: "" },
-				powerReserve: { type: String, default: "" }
+				powerReserve: { type: String, default: "" },
+				jewels: { type: String, default: "" },
+				frequency: { type: String, default: "" },
 			},
 			case: {
 				diameter: { type: String, default: "40 mm" },
 				thickness: { type: String, default: "" },
 				lugToLug: { type: String, default: "" },
-				material: { type: String, default: "Stainless steel" }
+				material: { type: String, default: "Thép không gỉ" },
+				caseBack: { type: String, default: "" },
+				crown: { type: String, default: "" },
 			},
 			strap: {
-				material: { type: String, default: "Steel" },
-				claspType: { type: String, default: "Folding clasp" }
+				material: { type: String, default: "Thép không gỉ" },
+				claspType: { type: String, default: "Folding clasp" },
+				color: { type: String, default: "" },
 			},
 			waterResistance: { type: String, default: "100 m" },
 			weight: { type: String, default: "" },
-			glass: { type: String, default: "Sapphire" }
+			glass: { type: String, default: "Kính sapphire" },
+			dial: {
+				color: { type: String, default: "" },
+				indices: { type: String, default: "" },
+			},
+			functions: { type: [String], default: [] },
+			year: { type: Number, default: null },
+			warranty: { type: String, default: "5 năm" },
 		}
 	},
 	{ timestamps: true }
@@ -174,6 +206,14 @@ productSchema.index({ deletedAt: 1, price: 1 });        // price sort/filter
 
 // ── AUDIT MIDDLEWARE ──
 productSchema.pre("save", async function () {
+	// ── PRICE BUSINESS VALIDATIONS ──
+	if (this.originalPrice !== null && this.originalPrice !== undefined && this.price > this.originalPrice) {
+		throw new Error("Giá bán lẻ khuyến mãi không được lớn hơn giá gốc niêm yết");
+	}
+	if (this.costPrice !== null && this.costPrice !== undefined && this.price < this.costPrice) {
+		throw new Error("Giá bán lẻ không được nhỏ hơn giá nhập (giá vốn)");
+	}
+
 	// Skip if nothing changed
 	if (!this.isModified()) return;
 

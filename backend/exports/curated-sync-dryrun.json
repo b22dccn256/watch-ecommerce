@@ -1,0 +1,567 @@
+{
+  "report": {
+    "curated": [
+      "Hublot",
+      "Audemars Piguet",
+      "Panerai",
+      "TAG Heuer",
+      "Tudor",
+      "Breitling",
+      "Patek Philippe",
+      "Rolex",
+      "Longines",
+      "Seiko",
+      "Omega",
+      "IWC",
+      "Casio"
+    ],
+    "existingBrandsCount": 24,
+    "toKeepCount": 9,
+    "toCreateCount": 4,
+    "toDeactivateCount": 15,
+    "toKeep": [
+      {
+        "id": "69c3f0feacb3f56aea328e09",
+        "name": "Hublot",
+        "isActive": true
+      },
+      {
+        "id": "69c3f0dfacb3f56aea328c71",
+        "name": "Audemars Piguet",
+        "isActive": true
+      },
+      {
+        "id": "69c3f102acb3f56aea328e2b",
+        "name": "Tag Heuer",
+        "isActive": true
+      },
+      {
+        "id": "69c3f0dfacb3f56aea328c7b",
+        "name": "Patek Philippe",
+        "isActive": true
+      },
+      {
+        "id": "69c3f0deacb3f56aea328c6d",
+        "name": "Rolex",
+        "isActive": true
+      },
+      {
+        "id": "69c3f0ddacb3f56aea328c61",
+        "name": "Seiko",
+        "isActive": true
+      },
+      {
+        "id": "69c3f0ffacb3f56aea328e11",
+        "name": "Omega",
+        "isActive": true
+      },
+      {
+        "id": "69c3f0ffacb3f56aea328e0d",
+        "name": "IWC",
+        "isActive": true
+      },
+      {
+        "id": "69c3f0ddacb3f56aea328c5d",
+        "name": "Casio",
+        "isActive": true
+      }
+    ],
+    "toCreate": [
+      {
+        "name": "Panerai"
+      },
+      {
+        "name": "Tudor"
+      },
+      {
+        "name": "Breitling"
+      },
+      {
+        "name": "Longines"
+      }
+    ],
+    "toDeactivateSample": [
+      {
+        "id": "69c3f0deacb3f56aea328c65",
+        "name": "Citizen",
+        "isActive": true
+      },
+      {
+        "id": "69c3f0deacb3f56aea328c69",
+        "name": "Garmin",
+        "isActive": true
+      },
+      {
+        "id": "69c3f0e0acb3f56aea328c87",
+        "name": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "69c3f0e1acb3f56aea328c8f",
+        "name": "Blancpain",
+        "isActive": true
+      },
+      {
+        "id": "69c3f0efacb3f56aea328d41",
+        "name": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "69c3f0efacb3f56aea328d49",
+        "name": "Bulova",
+        "isActive": true
+      },
+      {
+        "id": "69c3f10eacb3f56aea328ed9",
+        "name": "Timex",
+        "isActive": true
+      },
+      {
+        "id": "69c3f10facb3f56aea328edf",
+        "name": "Suunto",
+        "isActive": true
+      },
+      {
+        "id": "69c3f110acb3f56aea328eeb",
+        "name": "G-Shock",
+        "isActive": true
+      },
+      {
+        "id": "69c3f120acb3f56aea328fa7",
+        "name": "Fitbit",
+        "isActive": true
+      },
+      {
+        "id": "69c3f120acb3f56aea328fad",
+        "name": "Huawei",
+        "isActive": true
+      },
+      {
+        "id": "69c3f121acb3f56aea328fb7",
+        "name": "Samsung",
+        "isActive": true
+      },
+      {
+        "id": "69c3f122acb3f56aea328fcb",
+        "name": "Apple",
+        "isActive": true
+      },
+      {
+        "id": "6a0636bb4b4e459415e145cb",
+        "name": "E2E Brand",
+        "isActive": true
+      },
+      {
+        "id": "6a0d123fc46370d302f42860",
+        "name": "Rolex 123",
+        "isActive": true
+      }
+    ],
+    "productImpactSummary": {
+      "totalProducts": 224,
+      "outsideCuratedCount": 66,
+      "curatedButInactiveCount": 0
+    }
+  },
+  "productImpact": {
+    "outsideCurated": [
+      {
+        "id": "6a0d8905d38ea5fe36d7863b",
+        "name": "Cartier Santos de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7863c",
+        "name": "Cartier Santos de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7863d",
+        "name": "Cartier Santos de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7863e",
+        "name": "Cartier Santos de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7863f",
+        "name": "Cartier Santos de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78640",
+        "name": "Cartier Santos de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78641",
+        "name": "Cartier Santos de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78642",
+        "name": "Cartier Santos de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78643",
+        "name": "Cartier Santos de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78644",
+        "name": "Cartier Santos de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78645",
+        "name": "Cartier Santos de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78646",
+        "name": "Cartier Santos de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78647",
+        "name": "Cartier Tank Must",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78648",
+        "name": "Cartier Tank Must",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78649",
+        "name": "Cartier Tank Must",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7864a",
+        "name": "Cartier Tank Must",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7864b",
+        "name": "Cartier Tank Must",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7864c",
+        "name": "Cartier Tank Must",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7864d",
+        "name": "Cartier Tank Must",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7864e",
+        "name": "Cartier Tank Must",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7864f",
+        "name": "Cartier Tank Must",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78650",
+        "name": "Cartier Tank Must",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78651",
+        "name": "Cartier Tank Must",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78652",
+        "name": "Cartier Tank Must",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78653",
+        "name": "Cartier Ballon Bleu de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78654",
+        "name": "Cartier Ballon Bleu de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78655",
+        "name": "Cartier Ballon Bleu de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78656",
+        "name": "Cartier Ballon Bleu de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78657",
+        "name": "Cartier Ballon Bleu de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78658",
+        "name": "Cartier Ballon Bleu de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78659",
+        "name": "Cartier Ballon Bleu de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7865a",
+        "name": "Cartier Ballon Bleu de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7865b",
+        "name": "Cartier Ballon Bleu de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7865c",
+        "name": "Cartier Ballon Bleu de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7865d",
+        "name": "Cartier Ballon Bleu de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7865e",
+        "name": "Cartier Ballon Bleu de Cartier",
+        "brand": "Cartier",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7865f",
+        "name": "Tissot PRX Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78660",
+        "name": "Tissot PRX Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78661",
+        "name": "Tissot PRX Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78662",
+        "name": "Tissot PRX Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78663",
+        "name": "Tissot PRX Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78664",
+        "name": "Tissot PRX Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78665",
+        "name": "Tissot PRX Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78666",
+        "name": "Tissot PRX Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78667",
+        "name": "Tissot PRX Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78668",
+        "name": "Tissot PRX Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78669",
+        "name": "Tissot Le Locle Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7866a",
+        "name": "Tissot Le Locle Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7866b",
+        "name": "Tissot Le Locle Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7866c",
+        "name": "Tissot Le Locle Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7866d",
+        "name": "Tissot Le Locle Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7866e",
+        "name": "Tissot Le Locle Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7866f",
+        "name": "Tissot Le Locle Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78670",
+        "name": "Tissot Le Locle Powermatic 80",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78671",
+        "name": "Tissot Seastar 1000",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78672",
+        "name": "Tissot Seastar 1000",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78673",
+        "name": "Tissot Seastar 1000",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78674",
+        "name": "Tissot Seastar 1000",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78675",
+        "name": "Tissot Seastar 1000",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78676",
+        "name": "Tissot Seastar 1000",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78677",
+        "name": "Tissot Chemin des Tourelles",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78678",
+        "name": "Tissot Chemin des Tourelles",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d78679",
+        "name": "Tissot Chemin des Tourelles",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7867a",
+        "name": "Tissot Chemin des Tourelles",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7867b",
+        "name": "Tissot Chemin des Tourelles",
+        "brand": "Tissot",
+        "isActive": true
+      },
+      {
+        "id": "6a0d8905d38ea5fe36d7867c",
+        "name": "Tissot Chemin des Tourelles",
+        "brand": "Tissot",
+        "isActive": true
+      }
+    ],
+    "curatedButInactive": []
+  }
+}

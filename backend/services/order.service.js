@@ -107,10 +107,13 @@ class OrderService {
 
         let discount = 0;
         if (coupon) {
+            if (coupon.minOrderAmount > 0 && subtotal < coupon.minOrderAmount) {
+                throw new Error("Đơn hàng tối thiểu để áp dụng coupon này là " + coupon.minOrderAmount.toLocaleString('vi-VN') + " VNĐ");
+            }
             discount = getCouponDiscountAmount(coupon, subtotal);
         }
 
-        const totalAfterDiscount = subtotal - discount;
+        const totalAfterDiscount = Math.max(0, subtotal - discount);
 
         // --- Phí vận chuyển động theo Tỉnh / Thành phố ---
         const FREE_SHIP_THRESHOLD = 5000000; // Miễn phí ship nếu đơn > 5tr
@@ -180,11 +183,17 @@ class OrderService {
             const deductNote = paymentMethod === 'cod' ? 'Đặt hàng COD' : (paymentMethod === 'qr' ? 'Đặt hàng VietQR' : 'Đặt hàng');
             await this.deductStock(products, session, newOrderId, req.user?._id, deductNote);
 
-            const coupon = (couponCode && req.user)
-                ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }).session(session)
+            const coupon = couponCode
+                ? await Coupon.findOne({ code: couponCode.trim().toUpperCase(), isActive: true }).session(session)
                 : null;
 
+            if (coupon && coupon.userId && (!req.user || String(coupon.userId) !== String(req.user._id))) {
+                await session.abortTransaction(); session.endSession();
+                return res.status(403).json({ message: "Coupon này không dành cho bạn" });
+            }
+
             const totalAmount = await this.calculateTotalAmount(products, coupon, session, shippingDetails.city);
+            const { subtotal, discount, shippingFee } = await this.calculateTotals(products, coupon, shippingDetails.city, session);
             const orderCode = this.generateOrderCode();
             const trackingToken = crypto.randomUUID();
 
@@ -202,6 +211,10 @@ class OrderService {
                     selectedSize: p.selectedSize || null,
                 })),
                 totalAmount,
+                subtotal,
+                discountAmount: discount,
+                shippingFee,
+                couponCode: couponCode || '',
                 orderCode,
                 trackingToken,
                 shippingDetails,
@@ -328,17 +341,20 @@ class OrderService {
             }
         }
 
-        await order.save();
-
-        if (status === "delivered" && oldStatus !== "delivered" && order.user) {
-            const pointsToAdd = Math.max(1, Math.floor(order.totalAmount / 100));
-            await User.findByIdAndUpdate(order.user, {
-                $inc: { rewardPoints: pointsToAdd, totalPointsEarned: pointsToAdd }
-            });
-            order.loyaltyPointsGranted = pointsToAdd;
-            order.loyaltyPointsReversedAt = null;
-            order.internalNotes = (order.internalNotes || "") + `\n[SYSTEM] Cộng ${pointsToAdd.toLocaleString()} điểm thưởng cho khách.`;
-            await order.save();
+        if (status === "delivered" && oldStatus !== "delivered") {
+            if (order.paymentStatus !== "paid") {
+                order.paymentStatus = "paid";
+                order.paidAt = new Date();
+            }
+            if (order.user) {
+                const pointsToAdd = Math.max(1, Math.floor(order.totalAmount / 100));
+                await User.findByIdAndUpdate(order.user, {
+                    $inc: { rewardPoints: pointsToAdd, totalPointsEarned: pointsToAdd }
+                });
+                order.loyaltyPointsGranted = pointsToAdd;
+                order.loyaltyPointsReversedAt = null;
+                order.internalNotes = (order.internalNotes || "") + `\n[SYSTEM] Cộng ${pointsToAdd.toLocaleString()} điểm thưởng cho khách.`;
+            }
         } else if (status === "refunded" && order.user && order.loyaltyPointsGranted > 0 && !order.loyaltyPointsReversedAt) {
             order.loyaltyPointsReversedAt = new Date();
             const user = await User.findById(order.user);
@@ -347,8 +363,9 @@ class OrderService {
                 await user.save();
             }
             order.internalNotes = (order.internalNotes || "") + `\n[SYSTEM] Trừ ${order.loyaltyPointsGranted.toLocaleString()} điểm thưởng do đơn ${status}.`;
-            await order.save();
         }
+
+        await order.save();
 
         await emailQueue.add("order-status-update", {
             email: order.shippingDetails?.email || (await mongoose.model('User').findById(order.user))?.email,

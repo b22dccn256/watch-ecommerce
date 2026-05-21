@@ -1,58 +1,14 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowRight, Sparkles } from "lucide-react";
 
-import axios from "../lib/axios";
-
 const HeroBanner = ({ config, slogan }) => {
-  const [heroBanners, setHeroBanners] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const hasFetchedRef = useRef(false);
-
-  useEffect(() => {
-    if (hasFetchedRef.current) return;
-    hasFetchedRef.current = true;
-    let mounted = true;
-
-    const fetchHeroBanner = async () => {
-      try {
-        const res = await axios.get("/banners");
-        const active = (res.data || [])
-          .filter((banner) => banner.status === "ACTIVE" && banner.imageUrl)
-          .sort((a, b) => new Date(b.createdAt || b.uploadedAt || 0) - new Date(a.createdAt || a.uploadedAt || 0));
-
-        if (mounted) {
-          setHeroBanners(active);
-          setCurrentIndex(0);
-        }
-      } catch {
-        if (mounted) {
-          setHeroBanners([]);
-          setCurrentIndex(0);
-        }
-      }
-    };
-
-    fetchHeroBanner();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   const slides = useMemo(() => {
     if (config?.heroSlides && config.heroSlides.length > 0) {
       return config.heroSlides.filter(s => s.active !== false);
-    }
-    if (heroBanners.length > 0) {
-      return heroBanners.map(b => ({
-        image: b.imageUrl,
-        mobileImage: "",
-        title: b.title || "Kiệt tác Thời gian",
-        subtitle: slogan || "Tuyển chọn đồng hồ cao cấp với trải nghiệm tinh gọn.",
-        link: b.link || "/catalog?reset=true"
-      }));
     }
     return [
       {
@@ -63,7 +19,7 @@ const HeroBanner = ({ config, slogan }) => {
         link: "/catalog?reset=true"
       }
     ];
-  }, [config, heroBanners, slogan]);
+  }, [config, slogan]);
 
   useEffect(() => {
     if (slides.length < 2) return;

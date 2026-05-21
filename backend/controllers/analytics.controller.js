@@ -3,11 +3,29 @@ import Product from "../models/product.model.js";
 import User from "../models/user.model.js";
 import { sendEmail } from "../lib/email.js";
 
-export const getAnalyticsData = async () => {
+const buildRangeMatch = (startDate, endDate) => {
+	if (!startDate || !endDate) return {};
+	return {
+		createdAt: {
+			$gte: startDate,
+			$lte: endDate,
+		},
+	};
+};
+
+export const getAnalyticsData = async ({ startDate, endDate } = {}) => {
+	const rangeMatch = buildRangeMatch(startDate, endDate);
+	const paidRangeMatch = { ...rangeMatch, paymentStatus: "paid" };
+	const cashFlowMatch = { ...rangeMatch, paymentStatus: "pending", status: { $in: ["confirmed", "processing", "shipped"] } };
+	const closeoutMatch = { ...rangeMatch, status: { $in: ["cancelled", "returned"] } };
+
 	const totalUsers = await User.countDocuments();
 	const totalProducts = await Product.countDocuments();
 
 	const salesData = await Order.aggregate([
+		{
+			$match: paidRangeMatch,
+		},
 		{
 			$group: {
 				_id: null,
@@ -20,6 +38,7 @@ export const getAnalyticsData = async () => {
 	const { totalSales, totalRevenue } = salesData[0] || { totalSales: 0, totalRevenue: 0 };
 
 	const paymentStats = await Order.aggregate([
+		{ $match: paidRangeMatch },
 		{
 			$group: {
 				_id: "$paymentMethod",
@@ -30,8 +49,9 @@ export const getAnalyticsData = async () => {
 	]);
 
 	const wristSizeStats = await Order.aggregate([
+		{ $match: paidRangeMatch },
 		{ $unwind: "$products" },
-		{ $match: { "products.wristSize": { $ne: null, $ne: "Mặc định" } } },
+		{ $match: { "products.wristSize": { $nin: [null, "Mặc định", ""] } } },
 		{
 			$group: {
 				_id: "$products.wristSize",
@@ -42,8 +62,85 @@ export const getAnalyticsData = async () => {
 		{ $limit: 10 }
 	]);
 
+	// ── Watch-specific: Máy Cơ (Automatic) vs Máy Pin (Quartz) ──────────────────
+	const watchTypeStats = await Order.aggregate([
+		{ $match: paidRangeMatch },
+		{ $unwind: "$products" },
+		{
+			$lookup: {
+				from: "products",
+				localField: "products.product",
+				foreignField: "_id",
+				as: "productInfo",
+			},
+		},
+		{ $unwind: { path: "$productInfo", preserveNullAndEmptyArrays: true } },
+		{ $match: { "productInfo.type": { $ne: null } } },
+		{
+			$group: {
+				_id: "$productInfo.type",
+				count: { $sum: "$products.quantity" },
+				revenue: { $sum: { $multiply: ["$products.price", "$products.quantity"] } },
+			},
+		},
+		{ $sort: { count: -1 } },
+	]);
+
+	// ── Watch-specific: Xu hướng Màu Mặt Số (Dial Color) ───────────────────────
+	const dialColorStats = await Order.aggregate([
+		{ $match: paidRangeMatch },
+		{ $unwind: "$products" },
+		{
+			$lookup: {
+				from: "products",
+				localField: "products.product",
+				foreignField: "_id",
+				as: "productInfo",
+			},
+		},
+		{ $unwind: { path: "$productInfo", preserveNullAndEmptyArrays: true } },
+		{
+			$match: {
+				"productInfo.specs.dial.color": { $nin: [null, "", "N/A"] },
+			},
+		},
+		{
+			$group: {
+				_id: "$productInfo.specs.dial.color",
+				count: { $sum: "$products.quantity" },
+			},
+		},
+		{ $sort: { count: -1 } },
+		{ $limit: 8 },
+	]);
+
+	// ── Doanh thu dự kiến: đơn đang giao nhưng chưa thanh toán hoàn tất ─────────
+	const pendingRevenueData = await Order.aggregate([
+		{
+			$match: {
+				...cashFlowMatch,
+			},
+		},
+		{
+			$group: {
+				_id: null,
+				pendingRevenue: { $sum: "$totalAmount" },
+				pendingCount: { $sum: 1 },
+			},
+		},
+	]);
+	const pendingRevenue = pendingRevenueData[0]?.pendingRevenue || 0;
+	const pendingCount = pendingRevenueData[0]?.pendingCount || 0;
+
+	// ── Tỷ lệ hủy đơn / hoàn hàng ──────────────────────────────────────────────
+	const totalAllOrders = await Order.countDocuments(rangeMatch);
+	const cancelledOrReturned = await Order.countDocuments(closeoutMatch);
+	const cancellationRate = totalAllOrders > 0
+		? Math.round((cancelledOrReturned / totalAllOrders) * 1000) / 10
+		: 0;
+
 	// Tổng số đơn hàng đã hoàn thành (để tính Conversion Rate)
-	const totalOrdersPlaced = await Order.countDocuments({ paymentStatus: "paid" });
+	const totalOrdersPlaced = await Order.countDocuments(paidRangeMatch);
 
 	// AOV = Average Order Value
 	const aov = totalOrdersPlaced > 0 ? Math.round((salesData[0]?.totalRevenue || 0) / totalOrdersPlaced) : 0;
@@ -85,6 +182,11 @@ export const getAnalyticsData = async () => {
 		aov,
 		totalOrdersPlaced,
 		hourlySalesData,
+		// Doanh thu dự kiến & tỷ lệ hủy
+		pendingRevenue,
+		pendingCount,
+		cancellationRate,
+		cancelledOrReturned,
 		paymentStats: paymentStats.map(s => ({
 			name: s._id === "stripe" ? "Stripe" : s._id === "qr" ? "VietQR" : s._id === "cod" ? "COD" : s._id === "vnpay" ? "VNPay" : s._id === "momo" ? "MoMo" : s._id === "zalopay" ? "ZaloPay" : s._id || "Khác",
 			value: s.revenue,
@@ -93,7 +195,23 @@ export const getAnalyticsData = async () => {
 		wristSizeStats: wristSizeStats.map(s => ({
 			size: String(s._id),
 			count: s.count
-		}))
+		})),
+		// Watch-specific analytics
+		watchTypeStats: watchTypeStats.map(s => ({
+			name: s._id === "automatic" ? "Máy Cơ Tự Động" :
+				s._id === "mechanical" ? "Máy Cơ Tay" :
+				s._id === "quartz" ? "Máy Pin (Quartz)" :
+				s._id === "solar" ? "Năng Lượng Mặt Trời" :
+				s._id === "digital" ? "Điện Tử" :
+				s._id === "smartwatch" ? "Đồng Hồ Thông Minh" :
+				s._id || "Khác",
+			value: s.count,
+			revenue: s.revenue,
+		})),
+		dialColorStats: dialColorStats.map(s => ({
+			name: s._id,
+			value: s.count,
+		})),
 	};
 };
 
@@ -154,7 +272,7 @@ export const getAnalytics = async (req, res) => {
 		startDate.setDate(endDate.getDate() - days + 1);
 		startDate.setHours(0, 0, 0, 0);
 
-		const analyticsData = await getAnalyticsData();
+		const analyticsData = await getAnalyticsData({ startDate, endDate });
 		const dailySales = await getDailySalesData(startDate, endDate);
 
 		let prevDailySales = [];

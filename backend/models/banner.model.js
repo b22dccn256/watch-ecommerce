@@ -19,6 +19,10 @@ const bannerSchema = new mongoose.Schema(
 			enum: ["ACTIVE", "INACTIVE"],
 			default: "ACTIVE",
 		},
+		order: {
+			type: Number,
+			default: 0,
+		},
 		uploadedAt: {
 			type: Date,
 			default: Date.now,
@@ -26,6 +30,9 @@ const bannerSchema = new mongoose.Schema(
 	},
 	{ timestamps: true }
 );
+
+// Index for efficient sorting by order
+bannerSchema.index({ order: 1 });
 
 const Banner = mongoose.model("Banner", bannerSchema);
 

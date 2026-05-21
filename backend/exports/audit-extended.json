@@ -1,0 +1,39 @@
+{
+  "ordersMissingPayment": [
+    {
+      "_id": "6a0c5a77e5d9934b1129d3e9",
+      "totalAmount": 7943000,
+      "orderCode": "DHGKSX5QGJ",
+      "paymentStatus": "paid",
+      "paidAt": null
+    }
+  ],
+  "ordersDeliveredUnpaid": [],
+  "bannersMissingImage": [
+    {
+      "_id": "69b306803ba7026d194332ab",
+      "title": "banner-luxury"
+    },
+    {
+      "_id": "6a0c434110f9ae1981a5abc3",
+      "title": "Upload-1779188542722"
+    },
+    {
+      "_id": "6a0c434610f9ae1981a5abc4",
+      "title": "Upload-1779188549674"
+    },
+    {
+      "_id": "6a0c435810f9ae1981a5abc5",
+      "title": "Upload-1779188566428"
+    }
+  ],
+  "duplicateUserEmails": [],
+  "couponsExpiredActive": [
+    {
+      "_id": "69f0cbf60b61260d7d2298e1",
+      "code": "E2E534193",
+      "expirationDate": "2026-05-05T15:02:14.193Z",
+      "isActive": true
+    }
+  ]
+}

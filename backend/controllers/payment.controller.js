@@ -105,8 +105,17 @@ export const createCheckoutSession = async (req, res) => {
 
 		await OrderService.deductStock(products, sessionOpts, newOrderId, req.user?._id, "Thanh toán Stripe");
 
-		const coupon = (couponCode && req.user) ? await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true }).session(sessionOpts) : null;
-		let dbTotalAmount = await OrderService.calculateTotalAmount(products, coupon, sessionOpts, shippingDetails?.city);
+		let coupon = null;
+		if (couponCode) {
+			const code = couponCode.trim().toUpperCase();
+			coupon = await Coupon.findOne({ code, isActive: true }).session(sessionOpts);
+			if (coupon && coupon.userId && (!req.user || String(coupon.userId) !== String(req.user._id))) {
+				// coupon reserved for another user
+				coupon = null;
+			}
+		}
+		const { subtotal, discount, shippingFee } = await OrderService.calculateTotals(products, coupon, shippingDetails?.city, sessionOpts);
+		let dbTotalAmount = subtotal - discount + shippingFee;
 
 		let totalAmount = 0;
 
@@ -155,6 +164,10 @@ export const createCheckoutSession = async (req, res) => {
 				selectedSize: p.selectedSize || null,
 			})),
 			totalAmount: dbTotalAmount,
+			subtotal,
+			discountAmount: discount,
+			shippingFee,
+			couponCode: couponCode || '',
 			orderCode,
 			trackingToken: crypto.randomUUID(),
 			shippingDetails,

@@ -332,7 +332,8 @@ app.patch("/api/auth/users/:id/role", ensureAdmin, (req, res) => {
 app.patch("/api/auth/users/:id/loyalty", ensureAdmin, (req, res) => {
   const user = state.users.find((entry) => entry._id === req.params.id);
   if (!user) return res.status(404).json({ message: "User not found" });
-  user.rewardPoints = Number(user.rewardPoints || 0) + Number(req.body.delta || 0);
+  const points = req.body.delta !== undefined ? req.body.delta : (req.body.points !== undefined ? req.body.points : 0);
+  user.rewardPoints = Number(user.rewardPoints || 0) + Number(points);
   res.json(clone(user));
 });
 
@@ -392,6 +393,17 @@ app.delete("/api/brands/:id", ensureAdmin, (req, res) => {
   state.brands = state.brands.filter((brand) => brand._id !== req.params.id);
   res.json({ success: true });
 });
+app.put("/api/brands/:id", ensureAdmin, (req, res) => {
+  const brand = state.brands.find((entry) => entry._id === req.params.id);
+  if (!brand) return res.status(404).json({ message: "Brand not found" });
+  Object.assign(brand, {
+    name: req.body.name ?? brand.name,
+    description: req.body.description ?? brand.description,
+    logo: req.body.logo ?? req.body.image ?? brand.logo,
+    isAuthorizedDealer: req.body.isAuthorizedDealer ?? brand.isAuthorizedDealer,
+  });
+  res.json(clone(brand));
+});
 
 app.get("/api/categories", (_req, res) => res.json(clone(state.categories)));
 app.post("/api/categories", ensureAdmin, (req, res) => {
@@ -404,10 +416,22 @@ app.post("/api/categories", ensureAdmin, (req, res) => {
   state.categories.push(category);
   res.status(201).json(clone(category));
 });
+app.put("/api/categories/:id", ensureAdmin, (req, res) => {
+  const category = state.categories.find((entry) => entry._id === req.params.id);
+  if (!category) return res.status(404).json({ message: "Category not found" });
+  Object.assign(category, {
+    name: req.body.name ?? category.name,
+    slug: req.body.slug ?? req.body.name?.toLowerCase().replace(/\s+/g, "-") ?? category.slug,
+    parentCategory: req.body.parentCategory ?? category.parentCategory,
+    image: req.body.image ?? category.image,
+  });
+  res.json(clone(category));
+});
 app.delete("/api/categories/:id", ensureAdmin, (req, res) => {
   state.categories = state.categories.filter((category) => category._id !== req.params.id);
   res.json({ success: true });
 });
+
 
 app.get("/api/products/featured", (_req, res) => {
   res.json(clone(state.products.filter((product) => product.isFeatured).map(normalizeProduct)));
@@ -608,7 +632,26 @@ app.delete("/api/cart", ensureAuth, (req, res) => {
 });
 
 app.get("/api/coupons", (_req, res) => res.json(clone(state.coupons)));
-app.post("/api/coupons/validate", (_req, res) => res.json(clone(state.coupons[0])));
+app.post("/api/coupons/validate", (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ message: "Coupon code required" });
+  
+  const coupon = state.coupons.find(c => c.code?.toUpperCase() === code.toUpperCase());
+  if (!coupon) {
+    return res.status(404).json({ message: "Coupon not found" });
+  }
+  
+  if (!coupon.isActive) {
+    return res.status(400).json({ message: "Coupon is inactive" });
+  }
+  
+  // Check expiration
+  if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
+    return res.status(400).json({ message: "Coupon has expired" });
+  }
+  
+  res.json(clone(coupon));
+});
 app.post("/api/coupons", ensureAdmin, (req, res) => {
   const coupon = {
     _id: nextId("coupon"),
@@ -687,6 +730,42 @@ app.patch("/api/orders/:id/details", ensureAdmin, (req, res) => {
   res.json(clone(order));
 });
 
+app.post("/api/orders/cod", (req, res) => {
+  const { items, products, shippingDetails, totalAmount } = req.body;
+  const user = getCurrentUser(req);
+  const orderItems = (items || products || []).map(item => {
+    const prodId = typeof item.product === 'object' ? item.product._id : item.product;
+    const dbProduct = state.products.find(p => p._id === prodId) || baseProduct;
+    return {
+      product: clone(normalizeProduct(dbProduct)),
+      quantity: item.quantity || 1,
+      price: item.price || dbProduct.price || 0,
+    };
+  });
+  const order = {
+    _id: nextId("order"),
+    orderCode: `ORD${String(seq).padStart(4, "0")}`,
+    user: user ? { _id: user._id, name: user.name, email: user.email } : null,
+    products: orderItems,
+    shippingDetails: {
+      fullName: shippingDetails?.fullName || "Guest",
+      phone: shippingDetails?.phone || shippingDetails?.phoneNumber || "0900000000",
+      address: shippingDetails?.address || "123 Mock Street",
+      city: shippingDetails?.city || "Ho Chi Minh",
+      district: shippingDetails?.district || "",
+      ward: shippingDetails?.ward || "",
+    },
+    totalAmount: totalAmount || 0,
+    paymentMethod: "cod",
+    paymentStatus: "unpaid",
+    status: "pending",
+    currency: "VND",
+    createdAt: nowIso(),
+  };
+  state.orders.push(order);
+  res.status(201).json(order);
+});
+
 app.post("/api/orders/lookup", (_req, res) => res.json(clone(state.orders[0])));
 app.patch("/api/orders/:id/cancel", ensureAuth, (_req, res) => res.json({ success: true }));
 app.patch("/api/orders/:id/request-return", ensureAuth, (_req, res) => res.json({ success: true }));
@@ -732,6 +811,57 @@ app.patch("/api/mail/automations/:id/toggle", ensureAdmin, (_req, res) => res.js
 app.post("/api/mail/subscribe", (_req, res) => res.json({ success: true }));
 
 app.get("/api/reviews", ensureAdmin, (_req, res) => res.json(clone(state.reviews)));
+
+app.get("/api/reviews/product/:productId", (req, res) => {
+  const filtered = state.reviews.filter((r) => {
+    const pId = typeof r.product === 'object' ? r.product._id : r.productId;
+    return pId === req.params.productId && r.status === "approved";
+  });
+  res.json({ reviews: clone(filtered) });
+});
+
+app.post("/api/reviews/product/:productId", ensureAuth, (req, res) => {
+  const product = state.products.find((entry) => entry._id === req.params.productId);
+  if (!product) return res.status(404).json({ message: "Product not found" });
+  
+  const review = {
+    _id: nextId("review"),
+    user: { _id: req.user._id, name: req.user.name },
+    userName: req.user.name,
+    product: { _id: product._id, name: product.name },
+    productId: product._id,
+    productName: product.name,
+    rating: Number(req.body.rating || 5),
+    comment: req.body.comment || "",
+    status: "pending",
+    createdAt: nowIso(),
+  };
+  state.reviews.push(review);
+  res.status(201).json(review);
+});
+
+app.patch("/api/reviews/:id/status", ensureAdmin, (req, res) => {
+  const review = state.reviews.find((entry) => entry._id === req.params.id);
+  if (!review) return res.status(404).json({ message: "Review not found" });
+  review.status = req.body.status || review.status;
+  res.json(clone(review));
+});
+
+app.delete("/api/reviews/:id", ensureAuth, (req, res) => {
+  const reviewIndex = state.reviews.findIndex((entry) => entry._id === req.params.id);
+  if (reviewIndex === -1) return res.status(404).json({ message: "Review not found" });
+  
+  const review = state.reviews[reviewIndex];
+  
+  // Non-admins can only delete their own reviews
+  if (req.user.role !== "admin" && String(review.user?._id) !== String(req.user._id)) {
+    return res.status(403).json({ message: "Not authorized to delete this review" });
+  }
+  
+  state.reviews.splice(reviewIndex, 1);
+  res.json({ success: true });
+});
+
 app.get("/api/questions", ensureAdmin, (_req, res) => res.json(clone(state.questions)));
 app.post("/api/questions/:id/reply", ensureAdmin, (req, res) => {
   const question = state.questions.find((entry) => entry._id === req.params.id);

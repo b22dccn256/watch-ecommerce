@@ -1,11 +1,12 @@
 import { ArrowRight, CheckCircle, MapPin, Package, CreditCard, Wallet, QrCode, Copy } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { Link } from "react-router-dom";
 import { useCartStore } from "../stores/useCartStore";
 import axios from "../lib/axios";
 import Confetti from "react-confetti";
 import { SkeletonPageShell } from "../components/SkeletonLoaders";
+import ReviewForm from "../components/ReviewForm";
 
 const PurchaseSuccessPage = () => {
 	const [isProcessing, setIsProcessing] = useState(true);
@@ -296,8 +297,7 @@ const PurchaseSuccessPage = () => {
 						<Package size={20} className="text-[color:var(--color-gold)]" /> Sản phẩm đã mua ({order.products?.length || 0})
 					</h3>
 					<div className='space-y-3'>
-						{order.products?.map((item) => (
-							<div key={item._id} className='flex items-center gap-4 bg-gray-800/50 p-3 rounded-lg border border-gray-700'>
+				 		{order.products?.map((item) => (							<Fragment key={item._id}>							<div className='flex items-center gap-4 bg-gray-800/50 p-3 rounded-lg border border-gray-700'>
 								<div className="w-16 h-16 bg-gray-700 rounded-md overflow-hidden flex-shrink-0">
 									<img
 										src={item.product?.image || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80"}
@@ -320,6 +320,15 @@ const PurchaseSuccessPage = () => {
 									<p className='text-[color:var(--color-gold)] font-bold'>{(item.price * item.quantity).toLocaleString("vi-VN")} ₫</p>
 								</div>
 							</div>
+
+							{/* Review form: show when order is delivered and user is logged in */}
+							{order.status === 'delivered' && (
+								<div className="mt-2 w-full">
+									{/* product field may be populated object or id */}
+									<ReviewForm productId={item.product?._id || item.product} />
+								</div>
+							)}
+							</Fragment>
 						))}
 					</div>
 				</div>

@@ -15,6 +15,43 @@ const stripAccents = (value) => value.normalize("NFD").replace(/[\u0300-\u036f]/
 const normalizeChatText = (value) => stripAccents(String(value || "")).toLowerCase().replace(/,/g, ".").replace(/\s+/g, " ").trim();
 const includesAny = (text, keywords) => keywords.some((keyword) => text.includes(keyword));
 
+const BRAND_KEYWORDS = [
+    "rolex", "omega", "patek", "philippe", "cartier", "hublot", "tissot", "casio",
+    "seiko", "citizen", "longines", "tag heuer", "tagheuer", "breitling", "iwc",
+    "audemars", "piguet", "vacheron", "constantin", "jaeger", "lecoultre",
+    "bulgari", "bvlgari", "chopard", "piaget", "zenith", "panerai", "tudor",
+    "hamilton", "orient", "frederique", "constant", "movado", "rado", "mido",
+    "oris", "bell", "ross", "richard", "mille", "franck", "muller",
+    "daniel wellington", "fossil", "michael kors", "garmin", "apple watch",
+    "samsung", "huawei", "amazfit", "fitbit", "g-shock", "baby-g",
+];
+
+const PRODUCT_TYPE_KEYWORDS = [
+    "dong ho", "watch", "nu", "nam", "unisex", "doi", "cap",
+    "co", "automatic", "quartz", "pin", "smartwatch", "thong minh",
+    "the thao", "sport", "lan", "diving", "phi cong", "pilot",
+    "kinh dien", "classic", "sang trong", "luxury", "cao cap",
+    "co dien", "hien dai", "modern", "vintage", "retro",
+    "skeleton", "chronograph", "moon phase", "tourbillon",
+];
+
+const FEATURE_KEYWORDS = [
+    "nhip tim", "heart rate", "gps", "chong nuoc", "waterproof", "water resistant",
+    "sapphire", "kinh", "day da", "day thep", "day cao su", "rubber",
+    "mat tron", "mat vuong", "vang", "gold", "bac", "silver", "titanium",
+    "ceramic", "carbon", "rose gold", "vang hong",
+    "do huyet ap", "blood pressure", "spo2", "oxy", "buoc chan", "step",
+    "giam gia", "sale", "khuyen mai", "on sale",
+];
+
+const SEARCH_KEYWORDS = [
+    "dep", "pho bien", "noi tieng", "gia re", "binh dan", "hot",
+    "moi nhat", "new", "trending", "duoc yeu thich", "recommend",
+    "goi y", "tu van", "tim", "search", "xem", "co khong", "co ban",
+    "mau nao", "loai nao", "hang nao", "thuong hieu", "brand",
+    "san pham", "product", "catalog", "bo suu tap", "collection",
+];
+
 const resolveChatIntent = (text) => {
     const normalized = normalizeChatText(text);
 
@@ -48,6 +85,11 @@ const resolveChatIntent = (text) => {
     const budgetMatch = normalized.match(/(\d+(?:\.\d+)?)\s*(trieu|tr|trieu|m)/);
     if (budgetMatch && includesAny(normalized, ["gia", "ngan sach", "duoi", "toi da", "khong qua", "khoang", "tam", "price", "budget"])) {
         return { type: "budget" };
+    }
+
+    // Search intent: brand names, product types, features, or general search terms
+    if (includesAny(normalized, BRAND_KEYWORDS) || includesAny(normalized, PRODUCT_TYPE_KEYWORDS) || includesAny(normalized, FEATURE_KEYWORDS) || includesAny(normalized, SEARCH_KEYWORDS)) {
+        return { type: "search" };
     }
 
     return { type: "fallback" };
@@ -233,7 +275,7 @@ const ChatBot = () => {
         try {
             const intent = resolveChatIntent(msgText);
 
-            if (intent.type === "tracking" || intent.type === "warranty" || intent.type === "shipping" || intent.type === "payment" || intent.type === "returns" || intent.type === "contact" || intent.type === "account" || intent.type === "sizeGuide" || intent.type === "compare" || intent.type === "fallback") {
+            if (intent.type === "tracking" || intent.type === "warranty" || intent.type === "shipping" || intent.type === "payment" || intent.type === "returns" || intent.type === "contact" || intent.type === "account" || intent.type === "sizeGuide" || intent.type === "compare") {
                 const response = INTENT_RESPONSE[intent.type] || INTENT_RESPONSE.fallback;
                 const botMsg = {
                     id: Date.now() + 1,
@@ -357,14 +399,27 @@ const ChatBot = () => {
                 return;
             }
 
-            const res = await axios.post("/ai/chat", { message: msgText });
-            const botMsg = {
-                id: Date.now() + 1,
-                role: "bot",
-                content: res.data.response,
-                actions: [buildAction("Mở Catalog", "/catalog", "Xem toàn bộ sản phẩm")],
-            };
-            setMessages((prev) => [...prev, botMsg]);
+            // Search intent or fallback: call AI backend which has full product catalog context
+            try {
+                const res = await axios.post("/ai/chat", { message: msgText });
+                const botMsg = {
+                    id: Date.now() + 1,
+                    role: "bot",
+                    content: res.data.response,
+                    actions: [buildAction("Mở Catalog", "/catalog", "Xem toàn bộ sản phẩm")],
+                };
+                setMessages((prev) => [...prev, botMsg]);
+            } catch {
+                // AI backend failed — show fallback response
+                const response = INTENT_RESPONSE.fallback;
+                const botMsg = {
+                    id: Date.now() + 1,
+                    role: "bot",
+                    content: response.content,
+                    actions: response.action ? [response.action] : [],
+                };
+                setMessages((prev) => [...prev, botMsg]);
+            }
         } catch {
             const errorMsg = {
                 id: Date.now() + 1,

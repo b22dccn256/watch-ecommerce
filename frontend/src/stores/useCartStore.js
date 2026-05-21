@@ -75,7 +75,7 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 		if (!force && now - couponFetchState.lastFetched < 30000) return;
 
 		couponFetchState.promise = axios
-			.get("/coupons")
+			.get("/coupons/user")
 			.then((response) => {
 				set({ coupon: response.data });
 				couponFetchState.lastFetched = Date.now();
@@ -158,15 +158,29 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 		set({ cart: [], coupon: null, total: 0, subtotal: 0 });
 	},
 	addToCart: async (product) => {
+		let normalizedProduct = null;
+		if (typeof product === "string") {
+			normalizedProduct = { _id: product };
+		} else if (product && typeof product === "object") {
+			const id = product.product?._id || product.productId || product._id;
+			normalizedProduct = { ...product, _id: id };
+		}
+
+		const id = normalizedProduct?._id;
+		if (!id || typeof id !== "string" || id.length !== 24 || !/^[0-9a-fA-F]{24}$/.test(id)) {
+			console.error("Invalid product ID in addToCart:", id, product);
+			return toast.error("Sản phẩm không hợp lệ hoặc thiếu mã sản phẩm");
+		}
+
 		const { user } = useUserStore.getState();
 		const prevState = get();
-		const uniqueId = prevState.getUniqueId(product);
+		const uniqueId = prevState.getUniqueId(normalizedProduct);
 		
 		const existingItem = prevState.cart.find((item) => prevState.getUniqueId(item) === uniqueId);
 		const newQuantity = existingItem ? existingItem.quantity + 1 : 1;
 
-		if (product.stock < newQuantity) {
-			return toast.error(`Sản phẩm này chỉ còn ${product.stock} cái trong kho`);
+		if (normalizedProduct.stock !== undefined && normalizedProduct.stock < newQuantity) {
+			return toast.error(`Sản phẩm này chỉ còn ${normalizedProduct.stock} cái trong kho`);
 		}
 
 		if (!user) {
@@ -176,11 +190,11 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 					prevState.getUniqueId(item) === uniqueId ? { ...item, quantity: item.quantity + 1 } : item
 				)
 				: [...prevState.cart, {
-					...product,
+					...normalizedProduct,
 					quantity: 1,
-					wristSize: product.wristSize || null,
-					selectedColor: product.selectedColor || null,
-					selectedSize: product.selectedSize || null,
+					wristSize: normalizedProduct.wristSize || null,
+					selectedColor: normalizedProduct.selectedColor || null,
+					selectedSize: normalizedProduct.selectedSize || null,
 				}];
 
 			localStorage.setItem("watch_cart", JSON.stringify(newCart));
@@ -199,10 +213,10 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 
 		try {
 			await axios.post("/cart", {
-				productId: product._id,
-				wristSize: product.wristSize,
-				selectedColor: product.selectedColor || null,
-				selectedSize: product.selectedSize || null,
+				productId: id,
+				wristSize: normalizedProduct.wristSize,
+				selectedColor: normalizedProduct.selectedColor || null,
+				selectedSize: normalizedProduct.selectedSize || null,
 			});
 			toast.success("Đã thêm vào giỏ hàng!");
 
@@ -213,11 +227,11 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 						prevState.getUniqueId(item) === uniqueId ? { ...item, quantity: item.quantity + 1 } : item
 					)
 					: [...prevState.cart, {
-						...product,
+						...normalizedProduct,
 						quantity: 1,
-						wristSize: product.wristSize || null,
-						selectedColor: product.selectedColor || null,
-						selectedSize: product.selectedSize || null,
+						wristSize: normalizedProduct.wristSize || null,
+						selectedColor: normalizedProduct.selectedColor || null,
+						selectedSize: normalizedProduct.selectedSize || null,
 					}];
 				return { cart: newCart };
 			});

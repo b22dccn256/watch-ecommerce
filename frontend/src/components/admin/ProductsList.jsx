@@ -33,7 +33,7 @@ const ProductsList = () => {
 	const { search, setSearch, debouncedSearch, currentPage, setCurrentPage, sortBy, setSortBy } = useProductsSearch();
 	
 	// Get products from hook
-	const { products, loading, totalPages, totalCount, fetchProducts, deleteProduct, bulkDelete, bulkToggleFeatured } = useProductsList();
+	const { products, loading, totalPages, totalCount, fetchProducts, deleteProduct, bulkDelete, toggleFeatured, bulkToggleFeatured } = useProductsList();
 	
 	// For bulk select, we need to initialize it with current products
 	const { selectedIds, toggleSelect, toggleSelectAll, allPageSelected, selectedCount, clearSelection } = useProductsBulkSelect(products);
@@ -247,7 +247,7 @@ const ProductsList = () => {
 					onToggleSelect={toggleSelect}
 					onEdit={openEditModal}
 					onDelete={(id) => openDeleteConfirm({ productId: id })}
-					onToggleFeatured={bulkToggleFeatured}
+					onToggleFeatured={toggleFeatured}
 					search={search}
 				/>
 

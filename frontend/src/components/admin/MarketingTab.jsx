@@ -1,4 +1,4 @@
-import { Plus, Image as ImageIcon, Trash2, Power } from "lucide-react";
+import { Plus, Image as ImageIcon, Trash2, Power, ChevronUp, ChevronDown } from "lucide-react";
 import { confirmToast } from "../../lib/confirmToast";
 import { useMarketingManagement } from "../../hooks/useMarketingManagement";
 
@@ -15,6 +15,7 @@ const MarketingTab = () => {
         handleBannerUpload,
         handleDeleteBanner,
         handleToggleBannerStatus,
+        handleReorderBanner,
         toggleCampaignStatus,
         deleteCampaign,
         formatDate,
@@ -42,13 +43,18 @@ const MarketingTab = () => {
 
             {/* ═══ BANNER MANAGEMENT ═══ */}
             <section className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
-                        <ImageIcon className="w-5 h-5 text-[color:var(--color-gold)]" /> Quản lý Banner Trang chủ
-                    </h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex flex-col">
+                        <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
+                            <ImageIcon className="w-5 h-5 text-[color:var(--color-gold)]" /> Quản lý Banner Chiến Dịch & Khuyến Mãi (Giữa trang chủ)
+                        </h3>
+                        <p className="text-[11px] text-gray-400 mt-1 max-w-2xl">
+                            * Lưu ý: Banner tại đây hiển thị tại phần Chiến dịch Khuyến mãi giữa trang chủ. Để thay đổi các Slide trượt kích thước lớn ở đầu trang chủ, vui lòng sử dụng tab <span className="font-semibold text-luxury-gold">"Slide Hero (Đầu trang chủ)"</span> trong phần <span className="font-semibold text-luxury-gold">Quản lý giao diện</span>.
+                        </p>
+                    </div>
                     <button
                         onClick={() => bannerInputRef.current?.click()}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[color:var(--color-gold)] text-[color:var(--color-gold)] text-sm font-semibold transition hover:bg-[color:var(--color-gold)] hover:text-white"
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[color:var(--color-gold)] text-[color:var(--color-gold)] text-sm font-semibold transition hover:bg-[color:var(--color-gold)] hover:text-white shrink-0 h-fit"
                     >
                         <Plus className="w-4 h-4" /> Tải lên Banner Mới
                     </button>
@@ -68,7 +74,7 @@ const MarketingTab = () => {
 
                     {bannersLoading ? (
                         <div className="col-span-full py-12 text-center text-muted">Đang tải danh sách banner...</div>
-                    ) : banners.map((banner) => (
+                    ) : banners.map((banner, index) => (
                         <div key={banner._id} className="relative group h-48 rounded-2xl overflow-hidden border border-black/8 dark:border-white/8 bg-surface">
                             {banner.imageUrl ? (
                                 <img src={banner.imageUrl} alt={banner.title} className="w-full h-full object-cover" />
@@ -78,10 +84,31 @@ const MarketingTab = () => {
                                 </div>
                             )}
                             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-                            <div className="absolute top-3 left-3">
+                            <div className="absolute top-3 left-3 flex items-center gap-2">
+                                <span className="bg-black/60 text-white px-2 py-0.5 rounded text-[10px] font-bold">
+                                    #{index + 1}
+                                </span>
                                 <span className={`px-2 py-1 rounded-md text-[10px] font-bold tracking-widest ${banner.status === "ACTIVE" ? "bg-emerald-500" : "bg-gray-500"} text-white`}>
                                     {banner.status}
                                 </span>
+                            </div>
+                            <div className="absolute top-3 right-3 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                    onClick={() => handleReorderBanner(banner._id, -1)}
+                                    disabled={index === 0}
+                                    className="p-1 bg-black/50 rounded text-white/80 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                                    title="Di chuyển lên"
+                                >
+                                    <ChevronUp className="w-3 h-3" />
+                                </button>
+                                <button
+                                    onClick={() => handleReorderBanner(banner._id, 1)}
+                                    disabled={index === banners.length - 1}
+                                    className="p-1 bg-black/50 rounded text-white/80 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                                    title="Di chuyển xuống"
+                                >
+                                    <ChevronDown className="w-3 h-3" />
+                                </button>
                             </div>
                             <div className="absolute bottom-3 left-3 right-3">
                                 <h3 className="text-white font-bold text-sm truncate">{banner.title}</h3>

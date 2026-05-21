@@ -129,32 +129,6 @@ const CatalogPage = () => {
 	return (
 		<div className="min-h-screen bg-[linear-gradient(180deg,#f8f5f0_0%,#ffffff_14%,#ffffff_100%)] dark:bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.08)_0%,rgba(15,12,8,1)_40%,rgba(10,10,10,1)_100%)] text-gray-900 dark:text-white transition-colors duration-500">
 			<div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
-				<div className="mb-8 rounded-[2rem] editorial-surface px-6 py-6 md:px-8 md:py-7 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.35)]">
-					<div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
-						<div className="space-y-4">
-							<p className="hero-kicker text-xs font-semibold text-luxury-gold">Bộ sưu tập · Tuyển chọn</p>
-							<h1 className="hero-title text-3xl md:text-5xl text-gray-900 leading-tight">
-								{category ? category : "Tất cả đồng hồ"}
-							</h1>
-							<p className="max-w-2xl text-sm md:text-base text-gray-600 dark:text-luxury-text-muted leading-relaxed">
-								Khám phá những cỗ máy thời gian tinh xảo được tuyển chọn khắt khe, nơi nghệ thuật chế tác và phong cách sống đẳng cấp gặp nhau trong từng chi tiết.
-							</p>
-						</div>
-						<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-							{[
-								{ label: "Sort", value: sort.replace("_", " ") },
-								{ label: "Grid", value: `${gridCols} cols` },
-								{ label: "Products", value: (totalCount ?? products.length).toString() },
-								{ label: "Mode", value: loading ? "Loading" : "Live" },
-							].map((item) => (
-								<div key={item.label} className="rounded-2xl bg-white/90 dark:bg-white/5 border border-black/5 dark:border-white/10 px-4 py-4 shadow-sm">
-									<p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 dark:text-luxury-text-muted">{item.label}</p>
-									<p className="mt-2 text-sm font-semibold text-gray-900 dark:text-white line-clamp-1">{item.value}</p>
-								</div>
-							))}
-						</div>
-					</div>
-				</div>
 				<div className="grid gap-10 lg:grid-cols-[280px_1fr]">
 					{/* Bộ lọc bên trái */}
 					<FilterSidebar />
@@ -238,7 +212,7 @@ const CatalogPage = () => {
 
 						{!loading && products.length > 0 && (
 							<p className="text-sm text-gray-500 mb-8 border-b border-black/10 dark:border-zinc-800 pb-4">
-								Tìm thấy <span className="text-luxury-gold font-bold">{totalCount ?? products.length}</span> sản phẩm phù hợp
+								Hiển thị <span className="text-luxury-gold font-bold">{products.length}</span> sản phẩm trên trang này (Tổng cộng <span className="text-luxury-gold font-bold">{totalCount ?? products.length}</span> kết quả)
 							</p>
 						)}
 

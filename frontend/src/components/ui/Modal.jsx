@@ -63,11 +63,11 @@ const Modal = ({
         className={`fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none ${className}`}
       >
         <div
-          className={`${sizeClasses[size]} w-full bg-white dark:bg-slate-800 rounded-lg shadow-xl pointer-events-auto animation-slide-up`}
+          className={`${sizeClasses[size]} w-full max-h-[90vh] flex flex-col bg-white dark:bg-slate-800 rounded-lg shadow-xl pointer-events-auto animation-slide-up`}
         >
           {/* Header */}
           {title && (
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {title}
               </h2>
@@ -84,7 +84,7 @@ const Modal = ({
           )}
 
           {/* Content */}
-          <div className="px-6 py-4">
+          <div className="px-6 py-4 overflow-y-auto flex-1 custom-scrollbar">
             {children}
           </div>
         </div>
@@ -106,6 +106,26 @@ const Modal = ({
         .animation-fade-in { animation: fade-in 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
         .animation-scale-in { animation: scale-in 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .animation-slide-up { animation: slide-up 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(156, 163, 175, 0.3);
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(156, 163, 175, 0.5);
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(148, 163, 184, 0.25);
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(148, 163, 184, 0.4);
+        }
       `}</style>
     </>
   );

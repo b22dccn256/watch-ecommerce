@@ -5,7 +5,7 @@ export const getCouponDiscountAmount = (coupon, subtotal) => {
 	if (baseAmount <= 0) return 0;
 
 	const rawValue = Number(coupon.discountValue ?? coupon.discountPercentage ?? 0);
-	if (rawValue <= 0) return 0;
+	if (Number.isNaN(rawValue) || rawValue <= 0) return 0;
 
 	if (coupon.type === "fixed") {
 		return Math.min(baseAmount, rawValue);

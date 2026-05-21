@@ -40,17 +40,20 @@ const ProductCard = ({ product }) => {
       ? Math.round((1 - product.price / product.originalPrice) * 100)
       : 0;
 
-  // Compute isNew if backend didn't provide it: created within 14 days
-  const isNewLocal = product.isNew || (product.createdAt && (Date.now() - new Date(product.createdAt)) < 1000 * 60 * 60 * 24 * 14);
+  // Compute isNew if backend didn't provide it: created within 7 days
+  const isNewLocal = product.isNew || (product.createdAt && (Date.now() - new Date(product.createdAt)) < 1000 * 60 * 60 * 24 * 7);
 
-  // Compute best seller badge if salesCount high enough
-  const isBestSeller = product.isBestSeller || (product.salesCount && product.salesCount >= 10);
+  // Compute best seller badge if salesCount high enough (top tier only)
+  const isBestSeller = product.isBestSeller || (product.salesCount && product.salesCount >= 400);
 
   const imageSrc =
     product.image ||
     "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?q=80&w=1200&auto=format&fit=crop";
 
   const brand = product.brand?.name || product.brand || "Collection";
+  const displayName = product.name?.startsWith(brand) 
+      ? product.name.substring(brand.length).trim() 
+      : product.name;
 
   const openDetail = () => navigate(`/product/${product._id}`);
 
@@ -186,7 +189,7 @@ const ProductCard = ({ product }) => {
             onClick={openDetail}
             className="font-display text-[0.95rem] leading-snug text-primary line-clamp-2 transition-colors duration-200 hover:text-[color:var(--color-gold)]"
           >
-            {product.name}
+            {displayName}
           </h3>
 
           {/* Price row */}
@@ -252,7 +255,7 @@ const ProductCard = ({ product }) => {
               <div className="flex flex-col justify-between space-y-5 p-7 sm:p-8">
                 <div className="space-y-3">
                   <p className="text-[9px] font-semibold uppercase tracking-[0.32em] text-muted">{brand}</p>
-                  <h3 className="font-serif text-2xl leading-tight text-primary">{product.name}</h3>
+                  <h3 className="font-serif text-2xl leading-tight text-primary">{displayName}</h3>
                   <p className="text-sm leading-relaxed text-secondary line-clamp-4">
                     {product.description ||
                       "Mẫu đồng hồ được tuyển chọn với tiêu chí độ hoàn thiện cao, tỷ lệ cân đối và khả năng đeo thoải mái."}

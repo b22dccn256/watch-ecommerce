@@ -19,6 +19,7 @@ const PUBLIC_PATH_PREFIXES = [
 	"/api/payments/vnpay/ipn",
 	"/api/payments/momo/ipn",
 	"/api/payments/zalopay/ipn",
+	"/api/ai/chat",
 ];
 
 const setCsrfCookie = (res, token) => {

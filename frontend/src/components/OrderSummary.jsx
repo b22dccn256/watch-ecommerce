@@ -41,7 +41,9 @@ const OrderSummary = () => {
 					{coupon && isCouponApplied && (
 						<dl className='flex items-center justify-between gap-4'>
 							<dt className='text-base font-normal text-gray-600 dark:text-gray-300'>Mã giảm giá ({coupon.code})</dt>
-							<dd className='text-base font-medium text-luxury-gold'>-{coupon.discountPercentage}%</dd>
+							<dd className='text-base font-medium text-luxury-gold'>
+								{coupon.type === "fixed" ? `-${formatCurrency(coupon.discountValue, currency, lang)}` : `-${coupon.discountValue || coupon.discountPercentage}%`}
+							</dd>
 						</dl>
 					)}
 					<dl className='flex items-center justify-between gap-4'>

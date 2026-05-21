@@ -1,4 +1,5 @@
 import Product from '../models/product.model.js';
+import ProductAudit from '../models/productAudit.model.js';
 import Category from '../models/category.model.js';
 import CampaignService from '../services/campaign.service.js';
 import ProductService, {
@@ -35,7 +36,7 @@ export const getAllProducts = async (req, res) => {
       ]);
       const processed = await CampaignService.applyCampaignToProducts(products);
       console.timeEnd('[timing] getAllProducts');
-      return res.json({ products: processed, totalPages: Math.ceil(total / limitNum), currentPage: pageNum });
+      return res.json({ products: processed, totalPages: Math.ceil(total / limitNum), currentPage: pageNum, total, totalCount: total });
     }
 
     const products  = await productsQuery;
@@ -77,6 +78,9 @@ export const getSuggestions = async (req, res) => {
 
 export const getProductById = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid product id' });
+    }
     const product = await Product.findOne({ _id: req.params.id, deletedAt: null })
       .populate('brand', 'name')
       .populate('categoryId', 'name');
@@ -105,8 +109,10 @@ export const getFeaturedProducts = async (req, res) => {
         .lean();
     }
 
-    // Update Redis cache (fire-and-forget)
-    updateFeaturedProductsCache().catch(() => {});
+    // Update Redis cache (fire-and-forget with error logging)
+    updateFeaturedProductsCache().catch(err =>
+      console.error('[ProductCtrl] Featured cache update failed:', err.message)
+    );
 
     const processed = await CampaignService.applyCampaignToProducts(featuredProducts);
     res.json(processed);
@@ -181,9 +187,14 @@ export const getInventoryAlerts = async (req, res) => {
 
 export const createProduct = async (req, res) => {
   try {
-    const { name, description, price, image, images, categoryId, stock, brand, type, customAttributes, lowStockThreshold, isActive, metaTitle, metaDescription } = req.body;
+    const {
+      name, description, price, originalPrice, image, images, category, categoryId,
+      stock, brand, type, customAttributes, lowStockThreshold, isActive,
+      metaTitle, metaDescription, colors, sizes, specs, wristSizeOptions,
+      collectionName, gender, tags, sku, videoUrl, video360Url, costPrice,
+    } = req.body;
 
-    // Support multiple images: `images` may be an array of base64 or urls. Process them and set main `image` to first.
+    // Support multiple images
     let imageUrl = '';
     let imagesUrls = [];
     if (Array.isArray(images) && images.length > 0) {
@@ -197,13 +208,29 @@ export const createProduct = async (req, res) => {
       if (imageUrl) imagesUrls = [imageUrl];
     }
 
+    // category can be string (category name) or ObjectId
+    let resolvedCategoryId = category || categoryId || null;
+
     const product = new Product({
       name, description, price,
+      originalPrice: originalPrice || null,
+      costPrice: costPrice || Math.round((price || 0) * 0.7),
       image: imageUrl,
       images: imagesUrls,
-      categoryId, stock, brand, type,
+      categoryId: resolvedCategoryId,
+      stock, brand, type,
       customAttributes: customAttributes || [],
+      colors: colors || [],
+      sizes: sizes || [],
+      specs: specs || undefined,
+      wristSizeOptions: wristSizeOptions || [],
       lowStockThreshold, isActive, metaTitle, metaDescription,
+      collectionName: collectionName || '',
+      gender: gender || 'unisex',
+      tags: tags || [],
+      sku: sku || '',
+      videoUrl: videoUrl || null,
+      video360Url: video360Url || null,
     });
     product.$locals = { userId: req.user._id };
     await product.save();
@@ -217,23 +244,43 @@ export const createProduct = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid product id' });
+    }
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
-    const { name, description, price, image, images, categoryId, stock, brand, type, customAttributes, lowStockThreshold, isActive, metaTitle, metaDescription } = req.body;
+    const {
+      name, description, price, originalPrice, image, images, category, categoryId,
+      stock, brand, type, customAttributes, lowStockThreshold, isActive,
+      metaTitle, metaDescription, colors, sizes, specs, wristSizeOptions,
+      collectionName, gender, tags, sku, videoUrl, video360Url, costPrice,
+    } = req.body;
 
-    if (name)                           product.name              = name;
-    if (description)                    product.description       = description;
-    if (price !== undefined)            product.price             = price;
-    if (categoryId !== undefined)       product.categoryId        = categoryId;
-    if (stock !== undefined)            product.stock             = stock;
-    if (brand)                          product.brand             = brand;
-    if (type)                           product.type              = type;
-    if (customAttributes)               product.customAttributes  = customAttributes;
-    if (lowStockThreshold !== undefined)product.lowStockThreshold = lowStockThreshold;
-    if (isActive !== undefined)         product.isActive          = isActive;
-    if (metaTitle !== undefined)        product.metaTitle         = metaTitle;
-    if (metaDescription !== undefined)  product.metaDescription   = metaDescription;
+    if (name !== undefined)                         product.name              = name;
+    if (description !== undefined)                  product.description       = description;
+    if (price !== undefined)                        product.price             = price;
+    if (originalPrice !== undefined)                product.originalPrice     = originalPrice || null;
+    if (costPrice !== undefined)                    product.costPrice         = costPrice;
+    if (category !== undefined || categoryId !== undefined) product.categoryId = category || categoryId;
+    if (stock !== undefined)                        product.stock             = stock;
+    if (brand !== undefined && brand !== '')        product.brand             = brand;
+    if (type !== undefined)                         product.type              = type;
+    if (customAttributes !== undefined)             product.customAttributes  = customAttributes;
+    if (colors !== undefined)                       product.colors            = colors;
+    if (sizes !== undefined)                        product.sizes             = sizes;
+    if (specs !== undefined)                        product.specs             = { ...product.specs?.toObject?.() || product.specs, ...specs };
+    if (wristSizeOptions !== undefined)             product.wristSizeOptions  = wristSizeOptions;
+    if (lowStockThreshold !== undefined)            product.lowStockThreshold = lowStockThreshold;
+    if (isActive !== undefined)                     product.isActive          = isActive;
+    if (metaTitle !== undefined)                    product.metaTitle         = metaTitle;
+    if (metaDescription !== undefined)              product.metaDescription   = metaDescription;
+    if (collectionName !== undefined)               product.collectionName    = collectionName;
+    if (gender !== undefined)                       product.gender            = gender;
+    if (tags !== undefined)                         product.tags              = tags;
+    if (sku !== undefined)                          product.sku               = sku;
+    if (videoUrl !== undefined)                     product.videoUrl          = videoUrl;
+    if (video360Url !== undefined)                  product.video360Url       = video360Url;
 
     // Smart image handling: support `images` array. Upload new images and replace product.images.
     if (Array.isArray(images) && images.length > 0) {
@@ -262,6 +309,9 @@ export const updateProduct = async (req, res) => {
 
 export const deleteProduct = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid product id' });
+    }
     const product = await Product.findOne({ _id: req.params.id, deletedAt: null });
     if (!product) return res.status(404).json({ message: 'Product not found or already deleted' });
 
@@ -279,6 +329,9 @@ export const deleteProduct = async (req, res) => {
 
 export const toggleFeaturedProduct = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid product id' });
+    }
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
@@ -309,11 +362,45 @@ export const bulkUpdateProducts = async (req, res) => {
       const pct = Number(value);
       if (isNaN(pct)) return res.status(400).json({ message: 'value phải là số %' });
       const products = await Product.find({ _id: { $in: validIds }, deletedAt: null });
-      const bulkOps  = products.map(p => ({
-        updateOne: { filter: { _id: p._id }, update: { $set: { price: Math.max(0, Math.round(p.price * (1 + pct / 100))) } } }
-      }));
-      const result = await Product.bulkWrite(bulkOps, { runValidators: false });
-      return res.json({ message: `Đã điều chỉnh giá ${pct > 0 ? '+' : ''}${pct}% cho ${result.modifiedCount} sản phẩm` });
+      
+      const bulkOps = [];
+      const auditLogs = [];
+      
+      for (const p of products) {
+        let newPrice = Math.max(0, Math.round(p.price * (1 + pct / 100)));
+        // Enforce Phase 5 price protections
+        if (p.originalPrice !== null && p.originalPrice !== undefined && newPrice > p.originalPrice) {
+          newPrice = p.originalPrice;
+        }
+        if (p.costPrice !== null && p.costPrice !== undefined && newPrice < p.costPrice) {
+          newPrice = p.costPrice;
+        }
+        
+        if (newPrice !== p.price) {
+          bulkOps.push({
+            updateOne: {
+              filter: { _id: p._id },
+              update: { $set: { price: newPrice } }
+            }
+          });
+          
+          auditLogs.push({
+            productId: p._id,
+            userId: req.user?._id || null,
+            action: 'Updated',
+            changes: { price: newPrice }
+          });
+        }
+      }
+      
+      let modifiedCount = 0;
+      if (bulkOps.length > 0) {
+        const result = await Product.bulkWrite(bulkOps, { runValidators: false });
+        modifiedCount = result.modifiedCount;
+        await ProductAudit.insertMany(auditLogs);
+      }
+      
+      return res.json({ message: `Đã điều chỉnh giá ${pct > 0 ? '+' : ''}${pct}% cho ${modifiedCount} sản phẩm` });
     }
 
     if (action === 'toggleFeatured') {
@@ -322,16 +409,40 @@ export const bulkUpdateProducts = async (req, res) => {
         updateOne: { filter: { _id: p._id }, update: { $set: { isFeatured: !p.isFeatured } } }
       }));
       const result = await Product.bulkWrite(bulkOps, { runValidators: false });
+      
+      const auditLogs = products.map(p => ({
+        productId: p._id,
+        userId: req.user?._id || null,
+        action: 'Updated',
+        changes: { isFeatured: !p.isFeatured }
+      }));
+      if (auditLogs.length > 0) {
+        await ProductAudit.insertMany(auditLogs);
+      }
+      
       await updateFeaturedProductsCache();
       return res.json({ message: `Đã toggle nổi bật cho ${result.modifiedCount} sản phẩm` });
     }
 
     if (action === 'softDelete') {
+      const products = await Product.find({ _id: { $in: validIds }, deletedAt: null });
+      const now = new Date();
       const result = await Product.updateMany(
         { _id: { $in: validIds }, deletedAt: null },
-        { $set: { deletedAt: new Date(), isActive: false } },
+        { $set: { deletedAt: now, isActive: false } },
         { runValidators: false }
       );
+      
+      const auditLogs = products.map(p => ({
+        productId: p._id,
+        userId: req.user?._id || null,
+        action: 'Deleted',
+        changes: { deletedAt: now, isActive: false }
+      }));
+      if (auditLogs.length > 0) {
+        await ProductAudit.insertMany(auditLogs);
+      }
+      
       return res.json({ message: `Đã xóa ${result.modifiedCount} sản phẩm` });
     }
 

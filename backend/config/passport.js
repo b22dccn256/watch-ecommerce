@@ -26,6 +26,30 @@ const generateRandomPassword = () => {
     return Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
 };
 
+const buildOAuthDisplayName = (profile, fallbackEmail = "") => {
+    const candidates = [
+        profile?.displayName,
+        [profile?.name?.givenName, profile?.name?.familyName].filter(Boolean).join(" "),
+        profile?.name?.givenName,
+        profile?.username,
+        fallbackEmail ? fallbackEmail.split("@")[0].replace(/[._-]+/g, " ") : "",
+    ].filter(Boolean);
+
+    for (const candidate of candidates) {
+        const normalized = String(candidate)
+            .trim()
+            .replace(/[^\p{L}\s]/gu, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+
+        if (normalized.length >= 2 && normalized.length <= 50) {
+            return normalized;
+        }
+    }
+
+    return "Google User";
+};
+
 // Google Strategy
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     console.log("Passport Google strategy enabled");
@@ -38,7 +62,8 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             let user = await User.findOne({ googleId: profile.id });
             if (!user) {
                 // If user doesn't exist with googleId, check email
-                user = await User.findOne({ email: profile.emails[0].value });
+                const email = profile.emails?.[0]?.value || `${profile.id}@googleusercontent.com`;
+                user = await User.findOne({ email });
                 if (user) {
                     // Link to existing account
                     user.googleId = profile.id;
@@ -47,8 +72,8 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
                 } else {
                     // Create new user
                     user = await User.create({
-                        name: profile.displayName,
-                        email: profile.emails[0].value,
+                        name: buildOAuthDisplayName(profile, email),
+                        email,
                         password: generateRandomPassword(), // Dummy password since google user won't use it
                         googleId: profile.id,
                         profilePicture: profile.photos[0]?.value,
@@ -74,7 +99,7 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
         try {
             let user = await User.findOne({ facebookId: profile.id });
             if (!user) {
-                const email = profile.emails ? profile.emails[0].value : `${profile.id}@facebook.com`;
+                const email = profile.emails?.[0]?.value || `${profile.id}@facebook.com`;
                 user = await User.findOne({ email });
                 if (user) {
                     user.facebookId = profile.id;
@@ -82,7 +107,7 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
                     await user.save();
                 } else {
                     user = await User.create({
-                        name: profile.displayName,
+                        name: buildOAuthDisplayName(profile, email),
                         email,
                         password: generateRandomPassword(),
                         facebookId: profile.id,
@@ -120,7 +145,7 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
                     await user.save();
                 } else {
                     user = await User.create({
-                        name: profile.displayName || profile.username,
+                        name: buildOAuthDisplayName(profile, email),
                         email,
                         password: generateRandomPassword(),
                         githubId: profile.id,

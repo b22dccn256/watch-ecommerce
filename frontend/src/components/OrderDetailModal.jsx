@@ -189,7 +189,7 @@ export default function OrderDetailModal({ order: initialOrder, onClose, onSaved
                 </span>
                 {order.coupon && (
                   <p className="mt-2 text-xs text-secondary">
-                    Mã giảm giá: <span className="font-mono font-semibold">{order.coupon.code}</span> (−{order.coupon.discountPercentage}%)
+                    Mã giảm giá: <span className="font-mono font-semibold">{order.coupon.code}</span> {order.coupon.type === "fixed" ? `(−${order.coupon.discountValue.toLocaleString("vi-VN")} ₫)` : `(−${order.coupon.discountValue || order.coupon.discountPercentage}%)`}
                   </p>
                 )}
               </div>
@@ -223,12 +223,18 @@ export default function OrderDetailModal({ order: initialOrder, onClose, onSaved
                 <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Vận chuyển</p>
                 <div>
                   <label className="text-[10px] text-muted uppercase tracking-wide">Đơn vị vận chuyển</label>
-                  <input
+                  <select
                     value={form.carrier}
                     onChange={(e) => handleChange('carrier', e.target.value)}
-                    placeholder="VD: Giao Hàng Nhanh"
                     className="mt-1 w-full rounded-lg border border-black/10 bg-surface px-3 py-2 text-sm text-primary outline-none focus:border-[color:var(--color-gold)] dark:border-white/10"
-                  />
+                  >
+                    <option value="DHL Express">DHL Express</option>
+                    <option value="GHTK">GHTK (Giao Hàng Tiết Kiệm)</option>
+                    <option value="Viettel Post">Viettel Post</option>
+                    <option value="J&T Express">J&T Express</option>
+                    <option value="VNPost">VNPost</option>
+                    <option value="Other">Khác (Other)</option>
+                  </select>
                 </div>
                 <div>
                   <label className="text-[10px] text-muted uppercase tracking-wide">Mã vận đơn</label>

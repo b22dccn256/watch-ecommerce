@@ -1,35 +1,20 @@
 import { ArrowRight, Crown, Gem, Globe2, ShieldCheck, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const BRAND_HOUSES = [
-	{
-		name: "Rolex Heritage",
-		tagline: "Biểu tượng của độ chính xác, địa vị và di sản.",
-		description: "Những thiết kế mang tính biểu tượng, được tuyển chọn cho khách hàng yêu sự chuẩn mực và giá trị bền vững.",
-		accent: "from-[color:var(--color-gold)]/25 to-black/5",
-		link: "/catalog?brand=Rolex",
-	},
-	{
-		name: "Omega Atelier",
-		tagline: "Tinh thần thể thao, công nghệ và độ tin cậy hiện đại.",
-		description: "Dành cho người dùng cần một chiếc đồng hồ cân bằng giữa hiệu năng, lịch sử và tính ứng dụng hàng ngày.",
-		accent: "from-gray-500/20 to-black/5",
-		link: "/catalog?brand=Omega",
-	},
-	{
-		name: "Patek Philippe House",
-		tagline: "Sự tinh xảo dành cho giới sưu tầm.",
-		description: "Một lựa chọn giàu tính sưu tầm, phù hợp với khách hàng tìm kiếm sự tinh vi và tính biểu tượng rất cao.",
-		accent: "from-gray-600/20 to-black/5",
-		link: "/catalog?brand=Patek+Philippe",
-	},
-	{
-		name: "Audemars Piguet Studio",
-		tagline: "Ngôn ngữ thiết kế táo bạo, hiện đại và có cá tính.",
-		description: "Phù hợp với khách hàng muốn một tuyên ngôn phong cách rõ ràng mà vẫn giữ được chất haute horlogerie.",
-		accent: "from-[color:var(--color-gold)]/18 to-black/5",
-		link: "/catalog?brand=Audemars+Piguet",
-	},
+const HOT_BRANDS = [
+	{ name: "Hublot", tagline: "Đậm cá tính, thể thao và hiện đại.", description: "Lựa chọn nổi bật cho khách hàng thích thiết kế táo bạo.", link: "/catalog?brand=Hublot" },
+	{ name: "Audemars Piguet", tagline: "Cá tính sưu tầm.", description: "Dành cho khách hàng tìm kiếm giá trị sưu tầm.", link: "/catalog?brand=Audemars+Piguet" },
+	{ name: "Panerai", tagline: "Phong cách quân đội và thủy thủ.", description: "Định vị mạnh mẽ, phù hợp khách hàng thích vẻ nam tính.", link: "/catalog?brand=Panerai" },
+	{ name: "TAG Heuer", tagline: "Thể thao & tốc độ.", description: "Thương hiệu thể thao phổ biến, dễ tiếp cận.", link: "/catalog?brand=TAG+Heuer" },
+	{ name: "Tudor", tagline: "Giá trị thiết kế từ nhà Rolex.", description: "Lựa chọn mạnh ở phân khúc giữa với độ nhận diện cao.", link: "/catalog?brand=Tudor" },
+	{ name: "Breitling", tagline: "Độ tin cậy hàng không.", description: "Phù hợp với khách hàng chuyên biệt và yêu thích kỹ thuật.", link: "/catalog?brand=Breitling" },
+	{ name: "Patek Philippe", tagline: "Đỉnh cao nghệ thuật.", description: "Sản phẩm dành cho giới sưu tầm và đầu tư.", link: "/catalog?brand=Patek+Philippe" },
+	{ name: "Rolex", tagline: "Biểu tượng cao cấp.", description: "Thương hiệu hàng đầu khi khách tìm đồng hồ sang trọng.", link: "/catalog?brand=Rolex" },
+	{ name: "Longines", tagline: "Thanh lịch truyền thống.", description: "Lựa chọn tốt cho khách cần đồng hồ lịch lãm.", link: "/catalog?brand=Longines" },
+	{ name: "Seiko", tagline: "Đa dạng & bền bỉ.", description: "Phổ thông, nhiều phân khúc, dễ chuyển đổi.", link: "/catalog?brand=Seiko" },
+	{ name: "Omega", tagline: "Lịch sử & hiệu năng.", description: "Phù hợp khách hàng muốn thương hiệu có truyền thống.", link: "/catalog?brand=Omega" },
+	{ name: "IWC", tagline: "Kỹ thuật Thụy Sĩ.", description: "Sản phẩm cho người thích cơ khí tinh tế.", link: "/catalog?brand=IWC" },
+	{ name: "Casio", tagline: "Bền bỉ & thực dụng.", description: "Dòng sản phẩm phổ biến, giá trị thực tế cao.", link: "/catalog?brand=Casio" },
 ];
 
 const FEATURE_POINTS = [
@@ -40,9 +25,9 @@ const FEATURE_POINTS = [
 
 const BrandsPage = () => {
 	return (
-		<div className="min-h-screen bg-[#f6f2ea] dark:bg-[#0f0c08] text-gray-900 dark:text-white pt-28 pb-20">
+		<div className="min-h-screen bg-[#f6f2ea] dark:bg-[#0f0c08] text-gray-900 dark:text-white pt-0 pb-20">
 			<div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-				<section className="relative overflow-hidden rounded-[2rem] border border-black/5 dark:border-white/10 bg-white/80 dark:bg-white/5 backdrop-blur-xl shadow-xl p-8 md:p-12">
+				<section className="relative overflow-hidden rounded-[2rem] border border-black/5 dark:border-white/10 bg-white/80 dark:bg-white/5 backdrop-blur-xl shadow-xl p-4 md:p-6">
 					<div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.18),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.55),transparent_30%)] pointer-events-none" />
 					<div className="relative max-w-3xl">
 						<p className="text-[11px] uppercase tracking-[0.35em] text-luxury-gold font-bold mb-4">Brand House</p>
@@ -63,6 +48,19 @@ const BrandsPage = () => {
 					</div>
 				</section>
 
+				{/* Brand story box placed directly under hero and closer to navbar */}
+				<section className="-mt-24 md:-mt-40 rounded-[1.5rem] border border-black/5 dark:border-white/10 bg-white/90 dark:bg-white/5 p-6 md:p-8 shadow-sm max-w-screen-xl mx-auto relative z-30">
+					<div className="max-w-3xl mx-auto">
+						<h3 className="text-xl md:text-2xl font-bold mb-2 text-gray-900 dark:text-white">Di Sản Của Thời Gian</h3>
+						<p className="text-sm md:text-base text-gray-700 dark:text-luxury-text-muted leading-relaxed">
+							Hơn cả một cỗ máy đong đếm giờ giấc, mỗi chiếc đồng hồ tại Luxury Watch là một tác phẩm nghệ thuật, một minh chứng cho sự thành đạt và đẳng cấp vĩnh cửu của người sở hữu.
+						</p>
+						<p className="text-sm md:text-base text-gray-700 dark:text-luxury-text-muted leading-relaxed mt-3">
+							Chúng tôi tuyển chọn đồng hồ theo tiêu chí rất rõ ràng: chính hãng, chuẩn thẩm mỹ, có giá trị sử dụng lâu dài và đủ tinh tế để trở thành một phần phong cách sống của bạn, thay vì chỉ là một món phụ kiện.
+						</p>
+					</div>
+				</section>
+
 				<section className="grid grid-cols-1 md:grid-cols-3 gap-4">
 					{FEATURE_POINTS.map((item) => {
 						const Icon = item.icon;
@@ -80,32 +78,32 @@ const BrandsPage = () => {
 					<div className="flex items-end justify-between gap-4 flex-wrap">
 						<div>
 							<p className="text-[11px] uppercase tracking-[0.28em] text-gray-500 dark:text-luxury-text-muted font-bold mb-2">Thương hiệu nổi bật</p>
-							<h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Bốn maison tiêu biểu để bắt đầu khám phá</h2>
+							<h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Nhóm thương hiệu hot nhất trong catalog</h2>
 						</div>
 						<p className="text-sm text-gray-500 dark:text-luxury-text-muted max-w-xl">
-							Nhấn vào từng thương hiệu để đi thẳng tới bộ lọc sản phẩm tương ứng.
+							Danh sách này bám cùng nhóm brand đang được dùng ở bộ lọc người dùng.
 						</p>
 					</div>
 
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-						{BRAND_HOUSES.map((brand) => (
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+						{HOT_BRANDS.map((brand) => (
 							<Link
 								key={brand.name}
 								to={brand.link}
-								className="group relative overflow-hidden rounded-[1.75rem] border border-black/5 dark:border-white/10 bg-white dark:bg-white/5 p-6 md:p-7 shadow-sm transition-transform hover:-translate-y-1"
+								className="group relative overflow-hidden rounded-[1.5rem] border border-black/5 dark:border-white/10 bg-white dark:bg-white/5 p-5 shadow-sm transition-transform hover:-translate-y-1"
 							>
-								<div className={`absolute inset-0 bg-gradient-to-br ${brand.accent} opacity-100`} />
+								<div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.12),transparent_35%),linear-gradient(180deg,rgba(255,255,255,0.06),transparent)] opacity-100" />
 								<div className="relative z-10">
 									<div className="flex items-center justify-between gap-3 mb-4">
 										<div className="inline-flex items-center gap-2 rounded-full border border-luxury-gold/20 bg-luxury-gold/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-luxury-gold">
 											<Star className="w-3.5 h-3.5" />
-											Maison
+											Hot
 										</div>
 										<Crown className="w-5 h-5 text-gray-400 group-hover:text-luxury-gold transition-colors" />
 									</div>
-									<h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{brand.name}</h3>
-									<p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">{brand.tagline}</p>
-									<p className="text-sm text-gray-600 dark:text-luxury-text-muted leading-relaxed mb-5">{brand.description}</p>
+									<h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{brand.name}</h3>
+									<p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">{brand.tagline}</p>
+									<p className="text-sm text-gray-600 dark:text-luxury-text-muted leading-relaxed mb-4">{brand.description}</p>
 									<span className="inline-flex items-center gap-2 rounded-full bg-black/90 dark:bg-white/10 px-4 py-2 text-sm font-semibold text-white dark:text-white">
 										Khám phá thương hiệu <ArrowRight className="w-4 h-4" />
 									</span>

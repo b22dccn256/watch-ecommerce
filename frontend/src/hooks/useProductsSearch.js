@@ -29,7 +29,7 @@ export const useProductsSearch = () => {
     return () => clearTimeout(handler);
   }, [search]);
 
-  // Sync with URL parameters
+  // Sync with URL parameters (preserve non-product params like tab)
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
 

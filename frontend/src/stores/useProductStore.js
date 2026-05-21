@@ -140,6 +140,7 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 				products: response.data.products, 
 				totalPages: response.data.totalPages || 1,
 				currentPage: response.data.currentPage || page,
+				totalCount: response.data.totalCount ?? response.data.total ?? (response.data.products?.length || 0),
 				loading: false 
 			});
 		} catch (error) {

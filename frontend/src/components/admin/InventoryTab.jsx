@@ -240,14 +240,24 @@ const InventoryTab = () => {
                             <div>
                                 <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Chọn sản phẩm</label>
                                 <select 
-                                    className="w-full bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border rounded-lg px-3 py-2 dark:text-white"
+                                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold focus:ring-1 focus:ring-luxury-gold transition"
                                     value={selectedProduct}
                                     onChange={(e) => setSelectedProduct(e.target.value)}
                                     required
                                 >
-                                    <option value="">-- Chọn sản phẩm --</option>
-                                    {products.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
+                                    <option value="" className="text-gray-400">-- Chọn sản phẩm --</option>
+                                    {products.length === 0 && (
+                                        <option value="" disabled className="text-gray-400">Đang tải danh sách sản phẩm...</option>
+                                    )}
+                                    {products.map(p => (
+                                        <option key={p._id} value={p._id} className="text-gray-900 dark:text-gray-100">
+                                            {p.name} {p.brand?.name ? `(${p.brand.name})` : ''} - Tồn: {p.stock || 0}
+                                        </option>
+                                    ))}
                                 </select>
+                                {products.length === 0 && !loading && (
+                                    <p className="text-xs text-amber-500 mt-1">⚠ Chưa có sản phẩm. Vui lòng tải lại trang hoặc vào tab Sản phẩm trước.</p>
+                                )}
                             </div>
                             <div className="flex gap-4">
                                 <div className="flex-1">

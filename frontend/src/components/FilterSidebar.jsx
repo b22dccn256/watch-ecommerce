@@ -2,23 +2,28 @@ import { useState, useCallback } from "react";
 import { RotateCcw, Star, ChevronDown, Filter } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
 
-const CATEGORIES = [
-	"Cơ Tự Động (Automatic)",
-	"Cơ Lên Cót Tay (Hand-wound)",
-	"Bộ Máy Pin (Quartz)",
-	"Năng Lượng Ánh Sáng (Solar)",
-	"Đồng Hồ Điện Tử (Digital)",
-	"Đồng Hồ Thông Minh (Smartwatch)",
+const BRANDS = [
+	"Hublot",
+	"Audemars Piguet",
+	"Panerai",
+	"TAG Heuer",
+	"Tudor",
+	"Breitling",
+	"Patek Philippe",
+	"Rolex",
+	"Longines",
+	"Seiko",
+	"Omega",
+	"IWC",
+	"Casio",
 ];
-
-const BRANDS = ["Rolex", "Casio", "Seiko", "Citizen", "Garmin", "Patek Philippe", "Audemars Piguet", "Hublot", "Omega", "Cartier", "Tag Heuer", "IWC"];
 const MACHINE_TYPES = [
-	{ value: "Mechanical", label: "Cơ lên cót" },
-	{ value: "Quartz", label: "Bộ máy pin" },
-	{ value: "Automatic", label: "Cơ tự động" },
-	{ value: "Solar", label: "Năng lượng ánh sáng" },
-	{ value: "Digital", label: "Điện tử" },
-	{ value: "Smartwatch", label: "Đồng hồ thông minh" },
+	{ value: "mechanical", label: "Cơ lên cót" },
+	{ value: "quartz", label: "Bộ máy pin" },
+	{ value: "automatic", label: "Cơ tự động" },
+	{ value: "solar", label: "Năng lượng ánh sáng" },
+	{ value: "digital", label: "Điện tử" },
+	{ value: "smartwatch", label: "Đồng hồ thông minh" },
 ];
 const STRAP_MATERIALS = ["Da", "Thép không gỉ", "Cao su", "Vải NATO", "Ceramic", "Titanium"];
 const COLORS = [
@@ -134,20 +139,10 @@ const FilterSidebar = () => {
 					</div>
 				</div>
 
-				<FilterSection title="Loại đồng hồ" defaultOpen>
-					<select
-						value={filters.category || ""}
-						onChange={(e) => applyLiveFilters({ category: e.target.value })}
-						className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 transition focus:border-luxury-gold focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
-					>
-						<option value="">Tất cả loại</option>
-						{CATEGORIES.map((cat) => (
-							<option key={cat} value={cat}>{cat}</option>
-						))}
-					</select>
-				</FilterSection>
-
-				<FilterSection title="Thương hiệu" defaultOpen>
+				<FilterSection title="Thương hiệu hot" defaultOpen>
+					<p className="mb-3 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">
+						Nhóm thương hiệu có nhiều sản phẩm nhất trong kho, giúp bộ lọc gọn hơn và có tín hiệu tốt hơn cho người mua.
+					</p>
 					<div className="max-h-48 space-y-2 overflow-y-auto pr-1 custom-scrollbar">
 						{BRANDS.map((brand) => {
 							const active = filters.brands?.includes(brand);

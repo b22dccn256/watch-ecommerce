@@ -1,0 +1,2959 @@
+{
+  "timestamp": "2026-05-20T20:49:44.689Z",
+  "duplicateNameGroups": [
+    {
+      "nameKey": "patek philippe aquanaut",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d78623",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d78624",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78625",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78626",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78627",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78628",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78629",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7862a",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "cartier santos de cartier",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d7863b",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d7863c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7863d",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7863e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7863f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78640",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78641",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78642",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78643",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78644",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78645",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78646",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "rolex daytona",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d785d4",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d785d5",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "patek philippe calatrava",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d7862b",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d7862c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7862d",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7862e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7862f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78630",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "casio classic f-91w",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d78608",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d78609",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7860a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7860b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7860c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7860d",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "hublot spirit of big bang",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d786a9",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d786aa",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786ab",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786ac",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786ad",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786ae",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786af",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786b0",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "cartier tank must",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d78647",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d78648",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78649",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7864a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7864b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7864c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7864d",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7864e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7864f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78650",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78651",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78652",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "casio g-shock original",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d78601",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d78602",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78603",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "rolex datejust 36",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d785d9",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d785da",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785db",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785dc",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785dd",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785de",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "omega seamaster diver 300m",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d785ed",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d785ee",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785ef",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f0",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f1",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f2",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f3",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f4",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f5",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f6",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "hublot big bang unico",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d786a1",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d786a2",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786a3",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786a4",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786a5",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786a6",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786a7",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786a8",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "omega speedmaster moonwatch professional",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d785eb",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d785ec",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "patek philippe nautilus",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d78620",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d78621",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78622",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "tissot prx powermatic 80",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d7865f",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d78660",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78661",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78662",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78663",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78664",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78665",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78666",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78667",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78668",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "rolex submariner date",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d785d1",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d785d2",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "audemars piguet royal oak selfwinding",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d78633",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d78634",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78635",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78636",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "tissot le locle powermatic 80",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d78669",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d7866a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7866b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7866c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7866d",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7866e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7866f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78670",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "tissot seastar 1000",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d78671",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d78672",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78673",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78674",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78675",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78676",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "casio edifice chronograph",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d7860e",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d7860f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78610",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "omega planet ocean 600m",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d785ff",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d78600",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "rolex gmt-master ii",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d785d6",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d785d7",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785d8",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "rolex oyster perpetual",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d785df",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d785e0",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e1",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e2",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e3",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e4",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e5",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e6",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e7",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e8",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e9",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785ea",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "casio g-shock casioak",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d78604",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d78605",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78606",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78607",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "seiko 5 sports (skx style)",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d78611",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d78612",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78613",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78614",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78615",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "seiko prospex diver (turtle)",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d78616",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d78617",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78618",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "seiko alpinist",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d7861d",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d7861e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7861f",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "audemars piguet royal oak offshore diver",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d78637",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d78638",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78639",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "hublot classic fusion",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d7867d",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d7867e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7867f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78680",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78681",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78682",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78683",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78684",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78685",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78686",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78687",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78688",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78689",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7868a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7868b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7868c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7868d",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7868e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7868f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78690",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78691",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78692",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78693",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78694",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78695",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78696",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78697",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78698",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78699",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7869a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7869b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7869c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7869d",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7869e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7869f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786a0",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "patek philippe nautilus chronograph",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d78631",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d78632",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "omega aqua terra 150m",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d785f7",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d785f8",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f9",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785fa",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785fb",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785fc",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785fd",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785fe",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "seiko presage cocktail time",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d78619",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d7861a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7861b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7861c",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "cartier ballon bleu de cartier",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d78653",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d78654",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78655",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78656",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78657",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78658",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78659",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7865a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7865b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7865c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7865d",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7865e",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "nameKey": "tissot chemin des tourelles",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d78677",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d78678",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78679",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7867a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7867b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7867c",
+          "score": 5
+        }
+      ]
+    }
+  ],
+  "duplicateSKUGroups": [
+    {
+      "skuKey": "",
+      "keep": {
+        "id": "6a0d8905d38ea5fe36d785d1",
+        "score": 5
+      },
+      "remove": [
+        {
+          "id": "6a0d8905d38ea5fe36d785d2",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785d4",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785d5",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785d6",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785d7",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785d8",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785d9",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785da",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785db",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785dc",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785dd",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785de",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785df",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e0",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e1",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e2",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e3",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e4",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e5",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e6",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e7",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e8",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785e9",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785ea",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785eb",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785ec",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785ed",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785ee",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785ef",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f0",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f1",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f2",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f3",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f4",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f5",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f6",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f7",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f8",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785f9",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785fa",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785fb",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785fc",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785fd",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785fe",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d785ff",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78600",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78601",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78602",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78603",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78604",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78605",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78606",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78607",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78608",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78609",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7860a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7860b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7860c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7860d",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7860e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7860f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78610",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78611",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78612",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78613",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78614",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78615",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78616",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78617",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78618",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78619",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7861a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7861b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7861c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7861d",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7861e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7861f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78620",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78621",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78622",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78623",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78624",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78625",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78626",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78627",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78628",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78629",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7862a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7862b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7862c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7862d",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7862e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7862f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78630",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78631",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78632",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78633",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78634",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78635",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78636",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78637",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78638",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78639",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7863a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7863b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7863c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7863d",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7863e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7863f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78640",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78641",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78642",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78643",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78644",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78645",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78646",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78647",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78648",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78649",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7864a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7864b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7864c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7864d",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7864e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7864f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78650",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78651",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78652",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78653",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78654",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78655",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78656",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78657",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78658",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78659",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7865a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7865b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7865c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7865d",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7865e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7865f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78660",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78661",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78662",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78663",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78664",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78665",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78666",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78667",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78668",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78669",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7866a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7866b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7866c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7866d",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7866e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7866f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78670",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78671",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78672",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78673",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78674",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78675",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78676",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78677",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78678",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78679",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7867a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7867b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7867c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7867d",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7867e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7867f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78680",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78681",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78682",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78683",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78684",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78685",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78686",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78687",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78688",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78689",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7868a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7868b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7868c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7868d",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7868e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7868f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78690",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78691",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78692",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78693",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78694",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78695",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78696",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78697",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78698",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d78699",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7869a",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7869b",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7869c",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7869d",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7869e",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d7869f",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786a0",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786a1",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786a2",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786a3",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786a4",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786a5",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786a6",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786a7",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786a8",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786a9",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786aa",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786ab",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786ac",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786ad",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786ae",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786af",
+          "score": 5
+        },
+        {
+          "id": "6a0d8905d38ea5fe36d786b0",
+          "score": 5
+        }
+      ]
+    }
+  ],
+  "assignCategorySuggestions": [
+    {
+      "id": "6a0d8905d38ea5fe36d785d1",
+      "name": "Rolex Submariner Date",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785d2",
+      "name": "Rolex Submariner Date",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785d3",
+      "name": "Rolex Submariner No-Date",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785d4",
+      "name": "Rolex Daytona",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785d5",
+      "name": "Rolex Daytona",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785d6",
+      "name": "Rolex GMT-Master II",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785d7",
+      "name": "Rolex GMT-Master II",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785d8",
+      "name": "Rolex GMT-Master II",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785d9",
+      "name": "Rolex Datejust 36",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785da",
+      "name": "Rolex Datejust 36",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785db",
+      "name": "Rolex Datejust 36",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785dc",
+      "name": "Rolex Datejust 36",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785dd",
+      "name": "Rolex Datejust 36",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785de",
+      "name": "Rolex Datejust 36",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785df",
+      "name": "Rolex Oyster Perpetual",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785e0",
+      "name": "Rolex Oyster Perpetual",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785e1",
+      "name": "Rolex Oyster Perpetual",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785e2",
+      "name": "Rolex Oyster Perpetual",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785e3",
+      "name": "Rolex Oyster Perpetual",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785e4",
+      "name": "Rolex Oyster Perpetual",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785e5",
+      "name": "Rolex Oyster Perpetual",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785e6",
+      "name": "Rolex Oyster Perpetual",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785e7",
+      "name": "Rolex Oyster Perpetual",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785e8",
+      "name": "Rolex Oyster Perpetual",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785e9",
+      "name": "Rolex Oyster Perpetual",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785ea",
+      "name": "Rolex Oyster Perpetual",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785eb",
+      "name": "Omega Speedmaster Moonwatch Professional",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785ec",
+      "name": "Omega Speedmaster Moonwatch Professional",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785ed",
+      "name": "Omega Seamaster Diver 300M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785ee",
+      "name": "Omega Seamaster Diver 300M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785ef",
+      "name": "Omega Seamaster Diver 300M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785f0",
+      "name": "Omega Seamaster Diver 300M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785f1",
+      "name": "Omega Seamaster Diver 300M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785f2",
+      "name": "Omega Seamaster Diver 300M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785f3",
+      "name": "Omega Seamaster Diver 300M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785f4",
+      "name": "Omega Seamaster Diver 300M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785f5",
+      "name": "Omega Seamaster Diver 300M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785f6",
+      "name": "Omega Seamaster Diver 300M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785f7",
+      "name": "Omega Aqua Terra 150M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785f8",
+      "name": "Omega Aqua Terra 150M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785f9",
+      "name": "Omega Aqua Terra 150M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785fa",
+      "name": "Omega Aqua Terra 150M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785fb",
+      "name": "Omega Aqua Terra 150M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785fc",
+      "name": "Omega Aqua Terra 150M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785fd",
+      "name": "Omega Aqua Terra 150M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785fe",
+      "name": "Omega Aqua Terra 150M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d785ff",
+      "name": "Omega Planet Ocean 600M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78600",
+      "name": "Omega Planet Ocean 600M",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78601",
+      "name": "Casio G-Shock Original",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78602",
+      "name": "Casio G-Shock Original",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78603",
+      "name": "Casio G-Shock Original",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78604",
+      "name": "Casio G-Shock CasiOak",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78605",
+      "name": "Casio G-Shock CasiOak",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78606",
+      "name": "Casio G-Shock CasiOak",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78607",
+      "name": "Casio G-Shock CasiOak",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78608",
+      "name": "Casio Classic F-91W",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78609",
+      "name": "Casio Classic F-91W",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7860a",
+      "name": "Casio Classic F-91W",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7860b",
+      "name": "Casio Classic F-91W",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7860c",
+      "name": "Casio Classic F-91W",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7860d",
+      "name": "Casio Classic F-91W",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7860e",
+      "name": "Casio Edifice Chronograph",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7860f",
+      "name": "Casio Edifice Chronograph",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78610",
+      "name": "Casio Edifice Chronograph",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78611",
+      "name": "Seiko 5 Sports (SKX Style)",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78612",
+      "name": "Seiko 5 Sports (SKX Style)",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78613",
+      "name": "Seiko 5 Sports (SKX Style)",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78614",
+      "name": "Seiko 5 Sports (SKX Style)",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78615",
+      "name": "Seiko 5 Sports (SKX Style)",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78616",
+      "name": "Seiko Prospex Diver (Turtle)",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78617",
+      "name": "Seiko Prospex Diver (Turtle)",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78618",
+      "name": "Seiko Prospex Diver (Turtle)",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78619",
+      "name": "Seiko Presage Cocktail Time",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7861a",
+      "name": "Seiko Presage Cocktail Time",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7861b",
+      "name": "Seiko Presage Cocktail Time",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7861c",
+      "name": "Seiko Presage Cocktail Time",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7861d",
+      "name": "Seiko Alpinist",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7861e",
+      "name": "Seiko Alpinist",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7861f",
+      "name": "Seiko Alpinist",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78620",
+      "name": "Patek Philippe Nautilus",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78621",
+      "name": "Patek Philippe Nautilus",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78622",
+      "name": "Patek Philippe Nautilus",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78623",
+      "name": "Patek Philippe Aquanaut",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78624",
+      "name": "Patek Philippe Aquanaut",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78625",
+      "name": "Patek Philippe Aquanaut",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78626",
+      "name": "Patek Philippe Aquanaut",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78627",
+      "name": "Patek Philippe Aquanaut",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78628",
+      "name": "Patek Philippe Aquanaut",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78629",
+      "name": "Patek Philippe Aquanaut",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7862a",
+      "name": "Patek Philippe Aquanaut",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7862b",
+      "name": "Patek Philippe Calatrava",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7862c",
+      "name": "Patek Philippe Calatrava",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7862d",
+      "name": "Patek Philippe Calatrava",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7862e",
+      "name": "Patek Philippe Calatrava",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7862f",
+      "name": "Patek Philippe Calatrava",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78630",
+      "name": "Patek Philippe Calatrava",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78631",
+      "name": "Patek Philippe Nautilus Chronograph",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78632",
+      "name": "Patek Philippe Nautilus Chronograph",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78633",
+      "name": "Audemars Piguet Royal Oak Selfwinding",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78634",
+      "name": "Audemars Piguet Royal Oak Selfwinding",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78635",
+      "name": "Audemars Piguet Royal Oak Selfwinding",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78636",
+      "name": "Audemars Piguet Royal Oak Selfwinding",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78637",
+      "name": "Audemars Piguet Royal Oak Offshore Diver",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78638",
+      "name": "Audemars Piguet Royal Oak Offshore Diver",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78639",
+      "name": "Audemars Piguet Royal Oak Offshore Diver",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7863a",
+      "name": "Audemars Piguet Royal Oak Jumbo Extra-Thin",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7863b",
+      "name": "Cartier Santos de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7863c",
+      "name": "Cartier Santos de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7863d",
+      "name": "Cartier Santos de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7863e",
+      "name": "Cartier Santos de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7863f",
+      "name": "Cartier Santos de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78640",
+      "name": "Cartier Santos de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78641",
+      "name": "Cartier Santos de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78642",
+      "name": "Cartier Santos de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78643",
+      "name": "Cartier Santos de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78644",
+      "name": "Cartier Santos de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78645",
+      "name": "Cartier Santos de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78646",
+      "name": "Cartier Santos de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78647",
+      "name": "Cartier Tank Must",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78648",
+      "name": "Cartier Tank Must",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78649",
+      "name": "Cartier Tank Must",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7864a",
+      "name": "Cartier Tank Must",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7864b",
+      "name": "Cartier Tank Must",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7864c",
+      "name": "Cartier Tank Must",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7864d",
+      "name": "Cartier Tank Must",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7864e",
+      "name": "Cartier Tank Must",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7864f",
+      "name": "Cartier Tank Must",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78650",
+      "name": "Cartier Tank Must",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78651",
+      "name": "Cartier Tank Must",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78652",
+      "name": "Cartier Tank Must",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78653",
+      "name": "Cartier Ballon Bleu de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78654",
+      "name": "Cartier Ballon Bleu de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78655",
+      "name": "Cartier Ballon Bleu de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78656",
+      "name": "Cartier Ballon Bleu de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78657",
+      "name": "Cartier Ballon Bleu de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78658",
+      "name": "Cartier Ballon Bleu de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78659",
+      "name": "Cartier Ballon Bleu de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7865a",
+      "name": "Cartier Ballon Bleu de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7865b",
+      "name": "Cartier Ballon Bleu de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7865c",
+      "name": "Cartier Ballon Bleu de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7865d",
+      "name": "Cartier Ballon Bleu de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7865e",
+      "name": "Cartier Ballon Bleu de Cartier",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7865f",
+      "name": "Tissot PRX Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78660",
+      "name": "Tissot PRX Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78661",
+      "name": "Tissot PRX Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78662",
+      "name": "Tissot PRX Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78663",
+      "name": "Tissot PRX Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78664",
+      "name": "Tissot PRX Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78665",
+      "name": "Tissot PRX Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78666",
+      "name": "Tissot PRX Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78667",
+      "name": "Tissot PRX Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78668",
+      "name": "Tissot PRX Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78669",
+      "name": "Tissot Le Locle Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7866a",
+      "name": "Tissot Le Locle Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7866b",
+      "name": "Tissot Le Locle Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7866c",
+      "name": "Tissot Le Locle Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7866d",
+      "name": "Tissot Le Locle Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7866e",
+      "name": "Tissot Le Locle Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7866f",
+      "name": "Tissot Le Locle Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78670",
+      "name": "Tissot Le Locle Powermatic 80",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78671",
+      "name": "Tissot Seastar 1000",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78672",
+      "name": "Tissot Seastar 1000",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78673",
+      "name": "Tissot Seastar 1000",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78674",
+      "name": "Tissot Seastar 1000",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78675",
+      "name": "Tissot Seastar 1000",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78676",
+      "name": "Tissot Seastar 1000",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78677",
+      "name": "Tissot Chemin des Tourelles",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78678",
+      "name": "Tissot Chemin des Tourelles",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78679",
+      "name": "Tissot Chemin des Tourelles",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7867a",
+      "name": "Tissot Chemin des Tourelles",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7867b",
+      "name": "Tissot Chemin des Tourelles",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7867c",
+      "name": "Tissot Chemin des Tourelles",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7867d",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7867e",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7867f",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78680",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78681",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78682",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78683",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78684",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78685",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78686",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78687",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78688",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78689",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7868a",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7868b",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7868c",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7868d",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7868e",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d7868f",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78690",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78691",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78692",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78693",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78694",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78695",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78696",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78697",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    },
+    {
+      "id": "6a0d8905d38ea5fe36d78698",
+      "name": "Hublot Classic Fusion",
+      "suggestedCategory": null
+    }
+  ]
+}

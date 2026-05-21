@@ -26,7 +26,10 @@ const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 const validatePhone = (phone) => /^0[35789]\d{8}$/.test(phone);
 
-const validateName = (name) => /^[\p{L}\s]{2,50}$/u.test(name) && name.length >= 2;
+const validateName = (name) => {
+	if (!name) return false;
+	return /^[\p{L}\s]{2,50}$/u.test(name) && name.length >= 2;
+};
 
 // ============================================================================
 // TOKEN MANAGEMENT
@@ -384,7 +387,7 @@ export const getProfile = async (userId) => {
 };
 
 export const updateProfile = async (userId, updates) => {
-	const allowedUpdates = ["name", "phone", "avatar", "address", "preferences"];
+	const allowedUpdates = ["name", "phone", "avatar", "address", "preferences", "gender", "birthday"];
 	const updateData = {};
 
 	for (const key of allowedUpdates) {

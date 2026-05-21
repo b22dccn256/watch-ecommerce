@@ -50,8 +50,8 @@ const userSchema = new mongoose.Schema(
 					default: null,
 				},
 				wristSize: {
-					type: Number,
-					default: null, // e.g., 160 mm
+					type: String,
+					default: null,
 				},
 			},
 		],
@@ -64,7 +64,20 @@ const userSchema = new mongoose.Schema(
 			type: String,
 			default: "",
 			index: true,
-			sparse: true, // Cho phép nhiều user chưa có SĐT (empty string / null)
+			sparse: true,
+		},
+		address: {
+			type: String,
+			default: "",
+		},
+		gender: {
+			type: String,
+			enum: ["male", "female", "other"],
+			default: "other",
+		},
+		birthday: {
+			type: Date,
+			default: null,
 		},
 		cartUpdatedAt: {
 			type: Date,
@@ -120,6 +133,26 @@ const userSchema = new mongoose.Schema(
 			type: [String],
 			default: [],
 			enum: { values: ["VIP", "Wholesale", "Problematic", "New", "Loyal"], message: "Tag không hợp lệ" },
+		},
+		// Admin dashboard fields
+		segment: {
+			type: String,
+			enum: ["VIP", "Potential", "NEW", "Regular", "At Risk"],
+			default: "NEW",
+		},
+		totalSpend: {
+			type: Number,
+			default: 0,
+			min: 0,
+		},
+		orderCount: {
+			type: Number,
+			default: 0,
+			min: 0,
+		},
+		twoFactorEnabled: {
+			type: Boolean,
+			default: false,
 		},
 	},
 	{

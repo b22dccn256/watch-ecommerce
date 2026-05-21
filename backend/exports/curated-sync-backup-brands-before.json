@@ -1,0 +1,116 @@
+{
+  "timestamp": "2026-05-20T20:58:09.918Z",
+  "curated": [
+    "Hublot",
+    "Audemars Piguet",
+    "Panerai",
+    "TAG Heuer",
+    "Tudor",
+    "Breitling",
+    "Patek Philippe",
+    "Rolex",
+    "Longines",
+    "Seiko",
+    "Omega",
+    "IWC",
+    "Casio"
+  ],
+  "dbBrandsBefore": [
+    {
+      "_id": "69c3f0ddacb3f56aea328c5d",
+      "name": "Casio"
+    },
+    {
+      "_id": "69c3f0ddacb3f56aea328c61",
+      "name": "Seiko"
+    },
+    {
+      "_id": "69c3f0deacb3f56aea328c65",
+      "name": "Citizen"
+    },
+    {
+      "_id": "69c3f0deacb3f56aea328c69",
+      "name": "Garmin"
+    },
+    {
+      "_id": "69c3f0deacb3f56aea328c6d",
+      "name": "Rolex"
+    },
+    {
+      "_id": "69c3f0dfacb3f56aea328c71",
+      "name": "Audemars Piguet"
+    },
+    {
+      "_id": "69c3f0dfacb3f56aea328c7b",
+      "name": "Patek Philippe"
+    },
+    {
+      "_id": "69c3f0e0acb3f56aea328c87",
+      "name": "Cartier"
+    },
+    {
+      "_id": "69c3f0e1acb3f56aea328c8f",
+      "name": "Blancpain"
+    },
+    {
+      "_id": "69c3f0efacb3f56aea328d41",
+      "name": "Tissot"
+    },
+    {
+      "_id": "69c3f0efacb3f56aea328d49",
+      "name": "Bulova"
+    },
+    {
+      "_id": "69c3f0feacb3f56aea328e09",
+      "name": "Hublot"
+    },
+    {
+      "_id": "69c3f0ffacb3f56aea328e0d",
+      "name": "IWC"
+    },
+    {
+      "_id": "69c3f0ffacb3f56aea328e11",
+      "name": "Omega"
+    },
+    {
+      "_id": "69c3f102acb3f56aea328e2b",
+      "name": "Tag Heuer"
+    },
+    {
+      "_id": "69c3f10eacb3f56aea328ed9",
+      "name": "Timex"
+    },
+    {
+      "_id": "69c3f10facb3f56aea328edf",
+      "name": "Suunto"
+    },
+    {
+      "_id": "69c3f110acb3f56aea328eeb",
+      "name": "G-Shock"
+    },
+    {
+      "_id": "69c3f120acb3f56aea328fa7",
+      "name": "Fitbit"
+    },
+    {
+      "_id": "69c3f120acb3f56aea328fad",
+      "name": "Huawei"
+    },
+    {
+      "_id": "69c3f121acb3f56aea328fb7",
+      "name": "Samsung"
+    },
+    {
+      "_id": "69c3f122acb3f56aea328fcb",
+      "name": "Apple"
+    },
+    {
+      "_id": "6a0636bb4b4e459415e145cb",
+      "name": "E2E Brand"
+    },
+    {
+      "_id": "6a0d123fc46370d302f42860",
+      "name": "Rolex 123"
+    }
+  ]
+}
