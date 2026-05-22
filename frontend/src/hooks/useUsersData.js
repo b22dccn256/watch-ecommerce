@@ -149,6 +149,29 @@ export const useUsersData = () => {
     [pagination.currentPage, roleFilter, fetchUsers, handleError]
   );
 
+  /**
+   * Bulk delete users
+   */
+  const handleBulkDeleteUsers = useCallback(
+    async (userIds) => {
+      try {
+        await axios.delete('/auth/users', { data: { ids: userIds } });
+        toast.success(`Đã xóa ${userIds.length} tài khoản thành công`);
+        // Refetch to update list
+        await fetchUsers(pagination.currentPage, roleFilter, searchRef.current);
+        return true;
+      } catch (error) {
+        handleError(error, {
+          context: 'useUsersData.bulkDeleteUsers',
+          showToast: true,
+          toastMessage: 'Lỗi khi xóa hàng loạt tài khoản',
+        });
+        return false;
+      }
+    },
+    [pagination.currentPage, roleFilter, fetchUsers, handleError]
+  );
+
   return {
     // State
     users,
@@ -164,6 +187,7 @@ export const useUsersData = () => {
     fetchUsers,
     handleDeleteUser,
     handleUpdateRole,
+    handleBulkDeleteUsers,
   };
 };
 

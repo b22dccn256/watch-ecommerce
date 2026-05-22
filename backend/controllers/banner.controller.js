@@ -1,5 +1,6 @@
 import Banner from "../models/banner.model.js";
 import cloudinary from "../lib/cloudinary.js";
+import mongoose from "mongoose";
 
 export const getBanners = async (req, res) => {
 	try {
@@ -84,7 +85,7 @@ export const reorderBanners = async (req, res) => {
 
 		const bulkOps = orderedIds.map((id, index) => ({
 			updateOne: {
-				filter: { _id: id },
+				filter: { _id: new mongoose.Types.ObjectId(id) },
 				update: { $set: { order: index } },
 			},
 		}));

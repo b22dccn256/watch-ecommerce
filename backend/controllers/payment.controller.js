@@ -9,9 +9,9 @@ import OrderService from "../services/order.service.js";
 import mongoose from "mongoose";
 import User from "../models/user.model.js";
 import { emailQueue } from "./mail.controller.js";
-import { createVNPayPayment, createMoMoPayment, createZaloPayPayment, vnpayInstance } from "../services/payment.service.js";
+import { createVNPayPayment, verifyVNPayReturn, verifyVNPayIPN } from "../services/payment.service.js";
 import { alertPaymentIssue } from '../lib/payment-alerts.js';
-import { createCODOrder, createQROrder } from "./order.controller.js";
+import { createCODOrder } from "./order.controller.js";
 import { getCouponDiscountAmount } from "../lib/coupon.js";
 import { processIPN } from "../services/ipn.service.js";
 
@@ -27,52 +27,6 @@ const getClientIp = (req) => {
 	return req.connection?.remoteAddress ? req.connection.remoteAddress.replace(/^::ffff:/, "") : null;
 };
 
-// Verify VNPay secure hash theo thuật toán
-const verifyVnpaySignature = (query) => {
-	// Use VNP_HASH_SECRET (preferred) or fallback to legacy VNPAY_HASH_SECRET / VNP_SECRET
-	const secretKey = process.env.VNP_HASH_SECRET || process.env.VNPAY_HASH_SECRET || process.env.VNP_SECRET || "";
-	if (!secretKey) {
-		return false;
-	}
-	const secureHash = query.vnp_SecureHash || query.vnp_SecureHash?.toLowerCase();
-	if (!secureHash) {
-		return false;
-	}
-
-	// Loại bỏ vnp_SecureHash/vnp_SecureHashType trước khi tạo string
-	const clone = { ...query };
-	delete clone.vnp_SecureHash;
-	delete clone.vnp_SecureHashType;
-
-	const keys = Object.keys(clone).sort();
-	const raw = keys
-		.filter((k) => clone[k] !== undefined && clone[k] !== null && clone[k] !== "")
-		.map((k) => `${k}=${clone[k]}`)
-		.join("&");
-
-	const hashed = crypto.createHmac("sha512", secretKey).update(raw, "utf8").digest("hex");
-	return hashed.toLowerCase() === secureHash.toLowerCase();
-};
-
-// Verify MoMo signature HMAC-SHA256
-const verifyMomoSignature = (body) => {
-	const secretKey = process.env.MOMO_SECRET_KEY || "";
-	if (!secretKey || !body.signature) return false;
-
-	const rawSignature = `partnerCode=${body.partnerCode}&accessKey=${process.env.MOMO_ACCESS_KEY}&requestId=${body.requestId}&amount=${body.amount}&orderId=${body.orderId}&orderInfo=${body.orderInfo}&orderType=${body.orderType}&transId=${body.transId}&resultCode=${body.resultCode}&message=${body.message}&payType=${body.payType}&responseTime=${body.responseTime}&extraData=${body.extraData}`;
-	const computed = crypto.createHmac("sha256", secretKey).update(rawSignature, "utf8").digest("hex");
-	return computed === body.signature;
-};
-
-// Verify ZaloPay HMAC-SHA256
-const verifyZaloPayMac = (body) => {
-	const key2 = process.env.ZALOPAY_KEY2 || "";
-	if (!key2 || !body.mac) return false;
-
-	const computed = crypto.createHmac("sha256", key2).update(body.data, "utf8").digest("hex");
-	return computed === body.mac;
-};
-
 export const createCheckoutSession = async (req, res) => {
 	let sessionOpts = null;
 	try {
@@ -80,10 +34,6 @@ export const createCheckoutSession = async (req, res) => {
 
 		if (paymentMethod === "cod") {
 			return createCODOrder(req, res);
-		}
-
-		if (paymentMethod === "qr") {
-			return createQROrder(req, res);
 		}
 
 		sessionOpts = await mongoose.startSession();
@@ -188,7 +138,7 @@ export const createCheckoutSession = async (req, res) => {
 			if (totalAmount > 99999999) {
 				await sessionOpts.abortTransaction();
 				sessionOpts.endSession();
-				return res.status(400).json({ message: "Tổng đơn hàng vượt quá giới hạn 99.999.999 VNĐ của cổng thanh toán Stripe. Vui lòng chọn chuyển khoản QR hoặc thanh toán COD." });
+				return res.status(400).json({ message: "Tổng đơn hàng vượt quá giới hạn 99.999.999 VNĐ của cổng thanh toán Stripe. Vui lòng chọn VNPay hoặc COD." });
 			}
 
 			if (!stripe) {
@@ -217,12 +167,6 @@ export const createCheckoutSession = async (req, res) => {
 			sessionResponse = { id: session.id, url: session.url, totalAmount: totalAmount };
 		} else if (paymentMethod === "vnpay") {
 			const url = createVNPayPayment(newOrder, req);
-			sessionResponse = { url, totalAmount: totalAmount };
-		} else if (paymentMethod === "momo") {
-			const url = await createMoMoPayment(newOrder);
-			sessionResponse = { url, totalAmount: totalAmount };
-		} else if (paymentMethod === "zalopay") {
-			const url = await createZaloPayPayment(newOrder);
 			sessionResponse = { url, totalAmount: totalAmount };
 		} else if (paymentMethod === "cod") {
 			newOrder.status = "confirmed"; // COD được confirm luôn (có thể chờ phone verification sau tuỳ quy trình)
@@ -324,21 +268,13 @@ export const verifyPaymentReturn = async (req, res) => {
 	try {
 		const { method, query = {} } = req.body || {};
 
-		if (!method || !["vnpay", "momo", "zalopay"].includes(method)) {
+		if (!method || method !== "vnpay") {
 			return res.status(400).json({ verified: false, status: "failed", message: "Phương thức thanh toán không hợp lệ" });
 		}
 
-		let orderCode = "";
-		if (method === "vnpay") {
-			orderCode = query.vnp_TxnRef || "";
-			if (!verifyVnpaySignature(query)) {
-				return res.status(400).json({ verified: false, status: "failed", message: "Chữ ký VNPay không hợp lệ" });
-			}
-		} else if (method === "momo") {
-			orderCode = query.orderId || "";
-		} else if (method === "zalopay") {
-			const apptransid = query.apptransid || "";
-			orderCode = apptransid ? apptransid.split("_")[1] || "" : "";
+		const orderCode = query.vnp_TxnRef || "";
+		if (!verifyVNPayReturn(query)) {
+			return res.status(400).json({ verified: false, status: "failed", message: "Chữ ký VNPay không hợp lệ" });
 		}
 
 		if (!orderCode) {
@@ -350,31 +286,53 @@ export const verifyPaymentReturn = async (req, res) => {
 			return res.status(404).json({ verified: false, status: "failed", message: "Không tìm thấy đơn hàng" });
 		}
 
-		if (order.paymentStatus === "paid") {
+		const isSuccess = query.vnp_ResponseCode === "00";
+		if (isSuccess) {
+			await processIPN({
+				provider: "vnpay",
+				transactionId: query.vnp_TransactionNo || query.vnp_TxnRef,
+				orderCode,
+				isSuccess: true,
+				payload: query,
+			});
+			const refreshedOrder = await Order.findOne({ orderCode }).select("orderCode paymentStatus status trackingToken");
+			if (refreshedOrder?.paymentStatus === "paid") {
+				return res.json({
+					verified: true,
+					status: "success",
+					message: "Thanh toán đã được xác nhận",
+					orderCode: refreshedOrder.orderCode,
+					trackingToken: refreshedOrder.trackingToken,
+				});
+			}
+		}
+
+		const refreshedOrder = isSuccess ? await Order.findOne({ orderCode }).select("orderCode paymentStatus status trackingToken") : order;
+		if (refreshedOrder?.paymentStatus === "paid") {
 			return res.json({
 				verified: true,
 				status: "success",
 				message: "Thanh toán đã được xác nhận từ hệ thống",
-				orderCode: order.orderCode,
-				trackingToken: order.trackingToken,
+				orderCode: refreshedOrder.orderCode,
+				trackingToken: refreshedOrder.trackingToken,
 			});
 		}
 
-		if (order.paymentStatus === "failed" || order.paymentStatus === "cancelled") {
+		if (!isSuccess || refreshedOrder?.paymentStatus === "failed" || refreshedOrder?.paymentStatus === "cancelled") {
 			return res.json({
 				verified: true,
 				status: "failed",
 				message: "Giao dịch không thành công",
-				orderCode: order.orderCode,
+				orderCode: refreshedOrder.orderCode,
 			});
 		}
 
 		return res.json({
 			verified: true,
-			status: "pending",
-			message: "Thanh toán đang được đối soát, vui lòng chờ trong giây lát",
-			orderCode: order.orderCode,
-			trackingToken: order.trackingToken,
+			status: "success",
+			message: "Thanh toán đã được xác nhận",
+			orderCode: refreshedOrder.orderCode,
+			trackingToken: refreshedOrder.trackingToken,
 		});
 	} catch (error) {
 		console.error("Error in verifyPaymentReturn:", error.message);
@@ -442,7 +400,7 @@ export const vnpayIpn = async (req, res) => {
 
 	console.info("[vnpay-ipn] received", logMeta);
 
-	if (!verifyVnpaySignature(body)) {
+	if (!verifyVNPayIPN(body)) {
 		console.warn("[vnpay-ipn] signature verification failed", logMeta);
 		await ProcessedIPN.create({ provider, transactionId, orderCode, status: "failed", payload: body });
 		alertPaymentIssue({ level: 'warn', type: 'vnpay-signature', message: 'Signature verification failed on VNPay IPN', meta: { orderCode, transactionId, clientIp } });
@@ -491,89 +449,3 @@ export const vnpayIpn = async (req, res) => {
 
 
 
-// MoMo IPN handler: verify signature, transaction, logging, queue email
-export const momoIpn = async (req, res) => {
-	const provider = "momo";
-	const clientIp = getClientIp(req);
-	const body = req.body;
-	const transactionId = body.transId;
-	const orderCode = body.orderId || body.extraData || body.order_code;
-	console.info("[momo-ipn] received", { provider, clientIp, headers: req.headers, body });
-
-	if (!verifyMomoSignature(body)) {
-		console.warn("[momo-ipn] signature invalid", { provider, clientIp, transactionId, orderCode });
-		return res.status(200).json({ resultCode: 94, message: "Signature mismatch" });
-	}
-
-	try {
-		const isSuccess = Number(body.resultCode) === 0;
-		const result = await processIPN({
-			provider,
-			transactionId,
-			orderCode,
-			isSuccess,
-			payload: body
-		});
-
-		if (result.alreadyProcessed) {
-			return res.status(200).json({ resultCode: 2, message: "Order already paid" });
-		}
-		if (!result.order) {
-			return res.status(200).json({ resultCode: 1, message: "Order not found" });
-		}
-
-		return res.status(200).json({
-			resultCode: 0,
-			message: isSuccess ? "Confirm Success" : "Confirm Failed"
-		});
-	} catch (error) {
-		console.error("[momo-ipn] error", { error, provider, clientIp, transactionId, orderCode });
-		return res.status(200).json({ resultCode: 99, message: "Unknown error" });
-	}
-};
-
-
-
-// ZaloPay IPN handler: verify signature, transaction, logging, queue email
-export const zalopayIpn = async (req, res) => {
-	const provider = "zalopay";
-	const clientIp = getClientIp(req);
-	const body = req.body;
-	const transactionId = body.zp_trans_id;
-	console.info("[zalopay-ipn] received", { provider, clientIp, headers: req.headers, body });
-
-	if (!verifyZaloPayMac(body)) {
-		console.warn("[zalopay-ipn] mac invalid", { provider, clientIp, transactionId });
-		return res.status(200).json({ return_code: -1, return_message: "MAC mismatch" });
-	}
-
-	const parsed = JSON.parse(body.data);
-	const orderCode = parsed.order_id || parsed.app_trans_id?.split("_")[1];
-	const resultCode = Number(parsed.return_code);
-
-	try {
-		const isSuccess = resultCode === 1;
-		const result = await processIPN({
-			provider,
-			transactionId,
-			orderCode,
-			isSuccess,
-			payload: body
-		});
-
-		if (result.alreadyProcessed) {
-			return res.status(200).json({ return_code: 2, return_message: "Order already paid" });
-		}
-		if (!result.order) {
-			return res.status(200).json({ return_code: 1, return_message: "Order not found" });
-		}
-
-		return res.status(200).json({
-			return_code: 1,
-			return_message: "Confirm Success"
-		});
-	} catch (error) {
-		console.error("[zalopay-ipn] error", { error, provider, clientIp, transactionId, orderCode });
-		return res.status(200).json({ return_code: -99, return_message: "Unknown error" });
-	}
-};

@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { I18nContext } from "../contexts/I18nContext";
 import { formatCurrency } from "../i18n/format";
+import { buildProductPath } from "../utils/productUrl";
 
 
 const CompareModal = ({ isOpen, onClose }) => {
@@ -17,9 +18,10 @@ const CompareModal = ({ isOpen, onClose }) => {
 
 	if (!isOpen) return null;
 
-	const handleNavigate = (id) => {
+	const handleNavigate = (product) => {
 		onClose();
-		navigate(`/product/${id}`);
+		const path = buildProductPath(product);
+		if (path) navigate(path);
 	};
 
 	const renderCell = (item, value) => {
@@ -86,8 +88,8 @@ const CompareModal = ({ isOpen, onClose }) => {
 														>
 															<Trash2 className="w-4 h-4" />
 														</button>
-														<img src={item.image} alt={item.name} className="w-36 h-36 mx-auto object-cover rounded-lg mb-3 cursor-pointer" onClick={() => handleNavigate(item._id)} />
-														<h3 className="font-semibold text-base leading-tight mb-1 line-clamp-2 cursor-pointer hover:text-[color:var(--color-gold)]" onClick={() => handleNavigate(item._id)}>{item.name}</h3>
+														<img src={item.image} alt={item.name} className="w-36 h-36 mx-auto object-cover rounded-lg mb-3 cursor-pointer" onClick={() => handleNavigate(item)} />
+														<h3 className="font-semibold text-base leading-tight mb-1 line-clamp-2 cursor-pointer hover:text-[color:var(--color-gold)]" onClick={() => handleNavigate(item)}>{item.name}</h3>
 														<p className="text-lg font-semibold text-[color:var(--color-gold)] mb-3">{formatCurrency(item.price, currency, lang)}</p>
 														<button
 															onClick={() => {

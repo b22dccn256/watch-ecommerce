@@ -92,7 +92,7 @@ const MarketingTab = () => {
                                     {banner.status}
                                 </span>
                             </div>
-                            <div className="absolute top-3 right-3 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute top-3 right-3 flex flex-col gap-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                 <button
                                     onClick={() => handleReorderBanner(banner._id, -1)}
                                     disabled={index === 0}
@@ -115,7 +115,7 @@ const MarketingTab = () => {
                                 <p className="text-gray-300 dark:text-luxury-text-muted text-[10px]">{formatDate(banner.uploadedAt)}</p>
                             </div>
                             {/* Hover actions */}
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                            <div className="absolute inset-0 bg-black/40 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                                 <button
                                     onClick={() => handleToggleBannerStatus(banner._id)}
                                     className="p-2 bg-luxury-dark rounded-lg text-luxury-gold hover:bg-luxury-gold hover:text-luxury-dark transition"
@@ -163,14 +163,13 @@ const MarketingTab = () => {
                             <option value="Entire Catalog">Toàn bộ danh mục</option>
                             <option value="Đồng hồ Nam">Đồng hồ Nam</option>
                             <option value="Đồng hồ Nữ">Đồng hồ Nữ</option>
-                            <option value="Đồng hồ Đôi">Đồng hồ Đôi</option>
-                            <option value="Phụ kiện">Phụ kiện</option>
-                            <option value="Cơ Tự Động (Automatic)">Cơ Tự Động (Automatic)</option>
-                            <option value="Cơ Lên Cót Tay (Hand-wound)">Cơ Lên Cót Tay (Hand-wound)</option>
-                            <option value="Bộ Máy Pin (Quartz)">Bộ Máy Pin (Quartz)</option>
-                            <option value="Năng Lượng Ánh Sáng (Solar)">Năng Lượng Ánh Sáng (Solar)</option>
-                            <option value="Đồng Hồ Điện Tử (Digital)">Đồng Hồ Điện Tử (Digital)</option>
-                            <option value="Đồng Hồ Thông Minh (Smartwatch)">Đồng Hồ Thông Minh (Smartwatch)</option>
+                            <option value="Đồng hồ Unisex">Đồng hồ Unisex</option>
+                            <option value="Cơ Tự Động (Automatic)">Cơ tự động (Automatic)</option>
+                            <option value="Cơ Lên Cót Tay (Hand-wound)">Cơ lên cót tay (Hand-wound)</option>
+                            <option value="Bộ Máy Pin (Quartz)">Bộ máy pin (Quartz)</option>
+                            <option value="Năng Lượng Ánh Sáng (Solar)">Năng lượng ánh sáng (Solar)</option>
+                            <option value="Đồng Hồ Điện Tử (Digital)">Điện tử (Digital)</option>
+                            <option value="Đồng Hồ Thông Minh (Smartwatch)">Đồng hồ thông minh (Smartwatch)</option>
                         </select>
                     </div>
 
@@ -215,7 +214,7 @@ const MarketingTab = () => {
                                 value={formData.startDate}
                                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                                 type="datetime-local"
-                                className="w-full bg-[color:var(--color-surface-2)] border border-black/10 dark:border-white/10 rounded-xl px-2 py-3 text-sm text-primary outline-none focus:border-[color:var(--color-gold)] transition"
+                                className="w-full bg-[color:var(--color-surface-2)] border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-primary outline-none focus:border-[color:var(--color-gold)] transition cursor-pointer dark:[color-scheme:dark]"
                             />
                         </div>
                         <div className="space-y-2">
@@ -224,7 +223,7 @@ const MarketingTab = () => {
                                 value={formData.endDate}
                                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                                 type="datetime-local"
-                                className="w-full bg-[color:var(--color-surface-2)] border border-black/10 dark:border-white/10 rounded-xl px-2 py-3 text-sm text-primary outline-none focus:border-[color:var(--color-gold)] transition"
+                                className="w-full bg-[color:var(--color-surface-2)] border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-primary outline-none focus:border-[color:var(--color-gold)] transition cursor-pointer dark:[color-scheme:dark]"
                             />
                         </div>
                     </div>
@@ -273,7 +272,7 @@ const MarketingTab = () => {
                                             <div className="font-semibold text-primary">{camp.name}</div>
                                             <div className="text-[10px] text-muted mt-0.5">ID: {camp._id.substring(0, 8)}...</div>
                                         </td>
-                                        <td className="py-4 text-sm text-secondary">{camp.isGlobal ? "Toàn bộ" : camp.group}</td>
+                                        <td className="py-4 text-sm text-secondary">{camp.isGlobal ? "Toàn bộ danh mục" : (camp.group || "Toàn bộ danh mục")}</td>
                                         <td className="py-4 font-bold text-[color:var(--color-gold)]">{camp.discountPercentage}%</td>
                                         <td className="py-4 text-[10px] text-muted">
                                             {formatDate(camp.startDate)} <br /><span className="text-gray-400 dark:text-gray-500">tới</span> {formatDate(camp.endDate)}

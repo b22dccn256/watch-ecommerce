@@ -33,28 +33,6 @@ const send = async (url, opts) => {
     await send(url, { method: 'GET' });
   }
 
-  if (params.momo) {
-    const url = params.momo;
-    const body = {
-      partnerCode: 'TEST',
-      accessKey: 'TEST',
-      requestId: 'r1',
-      amount: 100000,
-      orderId: 'ORDER123',
-      orderInfo: 'Thanh toan',
-      transId: 123,
-      resultCode: 0,
-      signature: 'FAKESIG'
-    };
-    await send(url, { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } });
-  }
-
-  if (params.zalopay) {
-    const url = params.zalopay;
-    const body = { data: '...', mac: 'FAKEMAC' };
-    await send(url, { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } });
-  }
-
   if (params.stripe) {
     const url = params.stripe;
     const body = { type: 'checkout.session.completed', data: { object: { id: 'cs_test_123', metadata: {} } } };

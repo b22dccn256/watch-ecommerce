@@ -6,14 +6,21 @@ import EmailLog from "../models/emailLog.model.js";
 import MailCampaign from "../models/mailCampaign.model.js";
 import { welcomeTemplate, orderConfirmationTemplate, adminNotificationTemplate, abandonedCartTemplate } from "../lib/emailTemplates.js";
 
-const redisConnection = new IORedis(process.env.UPSTASH_REDIS_URL || process.env.REDIS_URL || "redis://localhost:6379", {
-	maxRetriesPerRequest: null,
-	tls: process.env.UPSTASH_REDIS_URL ? { rejectUnauthorized: false } : undefined
-});
+let worker = {
+	on: () => {},
+};
 
-const worker = new Worker(
-	"email-campaigns",
-	async (job) => {
+const isNodeTestRunner = process.execArgv && process.execArgv.some((a) => String(a).includes("--test"));
+
+if (process.env.NODE_ENV !== 'test' && !isNodeTestRunner) {
+	const redisConnection = new IORedis(process.env.UPSTASH_REDIS_URL || process.env.REDIS_URL || "redis://localhost:6379", {
+		maxRetriesPerRequest: null,
+		tls: process.env.UPSTASH_REDIS_URL ? { rejectUnauthorized: false } : undefined
+	});
+
+	worker = new Worker(
+		"email-campaigns",
+		async (job) => {
 		const { email, campaignId, subject, html, type } = job.data;
 
 		try {
@@ -123,16 +130,17 @@ const worker = new Worker(
 			}
 			throw error;
 		}
-	},
-	{ connection: redisConnection }
-);
+		},
+		{ connection: redisConnection }
+	);
 
-worker.on("completed", (job) => {
-	console.log(`Job ${job.id} [${job.name}] completed.`);
-});
+	worker.on("completed", (job) => {
+		console.log(`Job ${job.id} [${job.name}] completed.`);
+	});
 
-worker.on("failed", (job, err) => {
-	console.error(`Job ${job.id} [${job.name}] failed: ${err.message}`);
-});
+	worker.on("failed", (job, err) => {
+		console.error(`Job ${job.id} [${job.name}] failed: ${err.message}`);
+	});
+}
 
 export default worker;

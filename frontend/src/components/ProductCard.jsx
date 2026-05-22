@@ -9,6 +9,7 @@ import { useUserStore } from "../stores/useUserStore";
 import { useCartStore } from "../stores/useCartStore";
 import { useWishlistStore } from "../stores/useWishlistStore";
 import { useCompareStore } from "../stores/useCompareStore";
+import { buildProductPath } from "../utils/productUrl";
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
@@ -55,7 +56,10 @@ const ProductCard = ({ product }) => {
       ? product.name.substring(brand.length).trim() 
       : product.name;
 
-  const openDetail = () => navigate(`/product/${product._id}`);
+  const openDetail = () => {
+    const path = buildProductPath(product);
+    if (path) navigate(path);
+  };
 
   const handleAddToCart = async (event) => {
     event.stopPropagation();

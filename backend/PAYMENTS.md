@@ -12,19 +12,6 @@ This document summarizes required environment variables and local testing comman
   - `VNP_RETURN_URL` (frontend return URL)
   - `VNP_IPN_URL` (backend IPN URL)
 
-- MoMo
-  - `MOMO_PARTNER_CODE`
-  - `MOMO_ACCESS_KEY`
-  - `MOMO_SECRET_KEY`
-  - `MOMO_REDIRECT_URL` (optional, has fallback)
-  - `MOMO_IPN_URL` (optional, has fallback)
-
-- ZaloPay
-  - `ZALOPAY_APP_ID`
-  - `ZALOPAY_KEY1`
-  - `ZALOPAY_KEY2`
-  - `ZALOPAY_ENDPOINT` (sandbox default)
-
 - Stripe
   - `STRIPE_SECRET_KEY` (required for creating sessions)
   - `STRIPE_PUBLISHABLE_KEY` (frontend)
@@ -42,22 +29,6 @@ Replace `http://localhost:5000` with your backend URL if different.
 
 ```bash
 curl "http://localhost:5000/api/payments/vnpay/ipn?vnp_TxnRef=ORDER123&vnp_TransactionNo=TXN123&vnp_Amount=100000&vnp_SecureHash=FAKEHASH"
-```
-
-- MoMo IPN (POST JSON)
-
-```bash
-curl -X POST http://localhost:5000/api/payments/momo/ipn \
-  -H "Content-Type: application/json" \
-  -d '{"partnerCode":"TEST","accessKey":"TEST","requestId":"r1","amount":100000,"orderId":"ORDER123","orderInfo":"Thanh toan","transId":123,"resultCode":0,"signature":"FAKESIG"}'
-```
-
-- ZaloPay IPN (POST JSON)
-
-```bash
-curl -X POST http://localhost:5000/api/payments/zalopay/ipn \
-  -H "Content-Type: application/json" \
-  -d '{"data":"...","mac":"FAKEMAC"}'
 ```
 
 - Stripe webhook (dev fallback — signature optional)
@@ -78,8 +49,6 @@ There's a small helper script at `backend/scripts/send_test_webhooks.js` to POST
 
 ```bash
 node backend/scripts/send_test_webhooks.js --vnpay http://localhost:5000/api/payments/vnpay/ipn
-node backend/scripts/send_test_webhooks.js --momo http://localhost:5000/api/payments/momo/ipn
-node backend/scripts/send_test_webhooks.js --zalopay http://localhost:5000/api/payments/zalopay/ipn
 node backend/scripts/send_test_webhooks.js --stripe http://localhost:5000/api/payments/webhook
 ```
 
@@ -87,5 +56,5 @@ node backend/scripts/send_test_webhooks.js --stripe http://localhost:5000/api/pa
 
 - Always set `STRIPE_WEBHOOK_SECRET` in production and protect the endpoint behind the correct URL/secret.
 - Keep payment secrets out of VCS and use a secrets manager in production.
-- Ensure `VNP_HASH_SECRET` / `MOMO_SECRET_KEY` / `ZALOPAY_KEY2` are never logged.
+- Ensure `VNP_HASH_SECRET` is never logged.
 

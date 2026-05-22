@@ -16,7 +16,6 @@ const STATUS_SEQUENCE = [
 
 const PAYMENT_LABELS = {
   cod:    'COD (Thanh toán khi nhận)',
-  qr:     'Chuyển khoản QR',
   stripe: 'Thẻ tín dụng / Stripe',
 };
 

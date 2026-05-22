@@ -138,7 +138,10 @@ class OrderService {
 
         const total = totalAfterDiscount + shippingFee;
 
-        return { subtotal, discount, shippingFee, total };
+        // Đảm bảo đơn hàng luôn có giá trị thanh toán thực tế tối thiểu (ít nhất 10,000đ nếu đơn hàng có sản phẩm)
+        const finalTotal = subtotal > 0 ? Math.max(10000, total) : 0;
+
+        return { subtotal, discount, shippingFee, total: finalTotal };
     }
 
     // Giữ lại hàm cũ để không break các chỗ khác, gọi sang calculateTotals
@@ -155,7 +158,7 @@ class OrderService {
         return "DH" + ts + rand;
     }
 
-    // Extracted from controller: Create COD/QR Order
+    // Extracted from controller: Create COD order
     static async createNonStripeOrder(req, res, paymentMethod) {
         const session = await mongoose.startSession();
         session.startTransaction();
@@ -180,7 +183,7 @@ class OrderService {
             }
 
             const newOrderId = new mongoose.Types.ObjectId();
-            const deductNote = paymentMethod === 'cod' ? 'Đặt hàng COD' : (paymentMethod === 'qr' ? 'Đặt hàng VietQR' : 'Đặt hàng');
+            const deductNote = paymentMethod === 'cod' ? 'Đặt hàng COD' : 'Đặt hàng';
             await this.deductStock(products, session, newOrderId, req.user?._id, deductNote);
 
             const coupon = couponCode
@@ -197,7 +200,7 @@ class OrderService {
             const orderCode = this.generateOrderCode();
             const trackingToken = crypto.randomUUID();
 
-            const label = paymentMethod === "cod" ? "Thanh toán COD" : "Thanh toán QR";
+            const label = paymentMethod === "cod" ? "Thanh toán COD" : "Thanh toán VNPay / Stripe";
 
             const newOrder = new Order({
                 _id: newOrderId,
@@ -274,14 +277,14 @@ class OrderService {
 
             const message = paymentMethod === "cod"
                 ? "Đơn hàng COD đã tạo thành công! Bạn sẽ thanh toán khi nhận hàng."
-                : "Đơn hàng QR đã tạo thành công. Vui lòng chuyển khoản để xác nhận.";
+                : "Đơn hàng thanh toán đã tạo thành công.";
 
             return res.status(201).json({
                 success: true,
                 message,
                 orderId: newOrder._id,
                 orderCode,
-                ...(paymentMethod === "qr" && { totalAmount })
+                ...(paymentMethod === "vnpay" && { totalAmount })
             });
         } catch (error) {
             await session.abortTransaction();

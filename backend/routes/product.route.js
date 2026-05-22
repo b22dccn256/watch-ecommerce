@@ -11,6 +11,7 @@ import {
 	previewImportProducts,
 	getSuggestions,
 	getProductById,
+	getProductBySlugToken,
 	updateProduct,
 	getInventoryAlerts,
     exportProducts,
@@ -33,6 +34,7 @@ router.get("/suggestions", getSuggestions);
 router.get("/inventory/alerts", protectRoute, managementRoute, getInventoryAlerts);
 router.get("/category/:category", getProductsByCategory);
 router.get("/recommendations", getRecommendedProducts);
+router.get("/:slug--:token", getProductBySlugToken);
 router.get("/:id", getProductById);
 router.post("/", protectRoute, managementRoute, validateBody(productSchemas.create), createProduct);
 router.put("/:id", protectRoute, managementRoute, validateBody(productSchemas.update), updateProduct);

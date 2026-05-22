@@ -68,7 +68,7 @@ const CatalogPage = () => {
 			category: category || searchParams.get("category") || undefined,
 			q
 		});
-	}, [searchParams, category, fetchFilteredProducts, setSearchTerm, setFilters, setSort, setSearchParams]);
+	}, [searchParams, category, fetchFilteredProducts, setSearchTerm, setFilters, setSort, setSearchParams, config?.productsPerPage]);
 
 	// Active filter chips builder
 	const buildActiveChips = () => {
@@ -158,20 +158,16 @@ const CatalogPage = () => {
 							<div className="flex items-center gap-3">
 								{/* Grid toggle */}
 								<div className="flex items-center gap-1 bg-gray-100/90 dark:bg-zinc-900 rounded-2xl p-1 border border-black/5 dark:border-white/5">
-									<button
-										onClick={() => setGridCols(3)}
-										className={`p-1.5 rounded-xl transition ${gridCols === 3 ? "bg-luxury-gold text-lux-dark" : "text-gray-400 hover:text-gray-900 dark:hover:text-white"}`}
-										title="3 cột"
-									>
-										<Grid3X3 className="w-4 h-4" />
-									</button>
-									<button
-										onClick={() => setGridCols(4)}
-										className={`p-1.5 rounded-xl transition ${gridCols === 4 ? "bg-luxury-gold text-lux-dark" : "text-gray-400 hover:text-gray-900 dark:hover:text-white"}`}
-										title="4 cột"
-									>
-										<LayoutGrid className="w-4 h-4" />
-									</button>
+									{[3, 4, 5, 6].map(num => (
+										<button
+											key={num}
+											onClick={() => setGridCols(num)}
+											className={`px-2.5 py-1 rounded-xl text-[10px] font-extrabold transition-all duration-300 ${gridCols === num ? "bg-luxury-gold text-lux-dark shadow-[0_2px_8px_rgba(212,175,55,0.3)]" : "text-gray-400 hover:text-gray-900 dark:hover:text-white"}`}
+											title={`${num} cột`}
+										>
+											{num}C
+										</button>
+									))}
 								</div>
 								<select
 									value={sort}
@@ -217,7 +213,7 @@ const CatalogPage = () => {
 						)}
 
 						{loading ? (
-							<div className={gridCols === 4 ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6" : "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"}>
+							<div className={`product-grid-${gridCols}`}>
 								{Array.from({ length: 8 }).map((_, index) => (
 									<SkeletonProductCard key={index} />
 								))}
@@ -240,7 +236,7 @@ const CatalogPage = () => {
 							</div>
 						) : (
 							<motion.div
-								className={gridCols === 4 ? "product-grid-4" : "product-grid-3"}
+								className={`product-grid-${gridCols}`}
 								initial="hidden"
 								whileInView="visible"
 								viewport={{ once: true, amount: 0.05 }}

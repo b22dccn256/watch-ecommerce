@@ -14,12 +14,14 @@ import axios from "../lib/axios";
 import ProductCard from "../components/ProductCard";
 import { SkeletonProductDetail } from "../components/SkeletonLoaders";
 import ReviewsList from "../components/ReviewsList";
+import NotFoundPage from "./NotFoundPage";
+import { buildProductPath } from "../utils/productUrl";
 
 const ProductDetailPage = () => {
-  const { id } = useParams();
+  const { slug, token } = useParams();
   const navigate = useNavigate();
 
-  const { currentProduct, fetchProductById, loading } = useProductStore();
+  const { currentProduct, fetchProductBySlug, loading, notFound } = useProductStore();
   const addToCart = useCartStore((state) => state.addToCart);
   const { wishlist, toggleWishlist } = useWishlistStore();
   const addToCompare = useCompareStore((state) => state.addToCompare);
@@ -30,6 +32,7 @@ const ProductDetailPage = () => {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedWristSize, setSelectedWristSize] = useState(null);
 
   // Refs for scroll-to-section
   const promosRef = useRef(null);
@@ -39,9 +42,77 @@ const ProductDetailPage = () => {
   };
 
   useEffect(() => {
-    fetchProductById(id);
+    if (!currentProduct || !slug || !token) return;
+
+    const canonicalPath = buildProductPath(currentProduct);
+    if (!canonicalPath) return;
+
+    const canonicalUrl = `${window.location.origin}${canonicalPath}`;
+    const metaEntries = [
+      ["property", "og:url", canonicalUrl],
+      ["property", "og:title", currentProduct.name],
+      ["property", "og:description", currentProduct.metaDescription || currentProduct.description || currentProduct.name],
+      ["property", "og:image", currentProduct.image],
+      ["name", "twitter:url", canonicalUrl],
+      ["name", "twitter:title", currentProduct.name],
+      ["name", "twitter:description", currentProduct.metaDescription || currentProduct.description || currentProduct.name],
+      ["name", "twitter:image", currentProduct.image],
+      ["name", "twitter:card", "summary_large_image"],
+    ];
+
+    const upsertMeta = (attr, key, value) => {
+      if (!value) return null;
+      const selector = `meta[data-product-meta="true"][${attr}="${key}"]`;
+      let element = document.head.querySelector(selector);
+      if (!element) {
+        element = document.createElement("meta");
+        element.setAttribute("data-product-meta", "true");
+        element.setAttribute(attr, key);
+        document.head.appendChild(element);
+      }
+      element.setAttribute("content", value);
+      return element;
+    };
+
+    const previousTitle = document.title;
+    const canonicalLinkSelector = 'link[rel="canonical"][data-product-meta="true"]';
+    let canonicalLink = document.head.querySelector(canonicalLinkSelector);
+    if (!canonicalLink) {
+      canonicalLink = document.createElement("link");
+      canonicalLink.setAttribute("rel", "canonical");
+      canonicalLink.setAttribute("data-product-meta", "true");
+      document.head.appendChild(canonicalLink);
+    }
+    canonicalLink.setAttribute("href", canonicalUrl);
+
+    const createdNodes = metaEntries
+      .map(([attr, key, value]) => upsertMeta(attr, key, value))
+      .filter(Boolean);
+
+    document.title = `${currentProduct.name} | CellphoneS-style`;
+
+    return () => {
+      document.title = previousTitle;
+      createdNodes.forEach((node) => node.remove());
+      const link = document.head.querySelector(canonicalLinkSelector);
+      if (link) link.remove();
+    };
+  }, [currentProduct, slug, token]);
+
+  useEffect(() => {
+    if (slug && token) {
+      fetchProductBySlug(slug, token);
+    }
     window.scrollTo(0, 0);
-  }, [fetchProductById, id]);
+  }, [fetchProductBySlug, slug, token]);
+
+  useEffect(() => {
+    if (!currentProduct || !slug || !token) return;
+    const canonicalPath = buildProductPath(currentProduct);
+    if (canonicalPath && (currentProduct.slug !== slug || currentProduct.slugToken !== token)) {
+      navigate(canonicalPath, { replace: true });
+    }
+  }, [currentProduct, navigate, slug, token]);
 
   useEffect(() => {
     if (!currentProduct) return;
@@ -51,10 +122,14 @@ const ProductDetailPage = () => {
     setSelectedColor(currentProduct.colors?.[0] || null);
     setSelectedSize(currentProduct.sizes?.[0] || null);
 
-    document.title = `${currentProduct.name} | CellphoneS-style`;
+    const firstAvailableWristSize = currentProduct.wristSizeOptions?.find(opt => opt.stock > 0)?.size 
+      || currentProduct.wristSizeOptions?.[0]?.size 
+      || null;
+    setSelectedWristSize(firstAvailableWristSize);
 
+    const categoryParam = currentProduct.categoryId?._id || currentProduct.category || "";
     axios
-      .get(`/products?category=${encodeURIComponent(currentProduct.category || "")}&limit=12`)
+      .get(`/products?category=${encodeURIComponent(categoryParam)}&limit=12`)
       .then((res) => {
         const all = (res.data.products || []).filter((item) => item._id !== currentProduct._id);
         setRelatedProducts(all.slice(0, 5));
@@ -64,8 +139,16 @@ const ProductDetailPage = () => {
 
   const activeStock = useMemo(() => {
     if (!currentProduct) return 0;
+    if (selectedWristSize && currentProduct.wristSizeOptions?.length > 0) {
+      const match = currentProduct.wristSizeOptions.find(opt => opt.size === selectedWristSize);
+      return match ? match.stock : 0;
+    }
     return currentProduct.stock;
-  }, [currentProduct]);
+  }, [currentProduct, selectedWristSize]);
+
+  if (notFound) {
+    return <NotFoundPage />;
+  }
 
   if (loading || !currentProduct) {
     return <SkeletonProductDetail />;
@@ -106,6 +189,7 @@ const ProductDetailPage = () => {
       quantity: 1, // Fix 1
       selectedColor,
       selectedSize,
+      wristSize: selectedWristSize,
     };
     addToCart(payload);
   };
@@ -134,6 +218,13 @@ const ProductDetailPage = () => {
             {currentProduct.name}
           </h1>
           <div className="flex items-center gap-4 text-[13px] text-blue-600">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-1">
+                <span className="font-semibold text-yellow-400">{Number(currentProduct.averageRating || 0).toFixed(1)}</span>
+                <span className="text-xs text-gray-500">·</span>
+                <span className="text-xs text-gray-500">{currentProduct.reviewsCount || 0} đánh giá</span>
+              </div>
+            </div>
             <button onClick={() => toggleWishlist(currentProduct, !!user)} className="flex items-center gap-1 hover:text-red-500 transition">
               <Heart className={`h-4 w-4 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} /> Yêu thích
             </button>
@@ -319,6 +410,44 @@ const ProductDetailPage = () => {
                         </div>
                     </div>
                 )}
+
+                {currentProduct.wristSizeOptions?.length > 0 && (
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="font-bold text-[15px]">Chu vi cổ tay / Đo cắt dây (Miễn phí)</h3>
+                            <button
+                                type="button"
+                                onClick={() => navigate("/faq")}
+                                className="text-xs text-blue-600 hover:underline font-medium"
+                            >
+                                Hướng dẫn đo cổ tay
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {currentProduct.wristSizeOptions.map((option) => {
+                                const isSelected = selectedWristSize === option.size;
+                                const isOut = option.stock <= 0;
+                                return (
+                                    <button
+                                        key={option.size}
+                                        type="button"
+                                        onClick={() => !isOut && setSelectedWristSize(option.size)}
+                                        disabled={isOut}
+                                        className={`relative flex flex-col items-center justify-center p-2 rounded-lg border-2 text-center transition ${isSelected ? 'border-red-600 bg-red-50' : 'border-gray-200 hover:border-gray-300 bg-white'} ${isOut ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                    >
+                                        <span className="font-semibold text-[13px] text-gray-900 block">{option.size}</span>
+                                        <span className="text-[10px] text-gray-500 font-medium">{isOut ? 'Hết hàng' : `Còn ${option.stock} cái`}</span>
+                                        {isSelected && (
+                                            <div className="absolute top-0 right-0 w-4 h-4 bg-red-600 rounded-bl-lg rounded-tr-sm flex items-center justify-center">
+                                                <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                                            </div>
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Promos */}
@@ -336,7 +465,7 @@ const ProductDetailPage = () => {
                         </div>
                         <div className="flex-1">
                             <p className="font-bold text-[13px]">Voucher ưu đãi thanh toán</p>
-                            <p className="text-[11px] text-gray-500">Áp dụng mua cho đơn hàng thanh toán qua VNPAY, MOMO.</p>
+                            <p className="text-[11px] text-gray-500">Áp dụng mua cho đơn hàng thanh toán qua VNPay hoặc Stripe.</p>
                         </div>
                         <button onClick={() => { navigator.clipboard.writeText("LUXURYWATCH500K"); toast.success("Đã sao chép mã: LUXURYWATCH500K"); }} className="text-[12px] font-bold bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded text-red-600 shrink-0">Lấy mã</button>
                     </div>
@@ -367,12 +496,12 @@ const ProductDetailPage = () => {
                         <span onClick={() => navigate("/checkout")} className="text-[10px] text-blue-600 font-medium cursor-pointer hover:underline">Chi tiết {'>'}</span>
                     </div>
                     <div className="min-w-[200px] border border-gray-200 rounded-lg p-3">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="w-8 h-5 bg-pink-100 rounded text-[9px] font-bold text-pink-700 flex items-center justify-center">MOMO</div>
-                            <p className="text-[12px] font-bold">Thanh toán Momo</p>
-                        </div>
-                        <p className="text-[11px] text-gray-600 mb-2">Nhập mã giảm 2% tối đa 200K.</p>
-                        <span onClick={() => navigate("/checkout")} className="text-[10px] text-blue-600 font-medium cursor-pointer hover:underline">Chi tiết {'>'}</span>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-5 bg-black/80 rounded text-[9px] font-bold text-white flex items-center justify-center">STR</div>
+                        <p className="text-[12px] font-bold">Thanh toán Stripe</p>
+                      </div>
+                      <p className="text-[11px] text-gray-600 mb-2">Hỗ trợ thẻ quốc tế cho đơn hàng phù hợp.</p>
+                      <span onClick={() => navigate("/checkout")} className="text-[10px] text-blue-600 font-medium cursor-pointer hover:underline">Chi tiết {'>'}</span>
                     </div>
                 </div>
             </div>
@@ -452,11 +581,11 @@ const ProductDetailPage = () => {
               {relatedProducts.map((p) => (
                 <div key={p._id} className="border border-gray-100 rounded-xl overflow-hidden hover:shadow-lg transition bg-white relative">
                    <div className="absolute top-0 left-0 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-br-lg z-10">GIẢM 5%</div>
-                   <Link to={`/product/${p._id}`}>
+                   <Link to={buildProductPath(p) || "#"}>
                       <img src={p.image} alt={p.name} className="w-full aspect-square object-contain p-2 hover:scale-105 transition duration-300" />
                    </Link>
                    <div className="p-3">
-                      <Link to={`/product/${p._id}`} className="font-semibold text-[13px] text-gray-800 line-clamp-2 leading-snug hover:text-red-600">
+                     <Link to={buildProductPath(p) || "#"} className="font-semibold text-[13px] text-gray-800 line-clamp-2 leading-snug hover:text-red-600">
                           {p.name}
                       </Link>
                       <div className="mt-2 flex items-center gap-2">

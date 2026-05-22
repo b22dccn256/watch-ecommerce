@@ -49,6 +49,7 @@ import reviewRoutes from "./routes/review.route.js";
 import questionRoutes from "./routes/question.route.js";
 import storeConfigRoutes from "./routes/storeConfig.route.js";
 import adminIpnRoutes from "./routes/admin.ipn.route.js";
+import sitemapRoutes from "./routes/sitemap.route.js";
 import { sanitizeInput } from "./middleware/sanitize.middleware.js";
 import { csrfProtection, issueCsrfToken } from "./middleware/csrf.middleware.js";
 import { responseSanitizationMiddleware } from "./middleware/response-sanitization.middleware.js";
@@ -202,6 +203,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/payment", paymentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/ai", aiRoutes);
@@ -217,6 +219,7 @@ app.use("/api/questions", questionRoutes);
 app.use("/api/settings", storeConfigRoutes);
 app.use("/api/admin/ipns", adminIpnRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/", sitemapRoutes);
 
 if (process.env.NODE_ENV === "production") {
 	app.use(express.static(path.join(__dirname, "/frontend/dist")));

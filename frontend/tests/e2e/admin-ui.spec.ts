@@ -12,6 +12,8 @@ test.describe('Admin UI', () => {
 
   test('can switch tabs and open Products', async ({ page }) => {
     const authPage = await createAuthenticatedPage(page, { email: ADMIN_EMAIL, password: ADMIN_PASSWORD });
+    await authPage.goto('http://localhost:5173/secret-dashboard');
+    await authPage.waitForTimeout(1000);
 
       await authPage.getByRole('button', { name: 'Đơn hàng' }).click();
       await expect(authPage).toHaveURL(/tab=orders/);
@@ -22,6 +24,8 @@ test.describe('Admin UI', () => {
 
   test('global search shows empty state for random query', async ({ page }) => {
       const authPage = await createAuthenticatedPage(page, { email: ADMIN_EMAIL, password: ADMIN_PASSWORD });
+      await authPage.goto('http://localhost:5173/secret-dashboard');
+      await authPage.waitForTimeout(1500);
 
       const searchInput = authPage.getByPlaceholder('Tìm sản phẩm, đơn hàng...');
       await searchInput.fill('zzzz-e2e-no-result');

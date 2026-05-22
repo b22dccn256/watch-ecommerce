@@ -299,9 +299,7 @@ function App() {
 						<Route path='/purchase-success' element={<PurchaseSuccessPage />} />
 							<Route path='/purchase-cancel' element={privateRoute(<PurchaseCancelPage />)} />
 						<Route path='/payment/vnpay-return' element={<PaymentReturnPage method="vnpay" />} />
-						<Route path='/payment/momo-return' element={<PaymentReturnPage method="momo" />} />
-						<Route path='/payment/zalopay-return' element={<PaymentReturnPage method="zalopay" />} />
-						<Route path="/product/:id" element={<ProductDetailPage />} />
+						<Route path="/product/:slug--:token" element={<ProductDetailPage />} />
 						<Route path="/order-tracking/:trackingToken?" element={<OrderTrackingPage />} />
 						<Route path='*' element={<NotFoundPage />} />
 					</Routes>

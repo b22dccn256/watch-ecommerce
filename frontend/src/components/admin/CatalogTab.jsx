@@ -119,7 +119,7 @@ const CatalogTab = () => {
                 <button
                   type="button"
                   onClick={() => openEditBrand(b)}
-                  className="absolute top-2 right-10 opacity-0 group-hover:opacity-100 p-1.5 bg-blue-500/10 text-blue-500 rounded-lg transition"
+                    className="absolute top-2 right-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 bg-blue-500/10 text-blue-500 rounded-lg transition"
                   title="Sửa thương hiệu"
                 >
                   <Pencil className="w-4 h-4 pointer-events-none" />
@@ -127,7 +127,7 @@ const CatalogTab = () => {
                 <button
                   type="button"
                   onClick={() => brand.deleteBrand(b._id, b.name)}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1.5 bg-red-500/10 text-red-500 rounded-lg transition"
+                    className="absolute top-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 bg-red-500/10 text-red-500 rounded-lg transition"
                 >
                   <Trash2 className="w-4 h-4 pointer-events-none" />
                 </button>

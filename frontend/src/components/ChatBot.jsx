@@ -3,6 +3,7 @@ import { MessageCircle, X, Send, Bot, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import axios from "../lib/axios";
+import { buildProductPath } from "../utils/productUrl";
 
 const QUICK_QUESTIONS = [
     "Rolex Submariner giá bao nhiêu?",
@@ -77,7 +78,7 @@ const resolveChatIntent = (text) => {
 
     if (includesAny(normalized, ["bao hanh", "warranty"])) return { type: "warranty" };
     if (includesAny(normalized, ["giao hang", "van chuyen", "ship", "delivery"])) return { type: "shipping" };
-    if (includesAny(normalized, ["thanh toan", "payment", "cod", "vnpay", "momo", "zalopay"])) return { type: "payment" };
+    if (includesAny(normalized, ["thanh toan", "payment", "cod", "vnpay", "stripe"])) return { type: "payment" };
     if (includesAny(normalized, ["doi tra", "tra hang", "return", "hoan tien"])) return { type: "returns" };
     if (includesAny(normalized, ["lien he", "hotline", "contact", "email", "ho tro"])) return { type: "contact" };
     if (includesAny(normalized, ["dang nhap", "dang ky", "verify email", "xac thuc email", "ho so", "profile"])) return { type: "account" };
@@ -169,7 +170,7 @@ const INTENT_RESPONSE = {
         action: buildAction("Xem chính sách giao hàng", "/delivery-policy", "Thời gian và phí ship"),
     },
     payment: {
-        content: "Chúng tôi hỗ trợ thẻ quốc tế, VNPay, MoMo, chuyển khoản ngân hàng và COD tùy đơn hàng.",
+        content: "Chúng tôi hỗ trợ thẻ quốc tế, VNPay, Stripe và COD tùy đơn hàng.",
         action: buildAction("Xem thanh toán", "/checkout", "Xem luồng thanh toán"),
     },
     returns: {
@@ -202,6 +203,8 @@ const formatRankedProducts = (products, heading) => {
         content: `Đây là ${heading} mà mình tìm được từ catalog:`,
         products: products.slice(0, 5).map((product) => ({
             id: product._id,
+            slug: product.slug,
+            slugToken: product.slugToken,
             name: product.name,
             brand: product.brand?.name || product.brand || "Không rõ",
             price: Number(product.price || 0),
@@ -231,6 +234,8 @@ const formatWristProducts = (products) => {
         content: "Với cổ tay nhỏ, mình ưu tiên mặt 28-38mm, dây mảnh và case mỏng để đeo cân đối. Đây là vài mẫu phù hợp từ catalog:",
         products: products.slice(0, 5).map((product) => ({
             id: product._id,
+            slug: product.slug,
+            slugToken: product.slugToken,
             name: product.name,
             brand: product.brand?.name || product.brand || "Không rõ",
             price: Number(product.price || 0),
@@ -505,10 +510,11 @@ const ChatBot = () => {
                                             <div className="mt-3 space-y-2">
                                                 {msg.products.map((product) => (
                                                     <button
-                                                        key={product.id}
+                                                        key={product.slugToken || product.id}
                                                         type="button"
                                                         onClick={() => {
-                                                            navigate(`/product/${product.id}`);
+                                                            const path = buildProductPath(product);
+                                                            if (path) navigate(path);
                                                             setIsOpen(false);
                                                         }}
                                                         className="w-full text-left rounded-2xl border border-yellow-400/20 bg-black/20 hover:bg-yellow-400/10 hover:border-yellow-400/40 transition p-3"

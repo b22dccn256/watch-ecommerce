@@ -29,7 +29,7 @@ const UserDetailModal = ({
 			<motion.div
 				initial={{ opacity: 0, scale: 0.95 }}
 				animate={{ opacity: 1, scale: 1 }}
-				className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border rounded-2xl w-full max-w-md p-6 shadow-2xl"
+				className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 shadow-2xl custom-scrollbar"
 			>
 				<div className="flex items-center justify-between mb-4">
 					<h2 className="text-lg font-bold text-gray-900 dark:text-white">Chi tiết người dùng</h2>

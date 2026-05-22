@@ -6,7 +6,7 @@ const processedIPNSchema = new mongoose.Schema(
 		provider: {
 			type: String,
 			required: true,
-			enum: ["vnpay", "momo", "zalopay"],
+			enum: ["vnpay"],
 		},
 		transactionId: {
 			type: String,

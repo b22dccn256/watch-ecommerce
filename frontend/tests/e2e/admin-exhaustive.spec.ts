@@ -81,7 +81,28 @@ test.describe.serial('Admin exhaustive', () => {
   };
 
   const openTab = async (page, tabId) => {
-    await page.goto(`/secret-dashboard?tab=${tabId}`);
+    const labels = {
+      analytics: 'Dashboard',
+      orders: 'Đơn hàng',
+      catalog: 'Danh mục',
+      products: 'Sản phẩm',
+      inventory: 'Kho hàng',
+      marketing: 'Marketing',
+      email: 'Email',
+      reviews: 'Reviews & Q&A',
+      coupons: 'Mã giảm giá',
+      users: 'Người dùng',
+      ai: 'AI System',
+      settings: 'Giao diện'
+    };
+    const label = labels[tabId];
+    if (label) {
+      await page.locator('nav').getByRole('button', { name: new RegExp(label, 'i') }).click();
+    } else {
+      await page.goto(`/secret-dashboard?tab=${tabId}`);
+    }
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(300);
   };
 
   const clickEmailSubtab = async (page, name) => {
@@ -259,15 +280,15 @@ test.describe.serial('Admin exhaustive', () => {
     await openTab(authPage, 'catalog');
 
     const imagePath = path.resolve(__dirname, '../../public/banner-2.jpg');
-    await authPage.locator('button:has(svg.lucide-circle-plus)').nth(1).click();
+    await authPage.getByRole('button', { name: /THÊM THƯƠNG HIỆU/i }).click();
     await authPage.getByPlaceholder('VD: Rolex').fill(`E2E Brand UI ${Date.now()}`);
     await authPage.locator('input[type="file"]').first().setInputFiles(imagePath);
     await authPage.locator('form').first().locator('button[type="submit"]').click();
     await expect(authPage.getByPlaceholder('VD: Rolex')).toBeHidden({ timeout: 10000 });
 
     await openTab(authPage, 'catalog');
-    await authPage.locator('div.flex.gap-2.border-b button').nth(1).click();
-    await authPage.locator('button:has(svg.lucide-circle-plus)').nth(1).click();
+    await authPage.getByRole('button', { name: /Cấu Trúc Danh Mục/i }).click();
+    await authPage.getByRole('button', { name: /THÊM DANH MỤC/i }).click();
     await authPage.getByPlaceholder('VD: Dress Watches').fill(`E2E Cat UI ${Date.now()}`);
     await authPage.locator('input[type="file"]').first().setInputFiles(imagePath);
     await authPage.locator('form').first().locator('button[type="submit"]').click();
@@ -304,7 +325,7 @@ test.describe.serial('Admin exhaustive', () => {
     const authPage = await gotoAdmin(page);
     await openTab(authPage, 'email');
     await expect(authPage).toHaveURL(/tab=email/);
-    await expect(authPage.getByRole('button', { name: /T.*O M.*I/i })).toBeVisible();
+    await expect(authPage.getByRole('button', { name: /T.*O.*M.*I/i })).toBeVisible();
   });
 
   test('Reviews & Q&A', async ({ page }) => {
@@ -343,6 +364,7 @@ test.describe.serial('Admin exhaustive', () => {
     const authPage = await gotoAdmin(page);
     await openTab(authPage, 'settings');
 
+    await authPage.getByRole('button', { name: /Văn bản & Tiêu đề/i }).click();
     await authPage.locator('textarea[name="heroSlogan"]').fill('E2E slogan');
     await authPage.getByRole('button', { name: /L.*U & XU.*T B.*N NGAY/i }).click();
   });

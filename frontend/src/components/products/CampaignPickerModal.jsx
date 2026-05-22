@@ -1,8 +1,18 @@
 import { motion } from "framer-motion";
+import { useSearchParams } from "react-router-dom";
 
 const CampaignPickerModal = ({ selectedIds = [], onClose, onSuccess, isOpen = true }) => {
+	const [searchParams, setSearchParams] = useSearchParams();
 	if (!isOpen) return null;
 	const selectedCount = Array.isArray(selectedIds) ? selectedIds.length : 0;
+
+	const handleGoMarketing = () => {
+		const next = new URLSearchParams(searchParams);
+		next.set("tab", "marketing");
+		setSearchParams(next, { replace: true });
+		onSuccess?.();
+		onClose?.();
+	};
 
 	return (
 	<motion.div
@@ -19,9 +29,10 @@ const CampaignPickerModal = ({ selectedIds = [], onClose, onSuccess, isOpen = tr
 			className="w-full max-w-md rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl p-6"
 			onClick={(e) => e.stopPropagation()}
 		>
-			<h3 className="text-lg font-bold text-gray-900 dark:text-white">Gán chiến dịch</h3>
+			<h3 className="text-lg font-bold text-gray-900 dark:text-white">Quản lý chiến dịch</h3>
 			<p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-				Đã chọn {selectedCount} sản phẩm. Tính năng chọn chiến dịch đang được hoàn thiện.
+				Đã chọn {selectedCount} sản phẩm. Chiến dịch áp dụng cho catalog được quản lý tập trung trong tab Marketing.
+				Từ đó bạn có thể tạo, bật/tắt và xoá chiến dịch đang chạy.
 			</p>
 			<div className="mt-5 flex justify-end gap-3">
 				<button
@@ -31,10 +42,10 @@ const CampaignPickerModal = ({ selectedIds = [], onClose, onSuccess, isOpen = tr
 					Đóng
 				</button>
 				<button
-					onClick={onSuccess}
+					onClick={handleGoMarketing}
 					className="px-4 py-2 rounded-lg bg-luxury-gold text-luxury-dark font-semibold"
 				>
-					Xác nhận
+					Mở tab Marketing
 				</button>
 			</div>
 		</motion.div>

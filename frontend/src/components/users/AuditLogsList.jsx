@@ -63,12 +63,7 @@ const AuditLogsList = ({
 				</div>
 			)}
 
-			<div className='bg-luxury-gold/5 border border-luxury-gold/10 dark:border-luxury-gold/20 rounded-2xl p-6 space-y-4 shadow-sm dark:shadow-none'>
-				<h3 className='text-sm font-bold text-luxury-gold uppercase tracking-widest'>Bảo mật hệ thống</h3>
-				<p className='text-xs text-gray-600 dark:text-luxury-text-muted leading-relaxed'>
-					Hệ thống đang hoạt động <span className='text-emerald-600 dark:text-emerald-400 font-bold'>ỔN ĐỊNH</span>. Mọi thay đổi quan trọng đều được ghi nhận trong Audit Log.
-				</p>
-			</div>
+			{/* Security summary removed per admin UX preference */}
 		</div>
 	);
 };

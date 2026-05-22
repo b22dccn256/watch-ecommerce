@@ -1,6 +1,7 @@
 import { createWithEqualityFn } from "zustand/traditional";
 import toast from "react-hot-toast";
 import axios from "../lib/axios";
+import { useStorefrontStore } from "./useStorefrontStore";
 
 const FETCH_TTL_MS = 60000;
 const fetchState = {
@@ -17,6 +18,8 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 	brands: [],
 	categories: [],
 	loading: false,
+	notFound: false,
+	error: null,
 
 	fetchBrands: async (force = false) => {
 		const now = Date.now();
@@ -106,7 +109,7 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 			.get("/products")
 			.then((response) => {
 				const nextProducts = response.data.products || response.data;
-				set({ allProducts: nextProducts, loading: false });
+				set({ allProducts: nextProducts, loading: false, error: null });
 				fetchState.allProducts.lastFetched = Date.now();
 				return nextProducts;
 			})
@@ -141,7 +144,8 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 				totalPages: response.data.totalPages || 1,
 				currentPage: response.data.currentPage || page,
 				totalCount: response.data.totalCount ?? response.data.total ?? (response.data.products?.length || 0),
-				loading: false 
+				loading: false,
+				error: null,
 			});
 		} catch (error) {
 			set({ loading: false });
@@ -249,10 +253,13 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 		const effectiveMinPrice = filters.minPrice > 0 ? filters.minPrice : undefined;
 		const effectiveMaxPrice = filters.maxPrice < 1_000_000_000 ? filters.maxPrice : undefined;
 
+		const storefrontConfig = useStorefrontStore.getState().config;
+		const productsPerPage = storefrontConfig?.productsPerPage ? Number(storefrontConfig.productsPerPage) : 12;
+
 		const queryParams = {
 			q: searchTerm || undefined,
 			page: currentPage,
-			limit: 12,
+			limit: productsPerPage,
 			sort: sort,
 			category: extraParams.category,
 			brands: filters.brands.join(","),
@@ -276,6 +283,7 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 				totalPages: res.data.totalPages || 1,
 				totalCount: res.data.totalCount ?? res.data.total ?? (res.data.products?.length || 0),
 				loading: false,
+				error: null,
 			});
 		} catch {
 			toast.error("Lỗi tải sản phẩm");
@@ -300,14 +308,38 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 	// Chi tiết sản phẩm
 	currentProduct: null,
 
+	fetchProductBySlug: async (slug, token) => {
+		set({ loading: true, notFound: false, error: null, currentProduct: null });
+		try {
+			const res = await axios.get(`/products/${slug}--${token}`);
+			set({ currentProduct: res.data, loading: false, notFound: false, error: null });
+		} catch (error) {
+			if (error.response?.status === 404) {
+				set({ currentProduct: null, loading: false, notFound: true, error: null });
+				return;
+			}
+			toast.error("Không tìm thấy sản phẩm");
+			set({ currentProduct: null, loading: false, notFound: true, error: error.response?.data?.message || "Failed to fetch product" });
+		}
+	},
+
 	fetchProductById: async (id) => {
-		set({ loading: true });
+		if (!id) return;
+		if (String(id).includes("--")) {
+			const [slug, token] = String(id).split("--");
+			return get().fetchProductBySlug(slug, token);
+		}
+		set({ loading: true, notFound: false, error: null, currentProduct: null });
 		try {
 			const res = await axios.get(`/products/${id}`);
-			set({ currentProduct: res.data, loading: false });
-		} catch {
+			set({ currentProduct: res.data, loading: false, notFound: false, error: null });
+		} catch (error) {
+			if (error.response?.status === 404) {
+				set({ currentProduct: null, loading: false, notFound: true, error: null });
+				return;
+			}
 			toast.error("Không tìm thấy sản phẩm");
-			set({ loading: false });
+			set({ currentProduct: null, loading: false, notFound: true, error: error.response?.data?.message || "Failed to fetch product" });
 		}
 	},
 }));

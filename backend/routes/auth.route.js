@@ -1,5 +1,5 @@
 import express from "express";
-import { login, logout, signup, refreshToken, getProfile, getAllUsers, getAuditLogs, deleteUser, updateUserRole, updateProfile, changePassword, verifyOTP, resendOTP, verifyEmail, resendVerificationEmail, adjustLoyaltyPoints, updateUserAdminNotes, forgotPassword, resetPassword, getVerificationLinkDebug } from "../controllers/auth.controller.js";
+import { login, logout, signup, refreshToken, getProfile, getAllUsers, getAuditLogs, deleteUser, bulkDeleteUsers, updateUserRole, updateProfile, changePassword, verifyOTP, resendOTP, verifyEmail, resendVerificationEmail, adjustLoyaltyPoints, updateUserAdminNotes, forgotPassword, resetPassword, getVerificationLinkDebug } from "../controllers/auth.controller.js";
 import { protectRoute, requireEmailVerified, resendVerificationLimiter, adminRoute, managementRoute } from "../middleware/auth.middleware.js";
 import { validateBody } from "../middleware/validation.middleware.js";
 import { authSchemas } from "../middleware/validation.middleware.js";
@@ -25,6 +25,7 @@ router.patch("/profile", protectRoute, requireEmailVerified, validateBody(authSc
 router.patch("/change-password", protectRoute, requireEmailVerified, validateBody(authSchemas.changePassword), changePassword);
 router.get("/users", protectRoute, managementRoute, getAllUsers);
 router.get("/audit-logs", protectRoute, adminRoute, getAuditLogs);
+router.delete("/users", protectRoute, adminRoute, bulkDeleteUsers);
 router.delete("/users/:id", protectRoute, adminRoute, deleteUser);
 router.patch("/users/:id/role", protectRoute, adminRoute, updateUserRole);
 // D1: Loyalty Points

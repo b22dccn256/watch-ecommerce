@@ -24,7 +24,7 @@ export const getAllProducts = async (req, res) => {
     console.time('[timing] getAllProducts');
     const { page, limit, sort, ...filters } = req.query;
     const query = await buildProductQuery(filters);
-    let productsQuery = Product.find(query).populate('brand', 'name').populate('categoryId', 'name');
+    let productsQuery = Product.find(query).populate('brand', 'name').populate({ path: 'categoryId', select: 'name parentCategory', populate: { path: 'parentCategory', select: 'name' } });
     productsQuery = applyProductSort(productsQuery, sort);
 
     if (page && limit) {
@@ -83,7 +83,7 @@ export const getProductById = async (req, res) => {
     }
     const product = await Product.findOne({ _id: req.params.id, deletedAt: null })
       .populate('brand', 'name')
-      .populate('categoryId', 'name');
+      .populate({ path: 'categoryId', select: 'name parentCategory', populate: { path: 'parentCategory', select: 'name' } });
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
     const processed = await CampaignService.applyCampaignToProducts(product);
@@ -94,17 +94,43 @@ export const getProductById = async (req, res) => {
   }
 };
 
+export const getProductBySlugToken = async (req, res) => {
+  try {
+    const { slug, token } = req.params;
+    if (!slug || !token) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    const product = await Product.findOne({ slugToken: token, deletedAt: null })
+      .populate('brand', 'name')
+      .populate({ path: 'categoryId', select: 'name parentCategory', populate: { path: 'parentCategory', select: 'name' } });
+
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    const canonicalSlug = product.slug || slug;
+    if (slug !== canonicalSlug) {
+      return res.redirect(301, `/api/products/${canonicalSlug}--${product.slugToken}`);
+    }
+
+    const processed = await CampaignService.applyCampaignToProducts(product);
+    res.json(processed);
+  } catch (error) {
+    console.error('[ProductCtrl] getProductBySlugToken:', error.message);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 export const getFeaturedProducts = async (req, res) => {
   try {
     let featuredProducts = await Product.find({ isFeatured: true, deletedAt: null })
       .populate('brand', 'name')
-      .populate('categoryId', 'name')
+      .populate({ path: 'categoryId', select: 'name parentCategory', populate: { path: 'parentCategory', select: 'name' } })
       .lean();
 
     if (!featuredProducts || featuredProducts.length === 0) {
       featuredProducts = await Product.find({ deletedAt: null })
         .populate('brand', 'name')
-        .populate('categoryId', 'name')
+        .populate({ path: 'categoryId', select: 'name parentCategory', populate: { path: 'parentCategory', select: 'name' } })
         .limit(8)
         .lean();
     }
@@ -126,7 +152,7 @@ export const getRecommendedProducts = async (req, res) => {
   try {
     const products = await Product.find({ deletedAt: null, isActive: true })
       .populate('brand', 'name logo')
-      .populate('categoryId', 'name')
+      .populate({ path: 'categoryId', select: 'name parentCategory', populate: { path: 'parentCategory', select: 'name' } })
       .sort({ salesCount: -1, createdAt: -1 })
       .limit(4)
       .lean();
@@ -142,7 +168,7 @@ export const getProductsByCategory = async (req, res) => {
   const { category } = req.params;
   try {
     const query = await buildProductQuery({ category });
-    const products = await Product.find(query).populate('brand', 'name').populate('categoryId', 'name');
+    const products = await Product.find(query).populate('brand', 'name').populate({ path: 'categoryId', select: 'name parentCategory', populate: { path: 'parentCategory', select: 'name' } });
     const processed = await CampaignService.applyCampaignToProducts(products);
     res.json({ products: processed });
   } catch (error) {
@@ -168,7 +194,7 @@ export const getInventoryAlerts = async (req, res) => {
       Product.countDocuments(matchQuery),
       Product.find(matchQuery)
         .select('name image stock lowStockThreshold price categoryId')
-        .populate('categoryId', 'name')
+        .populate({ path: 'categoryId', select: 'name parentCategory', populate: { path: 'parentCategory', select: 'name' } })
         .sort({ stock: 1 })
         .skip((page - 1) * limit)
         .limit(limit),
@@ -529,7 +555,7 @@ export const importProducts = async (req, res) => {
 export const exportProducts = async (req, res) => {
   try {
     const products = await Product.find({ deletedAt: null })
-      .populate('categoryId', 'name')
+      .populate({ path: 'categoryId', select: 'name parentCategory', populate: { path: 'parentCategory', select: 'name' } })
       .populate('brand', 'name');
 
     const buf = buildExportXLSX(products);

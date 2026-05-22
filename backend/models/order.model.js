@@ -97,7 +97,7 @@ const orderSchema = new mongoose.Schema(
 		},
 		paymentMethod: {
 			type: String,
-			enum: ["cod", "stripe", "vnpay", "momo", "zalopay", "paypal", "qr"],
+			enum: ["cod", "stripe", "vnpay"],
 			default: "cod"
 		},
 		transactionId: {
@@ -114,7 +114,7 @@ const orderSchema = new mongoose.Schema(
 		stripeSessionId: {
 			type: String,
 			unique: true,
-			sparse: true, // Cho phép nhiều document có stripeSessionId = null (COD, QR orders)
+			sparse: true, // Cho phép nhiều document có stripeSessionId = null (COD, VNPay orders)
 		},
 		currency: {
 			type: String,

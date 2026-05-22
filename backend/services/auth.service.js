@@ -226,6 +226,16 @@ export const refreshAccessToken = async (refreshToken) => {
 // ============================================================================
 
 export const verifyEmail = async (token) => {
+	// Prevents React 18 StrictMode double request issue in local dev
+	try {
+		const wasRecentlyVerified = await redis.get(`verified_token:${token}`);
+		if (wasRecentlyVerified) {
+			return { message: "Tài khoản đã được xác minh thành công. Chào mừng bạn!", alreadyVerified: false };
+		}
+	} catch (redisError) {
+		console.warn("Non-critical: Redis cache lookup failed in verifyEmail:", redisError.message);
+	}
+
 	const user = await User.findOne({
 		emailVerificationToken: token,
 		emailVerificationExpires: { $gt: Date.now() },
@@ -245,6 +255,12 @@ export const verifyEmail = async (token) => {
 	user.emailVerificationToken = null;
 	user.emailVerificationExpires = null;
 	await user.save();
+
+	try {
+		await redis.set(`verified_token:${token}`, "true", "EX", 30);
+	} catch (redisError) {
+		console.warn("Non-critical: Redis cache set failed in verifyEmail:", redisError.message);
+	}
 
 	return { message: "Tài khoản đã được xác minh thành công. Chào mừng bạn!" };
 };

@@ -96,17 +96,23 @@ if (isCronEnabled) {
 
         for (const order of abandonedOrders) {
             try {
-                // Use OrderService to ensure trackingEvents, inventory logs, and proper state transitions
-                order.status = "cancelled";
-                order.paymentStatus = "cancelled";
-                order.trackingEvents.push({
-                    status: "cancelled",
-                    message: "Hệ thống tự động hủy đơn Stripe hết hạn thanh toán.",
-                    timestamp: new Date()
-                });
-                await order.save();
-                await OrderService.restoreStock(order.products, null, order._id, "Hệ thống tự động hủy đơn Stripe hết hạn thanh toán (Cron)");
-                console.log("[Cron] Cancelled abandoned Stripe order " + order._id + " and restored stock.");
+                // Gọi qua hàm dịch vụ tập trung để chạy đầy đủ nghiệp vụ đồng bộ và lưu lịch sử kiểm toán
+                await OrderService.updateOrderStatus(order._id, "cancelled", null);
+
+                // Cập nhật bổ sung trạng thái tiền và ghi chú hệ thống
+                const updatedOrder = await Order.findById(order._id);
+                if (updatedOrder) {
+                    updatedOrder.paymentStatus = "cancelled";
+                    if (updatedOrder.trackingEvents.length > 0) {
+                        const lastEvent = updatedOrder.trackingEvents[updatedOrder.trackingEvents.length - 1];
+                        if (lastEvent.status === "cancelled") {
+                            lastEvent.message = "Hệ thống tự động hủy đơn Stripe hết hạn thanh toán.";
+                        }
+                    }
+                    updatedOrder.internalNotes = (updatedOrder.internalNotes || "") + "\n[SYSTEM] Hệ thống tự động hủy đơn Stripe hết hạn thanh toán (Cron).";
+                    await updatedOrder.save();
+                }
+                console.log("[Cron] Cancelled abandoned Stripe order " + order._id + " and restored stock via OrderService.");
             } catch (err) {
                 console.error('[Cron] Failed to cancel order', order._id, err.message);
             }

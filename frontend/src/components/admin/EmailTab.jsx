@@ -31,13 +31,14 @@ const EmailTab = () => {
 		data,
 		automations,
 		handleDeleteSubscriber,
+		handleMarkMessageRead,
 		handleToggleAutomation,
 	} = useEmailTabData();
 
 	const renderTabContent = () => {
 		switch (activeTab) {
 			case "dashboard":   return <EmailDashboardView stats={data.stats} chartData={data.chartData} />;
-			case "inbox":       return <EmailInboxView messages={data.messages} loading={loading} />;
+			case "inbox":       return <EmailInboxView messages={data.messages} loading={loading} onMarkRead={handleMarkMessageRead} />;
 			case "subscribers": return <EmailSubscribersView subscribers={data.subscribers} loading={loading} onDelete={handleDeleteSubscriber} />;
 			case "campaigns":   return <EmailCampaignsView campaigns={data.campaigns} loading={loading} />;
 			case "templates":   return <EmailTemplatesView templates={data.templates} loading={loading} />;

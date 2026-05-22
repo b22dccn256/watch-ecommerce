@@ -10,6 +10,7 @@
  */
 
 import { X } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import useModalStore from '../../stores/useModalStore';
 
 const Modal = ({
@@ -48,7 +49,7 @@ const Modal = ({
     'full': 'max-w-full mx-4',
   };
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       {backdrop && (
@@ -63,6 +64,8 @@ const Modal = ({
         className={`fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none ${className}`}
       >
         <div
+          role="dialog"
+          aria-modal="true"
           className={`${sizeClasses[size]} w-full max-h-[90vh] flex flex-col bg-white dark:bg-slate-800 rounded-lg shadow-xl pointer-events-auto animation-slide-up`}
         >
           {/* Header */}
@@ -127,7 +130,8 @@ const Modal = ({
           background: rgba(148, 163, 184, 0.4);
         }
       `}</style>
-    </>
+    </>,
+    document.body
   );
 };
 

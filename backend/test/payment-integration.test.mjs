@@ -1,6 +1,6 @@
 /**
  * Payment Integration Tests
- * Tests: VNPay/MoMo/ZaloPay signature verification, Stripe validation,
+ * Tests: VNPay signature verification, Stripe validation,
  * IPN processing logic, payment amount boundaries
  */
 import test from 'node:test';
@@ -124,97 +124,6 @@ test('vnpay: keys sorted alphabetically', () => {
   params.vnp_SecureHash = crypto.createHmac('sha512', secretKey).update(raw, 'utf8').digest('hex');
 
   assert.ok(verifyVnpaySignature(params, secretKey), 'Keys must be sorted alphabetically');
-});
-
-// ═══════════════════════════════════════════════════════════════
-// MOMO SIGNATURE VERIFICATION
-// ═══════════════════════════════════════════════════════════════
-
-const verifyMomoSignature = (body, secretKey, accessKey) => {
-  if (!secretKey || !body.signature) return false;
-  const rawSignature = `partnerCode=${body.partnerCode}&accessKey=${accessKey}&requestId=${body.requestId}&amount=${body.amount}&orderId=${body.orderId}&orderInfo=${body.orderInfo}&orderType=${body.orderType}&transId=${body.transId}&resultCode=${body.resultCode}&message=${body.message}&payType=${body.payType}&responseTime=${body.responseTime}&extraData=${body.extraData}`;
-  const computed = crypto.createHmac('sha256', secretKey).update(rawSignature, 'utf8').digest('hex');
-  return computed === body.signature;
-};
-
-test('momo: valid signature passes', () => {
-  const secretKey = 'MOMOSECRET123';
-  const accessKey = 'MOMOACCESS';
-  const body = {
-    partnerCode: 'MOMO',
-    requestId: 'REQ123',
-    amount: '500000',
-    orderId: 'DHORDER1',
-    orderInfo: 'Thanh toan DHORDER1',
-    orderType: 'momo_wallet',
-    transId: 'TRANS456',
-    resultCode: '0',
-    message: 'Success',
-    payType: 'qr',
-    responseTime: '1700000000',
-    extraData: '',
-  };
-  const raw = `partnerCode=MOMO&accessKey=MOMOACCESS&requestId=REQ123&amount=500000&orderId=DHORDER1&orderInfo=Thanh toan DHORDER1&orderType=momo_wallet&transId=TRANS456&resultCode=0&message=Success&payType=qr&responseTime=1700000000&extraData=`;
-  body.signature = crypto.createHmac('sha256', secretKey).update(raw, 'utf8').digest('hex');
-
-  assert.ok(verifyMomoSignature(body, secretKey, accessKey));
-});
-
-test('momo: tampered amount fails', () => {
-  const secretKey = 'MOMOSECRET123';
-  const accessKey = 'MOMOACCESS';
-  const body = {
-    partnerCode: 'MOMO', requestId: 'REQ123', amount: '999999', // Tampered
-    orderId: 'DHORDER1', orderInfo: 'Test', orderType: 'wallet',
-    transId: 'TRANS456', resultCode: '0', message: 'Success',
-    payType: 'qr', responseTime: '1700000000', extraData: '',
-  };
-  body.signature = 'fakesignature1234567890abcdef';
-
-  assert.equal(verifyMomoSignature(body, secretKey, accessKey), false);
-});
-
-test('momo: missing signature returns false', () => {
-  const body = { partnerCode: 'MOMO', amount: '500000' };
-  assert.equal(verifyMomoSignature(body, 'SECRET', 'ACCESS'), false);
-});
-
-test('momo: missing secret returns false', () => {
-  const body = { signature: 'abc123', partnerCode: 'MOMO' };
-  assert.equal(verifyMomoSignature(body, '', 'ACCESS'), false);
-});
-
-// ═══════════════════════════════════════════════════════════════
-// ZALOPAY MAC VERIFICATION
-// ═══════════════════════════════════════════════════════════════
-
-const verifyZaloPayMac = (body, key2) => {
-  if (!key2 || !body.mac) return false;
-  const computed = crypto.createHmac('sha256', key2).update(body.data, 'utf8').digest('hex');
-  return computed === body.mac;
-};
-
-test('zalopay: valid MAC passes', () => {
-  const key2 = 'ZALOPAYKEY2SECRET';
-  const data = 'app_id|trans_id|user|amount|time|embed|items';
-  const mac = crypto.createHmac('sha256', key2).update(data, 'utf8').digest('hex');
-  const body = { data, mac };
-
-  assert.ok(verifyZaloPayMac(body, key2));
-});
-
-test('zalopay: tampered data fails', () => {
-  const key2 = 'ZALOPAYKEY2SECRET';
-  const body = { data: 'tampered_data', mac: 'fake_mac_12345' };
-  assert.equal(verifyZaloPayMac(body, key2), false);
-});
-
-test('zalopay: missing MAC fails', () => {
-  assert.equal(verifyZaloPayMac({ data: 'test' }, 'KEY'), false);
-});
-
-test('zalopay: missing key2 fails', () => {
-  assert.equal(verifyZaloPayMac({ data: 'test', mac: 'abc123' }, ''), false);
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -386,7 +295,7 @@ test('order: missing shipping details rejected', () => {
 // PAYMENT METHOD ROUTING
 // ═══════════════════════════════════════════════════════════════
 
-const SUPPORTED_METHODS = ['stripe', 'vnpay', 'momo', 'zalopay', 'cod', 'qr'];
+const SUPPORTED_METHODS = ['stripe', 'vnpay', 'cod'];
 
 test('payment-methods: all methods supported', () => {
   for (const method of SUPPORTED_METHODS) {

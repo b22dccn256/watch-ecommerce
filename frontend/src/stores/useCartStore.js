@@ -172,6 +172,19 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 			return toast.error("Sản phẩm không hợp lệ hoặc thiếu mã sản phẩm");
 		}
 
+		// Resolve default options if none are selected (e.g. added directly from lists)
+		if (!normalizedProduct.selectedColor && normalizedProduct.colors?.length > 0) {
+			normalizedProduct.selectedColor = normalizedProduct.colors[0];
+		}
+		if (!normalizedProduct.selectedSize && normalizedProduct.sizes?.length > 0) {
+			normalizedProduct.selectedSize = normalizedProduct.sizes[0];
+		}
+		if (!normalizedProduct.wristSize && normalizedProduct.wristSizeOptions?.length > 0) {
+			const firstAvailable = normalizedProduct.wristSizeOptions.find(opt => opt.stock > 0)?.size 
+				|| normalizedProduct.wristSizeOptions[0].size;
+			normalizedProduct.wristSize = firstAvailable;
+		}
+
 		const { user } = useUserStore.getState();
 		const prevState = get();
 		const uniqueId = prevState.getUniqueId(normalizedProduct);

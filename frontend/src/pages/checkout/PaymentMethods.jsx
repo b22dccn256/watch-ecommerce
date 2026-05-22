@@ -1,5 +1,5 @@
 import React from "react";
-import { ChevronLeft, CreditCard, QrCode, Banknote } from "lucide-react";
+import { ChevronLeft, CreditCard, Banknote } from "lucide-react";
 
 const paymentOptions = [
   {
@@ -9,28 +9,10 @@ const paymentOptions = [
     icon: CreditCard,
   },
   {
-    id: "momo",
-    name: "MoMo",
-    desc: "Ví điện tử MoMo",
-    icon: QrCode,
-  },
-  {
-    id: "zalopay",
-    name: "ZaloPay",
-    desc: "Thanh toán qua ZaloPay",
-    icon: QrCode,
-  },
-  {
     id: "stripe",
     name: "Stripe",
     desc: "Thẻ quốc tế",
     icon: CreditCard,
-  },
-  {
-    id: "qr",
-    name: "VietQR",
-    desc: "Chuyển khoản ngân hàng",
-    icon: QrCode,
   },
   {
     id: "cod",

@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ShoppingBag, ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCartStore } from "../stores/useCartStore";
+import { buildProductPath } from "../utils/productUrl";
 
 const MiniCart = ({ isOpen, onClose }) => {
 	const navigate = useNavigate();
@@ -73,7 +74,7 @@ const MiniCart = ({ isOpen, onClose }) => {
 								<div className="space-y-6">
 									{cart.map((item) => (
 										<div key={item._id + item.selectedColor + item.selectedSize + item.wristSize} className="flex gap-4 group">
-											<Link to={`/product/${item._id}`} onClick={onClose} className="shrink-0 relative overflow-hidden rounded-lg bg-gray-100 dark:bg-zinc-800 w-20 h-24">
+											<Link to={buildProductPath(item) || "#"} onClick={onClose} className="shrink-0 relative overflow-hidden rounded-lg bg-gray-100 dark:bg-zinc-800 w-20 h-24">
 												<img
 													src={item.image}
 													alt={item.name}
@@ -81,7 +82,7 @@ const MiniCart = ({ isOpen, onClose }) => {
 												/>
 											</Link>
 											<div className="flex flex-col flex-1 min-w-0">
-												<Link to={`/product/${item._id}`} onClick={onClose} className="text-sm font-semibold text-gray-900 dark:text-white truncate hover:text-luxury-gold transition-colors">
+												<Link to={buildProductPath(item) || "#"} onClick={onClose} className="text-sm font-semibold text-gray-900 dark:text-white truncate hover:text-luxury-gold transition-colors">
 													{item.name}
 												</Link>
 												<div className="text-[10px] text-gray-500 mt-1 space-y-0.5">

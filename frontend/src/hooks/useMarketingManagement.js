@@ -14,6 +14,31 @@ const INITIAL_FORM = {
   isGlobal: true,
 };
 
+const parseVietnameseDate = (str) => {
+  if (!str) return null;
+  const trimmed = str.trim();
+  
+  // Pattern 1: dd/mm/yyyy HH:mm
+  let parts = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{1,2})$/);
+  if (parts) {
+    const [, day, month, year, hour, minute] = parts;
+    const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10), parseInt(hour, 10), parseInt(minute, 10));
+    return isNaN(date.getTime()) ? null : date;
+  }
+  
+  // Pattern 2: dd/mm/yyyy (default to 00:00)
+  parts = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (parts) {
+    const [, day, month, year] = parts;
+    const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10), 0, 0);
+    return isNaN(date.getTime()) ? null : date;
+  }
+  
+  // Fallback to standard JS date parsing
+  const fallback = new Date(str);
+  return isNaN(fallback.getTime()) ? null : fallback;
+};
+
 export const useMarketingManagement = () => {
   const { campaigns, fetchCampaigns, createCampaign, toggleCampaignStatus, deleteCampaign } = useCampaignStore();
   const { allProducts: products } = useProductStore();
@@ -65,15 +90,16 @@ export const useMarketingManagement = () => {
       return;
     }
     if (!formData.startDate || !formData.endDate) {
-      toast.error('Vui lòng chọn ngày bắt đầu và ngày kết thúc');
+      toast.error('Vui lòng nhập ngày bắt đầu và ngày kết thúc');
       return;
     }
 
-    const startDateObj = new Date(formData.startDate);
-    const endDateObj = new Date(formData.endDate);
+    const startDateObj = parseVietnameseDate(formData.startDate);
+    const endDateObj = parseVietnameseDate(formData.endDate);
     const now = new Date();
-    if (Number.isNaN(startDateObj.getTime()) || Number.isNaN(endDateObj.getTime())) {
-      toast.error('Định dạng ngày không hợp lệ');
+
+    if (!startDateObj || !endDateObj) {
+      toast.error('Định dạng ngày không hợp lệ. Vui lòng chọn ngày đầy đủ.');
       return;
     }
     if (endDateObj <= startDateObj) {
@@ -88,6 +114,8 @@ export const useMarketingManagement = () => {
     setCreating(true);
     const { success } = await createCampaign({
       ...formData,
+      startDate: startDateObj.toISOString(),
+      endDate: endDateObj.toISOString(),
       discountPercentage: Number(formData.discountPercentage),
       isGlobal: formData.group === 'Entire Catalog',
     });
@@ -151,6 +179,7 @@ export const useMarketingManagement = () => {
   };
 
   const handleReorderBanner = async (id, direction) => {
+    const prev = banners;
     const currentIndex = banners.findIndex((b) => b._id === id);
     if (currentIndex === -1) return;
     const newIndex = currentIndex + direction;
@@ -167,22 +196,24 @@ export const useMarketingManagement = () => {
     } catch {
       toast.error('Lỗi khi sắp xếp lại banner');
       // Revert on error
-      setBanners(banners);
+      setBanners(prev);
     }
   };
 
   const formatDate = (dateString) => {
     if (!dateString) return '—';
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return '—';
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes} ${day}/${month}/${year}`;
   };
 
   const previewProduct = products?.find((p) =>
-    formData.group === 'Entire Catalog' ? true : p.category === formData.group
+    formData.group === 'Entire Catalog' ? true : (p.category === formData.group || p.categoryId?.name === formData.group)
   );
 
   const activeCampaigns = campaigns?.filter((c) => c.status === 'Active').length || 0;

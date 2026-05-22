@@ -6,11 +6,11 @@ import { emailQueue } from '../controllers/mail.controller.js';
 import OrderService from './order.service.js';
 
 /**
- * Shared IPN handler for all payment providers (VNPay, MoMo, ZaloPay).
+ * Shared IPN handler for supported payment providers (VNPay, Stripe, COD).
  * Implements atomic idempotency, order status updates, stock restore, and email queuing.
  *
  * @param {object} options
- * @param {string}  options.provider      - 'vnpay' | 'momo' | 'zalopay'
+ * @param {string}  options.provider      - 'vnpay'
  * @param {string}  options.transactionId - Unique gateway transaction ID
  * @param {string}  options.orderCode     - Our internal order code
  * @param {boolean} options.isSuccess     - true = payment succeeded
@@ -42,6 +42,32 @@ export async function processIPN({ provider, transactionId, orderCode, isSuccess
       );
       await session.commitTransaction();
       return { alreadyProcessed: false, success: false, order: null };
+    }
+
+    // Provider-specific validations
+    // For VNPay, ensure reported amount matches internal order amount (VNPay reports amount in cents*100)
+    if (provider === 'vnpay' && payload && payload.vnp_Amount) {
+      try {
+        const reported = Number(payload.vnp_Amount);
+        const expected = Math.round((order.totalAmount || 0) * 100);
+        if (Number.isFinite(reported) && reported !== expected) {
+          // Persist a failed processed IPN record to avoid retry loops
+          await ProcessedIPN.create(
+            [{ provider, transactionId, orderCode, status: 'failed', payload, processedAt: new Date() }],
+            { session }
+          );
+          await session.commitTransaction();
+          return { alreadyProcessed: false, success: false, order };
+        }
+      } catch (e) {
+        // If parsing fails, treat as invalid and fail the IPN safely
+        await ProcessedIPN.create(
+          [{ provider, transactionId, orderCode, status: 'failed', payload, processedAt: new Date() }],
+          { session }
+        );
+        await session.commitTransaction();
+        return { alreadyProcessed: false, success: false, order };
+      }
     }
 
     // Already paid from a prior IPN (idempotent path)
@@ -104,16 +130,13 @@ export async function processIPN({ provider, transactionId, orderCode, isSuccess
 /**
  * Queue a payment confirmation email for the customer.
  * @param {object} order    - Mongoose order document
- * @param {string} provider - 'vnpay' | 'momo' | 'zalopay' | 'cod' | 'stripe'
+ * @param {string} provider - 'vnpay' | 'cod' | 'stripe'
  */
 export async function sendPaymentConfirmationEmail(order, provider) {
   const providerDisplayMap = {
     vnpay:   'VNPay (Đã thanh toán)',
-    momo:    'MoMo (Đã thanh toán)',
-    zalopay: 'ZaloPay (Đã thanh toán)',
     stripe:  'Stripe (Đã thanh toán)',
     cod:     'Thanh toán khi nhận hàng (COD)',
-    qr:      'VietQR (Chờ xác nhận)',
   };
 
   const emailTarget = order.user

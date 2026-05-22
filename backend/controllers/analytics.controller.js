@@ -188,7 +188,7 @@ export const getAnalyticsData = async ({ startDate, endDate } = {}) => {
 		cancellationRate,
 		cancelledOrReturned,
 		paymentStats: paymentStats.map(s => ({
-			name: s._id === "stripe" ? "Stripe" : s._id === "qr" ? "VietQR" : s._id === "cod" ? "COD" : s._id === "vnpay" ? "VNPay" : s._id === "momo" ? "MoMo" : s._id === "zalopay" ? "ZaloPay" : s._id || "Khác",
+			name: s._id === "stripe" ? "Stripe" : s._id === "cod" ? "COD" : s._id === "vnpay" ? "VNPay" : s._id || "Khác",
 			value: s.revenue,
 			count: s.count
 		})),

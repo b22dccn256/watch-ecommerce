@@ -2,7 +2,7 @@ import axios from "../../../lib/axios";
 import { toast } from "react-hot-toast";
 import { Eye } from "lucide-react";
 
-const EmailInboxView = ({ messages }) => (
+const EmailInboxView = ({ messages, onMarkRead }) => (
 	<div className="bg-white dark:bg-luxury-dark border border-luxury-border rounded-3xl overflow-hidden">
 		<table className="w-full text-left">
 			<thead className="bg-gray-50 dark:bg-white/5 border-b border-luxury-border">
@@ -38,13 +38,10 @@ const EmailInboxView = ({ messages }) => (
 						</td>
 						<td className="px-6 py-4 text-right">
 							<button
-								onClick={async () => {
-									try {
-										await axios.patch(`/mail/inbox/${m._id}/read`);
-										toast.success("Đã đánh dấu đã đọc");
-									} catch { toast.error("Không thể cập nhật"); }
-								}}
+								onClick={() => onMarkRead?.(m._id)}
 								className="p-2 hover:bg-luxury-gold/20 rounded-lg text-luxury-gold transition"
+								title={m.status === "read" ? "Đã đọc" : "Đánh dấu đã đọc"}
+								disabled={m.status === "read"}
 							>
 								<Eye className="w-4 h-4" />
 							</button>

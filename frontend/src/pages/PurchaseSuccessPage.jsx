@@ -199,14 +199,13 @@ const PurchaseSuccessPage = () => {
 					<div className='flex items-center gap-4'>
 						<div className="p-3 bg-gray-800 rounded-lg">
 							{order.paymentMethod === 'stripe' ? <CreditCard className="text-[color:var(--color-gold)]" /> :
-								order.paymentMethod === 'qr' ? <QrCode className="text-[color:var(--color-gold)]" /> :
 									<Wallet className="text-[color:var(--color-gold)]" />}
 						</div>
 						<div className='flex flex-col'>
 							<span className='text-sm text-gray-400 mb-1'>Phương thức thanh toán</span>
 							<span className='font-medium text-white'>
 								{order.paymentMethod === "stripe" ? "Thẻ tín dụng Quốc tế" :
-									order.paymentMethod === "qr" ? "Chuyển khoản VietQR" : "Thanh toán khi nhận hàng (COD)"}
+									order.paymentMethod === "vnpay" ? "VNPay" : "Thanh toán khi nhận hàng (COD)"}
 							</span>
 						</div>
 					</div>

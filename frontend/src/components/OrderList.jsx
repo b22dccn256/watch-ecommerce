@@ -40,11 +40,8 @@ const STATUS_LABELS = {
 
 const PAYMENT_LABELS = {
   cod:    'COD',
-  qr:     'Chuyển khoản',
   stripe: 'Thẻ / Stripe',
   vnpay:  'VNPay',
-  momo:   'MoMo',
-  zalopay:'ZaloPay',
   paypal: 'PayPal',
 };
 

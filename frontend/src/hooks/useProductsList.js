@@ -29,7 +29,7 @@ export const useProductsList = () => {
    */
   const fetchProducts = useCallback(
     async (params = {}) => {
-      const { page = 1, limit = 10, search = '', sort = 'name_asc' } = params;
+      const { page = 1, limit = 20, search = '', sort = 'name_asc' } = params;
 
       try {
         await fetchProductsAdminPaginated({

@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Users } from 'lucide-react';
+import { Users, Trash2 } from 'lucide-react';
 import axios from '../../lib/axios';
 import { toast } from 'react-hot-toast';
 import { useUserStore } from '../../stores/useUserStore';
@@ -40,7 +40,10 @@ const UsersTab = () => {
 		fetchUsers,
 		handleDeleteUser,
 		handleUpdateRole,
+		handleBulkDeleteUsers,
 	} = useUsersData();
+
+	const [selectedUserIds, setSelectedUserIds] = useState([]);
 
 	const { auditLogs, logsLoading, logsPagination, setLogsPagination, fetchAuditLogs } = useAuditLogs();
 
@@ -78,6 +81,7 @@ const UsersTab = () => {
 	// Fetch users when page, role filter, or search changes
 	useEffect(() => {
 		fetchUsers(pagination.currentPage, roleFilter, search);
+		setSelectedUserIds([]);
 	}, [pagination.currentPage, roleFilter, search, fetchUsers]);
 
 	// Fetch audit logs when page changes
@@ -131,6 +135,50 @@ const UsersTab = () => {
 		if (success) {
 			closeMenu();
 		}
+	};
+
+	const handleToggleSelectUser = (userId) => {
+		setSelectedUserIds((prev) =>
+			prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+		);
+	};
+
+	const handleToggleSelectAll = (activeUsers) => {
+		const activeIds = activeUsers.map((u) => u._id);
+		const allSelectedOnPage = activeIds.every((id) => selectedUserIds.includes(id));
+
+		if (allSelectedOnPage) {
+			setSelectedUserIds((prev) => prev.filter((id) => !activeIds.includes(id)));
+		} else {
+			setSelectedUserIds((prev) => {
+				const newSelection = [...prev];
+				activeIds.forEach((id) => {
+					if (!newSelection.includes(id)) {
+						newSelection.push(id);
+					}
+				});
+				return newSelection;
+			});
+		}
+	};
+
+	/**
+	 * Handle bulk delete users with confirmation
+	 */
+	const handleBulkDeleteClick = () => {
+		if (selectedUserIds.length === 0) return;
+		setConfirmConfig({
+			title: `Xóa ${selectedUserIds.length} tài khoản`,
+			message: `Bạn có chắc chắn muốn xóa vĩnh viễn ${selectedUserIds.length} tài khoản đã chọn? Thao tác này KHÔNG thể hoàn tác!`,
+			variant: 'danger',
+			confirmLabel: 'Xóa tất cả',
+			onConfirm: async () => {
+				const success = await handleBulkDeleteUsers(selectedUserIds);
+				if (success) {
+					setSelectedUserIds([]);
+				}
+			},
+		});
 	};
 
 	/**
@@ -208,9 +256,18 @@ const UsersTab = () => {
 								<h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
 									<Users className="w-4 h-4 text-luxury-gold" /> Danh sách người dùng
 								</h2>
-								<span className="text-[10px] text-gray-500 dark:text-luxury-text-muted">
-									TRANG {pagination.currentPage} / {pagination.totalPages}
-								</span>
+								{selectedUserIds.length > 0 ? (
+									<button
+										onClick={handleBulkDeleteClick}
+										className="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 text-xs font-bold transition duration-200 flex items-center gap-1.5"
+									>
+										<Trash2 className="w-3.5 h-3.5" /> Xóa {selectedUserIds.length} mục đã chọn
+									</button>
+								) : (
+									<span className="text-[10px] text-gray-500 dark:text-luxury-text-muted">
+										TRANG {pagination.currentPage} / {pagination.totalPages}
+									</span>
+								)}
 							</div>
 
 							<UsersTable
@@ -224,6 +281,9 @@ const UsersTab = () => {
 								onUpdateRole={handleUpdateRoleClick}
 								getSegmentBadge={getSegmentBadge}
 								menuRef={menuRef}
+								selectedUserIds={selectedUserIds}
+								onToggleSelectUser={handleToggleSelectUser}
+								onToggleSelectAll={handleToggleSelectAll}
 							/>
 
 							{/* Pagination Controls */}

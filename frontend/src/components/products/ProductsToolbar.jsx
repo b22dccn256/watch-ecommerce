@@ -66,7 +66,7 @@ const ProductsToolbar = ({
 							className="flex items-center gap-1.5 px-3 py-2 bg-purple-600/20 border border-purple-500/50 text-purple-400 rounded-lg text-sm font-bold hover:bg-purple-600 hover:text-white transition"
 						>
 							<Megaphone className="w-3.5 h-3.5" />
-							Áp dụng chiến dịch ({selectedCount})
+							Mở Marketing ({selectedCount})
 						</button>
 					</>
 				)}

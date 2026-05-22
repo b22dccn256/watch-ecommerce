@@ -64,7 +64,12 @@ const VerifyEmailPage = () => {
 					localStorage.removeItem("pendingVerifyEmail");
 					toast.success("Xác minh tài khoản thành công!");
 				}
-				await useUserStore.getState().checkAuth();
+				const currentUser = useUserStore.getState().user;
+				if (currentUser) {
+					useUserStore.setState({
+						user: { ...currentUser, emailVerified: true }
+					});
+				}
 			})
 			.catch((error) => {
 				setStatus("error");

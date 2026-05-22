@@ -10,8 +10,6 @@ import {
     getMyOrders,
     cancelOrder,
     createCODOrder,
-    createQROrder,
-    confirmQRPayment,
     getOrderTracking,
     lookupOrder
 } from "../controllers/order.controller.js"; // Import controller
@@ -51,11 +49,5 @@ router.get("/:id", protectRoute, getOrderById);
 
 // COD route with validation
 router.post("/cod", optionalRoute, validateBody(orderSchemas.nonStripeOrder), createCODOrder);
-
-// QR Route with validation
-router.post("/qr", optionalRoute, validateBody(orderSchemas.nonStripeOrder), createQROrder);
-
-// User tự xác nhận đã chuyển khoản QR
-router.post("/:id/confirm-qr-payment", protectRoute, confirmQRPayment);
 
 export default router;

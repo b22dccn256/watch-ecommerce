@@ -1,6 +1,15 @@
 import { CheckSquare, Square, Package, Star, Pencil, Trash } from "lucide-react";
 import { SkeletonTableRow } from "../SkeletonLoaders";
 
+const machineLabels = {
+	mechanical: "Cơ lên cót",
+	quartz: "Bộ máy pin",
+	automatic: "Cơ tự động",
+	solar: "Năng lượng ánh sáng",
+	digital: "Điện tử",
+	smartwatch: "Đồng hồ thông minh",
+};
+
 // Stock badge helper
 const StockBadge = ({ stock }) => {
 	if (stock === undefined || stock === null) return <span className="text-gray-400 text-xs">—</span>;
@@ -81,7 +90,7 @@ const ProductsTable = ({
 											/>
 											<div className="max-w-[150px]">
 												<p className="text-[13px] font-semibold text-gray-900 dark:text-white truncate" title={product.name}>{product.name}</p>
-												<p className="text-[9px] text-gray-400 mt-0.5 truncate">{product.category}</p>
+												<p className="text-[9px] text-gray-400 mt-0.5 truncate">{product.categoryId?.name || product.category || '—'}</p>
 											</div>
 										</div>
 									</td>
@@ -92,7 +101,7 @@ const ProductsTable = ({
 									<td className="px-3 py-2 whitespace-nowrap">
 										{product.type ? (
 											<span className="px-1.5 py-0.5 bg-luxury-gold/10 text-luxury-gold text-[9px] font-semibold rounded-full border border-luxury-gold/20">
-												{product.type}
+												{machineLabels[product.type] || product.type}
 											</span>
 										) : <span className="text-gray-400 text-[11px]">—</span>}
 									</td>
@@ -100,9 +109,16 @@ const ProductsTable = ({
 										<StockBadge stock={product.stock} />
 									</td>
 									<td className="px-3 py-2 whitespace-nowrap">
-										<span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-[9px] font-medium text-gray-600 dark:text-gray-300 max-w-[110px] truncate inline-block" title={product.category}>
-											{product.category}
-										</span>
+										{(() => {
+											const parentCategoryName = product.categoryId?.parentCategory?.name;
+											const currentCategoryName = product.categoryId?.name || product.category || product.categoryName || '—';
+											const categoryName = parentCategoryName ? `${parentCategoryName} > ${currentCategoryName}` : currentCategoryName;
+											return (
+												<span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-[9px] font-medium text-gray-600 dark:text-gray-300 max-w-[170px] truncate inline-block" title={categoryName}>
+												{categoryName}
+											</span>
+											);
+										})()}
 									</td>
 									<td className="px-3 py-2 whitespace-nowrap">
 										<button

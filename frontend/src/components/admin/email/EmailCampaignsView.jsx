@@ -70,7 +70,7 @@ const EmailCampaignsView = ({ campaigns }) => {
 		{/* Stats Detail Modal */}
 		{statsModal && (
 			<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setStatsModal(null)}>
-				<div className="bg-white dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border rounded-2xl w-full max-w-sm p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+				<div className="bg-white dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto custom-scrollbar p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
 					<div className="flex items-center justify-between mb-4">
 						<h3 className="font-bold text-lg text-primary">{statsModal.title}</h3>
 						<button onClick={() => setStatsModal(null)} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10">

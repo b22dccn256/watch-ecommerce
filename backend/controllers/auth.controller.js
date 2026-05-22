@@ -219,6 +219,28 @@ export const deleteUser = async (req, res) => {
 	}
 };
 
+export const bulkDeleteUsers = async (req, res) => {
+	try {
+		const { ids } = req.body;
+		if (!ids || !Array.isArray(ids)) {
+			return res.status(400).json({ message: "Mảng danh sách ID không hợp lệ" });
+		}
+
+		// Lọc bỏ ID của chính admin đang thực hiện thao tác
+		const filteredIds = ids.filter(id => id !== req.user._id.toString());
+
+		if (filteredIds.length === 0) {
+			return res.status(400).json({ message: "Không thể tự xóa chính mình" });
+		}
+
+		await User.deleteMany({ _id: { $in: filteredIds } });
+
+		return res.json({ message: `Đã xóa ${filteredIds.length} tài khoản thành công` });
+	} catch (error) {
+		return res.status(500).json({ message: error.message });
+	}
+};
+
 export const updateUserRole = async (req, res) => {
 	try {
 		const { role } = req.body;

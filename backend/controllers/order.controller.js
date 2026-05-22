@@ -296,59 +296,6 @@ export const getMyOrders = async (req, res) => {
 
 // Refactored: Call OrderService
 export const createCODOrder = (req, res) => OrderService.createNonStripeOrder(req, res, "cod");
-export const createQROrder  = (req, res) => OrderService.createNonStripeOrder(req, res, "qr");
-
-export const confirmQRPayment = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ message: "ID đơn hàng không hợp lệ" });
-        }
-
-        const order = await Order.findById(id);
-        if (!order) {
-            return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
-        }
-
-        if (!order.user) {
-            return res.status(403).json({ message: "Không thể xác nhận thanh toán cho đơn hàng khách vãng lai" });
-        }
-
-        if (order.user.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ message: "Bạn không có quyền thực hiện thao tác này" });
-        }
-
-        if (order.paymentMethod !== "qr") {
-            return res.status(400).json({ message: "Chỉ áp dụng cho đơn hàng thanh toán QR" });
-        }
-
-        if (order.paymentStatus === "paid") {
-            return res.status(400).json({ message: "Đơn hàng này đã được thanh toán trước đó" });
-        }
-
-        if (order.status === "awaiting_verification") {
-            return res.status(400).json({ message: "Đơn hàng đã được gửi xác nhận, vui lòng đợi admin kiểm tra" });
-        }
-
-        order.status = "awaiting_verification";
-        order.trackingEvents.push({
-            status: "awaiting_verification",
-            message: "Khách hàng xác nhận đã chuyển khoản. Đang chờ nhân viên kiểm tra.",
-            timestamp: new Date()
-        });
-        await order.save();
-
-        res.json({
-            success: true,
-            message: "Xác nhận thành công! Đơn hàng đang chờ kiểm tra thanh toán từ phía chúng tôi.",
-            orderId: order._id,
-        });
-    } catch (error) {
-        console.error("Error in confirmQRPayment:", error.message);
-        res.status(500).json({ message: "Server error", error: error.message });
-    }
-};
 
 export const getOrderTracking = async (req, res) => {
     try {

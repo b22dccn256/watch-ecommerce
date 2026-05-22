@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
 import LoadingSpinner from "./LoadingSpinner";
+import { buildProductPath } from "../utils/productUrl";
 
 const PeopleAlsoBought = () => {
 	const [recommendations, setRecommendations] = useState([]);
@@ -32,7 +33,7 @@ const PeopleAlsoBought = () => {
 				{recommendations.map((product) => (
 					<Link
 						key={product._id}
-						to={`/product/${product._id}`}
+						to={buildProductPath(product) || "#"}
 						className='group rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 hover:shadow-lg hover:-translate-y-0.5 transition-all'
 					>
 						<div className='aspect-[4/3] bg-gray-100 dark:bg-black overflow-hidden'>

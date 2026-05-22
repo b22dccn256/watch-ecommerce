@@ -105,10 +105,10 @@ export const orderSchemas = {
 			country: Joi.string().required(),
 		}).required(),
 		phoneNumber: Joi.string().pattern(/^[0-9+\-\s()]+$/).required(),
-		paymentMethod: Joi.string().valid("credit_card", "debit_card", "paypal", "vnpay", "momo", "zalopay").required(),
+		paymentMethod: Joi.string().valid("cod", "stripe", "vnpay").required(),
 	}).unknown(false),
 
-	// Non-Stripe order schema (used by createNonStripeOrder - cod/qr)
+		// Non-Stripe order schema (used by createNonStripeOrder - cod)
 	nonStripeOrder: Joi.object({
 		products: Joi.array().items(
 			Joi.object({
@@ -178,8 +178,11 @@ export const validateBody = (schema) => {
 				return acc;
 			}, {});
 
+			// If there's a single validation error, surface its message as the top-level message
+			const topMessage = error.details.length === 1 ? error.details[0].message : "Validation failed";
+
 			return res.status(400).json({
-				message: "Validation failed",
+				message: topMessage,
 				errors,
 			});
 		}

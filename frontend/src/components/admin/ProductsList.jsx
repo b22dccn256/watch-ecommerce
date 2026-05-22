@@ -26,7 +26,7 @@ import ProductsTable from "../products/ProductsTable";
 import ProductsPagination from "../products/ProductsPagination";
 import CampaignPickerModal from "../products/CampaignPickerModal";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 
 const ProductsList = () => {
 	// ============ NEW: Use custom hooks for cleaner state management ============
@@ -273,7 +273,7 @@ const ProductsList = () => {
 			</Modal>
 
 			{/* Edit Product Modal */}
-			{isEditOpen() && (
+			{isEditOpen && (
 				<Modal name="editProduct" title="Chỉnh Sửa Sản Phẩm" size="3xl">
 					<EditProductForm
 						product={getEditingProduct()}

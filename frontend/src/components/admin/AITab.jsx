@@ -79,7 +79,7 @@ const AITab = () => {
 					<div className="space-y-2">
 						<h3 className="text-xl font-bold text-gray-900 dark:text-white uppercase tracking-wider">Xác Nhận Đơn Thông Minh</h3>
 						<p className="text-sm text-gray-500 dark:text-luxury-text-muted leading-relaxed">
-							AI phân tích dữ liệu khách hàng, lịch sử mua hàng và thông tin vận chuyển để tự động phê duyệt các đơn COD hợp lệ.
+							AI phân tích dữ liệu khách hàng, lịch sử mua hàng và thông tin vận chuyển để tự động <strong>chuyển trạng thái đơn COD từ "Chờ xác nhận" → "Đã xác nhận"</strong> (không phải hoàn thành đơn). Các đơn nghi ngờ spam sẽ bị hủy tự động.
 						</p>
 					</div>
 

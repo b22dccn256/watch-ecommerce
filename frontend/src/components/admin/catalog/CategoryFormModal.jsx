@@ -53,6 +53,7 @@ const CategoryFormModal = ({
                   })
                 }
                 className="w-full border rounded-lg px-4 py-2 text-sm"
+                placeholder="VD: Dress Watches"
               />
             </div>
             <div>

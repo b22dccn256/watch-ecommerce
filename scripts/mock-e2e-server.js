@@ -171,6 +171,12 @@ const state = {
     heroSlogan: "Luxury watches for every occasion",
     heroTitle: "Luxury Watch",
     heroSubtitle: "Mock storefront config",
+    logoText: "LUXURY WATCH GALLERY",
+    footerHotline: "1900 6789",
+    footerEmail: "contact@luxurywatch.vn",
+    footerAddress: "Số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội",
+    footerAboutText: "Luxury Watch Gallery tự hào là hệ thống phân phối đồng hồ cao cấp chính hãng hàng đầu Việt Nam, với hơn 20 năm kinh nghiệm.",
+    footerCopyright: "© {year} Luxury Watch Gallery. Tất cả quyền được bảo lưu.",
     updatedAt: nowIso(),
   },
 };
@@ -219,8 +225,23 @@ const ensureAuth = (req, res, next) => {
 
 const ensureAdmin = (req, res, next) => {
   const user = getCurrentUser(req);
-  if (!user || user.role !== "admin") {
+  if (!user) {
     return res.status(401).json({ message: "Unauthorized" });
+  }
+  if (user.role !== "admin") {
+    return res.status(403).json({ message: "Access denied - Bạn không có quyền thực hiện hành động này" });
+  }
+  req.user = user;
+  next();
+};
+
+const ensureManagement = (req, res, next) => {
+  const user = getCurrentUser(req);
+  if (!user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  if (!["admin", "staff"].includes(user.role)) {
+    return res.status(403).json({ message: "Access denied - Bạn không có quyền thực hiện hành động này" });
   }
   req.user = user;
   next();
@@ -308,11 +329,21 @@ app.patch("/api/auth/profile", ensureAuth, (req, res) => {
 });
 
 app.patch("/api/auth/change-password", ensureAuth, (req, res) => {
-  req.user.password = req.body.newPassword || req.user.password;
-  res.json({ message: "Password changed successfully!" });
+  const { currentPassword, newPassword, confirmPassword } = req.body || {};
+
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ message: "Mật khẩu xác nhận không khớp" });
+  }
+
+  if (req.user.password !== currentPassword) {
+    return res.status(401).json({ message: "Mật khẩu hiện tại không chính xác" });
+  }
+
+  req.user.password = newPassword || req.user.password;
+  return res.json({ message: "Mật khẩu đã được thay đổi thành công" });
 });
 
-app.get("/api/auth/users", ensureAdmin, (req, res) => {
+app.get("/api/auth/users", ensureManagement, (req, res) => {
   const limit = Number(req.query.limit || state.users.length);
   const users = state.users.slice(0, limit).map((user) => ({ ...user, password: undefined }));
   res.json({ users, pagination: { totalUsers: state.users.length } });
@@ -491,12 +522,19 @@ app.get("/api/products", (req, res) => {
 });
 
 app.post("/api/products", ensureAdmin, (req, res) => {
+  const price = Number(req.body.price || 0);
+  const costPrice = req.body.costPrice !== undefined ? Number(req.body.costPrice) : undefined;
+  if (costPrice !== undefined && price < costPrice) {
+    return res.status(400).json({ message: "Giá bán lẻ không được nhỏ hơn giá nhập (giá vốn)" });
+  }
+
   const brand = state.brands.find((entry) => entry._id === req.body.brand) || state.brands[0];
   const category = state.categories.find((entry) => entry._id === req.body.categoryId) || state.categories[0];
   const product = makeProduct(brand, category, {
     name: req.body.name,
     description: req.body.description || "",
-    price: Number(req.body.price || 0),
+    price: price,
+    costPrice: costPrice,
     image: req.body.image || baseProduct.image,
     stock: Number(req.body.stock || 0),
     lowStockThreshold: Number(req.body.lowStockThreshold || 5),
@@ -731,8 +769,21 @@ app.patch("/api/orders/:id/details", ensureAdmin, (req, res) => {
 });
 
 app.post("/api/orders/cod", (req, res) => {
-  const { items, products, shippingDetails, totalAmount } = req.body;
+  const { items, products, shippingDetails } = req.body;
   const user = getCurrentUser(req);
+
+  // Check stock first to prevent overselling
+  const checkItems = items || products || [];
+  for (const item of checkItems) {
+    const prodId = typeof item.product === 'object' ? item.product._id : item.product;
+    const dbProduct = state.products.find(p => p._id === prodId);
+    if (dbProduct && (item.quantity || 1) > dbProduct.stock) {
+      return res.status(400).json({
+        message: `Sản phẩm ${dbProduct.name} chỉ còn ${dbProduct.stock} sản phẩm trong kho.`
+      });
+    }
+  }
+
   const orderItems = (items || products || []).map(item => {
     const prodId = typeof item.product === 'object' ? item.product._id : item.product;
     const dbProduct = state.products.find(p => p._id === prodId) || baseProduct;
@@ -742,6 +793,42 @@ app.post("/api/orders/cod", (req, res) => {
       price: item.price || dbProduct.price || 0,
     };
   });
+
+  // Calculate totals realistically to match backend business logic
+  let subtotal = 0;
+  for (const item of orderItems) {
+    let p = item.product;
+    let priceVal = p.price;
+    const activeCampaign = state.campaigns.find(c => c.isActive && c.isGlobal);
+    if (activeCampaign) {
+      priceVal = priceVal * (1 - activeCampaign.discountPercentage / 100);
+    }
+    subtotal += priceVal * item.quantity;
+  }
+
+  let discount = 0;
+  if (req.body.coupon) {
+    const cp = state.coupons.find(c => c.code?.toUpperCase() === req.body.coupon?.toUpperCase() && c.isActive);
+    if (cp) {
+      discount = subtotal * (cp.discountPercentage / 100);
+    }
+  }
+
+  let finalTotal = Math.max(0, subtotal - discount);
+  let shippingFee = 0;
+  if (orderItems.length > 0) {
+    if (finalTotal < 5000000) {
+      const city = (shippingDetails?.city || "").toLowerCase().trim();
+      const isBigCity = ["hà nội", "ha noi", "hanoi", "hn", "hồ chí minh", "ho chi minh", "hochiminh", "hcm", "tp.hcm", "tp hcm", "sài gòn", "sai gon"].includes(city);
+      shippingFee = isBigCity ? 30000 : 50000;
+    }
+  }
+
+  let calculatedTotal = finalTotal + shippingFee;
+  if (orderItems.length > 0) {
+    calculatedTotal = Math.max(10000, calculatedTotal);
+  }
+
   const order = {
     _id: nextId("order"),
     orderCode: `ORD${String(seq).padStart(4, "0")}`,
@@ -755,7 +842,7 @@ app.post("/api/orders/cod", (req, res) => {
       district: shippingDetails?.district || "",
       ward: shippingDetails?.ward || "",
     },
-    totalAmount: totalAmount || 0,
+    totalAmount: calculatedTotal,
     paymentMethod: "cod",
     paymentStatus: "unpaid",
     status: "pending",

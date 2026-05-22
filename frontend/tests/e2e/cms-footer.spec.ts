@@ -6,7 +6,7 @@
 import { test, expect } from '@playwright/test';
 import { createAuthenticatedPage } from './helpers/auth';
 
-const ADMIN = { email: 'admin@test.local.com', password: 'Admin123!@#' };
+const ADMIN = { email: 'ha8893536@gmail.com', password: 'admin123' };
 
 test.describe('CMS Footer — Admin → User', () => {
 
@@ -46,7 +46,8 @@ test.describe('CMS Footer — Admin → User', () => {
     }
     
     // Step 2: Open user page in a new context (no admin auth)
-    const userPage = await page.context().browser().newContext().newPage();
+    const userContext = await page.context().browser().newContext();
+    const userPage = await userContext.newPage();
     await userPage.goto('/');
     await userPage.waitForLoadState('networkidle');
     
@@ -60,7 +61,7 @@ test.describe('CMS Footer — Admin → User', () => {
     
     console.log('  ✅ Footer rendered on user page');
     
-    await userPage.close();
+    await userContext.close();
     await adminPage.close();
   });
 
@@ -94,7 +95,8 @@ test.describe('CMS Footer — Admin → User', () => {
     }
     
     // Verify on user page
-    const userPage = await page.context().browser().newContext().newPage();
+    const userContext = await page.context().browser().newContext();
+    const userPage = await userContext.newPage();
     await userPage.goto('/');
     await userPage.waitForLoadState('networkidle');
     await userPage.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
@@ -105,7 +107,7 @@ test.describe('CMS Footer — Admin → User', () => {
     
     console.log('  ✅ Footer contact info rendered');
     
-    await userPage.close();
+    await userContext.close();
     await adminPage.close();
   });
 

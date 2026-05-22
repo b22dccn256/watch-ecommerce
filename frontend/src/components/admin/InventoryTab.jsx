@@ -218,12 +218,12 @@ const InventoryTab = () => {
             {/* Adjust Modal */}
             <AnimatePresence>
             {showAdjustModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="bg-white dark:bg-luxury-darker rounded-2xl p-6 w-full max-w-md border border-gray-100 dark:border-luxury-border shadow-2xl"
+                        className="bg-white dark:bg-luxury-darker rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto border border-gray-100 dark:border-luxury-border shadow-2xl custom-scrollbar"
                     >
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-xl font-bold dark:text-luxury-gold flex items-center gap-2">

@@ -20,6 +20,7 @@ const campaignSchema = new mongoose.Schema(
             enum: [
                 "Đồng hồ Nam", 
                 "Đồng hồ Nữ", 
+                "Đồng hồ Unisex",
                 "Đồng hồ Đôi", 
                 "Phụ kiện", 
                 "Cơ Tự Động (Automatic)", 

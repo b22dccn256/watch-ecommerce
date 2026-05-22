@@ -79,6 +79,27 @@ export const useEmailTabData = () => {
     });
   };
 
+  const handleMarkMessageRead = async (id) => {
+    if (!id) return;
+
+    const previousStatus = data.messages.find((m) => m._id === id)?.status || 'new';
+    setData((prev) => ({
+      ...prev,
+      messages: prev.messages.map((m) => (m._id === id ? { ...m, status: 'read' } : m)),
+    }));
+
+    try {
+      await axios.patch(`/mail/inbox/${id}/read`);
+      toast.success('Đã đánh dấu đã đọc');
+    } catch {
+      setData((prev) => ({
+        ...prev,
+        messages: prev.messages.map((m) => (m._id === id ? { ...m, status: previousStatus } : m)),
+      }));
+      toast.error('Không thể cập nhật');
+    }
+  };
+
   const handleToggleAutomation = async (automationId) => {
     setAutomations((prev) =>
       prev.map((a) => (a.id === automationId ? { ...a, active: !a.active } : a))
@@ -101,6 +122,7 @@ export const useEmailTabData = () => {
     automations,
     fetchData,
     handleDeleteSubscriber,
+    handleMarkMessageRead,
     handleToggleAutomation,
   };
 };

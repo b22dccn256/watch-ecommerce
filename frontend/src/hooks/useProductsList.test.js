@@ -50,7 +50,7 @@ describe('useProductsList Hook', () => {
 
       expect(useProductStore.getState().fetchProductsAdminPaginated).toHaveBeenCalledWith({
         page: 2,
-        limit: 10,
+        limit: 20,
         search: 'watch',
         sort: 'name_asc',
       });

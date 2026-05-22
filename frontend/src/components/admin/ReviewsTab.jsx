@@ -221,7 +221,7 @@ const ReviewsTab = () => {
 					<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedReview(null)}>
 						<motion.div
 							initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-							className="w-full max-w-lg rounded-2xl border border-black/10 dark:border-white/10 bg-surface shadow-2xl p-6"
+							className="w-full max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar rounded-2xl border border-black/10 dark:border-white/10 bg-surface shadow-2xl p-6"
 							onClick={e => e.stopPropagation()}
 						>
 							<div className="flex justify-between items-center mb-5">
@@ -269,7 +269,7 @@ const ReviewsTab = () => {
 					<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedQuestion(null)}>
 						<motion.div
 							initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-							className="w-full max-w-lg rounded-2xl border border-black/10 dark:border-white/10 bg-surface shadow-2xl p-6"
+							className="w-full max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar rounded-2xl border border-black/10 dark:border-white/10 bg-surface shadow-2xl p-6"
 							onClick={e => e.stopPropagation()}
 						>
 							<div className="flex justify-between items-center mb-4">

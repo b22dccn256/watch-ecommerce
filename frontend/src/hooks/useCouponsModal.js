@@ -5,10 +5,12 @@ const MODAL_CREATE = 'createCoupon';
 export const useCouponsModal = () => {
   const openModal = useModalStore((s) => s.openModal);
   const closeModal = useModalStore((s) => s.closeModal);
-  const isOpen = useModalStore((s) => s.isOpen);
+  
+  // Correctly subscribe to the specific modal state so components re-render on change
+  const isCreateOpen = useModalStore((s) => s.isOpen(MODAL_CREATE));
 
   return {
-    isCreateOpen: isOpen(MODAL_CREATE),
+    isCreateOpen,
     openCreate: () => openModal(MODAL_CREATE),
     closeCreate: () => closeModal(MODAL_CREATE),
   };

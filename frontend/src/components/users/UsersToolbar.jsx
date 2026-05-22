@@ -18,7 +18,6 @@ const UsersToolbar = ({ search, onSearchChange, roleFilter, onRoleFilterChange }
 				<option value="">Tất cả vai trò</option>
 				<option value="customer">Khách hàng</option>
 				<option value="admin">Quản trị viên</option>
-				<option value="staff">Nhân viên</option>
 			</select>
 		</div>
 	);
