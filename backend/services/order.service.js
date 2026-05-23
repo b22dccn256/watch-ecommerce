@@ -165,6 +165,10 @@ class OrderService {
 
         try {
             const { products, couponCode, shippingDetails } = req.body;
+            const normalizedShippingDetails = {
+                ...shippingDetails,
+                email: req.user?.email || shippingDetails?.email || "",
+            };
 
             if (!products || !Array.isArray(products) || products.length === 0) {
                 await session.abortTransaction(); session.endSession();
@@ -176,8 +180,8 @@ class OrderService {
                     return res.status(400).json({ message: `Số lượng sản phẩm không hợp lệ: ${p.quantity}` });
                 }
             }
-            if (!shippingDetails?.fullName?.trim() || !shippingDetails?.address?.trim() ||
-                !shippingDetails?.city?.trim() || !shippingDetails?.phoneNumber?.trim()) {
+            if (!normalizedShippingDetails?.fullName?.trim() || !normalizedShippingDetails?.address?.trim() ||
+                !normalizedShippingDetails?.city?.trim() || !normalizedShippingDetails?.phoneNumber?.trim()) {
                 await session.abortTransaction(); session.endSession();
                 return res.status(400).json({ message: "Thiếu thông tin giao hàng bắt buộc." });
             }
@@ -195,8 +199,8 @@ class OrderService {
                 return res.status(403).json({ message: "Coupon này không dành cho bạn" });
             }
 
-            const totalAmount = await this.calculateTotalAmount(products, coupon, session, shippingDetails.city);
-            const { subtotal, discount, shippingFee } = await this.calculateTotals(products, coupon, shippingDetails.city, session);
+            const totalAmount = await this.calculateTotalAmount(products, coupon, session, normalizedShippingDetails.city);
+            const { subtotal, discount, shippingFee } = await this.calculateTotals(products, coupon, normalizedShippingDetails.city, session);
             const orderCode = this.generateOrderCode();
             const trackingToken = crypto.randomUUID();
 
@@ -220,7 +224,7 @@ class OrderService {
                 couponCode: couponCode || '',
                 orderCode,
                 trackingToken,
-                shippingDetails,
+                shippingDetails: normalizedShippingDetails,
                 paymentMethod,
                 paymentStatus: "pending",
                 status: "pending",
@@ -270,9 +274,9 @@ class OrderService {
             session.endSession();
 
             await emailQueue.add("order-confirmation", {
-                email: req.user?.email || shippingDetails.email,
+                email: req.user?.email || normalizedShippingDetails.email,
                 subject: `Xác nhận đơn hàng #${orderCode} - Luxury Watch`,
-                order: { orderCode, totalAmount, shippingDetails, paymentMethod }
+                order: { orderCode, totalAmount, shippingDetails: normalizedShippingDetails, paymentMethod }
             });
 
             const message = paymentMethod === "cod"

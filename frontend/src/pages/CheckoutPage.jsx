@@ -39,6 +39,10 @@ const CheckoutPage = () => {
     formData,
     errors,
     handleChange,
+    savedAddresses,
+    selectedAddressId,
+    setSelectedAddressId,
+    applyAddress,
     proceedToReview,
     validateForm,
   } = useCheckoutForm(user);
@@ -125,6 +129,11 @@ const CheckoutPage = () => {
               formData={formData}
               handleChange={handleChange}
               errors={errors}
+              savedAddresses={savedAddresses}
+              selectedAddressId={selectedAddressId}
+              setSelectedAddressId={setSelectedAddressId}
+              onSelectAddress={applyAddress}
+              userEmail={user?.email || ""}
             />
 
             {/* Payment Methods Component */}

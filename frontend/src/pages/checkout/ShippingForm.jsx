@@ -1,13 +1,55 @@
 import React from "react";
 import Input from "../../components/ui/Input";
 
-const ShippingForm = ({ formData, handleChange, errors }) => {
+const ShippingForm = ({
+  formData,
+  handleChange,
+  errors,
+  savedAddresses = [],
+  selectedAddressId,
+  setSelectedAddressId,
+  onSelectAddress,
+  userEmail,
+}) => {
+  const showAddressBook = savedAddresses.length > 0;
+
   return (
     <div className="rounded-[1.4rem] border border-black/10 bg-surface p-5 shadow-sm dark:border-white/10 sm:p-6">
       <div className="mb-5 flex items-center gap-2 text-sm font-semibold text-secondary">
         <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--color-gold)]/40 text-[color:var(--color-gold)]">1</span>
         Thông tin giao hàng
       </div>
+
+      {showAddressBook && (
+        <div className="mb-5 space-y-2 rounded-2xl border border-[color:var(--color-gold)]/20 bg-[color:var(--color-gold)]/5 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-primary">Chọn địa chỉ giao hàng</p>
+              <p className="text-xs text-muted">Lấy từ hồ sơ tài khoản, mặc định chọn địa chỉ đã đánh dấu.</p>
+            </div>
+            <select
+              value={selectedAddressId}
+              onChange={(event) => {
+                const value = event.target.value;
+                setSelectedAddressId(value);
+                if (value === "manual") {
+                  return;
+                }
+                const selected = savedAddresses.find((item) => item.id === value);
+                if (selected) onSelectAddress(selected);
+              }}
+              className="input-base h-11 min-w-[220px] rounded-xl"
+            >
+              <option value="manual">Nhập địa chỉ mới</option>
+              {savedAddresses.map((address) => (
+                <option key={address.id} value={address.id}>
+                  {address.label} - {address.address}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Input
@@ -33,7 +75,9 @@ const ShippingForm = ({ formData, handleChange, errors }) => {
           value={formData.email}
           onChange={handleChange}
           error={errors.email}
-          placeholder="nva@example.com"
+          placeholder={userEmail || "nva@example.com"}
+          disabled={Boolean(userEmail)}
+          hint={userEmail ? "Email lấy từ tài khoản đăng nhập" : undefined}
           containerClassName="sm:col-span-2"
         />
         <Input

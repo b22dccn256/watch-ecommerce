@@ -31,6 +31,10 @@ export const createCheckoutSession = async (req, res) => {
 	let sessionOpts = null;
 	try {
 		const { products, couponCode, shippingDetails, paymentMethod = "stripe" } = req.body;
+		const normalizedShippingDetails = {
+			...shippingDetails,
+			email: req.user?.email || shippingDetails?.email || "",
+		};
 
 		if (paymentMethod === "cod") {
 			return createCODOrder(req, res);
@@ -44,7 +48,8 @@ export const createCheckoutSession = async (req, res) => {
 			sessionOpts.endSession();
 			return res.status(400).json({ error: "Invalid or empty products array" });
 		}
-		if (!shippingDetails) {
+		if (!normalizedShippingDetails?.fullName?.trim() || !normalizedShippingDetails?.address?.trim() ||
+			!normalizedShippingDetails?.city?.trim() || !normalizedShippingDetails?.phoneNumber?.trim()) {
 			await sessionOpts.abortTransaction();
 			sessionOpts.endSession();
 			return res.status(400).json({ message: "Thiếu thông tin giao hàng." });
@@ -64,7 +69,7 @@ export const createCheckoutSession = async (req, res) => {
 				coupon = null;
 			}
 		}
-		const { subtotal, discount, shippingFee } = await OrderService.calculateTotals(products, coupon, shippingDetails?.city, sessionOpts);
+		const { subtotal, discount, shippingFee } = await OrderService.calculateTotals(products, coupon, normalizedShippingDetails?.city, sessionOpts);
 		let dbTotalAmount = subtotal - discount + shippingFee;
 
 		let totalAmount = 0;
@@ -120,7 +125,7 @@ export const createCheckoutSession = async (req, res) => {
 			couponCode: couponCode || '',
 			orderCode,
 			trackingToken: crypto.randomUUID(),
-			shippingDetails,
+			shippingDetails: normalizedShippingDetails,
 			paymentMethod: paymentMethod,
 			paymentStatus: "pending",
 			status: "pending"
@@ -158,7 +163,7 @@ export const createCheckoutSession = async (req, res) => {
 					: [],
 				metadata: {
 					userId: req.user ? req.user._id.toString() : "guest",
-					userEmail: req.user ? req.user.email : shippingDetails.email,
+					userEmail: req.user ? req.user.email : normalizedShippingDetails.email,
 					couponCode: couponCode || "",
 					orderId: newOrder._id.toString(),
 				},

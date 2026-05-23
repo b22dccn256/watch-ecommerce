@@ -6,8 +6,12 @@ import {
   EyeOff,
   Lock,
   LogOut,
+  MapPin,
   Package,
+  Plus,
   ShoppingBag,
+  Trash2,
+  Check,
   User as UserIcon,
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -22,6 +26,37 @@ const tabs = [
   { id: "orders", label: "Đơn hàng", icon: ShoppingBag },
   { id: "password", label: "Mật khẩu", icon: Lock },
 ];
+
+const createAddressDraft = (source = {}) => ({
+  id: source.id || `addr-${Date.now()}`,
+  label: source.label || "Địa chỉ mới",
+  fullName: source.fullName || "",
+  phone: source.phone || "",
+  address: source.address || "",
+  city: source.city || "",
+  isDefault: Boolean(source.isDefault),
+});
+
+const normalizeAddressBook = (book = []) => {
+  const list = (Array.isArray(book) ? book : [])
+    .map((item) => {
+      if (!item?.address || !item?.city) return null;
+      return createAddressDraft(item);
+    })
+    .filter(Boolean)
+    .slice(0, 5);
+
+  if (list.length === 0) return [];
+  const defaultIndex = list.findIndex((item) => item.isDefault);
+  if (defaultIndex > 0) {
+    const [defaultItem] = list.splice(defaultIndex, 1);
+    list.unshift({ ...defaultItem, isDefault: true });
+  }
+  if (!list.some((item) => item.isDefault)) {
+    list[0] = { ...list[0], isDefault: true };
+  }
+  return list;
+};
 
 const ProfilePage = () => {
   const { user, loading: userLoading, logout, updateProfile, changePassword } = useUserStore();
@@ -43,11 +78,25 @@ const ProfilePage = () => {
   const [profileErrors, setProfileErrors] = useState({});
 
   const [profileData, setProfileData] = useState({ name: "", phone: "", address: "", gender: "", birthday: "" });
+  const [addressBook, setAddressBook] = useState([]);
+  const [defaultAddressId, setDefaultAddressId] = useState("");
+  const [addressDraft, setAddressDraft] = useState(createAddressDraft());
   const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const [showPassword, setShowPassword] = useState({ old: false, next: false, confirm: false });
 
   useEffect(() => {
     if (!user) return;
+
+    const normalizedBook = normalizeAddressBook(user.addressBook || []);
+    const fallbackAddress = user.address ? createAddressDraft({
+      id: "legacy-default",
+      label: "Địa chỉ mặc định",
+      fullName: user.name || "",
+      phone: user.phone || "",
+      address: user.address || "",
+      city: "",
+      isDefault: true,
+    }) : null;
 
     setProfileData({
       name: user.name || "",
@@ -56,6 +105,21 @@ const ProfilePage = () => {
       gender: user.gender || "",
       birthday: user.birthday ? new Date(user.birthday).toISOString().split("T")[0] : "",
     });
+
+    if (normalizedBook.length > 0) {
+      setAddressBook(normalizedBook);
+      const primaryAddress = normalizedBook.find((item) => item.isDefault) || normalizedBook[0];
+      setDefaultAddressId(primaryAddress.id);
+      setAddressDraft(createAddressDraft(primaryAddress));
+    } else if (fallbackAddress) {
+      setAddressBook([fallbackAddress]);
+      setDefaultAddressId(fallbackAddress.id);
+      setAddressDraft(createAddressDraft(fallbackAddress));
+    } else {
+      setAddressBook([]);
+      setDefaultAddressId("");
+      setAddressDraft(createAddressDraft());
+    }
 
     fetchMyOrders();
   }, [fetchMyOrders, user]);
@@ -78,7 +142,73 @@ const ProfilePage = () => {
   const handleProfileSubmit = async (event) => {
     event.preventDefault();
     if (!validateProfile()) return;
-    await updateProfile(profileData);
+
+    const cleanedAddressBook = addressBook
+      .map((item) => ({
+        ...item,
+        label: item.label?.trim(),
+        fullName: item.fullName?.trim(),
+        phone: item.phone?.trim(),
+        address: item.address?.trim(),
+        city: item.city?.trim(),
+        isDefault: item.id === defaultAddressId,
+      }))
+      .filter((item) => item.label && item.address && item.city)
+      .slice(0, 5);
+
+    await updateProfile({
+      ...profileData,
+      address: profileData.address.trim(),
+      addressBook: cleanedAddressBook,
+      defaultAddressId,
+    });
+  };
+
+  const handleSaveAddressDraft = () => {
+    if (!addressDraft.label.trim() || !addressDraft.address.trim() || !addressDraft.city.trim()) {
+      setProfileErrors((prev) => ({
+        ...prev,
+        addressDraft: "Vui lòng nhập nhãn, địa chỉ và tỉnh/thành phố",
+      }));
+      return;
+    }
+
+    const nextAddress = createAddressDraft({
+      ...addressDraft,
+      isDefault: addressDraft.isDefault || addressBook.length === 0,
+    });
+
+    const nextBook = (() => {
+      const filtered = addressBook.filter((item) => item.id !== nextAddress.id);
+      if (nextAddress.isDefault) {
+        return [{ ...nextAddress, isDefault: true }, ...filtered.map((item) => ({ ...item, isDefault: false }))].slice(0, 5);
+      }
+      return [...filtered, nextAddress].slice(0, 5);
+    })();
+
+    const defaultItem = nextBook.find((item) => item.isDefault) || nextBook[0];
+    setAddressBook(nextBook);
+    setDefaultAddressId(defaultItem?.id || "");
+    setAddressDraft(createAddressDraft(defaultItem || nextAddress));
+    setProfileErrors((prev) => {
+      const next = { ...prev };
+      delete next.addressDraft;
+      return next;
+    });
+  };
+
+  const handleEditAddress = (address) => {
+    setAddressDraft(createAddressDraft(address));
+  };
+
+  const handleDeleteAddress = (id) => {
+    const nextBook = addressBook.filter((item) => item.id !== id);
+    const nextDefault = defaultAddressId === id ? nextBook[0]?.id || "" : defaultAddressId;
+    setAddressBook(nextBook);
+    setDefaultAddressId(nextDefault);
+    if (addressDraft.id === id) {
+      setAddressDraft(createAddressDraft(nextBook[0] || {}));
+    }
   };
 
   const handlePasswordSubmit = async (event) => {
@@ -254,6 +384,102 @@ const ProfilePage = () => {
                   <button type="submit" disabled={userLoading} className="btn-base btn-primary h-11 px-6">
                     {userLoading ? "Đang xử lý" : "Lưu thay đổi"}
                   </button>
+
+                  <div className="mt-8 space-y-5 rounded-[1.2rem] border border-black/10 bg-surface-soft p-4 dark:border-white/10">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h2 className="text-lg font-semibold text-primary">Địa chỉ giao hàng đã lưu</h2>
+                        <p className="text-sm text-secondary">Chọn một địa chỉ mặc định và thêm vài địa chỉ khác để dùng khi thanh toán.</p>
+                      </div>
+                      <div className="inline-flex items-center gap-2 text-sm text-[color:var(--color-gold)]">
+                        <MapPin className="h-4 w-4" />
+                        {addressBook.length}/5 địa chỉ
+                      </div>
+                    </div>
+
+                    {profileErrors.addressDraft && (
+                      <p className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-600 dark:border-red-500/30 dark:bg-red-500/10">
+                        {profileErrors.addressDraft}
+                      </p>
+                    )}
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Input
+                        label="Nhãn địa chỉ"
+                        value={addressDraft.label}
+                        onChange={(event) => setAddressDraft((prev) => ({ ...prev, label: event.target.value }))}
+                        placeholder="Nhà riêng, Công ty..."
+                      />
+                      <Input
+                        label="Người nhận"
+                        value={addressDraft.fullName}
+                        onChange={(event) => setAddressDraft((prev) => ({ ...prev, fullName: event.target.value }))}
+                        placeholder="Nguyễn Văn A"
+                      />
+                      <Input
+                        label="Số điện thoại"
+                        value={addressDraft.phone}
+                        onChange={(event) => setAddressDraft((prev) => ({ ...prev, phone: event.target.value }))}
+                        placeholder="0912345678"
+                      />
+                      <Input
+                        label="Tỉnh/Thành phố"
+                        value={addressDraft.city}
+                        onChange={(event) => setAddressDraft((prev) => ({ ...prev, city: event.target.value }))}
+                        placeholder="Hà Nội"
+                      />
+                      <Input
+                        label="Địa chỉ chi tiết"
+                        value={addressDraft.address}
+                        onChange={(event) => setAddressDraft((prev) => ({ ...prev, address: event.target.value }))}
+                        placeholder="Số nhà, đường, phường/xã"
+                        containerClassName="sm:col-span-2"
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setAddressDraft((prev) => ({ ...prev, isDefault: !prev.isDefault }))}
+                        className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition ${addressDraft.isDefault ? "border-[color:var(--color-gold)]/40 bg-[color:var(--color-gold)]/10 text-[color:var(--color-gold)]" : "border-black/10 bg-white text-secondary dark:border-white/10 dark:bg-black/20"}`}
+                      >
+                        <Check className="h-4 w-4" />
+                        {addressDraft.isDefault ? "Đang đặt làm mặc định" : "Đặt làm mặc định"}
+                      </button>
+                      <button type="button" onClick={handleSaveAddressDraft} className="btn-base btn-primary h-10 px-4">
+                        <Plus className="h-4 w-4" />
+                        Lưu địa chỉ
+                      </button>
+                    </div>
+
+                    <div className="grid gap-3">
+                      {addressBook.map((address) => (
+                        <div key={address.id} className={`rounded-2xl border p-4 ${address.id === defaultAddressId ? "border-[color:var(--color-gold)]/40 bg-[color:var(--color-gold)]/5" : "border-black/10 bg-white dark:border-white/10 dark:bg-black/10"}`}>
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold text-primary">{address.label}</p>
+                                {address.id === defaultAddressId && <span className="rounded-full bg-[color:var(--color-gold)]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[color:var(--color-gold)]">Mặc định</span>}
+                              </div>
+                              <p className="text-sm text-secondary">{address.fullName || user?.name} • {address.phone || user?.phone || "Chưa có SĐT"}</p>
+                              <p className="text-sm text-secondary">{address.address}{address.city ? `, ${address.city}` : ""}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button type="button" onClick={() => { setDefaultAddressId(address.id); setAddressBook((prev) => prev.map((item) => ({ ...item, isDefault: item.id === address.id }))); }} className="rounded-full border border-black/10 px-3 py-1.5 text-xs font-semibold text-secondary hover:border-[color:var(--color-gold)]/40 hover:text-[color:var(--color-gold)]">
+                                Đặt mặc định
+                              </button>
+                              <button type="button" onClick={() => handleEditAddress(address)} className="rounded-full border border-black/10 px-3 py-1.5 text-xs font-semibold text-secondary hover:border-[color:var(--color-gold)]/40 hover:text-[color:var(--color-gold)]">
+                                Sửa
+                              </button>
+                              <button type="button" onClick={() => handleDeleteAddress(address.id)} className="rounded-full border border-black/10 px-3 py-1.5 text-xs font-semibold text-secondary hover:border-red-300 hover:text-red-600">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </form>
               )}
 

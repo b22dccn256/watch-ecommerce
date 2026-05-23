@@ -70,6 +70,24 @@ const userSchema = new mongoose.Schema(
 			type: String,
 			default: "",
 		},
+		addressBook: {
+			type: [
+				{
+					id: { type: String, required: true },
+					label: { type: String, required: true },
+					fullName: { type: String, default: "" },
+					phone: { type: String, default: "" },
+					address: { type: String, required: true },
+					city: { type: String, required: true },
+					isDefault: { type: Boolean, default: false },
+				},
+			],
+			default: [],
+		},
+		defaultAddressId: {
+			type: String,
+			default: "",
+		},
 		gender: {
 			type: String,
 			enum: ["male", "female", "other"],

@@ -31,6 +31,26 @@ const validateName = (name) => {
 	return /^[\p{L}\s]{2,50}$/u.test(name) && name.length >= 2;
 };
 
+const normalizeAddressEntry = (entry) => {
+	if (!entry) return null;
+	const id = String(entry.id || crypto.randomUUID()).trim();
+	const label = String(entry.label || "").trim();
+	const fullName = String(entry.fullName || "").trim();
+	const phone = String(entry.phone || "").trim();
+	const address = String(entry.address || "").trim();
+	const city = String(entry.city || "").trim();
+	if (!label || !address || !city) return null;
+	return {
+		id,
+		label,
+		fullName,
+		phone,
+		address,
+		city,
+		isDefault: Boolean(entry.isDefault),
+	};
+};
+
 // ============================================================================
 // TOKEN MANAGEMENT
 // ============================================================================
@@ -403,7 +423,7 @@ export const getProfile = async (userId) => {
 };
 
 export const updateProfile = async (userId, updates) => {
-	const allowedUpdates = ["name", "phone", "avatar", "address", "preferences", "gender", "birthday"];
+	const allowedUpdates = ["name", "phone", "avatar", "address", "preferences", "gender", "birthday", "addressBook", "defaultAddressId"];
 	const updateData = {};
 
 	for (const key of allowedUpdates) {
@@ -412,11 +432,68 @@ export const updateProfile = async (userId, updates) => {
 		}
 	}
 
+	if (Array.isArray(updateData.addressBook)) {
+		const normalizedAddressBook = updateData.addressBook
+			.map(normalizeAddressEntry)
+			.filter(Boolean)
+			.slice(0, 5);
+
+		if (normalizedAddressBook.length === 0 && (updateData.address || "").trim()) {
+			normalizedAddressBook.push({
+				label: "Mặc định",
+				fullName: (updates.name || "").trim(),
+				phone: (updates.phone || "").trim(),
+				address: String(updateData.address).trim(),
+				city: String(updates.city || "").trim() || "",
+				isDefault: true,
+			});
+		}
+
+		const defaultIndex = normalizedAddressBook.findIndex((item) => item.isDefault);
+		if (defaultIndex > 0) {
+			const [defaultItem] = normalizedAddressBook.splice(defaultIndex, 1);
+			normalizedAddressBook.unshift({ ...defaultItem, isDefault: true });
+		}
+		if (normalizedAddressBook.length > 0 && defaultIndex === -1) {
+			normalizedAddressBook[0] = { ...normalizedAddressBook[0], isDefault: true };
+		}
+
+		updateData.addressBook = normalizedAddressBook;
+		if (!updateData.defaultAddressId || !normalizedAddressBook.some((item) => item.id === String(updateData.defaultAddressId))) {
+			updateData.defaultAddressId = normalizedAddressBook[0]?.id || "";
+		}
+	}
+
+	if (typeof updateData.address === "string") {
+		updateData.address = updateData.address.trim();
+	}
+
+	if (updateData.defaultAddressId && Array.isArray(updateData.addressBook)) {
+		const byId = String(updateData.defaultAddressId);
+		const byIndex = updateData.addressBook.findIndex((item) => item.id === byId);
+		if (byIndex >= 0) {
+			updateData.addressBook = updateData.addressBook.map((item, index) => ({
+				...item,
+				isDefault: index === byIndex,
+			}));
+			updateData.address = updateData.addressBook[byIndex].address;
+			updateData.defaultAddressId = byId;
+		}
+	}
+
+	if (Array.isArray(updateData.addressBook) && updateData.addressBook.length > 0) {
+		const defaultAddress = updateData.addressBook.find((item) => item.isDefault) || updateData.addressBook[0];
+		updateData.address = defaultAddress.address;
+		updateData.defaultAddressId = defaultAddress.id;
+	}
+
 	if (updateData.phone && !validatePhone(updateData.phone)) {
 		const error = new Error("Số điện thoại không hợp lệ");
 		error.statusCode = 400;
 		throw error;
 	}
+
+	delete updateData.email;
 
 	const user = await User.findByIdAndUpdate(userId, updateData, { new: true, runValidators: true });
 	if (!user) {
