@@ -1,4 +1,6 @@
 export const buildProductPath = (product) => {
-	if (!product?.slug || !product?.slugToken) return null;
-	return `/product/${product.slug}--${product.slugToken}`;
+	if (!product?.slug) return null;
+	const token = product.slugToken || product._id;
+	if (!token) return null;
+	return `/product/${product.slug}--${token}`;
 };

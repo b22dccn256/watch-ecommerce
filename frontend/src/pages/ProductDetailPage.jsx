@@ -18,7 +18,7 @@ import NotFoundPage from "./NotFoundPage";
 import { buildProductPath } from "../utils/productUrl";
 
 const ProductDetailPage = () => {
-  const { slug, token } = useParams();
+  const { slugToken, slug, token } = useParams();
   const navigate = useNavigate();
 
   const { currentProduct, fetchProductBySlug, loading, notFound } = useProductStore();
@@ -34,6 +34,14 @@ const ProductDetailPage = () => {
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedWristSize, setSelectedWristSize] = useState(null);
 
+  const routeSlugToken = slugToken || (slug && token ? `${slug}--${token}` : null);
+  const [routeSlug, routeToken] = useMemo(() => {
+    if (slug && token) return [slug, token];
+    if (!routeSlugToken || !routeSlugToken.includes("--")) return [null, null];
+    const [parsedSlug, parsedToken] = routeSlugToken.split("--");
+    return [parsedSlug || null, parsedToken || null];
+  }, [routeSlugToken, slug, token]);
+
   // Refs for scroll-to-section
   const promosRef = useRef(null);
 
@@ -42,7 +50,7 @@ const ProductDetailPage = () => {
   };
 
   useEffect(() => {
-    if (!currentProduct || !slug || !token) return;
+    if (!currentProduct || !routeSlug || !routeToken) return;
 
     const canonicalPath = buildProductPath(currentProduct);
     if (!canonicalPath) return;
@@ -97,22 +105,22 @@ const ProductDetailPage = () => {
       const link = document.head.querySelector(canonicalLinkSelector);
       if (link) link.remove();
     };
-  }, [currentProduct, slug, token]);
+  }, [currentProduct, routeSlug, routeToken]);
 
   useEffect(() => {
-    if (slug && token) {
-      fetchProductBySlug(slug, token);
+    if (routeSlug && routeToken) {
+      fetchProductBySlug(routeSlug, routeToken);
     }
     window.scrollTo(0, 0);
-  }, [fetchProductBySlug, slug, token]);
+  }, [fetchProductBySlug, routeSlug, routeToken]);
 
   useEffect(() => {
-    if (!currentProduct || !slug || !token) return;
+    if (!currentProduct || !routeSlug || !routeToken) return;
     const canonicalPath = buildProductPath(currentProduct);
-    if (canonicalPath && (currentProduct.slug !== slug || currentProduct.slugToken !== token)) {
+    if (canonicalPath && (currentProduct.slug !== routeSlug || currentProduct.slugToken !== routeToken)) {
       navigate(canonicalPath, { replace: true });
     }
-  }, [currentProduct, navigate, slug, token]);
+  }, [currentProduct, navigate, routeSlug, routeToken]);
 
   useEffect(() => {
     if (!currentProduct) return;

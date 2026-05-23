@@ -101,15 +101,20 @@ export const getProductBySlugToken = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    const product = await Product.findOne({ slugToken: token, deletedAt: null })
+    const tokenQuery = mongoose.Types.ObjectId.isValid(token)
+      ? { $or: [{ slugToken: token }, { _id: token }] }
+      : { slugToken: token };
+
+    const product = await Product.findOne({ ...tokenQuery, deletedAt: null })
       .populate('brand', 'name')
       .populate({ path: 'categoryId', select: 'name parentCategory', populate: { path: 'parentCategory', select: 'name' } });
 
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
     const canonicalSlug = product.slug || slug;
-    if (slug !== canonicalSlug) {
-      return res.redirect(301, `/api/products/${canonicalSlug}--${product.slugToken}`);
+    const canonicalToken = product.slugToken || product._id.toString();
+    if (slug !== canonicalSlug || token !== canonicalToken) {
+      return res.redirect(301, `/api/products/${canonicalSlug}--${canonicalToken}`);
     }
 
     const processed = await CampaignService.applyCampaignToProducts(product);

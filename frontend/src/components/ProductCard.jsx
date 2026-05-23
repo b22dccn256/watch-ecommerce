@@ -83,14 +83,14 @@ const ProductCard = ({ product }) => {
       <motion.article
         whileHover={{ y: -4 }}
         transition={{ type: "spring", stiffness: 240, damping: 28 }}
-        className="group relative cursor-pointer"
+        onClick={openDetail}
+        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), openDetail())}
+        role="link"
+        tabIndex={0}
+        className="group relative cursor-pointer outline-none"
       >
         {/* ── Image Block ── */}
         <div
-          role="button"
-          tabIndex={0}
-          onClick={openDetail}
-          onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), openDetail())}
           className="relative aspect-[4/5] overflow-hidden rounded-xl bg-[color:var(--color-surface-2)]"
         >
           {/* Product image */}
@@ -190,7 +190,6 @@ const ProductCard = ({ product }) => {
 
           {/* Product name */}
           <h3
-            onClick={openDetail}
             className="font-display text-[0.95rem] leading-snug text-primary line-clamp-2 transition-colors duration-200 hover:text-[color:var(--color-gold)]"
           >
             {displayName}
