@@ -1,18 +1,20 @@
 // routes/order.route.js
 import express from "express";
-import { protectRoute, adminRoute, managementRoute } from "../middleware/auth.middleware.js";
+import { protectRoute, managementRoute, optionalRoute } from "../middleware/auth.middleware.js";
 import {
     getAllOrders,
+    exportOrders,
     updateOrderStatus,
     updateOrderDetails,
     getOrderById,
     getMyOrders,
+    cancelOrder,
     createCODOrder,
-    createQROrder,
-    confirmQRPayment,
     getOrderTracking,
     lookupOrder
 } from "../controllers/order.controller.js"; // Import controller
+import { requestReturnOrder } from "../controllers/order.controller.js";
+import { validateBody, orderSchemas } from "../middleware/validation.middleware.js";
 
 const router = express.Router();
 
@@ -20,28 +22,32 @@ const router = express.Router();
 router.get("/track/:trackingToken", getOrderTracking);
 router.post("/lookup", lookupOrder);
 
-// Route cho admin/staff: Lấy tất cả đơn hàng
+// Route cho admin: Lấy tất cả đơn hàng (thống kê doanh thu, lọc theo status)
 router.get("/", protectRoute, managementRoute, getAllOrders);
 
-// Route cho admin/staff: Cập nhật status đơn hàng
+// Admin export orders (CSV)
+router.get("/export", protectRoute, managementRoute, exportOrders);
+
+// Route cho admin: Cập nhật status đơn hàng (ví dụ: từ paid → shipped)
 router.patch("/:id/status", protectRoute, managementRoute, updateOrderStatus);
 
-// Route cho admin/staff: Cập nhật chi tiết đơn hàng
+// Route cho admin: Cập nhật chi tiết đơn hàng (ghi chú, carrier, refund, etc.)
 router.patch("/:id/details", protectRoute, managementRoute, updateOrderDetails);
 
 // Route cho user: Xem đơn hàng của mình (phải đặt TRƯỚC /:id)
 router.get("/my-orders", protectRoute, getMyOrders);
 
+
+// User yêu cầu trả hàng (sau khi đã giao)
+router.patch("/:id/request-return", protectRoute, requestReturnOrder);
+
+// User hủy đơn hàng khi còn hợp lệ
+router.patch("/:id/cancel", protectRoute, cancelOrder);
+
 // Route cho user/admin: Xem chi tiết 1 đơn hàng (kiểm tra thanh toán)
 router.get("/:id", protectRoute, getOrderById);
 
-// COD route
-router.post("/cod", protectRoute, createCODOrder);
-
-// QR Route
-router.post("/qr", protectRoute, createQROrder);
-
-// User tự xác nhận đã chuyển khoản QR
-router.post("/:id/confirm-qr-payment", protectRoute, confirmQRPayment);
+// COD route with validation
+router.post("/cod", optionalRoute, validateBody(orderSchemas.nonStripeOrder), createCODOrder);
 
 export default router;

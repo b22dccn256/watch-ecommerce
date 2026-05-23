@@ -1,6 +1,6 @@
 import { useState } from "react";
 import PolicyPageLayout from "../components/PolicyPageLayout";
-import { Mail, Phone, MapPin, Send, MessageSquare } from "lucide-react";
+import { Mail, Phone, MapPin, Send } from "lucide-react";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
 
@@ -39,9 +39,10 @@ const ContactPage = () => {
 		>
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
 				{/* Contact Form */}
-				<div className="space-y-8">
+				<div className="space-y-8 rounded-[2rem] border border-black/5 dark:border-white/5 bg-white/85 dark:bg-white/5 p-6 md:p-8 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.35)]">
 					<div className="space-y-4">
-						<h2 className="text-2xl font-bold">Gửi lời nhắn cho chúng tôi</h2>
+						<p className="hero-kicker text-xs font-semibold text-luxury-gold">Concierge</p>
+						<h2 className="hero-title text-2xl font-bold text-gray-900 dark:text-white">Gửi lời nhắn cho chúng tôi</h2>
 						<p className="text-luxury-text-muted text-sm leading-relaxed">
 							Chúng tôi luôn sẵn lòng lắng nghe và giải đáp mọi thắc mắc của quý khách. Phản hồi sẽ được gửi qua email của bạn trong vòng 24 giờ làm việc.
 						</p>
@@ -65,7 +66,7 @@ const ContactPage = () => {
 									required
 									value={formData.name}
 									onChange={(e) => setFormData({...formData, name: e.target.value})}
-									className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-luxury-border rounded-xl px-4 py-3 text-sm focus:border-luxury-gold outline-none transition"
+									className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-luxury-border rounded-2xl px-4 py-3 text-sm focus:border-luxury-gold outline-none transition"
 									placeholder="Nguyễn Văn A"
 								/>
 							</div>
@@ -76,7 +77,7 @@ const ContactPage = () => {
 									required
 									value={formData.email}
 									onChange={(e) => setFormData({...formData, email: e.target.value})}
-									className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-luxury-border rounded-xl px-4 py-3 text-sm focus:border-luxury-gold outline-none transition"
+									className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-luxury-border rounded-2xl px-4 py-3 text-sm focus:border-luxury-gold outline-none transition"
 									placeholder="example@gmail.com"
 								/>
 							</div>
@@ -87,7 +88,7 @@ const ContactPage = () => {
 							<select
 								value={formData.subject}
 								onChange={(e) => setFormData({...formData, subject: e.target.value})}
-								className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-luxury-border rounded-xl px-4 py-3 text-sm focus:border-luxury-gold outline-none transition"
+								className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-luxury-border rounded-2xl px-4 py-3 text-sm focus:border-luxury-gold outline-none transition"
 							>
 								<option value="">Chọn chủ đề...</option>
 								<option value="Tư vấn sản phẩm">Tư vấn sản phẩm</option>
@@ -104,7 +105,7 @@ const ContactPage = () => {
 								rows={5}
 								value={formData.message}
 								onChange={(e) => setFormData({...formData, message: e.target.value})}
-								className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-luxury-border rounded-xl px-4 py-3 text-sm focus:border-luxury-gold outline-none transition resize-none"
+								className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-luxury-border rounded-2xl px-4 py-3 text-sm focus:border-luxury-gold outline-none transition resize-none"
 								placeholder="Bạn cần chúng tôi hỗ trợ điều gì?"
 							></textarea>
 						</div>
@@ -112,7 +113,7 @@ const ContactPage = () => {
 						<button
 							type="submit"
 							disabled={loading}
-							className="w-full bg-luxury-gold text-luxury-dark font-bold py-4 rounded-xl hover:bg-white hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-xl disabled:opacity-50"
+							className="w-full bg-luxury-gold text-luxury-dark font-bold py-4 rounded-2xl hover:bg-white hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-xl disabled:opacity-50"
 						>
 							{loading ? "ĐANG GỬI..." : (
 								<>
@@ -127,7 +128,8 @@ const ContactPage = () => {
 				{/* Contact Information */}
 				<div className="space-y-12 lg:pl-10">
 					<div className="space-y-8">
-						<h2 className="text-2xl font-bold">Thông tin liên lạc</h2>
+						<p className="hero-kicker text-xs font-semibold text-luxury-gold">Direct access</p>
+						<h2 className="hero-title text-2xl font-bold text-gray-900 dark:text-white">Thông tin liên lạc</h2>
 						
 						<div className="flex items-start gap-6 group">
 							<div className="bg-luxury-gold/10 p-4 rounded-2xl text-luxury-gold transition group-hover:bg-luxury-gold group-hover:text-luxury-dark">
@@ -163,7 +165,7 @@ const ContactPage = () => {
 						</div>
 					</div>
 
-					<div className="rounded-3xl overflow-hidden border border-luxury-border h-64 grayscale hover:grayscale-0 transition-all duration-700">
+					<div className="rounded-[2rem] overflow-hidden border border-luxury-border h-64 grayscale hover:grayscale-0 transition-all duration-700 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.4)]">
 						<iframe 
 							src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3408.0!2d106.70!3d10.77!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTDCsDQ2JzA3LjYiTiAxMDbCsDQyJzAwLjAiRQ!5e0!3m2!1svi!2s!4v1620000000000!5m2!1svi!2s" 
 							className="w-full h-full border-0" 

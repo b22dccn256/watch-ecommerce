@@ -34,3 +34,25 @@ AGENTS.md
 #imgs file
 *watch_images*
 *dongho_maxwatches_VIETNAMESE_FINAL_LOCAL_IMAGES.csv*
+
+# Test artifacts - should not be committed
+frontend/playwright-report/
+frontend/test-results/
+
+# Runtime log files - do not commit
+stripe-error.log
+# IDE - Antigravity
+.gemini/
+.antigravity/
+GEMINI.md
+.geminiignore
+
+# IDE - VS Code
+.vscode/
+
+# IDE - Cursor
+.cursor/
+.cursorrules
+
+# IDE - Codex
+.codex/

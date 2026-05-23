@@ -14,12 +14,11 @@ export default {
 					'gold-light': '#e8c547', // Light gold (hover)
 					'text-light': '#e8e8e8', // Light text
 					'text-muted': '#8b8b8b', // Muted gray
-					'accent': '#2e5f4a',    // Emerald accent
 				}
 			},
 			fontFamily: {
-				'luxury': ['Playfair Display', 'Georgia', 'serif'],
-				'sans': ['Poppins', 'Segoe UI', 'sans-serif'],
+				'luxury': ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+				'sans': ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
 			},
 			fontSize: {
 				'display': ['3rem', { lineHeight: '1.1', fontWeight: '700', letterSpacing: '-0.025em' }],
@@ -32,7 +31,7 @@ export default {
 				'wider-luxury': '0.2em',
 			},
 			spacing: {
-				'section': '5rem',
+				'section': '3.5rem',
 			},
 			backdropBlur: {
 				'xs': '2px',

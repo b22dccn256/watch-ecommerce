@@ -1,29 +1,63 @@
-import { create } from "zustand";
+import { createWithEqualityFn } from "zustand/traditional";
 import toast from "react-hot-toast";
 import axios from "../lib/axios";
 
-export const useCampaignStore = create((set) => ({
+const FETCH_TTL_MS = 60000;
+const fetchState = {
+    campaigns: { promise: null, lastFetched: 0 },
+    active: { promise: null, lastFetched: 0 },
+};
+
+export const useCampaignStore = createWithEqualityFn((set, get) => ({
     campaigns: [],
     loading: false,
 
-    fetchCampaigns: async () => {
-        set({ loading: true });
-        try {
-            const res = await axios.get("/campaigns");
-            set({ campaigns: res.data, loading: false });
-        } catch (error) {
-            set({ error: error.response?.data?.message || "Lỗi khi lấy danh sách chiến dịch", loading: false });
-            toast.error(error.response?.data?.message || "Lỗi khi lấy danh sách chiến dịch");
+    fetchCampaigns: async (force = false) => {
+        const now = Date.now();
+        if (!force && get().campaigns.length > 0 && now - fetchState.campaigns.lastFetched < FETCH_TTL_MS) {
+            return get().campaigns;
         }
+        if (fetchState.campaigns.promise) return fetchState.campaigns.promise;
+        set({ loading: true });
+        fetchState.campaigns.promise = axios
+            .get("/campaigns")
+            .then((res) => {
+                set({ campaigns: res.data, loading: false });
+                fetchState.campaigns.lastFetched = Date.now();
+                return res.data;
+            })
+            .catch((error) => {
+                set({ error: error.response?.data?.message || "Lỗi khi lấy danh sách chiến dịch", loading: false });
+                toast.error(error.response?.data?.message || "Lỗi khi lấy danh sách chiến dịch");
+                return get().campaigns;
+            })
+            .finally(() => {
+                fetchState.campaigns.promise = null;
+            });
+        return fetchState.campaigns.promise;
     },
 
-    fetchActiveCampaigns: async () => {
-        try {
-            const res = await axios.get("/campaigns/active");
-            set({ campaigns: res.data });
-        } catch (error) {
-            console.error("Lỗi khi lấy danh sách chiến dịch đang chạy:", error);
+    fetchActiveCampaigns: async (force = false) => {
+        const now = Date.now();
+        if (!force && get().campaigns.length > 0 && now - fetchState.active.lastFetched < FETCH_TTL_MS) {
+            return get().campaigns;
         }
+        if (fetchState.active.promise) return fetchState.active.promise;
+        fetchState.active.promise = axios
+            .get("/campaigns/active")
+            .then((res) => {
+                set({ campaigns: res.data });
+                fetchState.active.lastFetched = Date.now();
+                return res.data;
+            })
+            .catch((error) => {
+                console.error("Lỗi khi lấy danh sách chiến dịch đang chạy:", error);
+                return get().campaigns;
+            })
+            .finally(() => {
+                fetchState.active.promise = null;
+            });
+        return fetchState.active.promise;
     },
 
     createCampaign: async (campaignData) => {

@@ -1,10 +1,32 @@
 import mongoose from "mongoose";
+import { generateSlugToken, slugifyProductName } from "../lib/product-slug.js";
+
+const ensureUniqueSlug = async (model, baseSlug, currentId) => {
+	let candidate = baseSlug || "product";
+	let suffix = 2;
+
+	while (await model.exists({ slug: candidate, _id: { $ne: currentId } })) {
+		candidate = `${baseSlug || "product"}-${suffix}`;
+		suffix += 1;
+	}
+
+	return candidate;
+};
+
+const ensureUniqueToken = async (model, currentId) => {
+	let token = generateSlugToken(6);
+	while (await model.exists({ slugToken: token, _id: { $ne: currentId } })) {
+		token = generateSlugToken(6);
+	}
+	return token;
+};
 
 const productSchema = new mongoose.Schema(
 	{
 		name: {
 			type: String,
 			required: true,
+			index: true,
 		},
 		description: {
 			type: String,
@@ -15,6 +37,11 @@ const productSchema = new mongoose.Schema(
 			min: 0,
 			required: true,
 			index: true,
+		},
+		originalPrice: {
+			type: Number,
+			min: 0,
+			default: null,
 		},
 		costPrice: {
 			type: Number,
@@ -70,6 +97,15 @@ const productSchema = new mongoose.Schema(
 				value: String,
 			}
 		],
+		wristSizeOptions: {
+			type: [
+				{
+					size: { type: String, required: true },
+					stock: { type: Number, default: 0, min: 0 },
+				}
+			],
+			default: [],
+		},
 		lowStockThreshold: {
 			type: Number,
 			default: 5,
@@ -110,9 +146,24 @@ const productSchema = new mongoose.Schema(
 			type: String,
 			default: "",
 		},
+		gender: {
+			type: String,
+			enum: ["male", "female", "unisex"],
+			default: "unisex",
+			index: true,
+		},
+		tags: {
+			type: [String],
+			default: [],
+		},
+		sku: {
+			type: String,
+			default: "",
+			sparse: true,
+		},
 		type: {
 			type: String,
-			enum: ["mechanical", "quartz", "automatic", "digital", "smartwatch"],
+			enum: ["mechanical", "quartz", "automatic", "solar", "digital", "smartwatch"],
 			lowercase: true,
 			required: true,
 			index: true,
@@ -120,42 +171,104 @@ const productSchema = new mongoose.Schema(
 		slug: {
 			type: String,
 			required: false,
+			index: true,
 			unique: true,
-			default: function () {
-				if (this.name) {
-					const baseSlug = this.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-					const randomHash = Math.random().toString(36).substring(2, 7);
-					return `${baseSlug}-${randomHash}`;
-				}
-				return "";
-			}
+			sparse: true,
+		},
+		slugToken: {
+			type: String,
+			required: false,
+			index: true,
+			unique: true,
+			sparse: true,
+			immutable: true,
+		},
+		oldSlugs: {
+			type: [String],
+			default: [],
+			index: true,
 		},
 		specs: {
 			movement: {
-				type: { type: String, default: "Automatic" },
+				type: { type: String, default: "Cơ tự động" },
 				caliber: { type: String, default: "" },
-				powerReserve: { type: String, default: "" }
+				powerReserve: { type: String, default: "" },
+				jewels: { type: String, default: "" },
+				frequency: { type: String, default: "" },
 			},
 			case: {
 				diameter: { type: String, default: "40 mm" },
 				thickness: { type: String, default: "" },
 				lugToLug: { type: String, default: "" },
-				material: { type: String, default: "Stainless steel" }
+				material: { type: String, default: "Thép không gỉ" },
+				caseBack: { type: String, default: "" },
+				crown: { type: String, default: "" },
 			},
 			strap: {
-				material: { type: String, default: "Steel" },
-				claspType: { type: String, default: "Folding clasp" }
+				material: { type: String, default: "Thép không gỉ" },
+				claspType: { type: String, default: "Folding clasp" },
+				color: { type: String, default: "" },
 			},
 			waterResistance: { type: String, default: "100 m" },
 			weight: { type: String, default: "" },
-			glass: { type: String, default: "Sapphire" }
+			glass: { type: String, default: "Kính sapphire" },
+			dial: {
+				color: { type: String, default: "" },
+				indices: { type: String, default: "" },
+			},
+			functions: { type: [String], default: [] },
+			year: { type: Number, default: null },
+			warranty: { type: String, default: "5 năm" },
 		}
 	},
 	{ timestamps: true }
 );
 
-// --- AUDIT MIDDLEWARE ---
+// ── Compound indexes for common admin query patterns ──
+productSchema.index({ slug: 1 }, { unique: true, sparse: true });
+productSchema.index({ slugToken: 1 }, { unique: true, sparse: true });
+productSchema.index({ oldSlugs: 1 });
+productSchema.index({ deletedAt: 1, createdAt: -1 });  // default admin sort
+productSchema.index({ deletedAt: 1, brand: 1 });        // brand filter
+productSchema.index({ deletedAt: 1, categoryId: 1 });   // category filter
+productSchema.index({ deletedAt: 1, type: 1 });         // machine type filter
+productSchema.index({ deletedAt: 1, isFeatured: 1 });   // featured filter
+productSchema.index({ deletedAt: 1, price: 1 });        // price sort/filter
+
+// ── AUDIT MIDDLEWARE ──
+productSchema.pre("validate", async function () {
+	if (!Array.isArray(this.oldSlugs)) {
+		this.oldSlugs = [];
+	}
+	this.oldSlugs = [...new Set(this.oldSlugs.filter(Boolean))];
+
+	const nameChanged = this.isNew || this.isModified("name") || !this.slug;
+	if (nameChanged) {
+		const baseSlug = slugifyProductName(this.name) || "product";
+		const resolvedSlug = await ensureUniqueSlug(this.constructor, baseSlug, this._id);
+		if (this.slug && this.slug !== resolvedSlug && !this.oldSlugs.includes(this.slug)) {
+			this.oldSlugs.push(this.slug);
+		}
+		while (this.oldSlugs.length > 5) {
+			this.oldSlugs.shift();
+		}
+		this.slug = resolvedSlug;
+	}
+
+	if (!this.slugToken) {
+		this.slugToken = await ensureUniqueToken(this.constructor, this._id);
+	}
+});
+
 productSchema.pre("save", async function () {
+	// ── PRICE BUSINESS VALIDATIONS ──
+	if (this.originalPrice !== null && this.originalPrice !== undefined && this.price > this.originalPrice) {
+		throw new Error("Giá bán lẻ khuyến mãi không được lớn hơn giá gốc niêm yết");
+	}
+	if (this.costPrice !== null && this.costPrice !== undefined && this.price < this.costPrice) {
+		throw new Error("Giá bán lẻ không được nhỏ hơn giá nhập (giá vốn)");
+	}
+
 	// Skip if nothing changed
 	if (!this.isModified()) return;
 

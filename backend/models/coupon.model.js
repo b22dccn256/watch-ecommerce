@@ -7,11 +7,27 @@ const couponSchema = new mongoose.Schema(
 			required: true,
 			unique: true,
 		},
-		discountPercentage: {
+		type: {
+			type: String,
+			enum: ["percent", "fixed"],
+			default: "percent",
+		},
+		discountValue: {
 			type: Number,
 			required: true,
 			min: 0,
-			max: 100,
+		},
+		minOrderAmount: {
+			type: Number,
+			default: 0,
+		},
+		usedCount: {
+			type: Number,
+			default: 0,
+		},
+		maxUses: {
+			type: Number,
+			default: 0,
 		},
 		expirationDate: {
 			type: Date,
@@ -21,17 +37,41 @@ const couponSchema = new mongoose.Schema(
 			type: Boolean,
 			default: true,
 		},
-		userId: {
+		userId: { // Keep for backward compatibility or creator tracking
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "User",
-			required: true,
-			unique: true,
+			required: false,
 		},
+		usageHistory: [
+			{
+				usedAt: { type: Date, default: Date.now },
+				orderId: { type: mongoose.Schema.Types.ObjectId, ref: "Order" },
+				userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+			}
+		]
 	},
 	{
 		timestamps: true,
+		toJSON: { virtuals: true },
+		toObject: { virtuals: true },
 	}
 );
+
+couponSchema.virtual("discountPercentage")
+	.get(function () {
+		return this.discountValue;
+	})
+	.set(function (value) {
+		this.discountValue = value;
+	});
+
+couponSchema.virtual("discountAmount")
+	.get(function () {
+		return this.discountValue;
+	})
+	.set(function (value) {
+		this.discountValue = value;
+	});
 
 const Coupon = mongoose.model("Coupon", couponSchema);
 

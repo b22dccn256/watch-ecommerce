@@ -1,98 +1,35 @@
-import { useEffect, useState } from "react";
-import { ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
-import { useCartStore } from "../stores/useCartStore";
+import ProductCard from "./ProductCard";
 
-const FeaturedProducts = ({ featuredProducts }) => {
-	const [currentIndex, setCurrentIndex] = useState(0);
-	const [itemsPerPage, setItemsPerPage] = useState(4);
+const FeaturedProducts = ({ featuredProducts, gridCols = 4 }) => {
+    const gridColsClass = {
+        3: "md:grid-cols-3 lg:grid-cols-3",
+        4: "md:grid-cols-4 lg:grid-cols-4",
+        5: "md:grid-cols-5 lg:grid-cols-5",
+        6: "md:grid-cols-6 lg:grid-cols-6",
+    }[gridCols] || "md:grid-cols-4 lg:grid-cols-4";
 
-	const { addToCart } = useCartStore();
+    return (
+        <div className="section-divider py-10 md:py-14 max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="editorial-surface rounded-2xl px-5 py-5 md:px-6 md:py-6 mb-6 md:mb-8">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
+                    <div className="space-y-1 max-w-2xl">
+                        <p className="hero-kicker text-[color:var(--color-gold)]">Featured pieces</p>
+                        <h2 className="hero-title text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Tuyển chọn tinh hoa</h2>
+                    </div>
+                    <a href="/catalog" className="group hidden items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted transition-colors duration-200 hover:text-[color:var(--color-gold)] sm:inline-flex">
+                        Xem tất cả
+                        <svg className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+            </div>
 
-	useEffect(() => {
-		const handleResize = () => {
-			if (window.innerWidth < 640) setItemsPerPage(1);
-			else if (window.innerWidth < 1024) setItemsPerPage(2);
-			else if (window.innerWidth < 1280) setItemsPerPage(3);
-			else setItemsPerPage(4);
-		};
-
-		handleResize();
-		window.addEventListener("resize", handleResize);
-		return () => window.removeEventListener("resize", handleResize);
-	}, []);
-
-	const nextSlide = () => {
-		setCurrentIndex((prevIndex) => prevIndex + itemsPerPage);
-	};
-
-	const prevSlide = () => {
-		setCurrentIndex((prevIndex) => prevIndex - itemsPerPage);
-	};
-
-	const isStartDisabled = currentIndex === 0;
-	const isEndDisabled = currentIndex >= featuredProducts.length - itemsPerPage;
-
-	return (
-		<div className='py-12'>
-			<div className='container mx-auto px-4'>
-				<h2 className='text-center text-5xl sm:text-6xl font-bold text-emerald-400 mb-4'>Featured</h2>
-				<div className='relative'>
-					<div className='overflow-hidden'>
-						<div
-							className='flex transition-transform duration-300 ease-in-out'
-							style={{ transform: `translateX(-${currentIndex * (100 / itemsPerPage)}%)` }}
-						>
-							{featuredProducts?.map((product) => (
-								<div key={product._id} className='w-full sm:w-1/2 lg:w-1/3 xl:w-1/4 flex-shrink-0 px-2'>
-									<div className='bg-white bg-opacity-10 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden h-full transition-all duration-300 hover:shadow-xl border border-emerald-500/30'>
-										<div className='overflow-hidden'>
-											<img
-												src={product.image}
-												alt={product.name}
-												className='w-full h-48 object-cover transition-transform duration-300 ease-in-out hover:scale-110'
-											/>
-										</div>
-										<div className='p-4'>
-											<h3 className='text-lg font-semibold mb-2 text-white'>{product.name}</h3>
-											<p className='text-emerald-300 font-medium mb-4'>
-												${product.price.toFixed(2)}
-											</p>
-											<button
-												onClick={() => addToCart(product)}
-												className='w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 px-4 rounded transition-colors duration-300 
-												flex items-center justify-center'
-											>
-												<ShoppingCart className='w-5 h-5 mr-2' />
-												Add to Cart
-											</button>
-										</div>
-									</div>
-								</div>
-							))}
-						</div>
-					</div>
-					<button
-						onClick={prevSlide}
-						disabled={isStartDisabled}
-						className={`absolute top-1/2 -left-4 transform -translate-y-1/2 p-2 rounded-full transition-colors duration-300 ${
-							isStartDisabled ? "bg-gray-400 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-500"
-						}`}
-					>
-						<ChevronLeft className='w-6 h-6' />
-					</button>
-
-					<button
-						onClick={nextSlide}
-						disabled={isEndDisabled}
-						className={`absolute top-1/2 -right-4 transform -translate-y-1/2 p-2 rounded-full transition-colors duration-300 ${
-							isEndDisabled ? "bg-gray-400 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-500"
-						}`}
-					>
-						<ChevronRight className='w-6 h-6' />
-					</button>
-				</div>
-			</div>
-		</div>
-	);
+            <div className={`grid grid-cols-2 sm:grid-cols-3 ${gridColsClass} gap-4 md:gap-5`}>
+                {featuredProducts?.map((product) => (
+                    <ProductCard key={String(product._id)} product={product} />
+                ))}
+            </div>
+        </div>
+    );
 };
+
 export default FeaturedProducts;

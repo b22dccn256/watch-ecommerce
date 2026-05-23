@@ -1,189 +1,156 @@
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { useThemeStore } from "../stores/useThemeStore";
-import { ArrowRight, Star, Shield, Award } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight, ArrowRight, Sparkles } from "lucide-react";
 
-const HeroBanner = () => {
-	const { theme } = useThemeStore();
-	const isDark = theme === "dark";
+const HeroBanner = ({ config, slogan }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-	// Overlay: luôn đủ tối để chữ đọc được ở cả 2 chế độ
-	// Dark: overlay đen đậm bên trái, mờ sang phải
-	// Light: overlay xám/đen vừa phải đủ tương phản
-	const overlayGradient = isDark
-		? "bg-gradient-to-r from-black/85 via-black/60 to-black/20"
-		: "bg-gradient-to-r from-black/70 via-black/50 to-black/10";
+  const slides = useMemo(() => {
+    if (config?.heroSlides && config.heroSlides.length > 0) {
+      return config.heroSlides.filter(s => s.active !== false);
+    }
+    return [
+      {
+        image: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=1600",
+        mobileImage: "",
+        title: "Kiệt tác Thời gian",
+        subtitle: slogan || "Tuyển chọn đồng hồ cao cấp với trải nghiệm tinh gọn, rõ ràng và sang trọng.",
+        link: "/catalog?reset=true"
+      }
+    ];
+  }, [config, slogan]);
 
-	const blendClass = isDark
-		? "bg-gradient-to-t from-luxury-dark via-luxury-dark/60 to-transparent"
-		: "bg-gradient-to-t from-gray-50 via-gray-50/50 to-transparent";
+  useEffect(() => {
+    if (slides.length < 2) return;
 
-	const stats = [
-		{ label: "Thương hiệu", value: "50+" },
-		{ label: "Sản phẩm", value: "2.000+" },
-		{ label: "Khách hàng", value: "10K+" },
-	];
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % slides.length);
+    }, 6000);
 
-	return (
-		<div className="relative h-screen flex items-center overflow-hidden">
-			{/* Background Image */}
-			<img
-				src="/banner-2.jpg"
-				alt="Luxury Watch Collection"
-				className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${isDark ? "brightness-65" : "brightness-90"}`}
-			/>
+    return () => clearInterval(timer);
+  }, [slides.length]);
 
-			{/* Strong Overlay — đảm bảo contrast chữ ở mọi theme */}
-			<div className={`absolute inset-0 transition-all duration-500 ${overlayGradient}`} />
+  const activeSlide = useMemo(() => slides[currentIndex] || {}, [slides, currentIndex]);
 
-			{/* Thêm một lớp vignette cục bộ xung quanh vùng text để tăng contrast */}
-			<div
-				className="absolute inset-0"
-				style={{
-					background: "radial-gradient(ellipse 70% 80% at 25% 50%, rgba(0,0,0,0.45) 0%, transparent 70%)",
-				}}
-			/>
+  const next = () => {
+    if (!slides.length) return;
+    setCurrentIndex((prev) => (prev + 1) % slides.length);
+  };
 
-			{/* Content — 2-column layout: Text Left | Watch Right */}
-			<div className="relative z-10 w-full max-w-7xl mx-auto px-8 md:px-16 flex items-center">
+  const prev = () => {
+    if (!slides.length) return;
+    setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
+  };
 
-				{/* Left Column — Text Content (chiếm ~55%) */}
-				<div className="w-full md:w-[55%] flex flex-col items-start text-left">
+  return (
+    <section className="relative overflow-hidden rounded-[24px] border border-black/10 dark:border-white/5 h-[360px] sm:h-[440px] lg:h-[500px] shadow-[var(--shadow-card)] animate-fade-in group/banner bg-black">
+      {/* Background Slide Image with Cross-fade transition */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentIndex}
+          initial={{ opacity: 0, scale: 1.01 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.7, ease: "easeInOut" }}
+          className="absolute inset-0 w-full h-full"
+        >
+          <img
+            src={activeSlide.image || "https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=1600"}
+            alt={activeSlide.title || "Luxury watch campaign"}
+            className="w-full h-full object-cover"
+            onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=1600"; }}
+          />
+          {/* Rich Gradient Overlay for premium feel and text legibility */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent dark:from-black/90 dark:via-black/50 dark:to-transparent" />
+        </motion.div>
+      </AnimatePresence>
 
-					{/* Badge: NEW COLLECTION 2026 */}
-					<motion.div
-						initial={{ opacity: 0, x: -30 }}
-						animate={{ opacity: 1, x: 0 }}
-						transition={{ duration: 0.6 }}
-						className="flex items-center gap-2 mb-6"
-					>
-						<div className="h-px w-8 bg-luxury-gold" />
-						<span className="text-luxury-gold text-xs md:text-sm tracking-[0.25em] font-semibold uppercase">
-							New Collection 2026
-						</span>
-					</motion.div>
+      {/* Floating Content Wrapper - Left Aligned */}
+      <div className="absolute inset-0 flex items-center z-10 px-6 sm:px-12 lg:px-20">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`content-${currentIndex}`}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="max-w-2xl space-y-4 sm:space-y-5 text-left text-white"
+          >
+            <p className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.25em] text-[color:var(--color-gold)]">
+              <Sparkles className="h-3.5 w-3.5 animate-pulse text-[color:var(--color-gold)]" />
+              Fine Timepieces · Global Maisons
+            </p>
 
-					{/* Headline */}
-					<motion.h1
-						initial={{ opacity: 0, y: 40 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.15, duration: 0.7 }}
-						className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 drop-shadow-2xl"
-					>
-						Tuyệt tác{" "}
-						<span className="text-luxury-gold">thời gian</span>
-						<br />
-						tuyệt đỉnh{" "}
-						<span className="text-white">công nghệ</span>
-					</motion.h1>
+            <h1 className="font-display font-bold text-2xl sm:text-4xl lg:text-5xl leading-[1.1] tracking-tight text-white drop-shadow-md whitespace-pre-line">
+              {activeSlide.title || "Kiệt tác Thời gian"}
+            </h1>
 
-					{/* Subheadline */}
-					<motion.p
-						initial={{ opacity: 0, y: 30 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.3, duration: 0.6 }}
-						className="text-white/85 text-base md:text-lg leading-relaxed mb-10 max-w-md drop-shadow-lg"
-					>
-						Khám phá bộ sưu tập đồng hồ cơ tinh xảo từ những thương hiệu hàng đầu thế giới — Rolex, Omega, Patek Philippe và nhiều hơn nữa.
-					</motion.p>
+            <p className="text-xs sm:text-sm md:text-base text-white/70 max-w-lg leading-relaxed font-light drop-shadow-sm">
+              {activeSlide.subtitle || "Tuyển chọn đồng hồ cao cấp với trải nghiệm tinh gọn, rõ ràng và sang trọng."}
+            </p>
 
-					{/* CTA Buttons */}
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.45, duration: 0.6 }}
-						className="flex flex-col sm:flex-row gap-4 mb-12"
-					>
-						{/* Primary CTA */}
-						<Link
-							to="/catalog"
-							className="group inline-flex items-center gap-2 bg-luxury-gold hover:bg-luxury-gold-light text-luxury-dark font-semibold px-8 py-4 rounded-full text-base transition-all duration-300 transform hover:scale-105 shadow-[0_4px_20px_rgba(212,175,55,0.4)] hover:shadow-[0_6px_28px_rgba(212,175,55,0.6)]"
-						>
-							Khám phá ngay
-							<ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
-						</Link>
+            <div className="flex flex-wrap gap-3 pt-2 sm:pt-4">
+              <Link
+                to={activeSlide.link || "/catalog?reset=true"}
+                className="btn-base bg-[color:var(--color-gold)] text-black hover:bg-[color:var(--color-gold-light)] h-10 sm:h-11 px-5 sm:px-6 text-xs sm:text-sm font-semibold rounded-xl flex items-center gap-2 shadow-[0_4px_20px_rgba(var(--color-gold-rgb),0.3)] transition-all duration-200 transform hover:-translate-y-0.5"
+              >
+                Khám phá bộ sưu tập
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                to="/brands"
+                className="btn-base border border-white/20 text-white hover:bg-white/10 h-10 sm:h-11 px-5 sm:px-6 text-xs sm:text-sm font-semibold rounded-xl flex items-center transition-all duration-200"
+              >
+                Xem thương hiệu
+              </Link>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
-						{/* Secondary CTA — viền trắng (luôn rõ trên nền tối) */}
-						<Link
-							to="/catalog"
-							className="inline-flex items-center gap-2 border-2 border-white/80 text-white font-semibold px-8 py-4 rounded-full text-base transition-all duration-300 transform hover:scale-105 hover:bg-white/10 hover:border-white backdrop-blur-sm"
-						>
-							<Award size={18} className="text-luxury-gold" />
-							Thương hiệu
-						</Link>
-					</motion.div>
+      {/* Floating Modern Arrow Controls (emerges on hover) */}
+      {slides.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={prev}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 h-9 w-9 sm:h-11 sm:w-11 rounded-full border border-white/15 bg-black/15 text-white hover:bg-black/50 hover:border-white/30 flex items-center justify-center backdrop-blur-sm opacity-0 group-hover/banner:opacity-100 transition-all duration-300 transform -translate-x-2 group-hover/banner:translate-x-0"
+            aria-label="Slide trước"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={next}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 h-9 w-9 sm:h-11 sm:w-11 rounded-full border border-white/15 bg-black/15 text-white hover:bg-black/50 hover:border-white/30 flex items-center justify-center backdrop-blur-sm opacity-0 group-hover/banner:opacity-100 transition-all duration-300 transform translate-x-2 group-hover/banner:translate-x-0"
+            aria-label="Slide sau"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </>
+      )}
 
-					{/* Trust Stats */}
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.6, duration: 0.6 }}
-						className="flex items-center gap-8"
-					>
-						{stats.map((stat, i) => (
-							<div key={i} className="text-center">
-								<div className="text-xl md:text-2xl font-bold text-luxury-gold drop-shadow-lg">
-									{stat.value}
-								</div>
-								<div className="text-white/70 text-xs md:text-sm mt-0.5">{stat.label}</div>
-							</div>
-						))}
-
-						{/* Divider */}
-						<div className="h-10 w-px bg-white/20 mx-2 hidden sm:block" />
-
-						{/* Rating badge */}
-						<div className="hidden sm:flex items-center gap-1.5">
-							{[...Array(5)].map((_, i) => (
-								<Star key={i} size={14} className="fill-luxury-gold text-luxury-gold" />
-							))}
-							<span className="text-white/70 text-xs ml-1">4.9/5</span>
-						</div>
-					</motion.div>
-				</div>
-
-				{/* Right Column — tạo khoảng trống để ảnh nền tự nổi bật (không overlay phải) (~45%) */}
-				<div className="hidden md:block w-[45%]" />
-			</div>
-
-			{/* Badges nổi — góc phải dưới */}
-			<motion.div
-				initial={{ opacity: 0, scale: 0.8 }}
-				animate={{ opacity: 1, scale: 1 }}
-				transition={{ delay: 0.9, duration: 0.5 }}
-				className="absolute bottom-24 right-8 md:right-16 hidden md:flex flex-col gap-3"
-			>
-				<div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-xl px-4 py-2.5">
-					<Shield size={16} className="text-luxury-gold" />
-					<span className="text-white text-xs font-medium">Bảo hành chính hãng</span>
-				</div>
-				<div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-xl px-4 py-2.5">
-					<Award size={16} className="text-luxury-gold" />
-					<span className="text-white text-xs font-medium">100% đồng hồ thật</span>
-				</div>
-			</motion.div>
-
-			{/* Blend Bottom */}
-			<div className={`absolute bottom-0 left-0 right-0 h-40 transition-all duration-500 ${blendClass}`} />
-
-			{/* Scroll Indicator */}
-			<motion.div
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				transition={{ delay: 1.2 }}
-				className="absolute bottom-8 left-1/2 transform -translate-x-1/2 hidden md:flex flex-col items-center gap-1"
-			>
-				<span className="text-white/40 text-[10px] tracking-widest uppercase">Cuộn xuống</span>
-				<div className="w-5 h-8 border border-white/30 rounded-full flex justify-center mt-1">
-					<motion.div
-						animate={{ y: [0, 10, 0] }}
-						transition={{ duration: 1.5, repeat: Infinity }}
-						className="w-0.5 h-2 bg-luxury-gold rounded-full mt-1.5"
-					/>
-				</div>
-			</motion.div>
-		</div>
-	);
+      {/* Dot Indicators at the bottom */}
+      {slides.length > 1 && (
+        <div className="absolute bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              type="button"
+              onClick={() => setCurrentIndex(index)}
+              aria-label={`Chọn slide ${index + 1}`}
+              className={`h-1 rounded-full transition-all duration-300 ${
+                index === currentIndex
+                  ? "w-6 bg-[color:var(--color-gold)]"
+                  : "w-1.5 bg-white/30 hover:bg-white/60"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
 };
 
 export default HeroBanner;

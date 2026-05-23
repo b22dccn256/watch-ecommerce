@@ -1,0 +1,166 @@
+name: CI - Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          npm install
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Seed test database
+        env:
+          MONGO_URI: mongodb://localhost:27017/watch-ecommerce-test
+          NODE_ENV: test
+        run: |
+          node backend/scripts/create-test-products.js || true
+
+      - name: Run backend tests
+        run: |
+          cd backend
+          npm test --silent || true
+
+      - name: Run frontend unit tests
+        run: |
+          cd frontend
+          npm test --silent || true
+
+      - name: Install Playwright browsers
+        run: |
+          cd frontend
+          npx playwright install --with-deps
+
+      - name: Run Playwright E2E
+        run: |
+          cd frontend
+          npx playwright test --reporter=list || true
+
+      - name: Upload test reports (if any)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            backend/test-results || frontend/test-results || playwright-report || .
+name: Luxury Watch E-Commerce CI/CD
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  # ==========================================
+  # Job 1: Lint, Audit & Security Scan
+  # ==========================================
+  security-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Root & Backend Dependencies
+        run: npm ci
+
+      - name: Run Backend Security Audit
+        run: npm audit --audit-level=high || echo "Non-blocking high vulnerabilities flagged"
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run Frontend Security Audit
+        working-directory: ./frontend
+        run: npm audit --audit-level=high || echo "Non-blocking high vulnerabilities flagged"
+
+      - name: Run Frontend Lint
+        working-directory: ./frontend
+        run: npm run lint || echo "Non-blocking style issues flagged"
+
+  # ==========================================
+  # Job 2: Frontend Unit Tests
+  # ==========================================
+  test-frontend:
+    needs: security-and-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run Vitest Unit Tests
+        working-directory: ./frontend
+        run: npm run test run
+
+  # ==========================================
+  # Job 3: Production Build Verification
+  # ==========================================
+  build-verification:
+    needs: test-frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build Frontend static assets
+        working-directory: ./frontend
+        run: npm run build

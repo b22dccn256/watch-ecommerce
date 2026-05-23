@@ -14,10 +14,24 @@ const campaignSchema = new mongoose.Schema(
         },
         group: {
             type: String,
-            enum: ["Men's Luxury", "Women's Diamond", "Entire Catalog", "Rolex", "Hublot", "Patek Philippe", "Audemars Piguet", "Automatic", "Quartz"],
             required: function () {
                 return !this.isGlobal;
             },
+            enum: [
+                "Đồng hồ Nam", 
+                "Đồng hồ Nữ", 
+                "Đồng hồ Unisex",
+                "Đồng hồ Đôi", 
+                "Phụ kiện", 
+                "Cơ Tự Động (Automatic)", 
+                "Cơ Lên Cót Tay (Hand-wound)", 
+                "Bộ Máy Pin (Quartz)", 
+                "Năng Lượng Ánh Sáng (Solar)", 
+                "Đồng Hồ Điện Tử (Digital)", 
+                "Đồng Hồ Thông Minh (Smartwatch)",
+                "Entire Catalog",
+                "Toàn bộ danh mục"
+            ],
         },
         discountPercentage: {
             type: Number,
@@ -53,7 +67,7 @@ const campaignSchema = new mongoose.Schema(
 );
 
 // Middleware to automatically determine initial status on save if not provided
-campaignSchema.pre("save", function (next) {
+campaignSchema.pre("save", async function () {
     const now = new Date();
     if (this.isActive) {
         if (now < this.startDate) {
@@ -66,7 +80,6 @@ campaignSchema.pre("save", function (next) {
     } else {
         this.status = "Ended";
     }
-    next();
 });
 
 const Campaign = mongoose.model("Campaign", campaignSchema);

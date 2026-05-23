@@ -8,20 +8,24 @@ import {
 	getRecommendedProducts,
 	toggleFeaturedProduct,
 	importProducts,
+	previewImportProducts,
 	getSuggestions,
 	getProductById,
+	getProductBySlugToken,
 	updateProduct,
 	getInventoryAlerts,
     exportProducts,
+	bulkUpdateProducts,
 } from "../controllers/product.controller.js";
-import { adminRoute, protectRoute, managementRoute } from "../middleware/auth.middleware.js";
-import { checkPermission } from "../middleware/permission.middleware.js";
+import { adminRoute, managementRoute, protectRoute } from "../middleware/auth.middleware.js";
+import { validateBody, productSchemas } from "../middleware/validation.middleware.js";
 
 import multer from "multer";
 const upload = multer({ dest: "uploads/" });
 
 const router = express.Router();
 
+router.post("/import/preview", protectRoute, managementRoute, upload.single("file"), previewImportProducts);
 router.post("/import", protectRoute, managementRoute, upload.single("file"), importProducts);
 router.get("/export", protectRoute, managementRoute, exportProducts);
 router.get("/", getAllProducts);
@@ -30,10 +34,13 @@ router.get("/suggestions", getSuggestions);
 router.get("/inventory/alerts", protectRoute, managementRoute, getInventoryAlerts);
 router.get("/category/:category", getProductsByCategory);
 router.get("/recommendations", getRecommendedProducts);
+router.get("/:slug--:token", getProductBySlugToken);
 router.get("/:id", getProductById);
-router.post("/", protectRoute, managementRoute, createProduct);
-router.put("/:id", protectRoute, managementRoute, updateProduct);
+router.post("/", protectRoute, managementRoute, validateBody(productSchemas.create), createProduct);
+router.put("/:id", protectRoute, managementRoute, validateBody(productSchemas.update), updateProduct);
 router.patch("/:id", protectRoute, managementRoute, toggleFeaturedProduct);
-router.delete("/:id", protectRoute, adminRoute, checkPermission(["staff"], "DELETE_PRODUCT"), deleteProduct);
+router.delete("/:id", protectRoute, adminRoute, deleteProduct);
+// B1: Bulk operations
+router.patch("/", protectRoute, managementRoute, bulkUpdateProducts);
 
 export default router;

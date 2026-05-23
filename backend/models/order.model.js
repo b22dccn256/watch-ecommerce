@@ -5,7 +5,7 @@ const orderSchema = new mongoose.Schema(
 		user: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "User",
-			required: true,
+			required: false,
 		},
 		products: [
 			{
@@ -24,12 +24,43 @@ const orderSchema = new mongoose.Schema(
 					required: true,
 					min: 0,
 				},
+				wristSize: {
+					type: String,
+					default: null,
+				},
+				selectedColor: {
+					type: String,
+					default: null,
+				},
+				selectedSize: {
+					type: String,
+					default: null,
+				},
 			},
 		],
 		totalAmount: {
 			type: Number,
 			required: true,
 			min: 0,
+		},
+		subtotal: {
+			type: Number,
+			default: 0,
+			min: 0,
+		},
+		discountAmount: {
+			type: Number,
+			default: 0,
+			min: 0,
+		},
+		shippingFee: {
+			type: Number,
+			default: 0,
+			min: 0,
+		},
+		couponCode: {
+			type: String,
+			default: "",
 		},
 		orderCode: {
 			type: String,
@@ -46,8 +77,18 @@ const orderSchema = new mongoose.Schema(
 		// Trạng thái đơn hàng tổng quát
 		status: {
 			type: String,
-			enum: ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled", "returned"],
-			default: "pending"
+			enum: [
+				"pending",
+				"awaiting_verification",
+				"confirmed",
+				"processing",
+				"shipped",
+				"delivered",
+				"return_requested",
+				"returned",
+				"cancelled",
+			],
+			default: "pending",
 		},
 		paymentStatus: {
 			type: String,
@@ -56,12 +97,24 @@ const orderSchema = new mongoose.Schema(
 		},
 		paymentMethod: {
 			type: String,
-			enum: ["stripe", "cod", "paypal", "qr"],
-			default: "stripe"
+			enum: ["cod", "stripe", "vnpay"],
+			default: "cod"
+		},
+		transactionId: {
+			type: String,
+			sparse: true,
+		},
+		paymentResponse: {
+			type: Object,
+		},
+		ipnVerified: {
+			type: Boolean,
+			default: false,
 		},
 		stripeSessionId: {
 			type: String,
 			unique: true,
+			sparse: true, // Cho phép nhiều document có stripeSessionId = null (COD, VNPay orders)
 		},
 		currency: {
 			type: String,
@@ -98,6 +151,15 @@ const orderSchema = new mongoose.Schema(
 			default: 0,
 			min: 0,
 		},
+		loyaltyPointsGranted: {
+			type: Number,
+			default: 0,
+			min: 0,
+		},
+		loyaltyPointsReversedAt: {
+			type: Date,
+			default: null,
+		},
 		carrierTrackingNumber: {
 			type: String,
 		},
@@ -112,6 +174,23 @@ const orderSchema = new mongoose.Schema(
 	},
 	{ timestamps: true }
 );
+
+// Virtual field to dynamically populate Coupon based on couponCode
+orderSchema.virtual("coupon", {
+	ref: "Coupon",
+	localField: "couponCode",
+	foreignField: "code",
+	justOne: true,
+});
+
+orderSchema.set("toJSON", { virtuals: true });
+orderSchema.set("toObject", { virtuals: true });
+
+// ── Performance Indexes ───────────────────────────────────────────────────────
+// Tăng tốc getMyOrders (sort mới nhất trước)
+orderSchema.index({ user: 1, createdAt: -1 });
+// Tăng tốc lọc admin theo status + thời gian
+orderSchema.index({ status: 1, createdAt: -1 });
 
 const Order = mongoose.model("Order", orderSchema);
 

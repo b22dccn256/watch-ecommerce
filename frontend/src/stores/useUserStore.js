@@ -1,24 +1,58 @@
-import { create } from "zustand";
+import { createWithEqualityFn } from "zustand/traditional";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { useCartStore } from "./useCartStore";
+import { useWishlistStore } from "./useWishlistStore";
+import { useCompareStore } from "./useCompareStore";
 
-export const useUserStore = create((set, get) => ({
+export const useUserStore = createWithEqualityFn((set, get) => ({
 	user: null,
 	loading: false,
 	checkingAuth: true,
 
 	signup: async ({ name, email, phone, password, confirmPassword }) => {
 		set({ loading: true });
-		try {
-			await axios.post("/auth/signup", { name, email, phone, password, confirmPassword });
+		const normalizedName = name?.trim();
+		const normalizedEmail = email?.toLowerCase().trim();
+		const normalizedPhone = phone?.trim();
+
+		if (password !== confirmPassword) {
 			set({ loading: false });
-			// Save email to localStorage for resend flow on EmailVerificationPage
-			localStorage.setItem("pendingVerifyEmail", email.toLowerCase().trim());
-			return true; // signals success — FE will show "check your email" screen
+			toast.error("Mật khẩu xác nhận không khớp");
+			return { success: false };
+		}
+
+		try {
+			const res = await axios.post("/auth/signup", {
+				name: normalizedName,
+				email: normalizedEmail,
+				phone: normalizedPhone,
+				password,
+				confirmPassword,
+			});
+			set({ loading: false });
+			localStorage.setItem("pendingVerifyEmail", normalizedEmail);
+			toast.success(res.data.message || "Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản.");
+			return { success: true, email: normalizedEmail };
 		} catch (error) {
 			set({ loading: false });
 			toast.error(error.response?.data?.message || "Đã xảy ra lỗi khi đăng ký");
+			return { success: false };
+		}
+	},
+
+	resendVerificationEmail: async (email) => {
+		if (!email) {
+			toast.error("Email không hợp lệ");
+			return false;
+		}
+
+		try {
+			const res = await axios.post("/auth/resend-verification", { email });
+			toast.success(res.data.message || "Email xác minh đã được gửi lại");
+			return true;
+		} catch (error) {
+			toast.error(error.response?.data?.message || "Không thể gửi lại email xác minh");
 			return false;
 		}
 	},
@@ -28,7 +62,7 @@ export const useUserStore = create((set, get) => ({
 		try {
 			const res = await axios.post("/auth/login", { email, password });
 
-			if (res.data.message === "OTP_REQUIRED") {
+			if (res.data.requiresOTP) {
 				set({ loading: false });
 				return "OTP_REQUIRED";
 			}
@@ -43,13 +77,7 @@ export const useUserStore = create((set, get) => ({
 
 		} catch (error) {
 			set({ loading: false });
-			const data = error.response?.data;
-			// If account is unverified, propagate the structured error so LoginPage can handle it
-			if (data?.unverified) {
-				toast.error(data.message || "Tài khoản chưa được xác minh");
-				throw { unverified: true, email: data.email || email };
-			}
-			toast.error(data?.message || "Đã xảy ra lỗi");
+			toast.error(error.response?.data?.message || "Đã xảy ra lỗi");
 			throw error;
 		}
 	},
@@ -83,21 +111,13 @@ export const useUserStore = create((set, get) => ({
 		}
 	},
 
-	resendVerificationEmail: async (email) => {
-		try {
-			const res = await axios.post("/auth/resend-verification", { email });
-			toast.success(res.data.message || "Đã gửi lại email xác minh");
-			return true;
-		} catch (error) {
-			toast.error(error.response?.data?.message || "Không thể gửi lại email xác minh");
-			return false;
-		}
-	},
-
 	logout: async () => {
 		try {
 			await axios.post("/auth/logout");
 			set({ user: null });
+			useCartStore.getState().resetStore();
+			useWishlistStore.getState().resetStore();
+			useCompareStore.getState().resetStore();
 			toast.success("Logged out successfully");
 		} catch (error) {
 			toast.error(error.response?.data?.message || "An error occurred during logout");
@@ -107,10 +127,13 @@ export const useUserStore = create((set, get) => ({
 	checkAuth: async () => {
 		set({ checkingAuth: true });
 		try {
-			const response = await axios.get("/auth/profile");
+			const response = await axios.get("/auth/profile", { skipRefresh: true });
 			set({ user: response.data, checkingAuth: false });
 		} catch (error) {
-			console.log(error.message);
+			// 401 = not logged in — completely expected, not an error
+			if (error.response?.status !== 401) {
+				console.error("checkAuth error:", error.message);
+			}
 			set({ checkingAuth: false, user: null });
 		}
 	},
@@ -155,37 +178,4 @@ export const useUserStore = create((set, get) => ({
 	},
 }));
 
-// TODO: Implement the axios interceptors for refreshing access token
 
-// Axios interceptor for token refresh
-let refreshPromise = null;
-
-axios.interceptors.response.use(
-	(response) => response,
-	async (error) => {
-		const originalRequest = error.config;
-		if (error.response?.status === 401 && !originalRequest._retry) {
-			originalRequest._retry = true;
-
-			try {
-				// If a refresh is already in progress, wait for it to complete
-				if (refreshPromise) {
-					await refreshPromise;
-					return axios(originalRequest);
-				}
-
-				// Start a new refresh process
-				refreshPromise = useUserStore.getState().refreshToken();
-				await refreshPromise;
-				refreshPromise = null;
-
-				return axios(originalRequest);
-			} catch (refreshError) {
-				// If refresh fails, redirect to login or handle as needed
-				useUserStore.getState().logout();
-				return Promise.reject(refreshError);
-			}
-		}
-		return Promise.reject(error);
-	}
-);

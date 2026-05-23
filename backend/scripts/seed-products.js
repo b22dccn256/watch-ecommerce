@@ -10,6 +10,7 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 import Product from "../models/product.model.js";
 import Order from "../models/order.model.js";
 import User from "../models/user.model.js";
+import Brand from "../models/brand.model.js";
 
 // Helper for slugs
 const slugifyText = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
@@ -61,6 +62,11 @@ const generateProducts = () => {
             const brand = getRandom(brandMapping[type]);
             const baseName = `${brand} ${getRandom(collections)} ${i + 1}`;
 
+            const stockVal = Math.floor(Math.random() * 95) + 5;
+            const lowThresh = Math.max(1, Math.floor(Math.random() * 10));
+            // Bias sales: some products are hot sellers
+            const sales = Math.random() > 0.92 ? Math.floor(Math.random() * 2000) + 200 : Math.floor(Math.random() * 120);
+
             const p = {
                 name: baseName,
                 description: `Một kiệt tác đồng hồ ${type} từ ${brand}. Sở hữu thiết kế sang trọng, lịch lãm với độ hoàn thiện tinh xảo, đáp ứng tiêu chuẩn khắt khe nhất của giới thượng lưu.`,
@@ -68,7 +74,9 @@ const generateProducts = () => {
                 image: getRandom(watchImages),
                 category: type === "smartwatch" ? "Smartwatch" : "Luxury Watch",
                 isFeatured: Math.random() > 0.9,
-                stock: Math.floor(Math.random() * 95) + 5,
+                stock: stockVal,
+                lowStockThreshold: lowThresh,
+                salesCount: sales,
                 brand: brand,
                 type: type,
                 slug: slugifyText(baseName + "-" + Math.random().toString(36).substring(7)),
@@ -102,11 +110,23 @@ const seed = async () => {
             await Order.deleteMany({});
             console.log("Cleared Orders.");
 
-            // Note: Since Cart is associated to User schema (user.cartItems), clearing 
-            // the Product DB will automatically break user carts if we don't clear them.
-            // But we don't have a standalone Cart collection! Carts are an array on Users.
-            // Let's just update all users to have empty carts.
-            const User = mongoose.model("User");
+            // Ensure Brand documents exist for brand names used by the generator
+            const allBrandNames = Array.from(new Set(Object.values(brandMapping).flat()));
+            console.log(`Ensuring ${allBrandNames.length} brands exist...`);
+
+            const brandIdMap = {};
+            for (const name of allBrandNames) {
+                const b = await Brand.findOneAndUpdate(
+                    { name },
+                    { $setOnInsert: { name, logo: "", description: "" } },
+                    { upsert: true, new: true }
+                );
+                brandIdMap[name] = b._id;
+            }
+
+            // Note: we'll use brandIdMap when generating products
+
+            // Note on User carts: clear cartItems arrays to avoid referencing removed products
             if (User) {
                 await User.updateMany({}, { $set: { cartItems: [] } });
                 console.log("Cleared User Carts.");
@@ -116,7 +136,18 @@ const seed = async () => {
         }
 
         console.log("Generating 500 watch products...");
-        const productsList = generateProducts();
+        // regenerate brandIdMap in case we are in a long-running process
+        const allBrandNames = Array.from(new Set(Object.values(brandMapping).flat()));
+        const brandDocs = await Brand.find({ name: { $in: allBrandNames } });
+        const brandIdMap = {};
+        brandDocs.forEach(b => { brandIdMap[b.name] = b._id; });
+
+        // Generate products and attach ObjectId for brand
+        const productsListRaw = generateProducts();
+        const productsList = productsListRaw.map(p => ({
+            ...p,
+            brand: brandIdMap[p.brand] || null
+        }));
 
         await Product.insertMany(productsList);
         console.log(`Successfully seeded ${productsList.length} products!`);

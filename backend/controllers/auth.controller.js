@@ -1,375 +1,38 @@
-import { redis } from "../lib/redis.js";
+import * as AuthService from "../services/auth.service.js";
 import User from "../models/user.model.js";
-import jwt from "jsonwebtoken";
-import { sendEmail } from "../lib/email.js";
-import bcrypt from "bcryptjs";
-import crypto from "crypto";
-import { emailQueue } from "./mail.controller.js";
-import Order from "../models/order.model.js";
 import AuditLog from "../models/auditLog.model.js";
-import { logAction } from "../middleware/permission.middleware.js";
+import jwt from "jsonwebtoken";
+import { redis } from "../lib/redis.js";
 
-// ─── Validation Helpers ────────────────────────────────────────────────────────
-const NAME_REGEX = /^[\p{L}\s]{2,50}$/u; // Unicode letters + spaces, 2-50 chars
-const PHONE_REGEX = /^(0[35789])\d{8}$/;  // Vietnamese mobile format
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PASS_REGEX  = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&*!])[A-Za-z\d@#$%^&*!]{8,}$/;
-
-// ... (existing code continues below)
-
-const generateTokens = (userId) => {
-	const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
-		expiresIn: "15m",
-	});
-
-	const refreshToken = jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET, {
-		expiresIn: "7d",
-	});
-
-	return { accessToken, refreshToken };
-};
-
-const storeRefreshToken = async (userId, refreshToken) => {
-	await redis.set(`refresh_token:${userId}`, refreshToken, "EX", 7 * 24 * 60 * 60); // 7days
-};
-
-const setCookies = (res, accessToken, refreshToken) => {
-	res.cookie("accessToken", accessToken, {
-		httpOnly: true, // prevent XSS attacks, cross site scripting attack
-		secure: process.env.NODE_ENV === "production",
-		sameSite: "strict", // prevents CSRF attack, cross-site request forgery attack
-		maxAge: 15 * 60 * 1000, // 15 minutes
-	});
-	res.cookie("refreshToken", refreshToken, {
-		httpOnly: true, // prevent XSS attacks, cross site scripting attack
-		secure: process.env.NODE_ENV === "production",
-		sameSite: "strict", // prevents CSRF attack, cross-site request forgery attack
-		maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-	});
-};
+// ============================================================================
+// HTTP HANDLERS - MINIMAL CONTROLLERS (< 150 lines)
+// All business logic delegated to auth.service.js
+// ============================================================================
 
 export const signup = async (req, res) => {
 	try {
-		const { name, email: rawEmail, phone, password, confirmPassword } = req.body;
-
-		// ── 1. Server-side validation ──────────────────────────────────────────
-		const email = (rawEmail || "").toLowerCase().trim();
-		const trimmedName = (name || "").trim();
-
-		if (!trimmedName || !email || !phone || !password || !confirmPassword) {
-			return res.status(400).json({ message: "Vui lòng điền đầy đủ tất cả các trường" });
-		}
-		if (!NAME_REGEX.test(trimmedName)) {
-			return res.status(400).json({ message: "Tên không hợp lệ (2–50 ký tự, không chứa số hoặc ký tự đặc biệt)" });
-		}
-		if (!EMAIL_REGEX.test(email)) {
-			return res.status(400).json({ message: "Địa chỉ email không hợp lệ" });
-		}
-		if (!PHONE_REGEX.test(phone)) {
-			return res.status(400).json({ message: "Số điện thoại không hợp lệ (phải là số di động Việt Nam 10 chữ số, bắt đầu bằng 0)" });
-		}
-		if (!PASS_REGEX.test(password)) {
-			return res.status(400).json({
-				message: "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt (@#$%^&*!)"
-			});
-		}
-		if (password !== confirmPassword) {
-			return res.status(400).json({ message: "Mật khẩu xác nhận không khớp" });
-		}
-
-		// ── 2. Duplicate checks ────────────────────────────────────────────────
-		const emailExists = await User.findOne({ email });
-		if (emailExists) {
-			return res.status(409).json({ message: "Email này đã được sử dụng. Vui lòng đăng nhập hoặc dùng email khác." });
-		}
-		if (phone) {
-			const phoneExists = await User.findOne({ phone });
-			if (phoneExists) {
-				return res.status(409).json({ message: "Số điện thoại này đã được liên kết với tài khoản khác." });
-			}
-		}
-
-		// ── 3. Create user (unverified) ────────────────────────────────────────
-		// Generate verification token — store raw token directly in DB
-		// (64 hex chars from 32 random bytes is already cryptographically strong)
-		const rawToken = crypto.randomBytes(32).toString("hex");
-		const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-		const user = await User.create({
-			name: trimmedName,
-			email,
-			phone,
-			password,
-			isEmailVerified: false,
-			emailVerificationToken: rawToken, // store raw token directly
-			emailVerificationExpires: tokenExpires,
-		});
-
-		// ── 4. Send verification email — ATOMIC ROLLBACK on failure ──────────
-		const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${rawToken}`;
-		try {
-			await sendEmail(
-				email,
-				"Xác minh tài khoản Luxury Watch Store",
-				`
-				<div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: auto; padding: 30px; background: #0f172a; color: #f1f5f9; border-radius: 12px;">
-					<div style="text-align: center; margin-bottom: 24px;">
-						<h1 style="color: #d4af37; font-size: 24px; margin: 0;">⌚ Luxury Watch Store</h1>
-					</div>
-					<h2 style="color: #f1f5f9; font-size: 20px;">Xác minh địa chỉ email của bạn</h2>
-					<p style="color: #94a3b8; line-height: 1.6;">Xin chào <strong style="color: #f1f5f9;">${trimmedName}</strong>,</p>
-					<p style="color: #94a3b8; line-height: 1.6;">Cảm ơn bạn đã đăng ký tài khoản. Vui lòng click nút bên dưới để xác minh email và kích hoạt tài khoản của bạn.</p>
-					<div style="text-align: center; margin: 32px 0;">
-						<a href="${verifyUrl}" style="background: linear-gradient(135deg, #d4af37, #b8952a); color: #0f172a; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">
-							✓ Xác Minh Email
-						</a>
-					</div>
-					<p style="color: #64748b; font-size: 13px;">Link có hiệu lực trong <strong>15 phút</strong>. Nếu bạn không yêu cầu đăng ký, hãy bỏ qua email này.</p>
-					<hr style="border-color: #1e293b; margin: 24px 0;" />
-					<p style="color: #475569; font-size: 12px; text-align: center;">Hoặc copy link: <br/><span style="color: #7c3aed; word-break: break-all;">${verifyUrl}</span></p>
-				</div>
-				`
-			);
-		} catch (emailError) {
-			// ROLLBACK: delete user so they can register again later
-			await User.findByIdAndDelete(user._id);
-			console.error("Signup email failed — rolled back user creation:", emailError.message);
-			return res.status(500).json({
-				message: "Không thể gửi email xác minh. Vui lòng thử lại sau hoặc liên hệ hỗ trợ."
-			});
-		}
-
-		// ── 5. Queue welcome email (non-critical, fire-and-forget) ─────────────
-		try {
-			await emailQueue.add("welcome-email", {
-				fullName: trimmedName,
-				email,
-				shopUrl: process.env.CLIENT_URL || "http://localhost:5173",
-				unsubscribeLink: (process.env.BACKEND_URL || "http://localhost:5000") + "/api/mail/unsubscribe/" + email
-			});
-		} catch (_) { /* non-critical */ }
-
-		res.status(201).json({
-			message: "Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản trước khi đăng nhập.",
-		});
+		const result = await AuthService.signup(req.body);
+		return res.status(201).json(result);
 	} catch (error) {
-		console.log("Error in signup controller:", error.message);
-		res.status(500).json({ message: error.message });
-	}
-};
-
-// ─── Verify Email ──────────────────────────────────────────────────────────────
-export const verifyEmail = async (req, res) => {
-	try {
-		const { token } = req.query;
-		console.log("🔐 verifyEmail called, token length:", token?.length);
-
-		if (!token) {
-			return res.status(400).json({ message: "Token xác minh không hợp lệ" });
-		}
-
-		// Search by raw token directly (no hashing)
-		const userByToken = await User.findOne({ emailVerificationToken: token });
-		console.log("🔐 User found by token:", !!userByToken, userByToken ? `expires: ${userByToken.emailVerificationExpires}` : "");
-
-		if (!userByToken) {
-			return res.status(400).json({
-				message: "Link xác minh không hợp lệ hoặc đã được sử dụng trước đó. Vui lòng yêu cầu gửi lại.",
-				expired: true,
-			});
-		}
-
-		// Check expiry separately for clearer message
-		if (userByToken.emailVerificationExpires < new Date()) {
-			return res.status(400).json({
-				message: "Link xác minh đã hết hạn (24 giờ). Vui lòng yêu cầu gửi lại.",
-				expired: true,
-			});
-		}
-
-		// Update using findByIdAndUpdate to bypass pre-save hooks
-		await User.findByIdAndUpdate(userByToken._id, {
-			$set: {
-				isEmailVerified: true,
-				emailVerificationToken: null,
-				emailVerificationExpires: null,
-			},
-		});
-
-		console.log("✅ Email verified for user:", userByToken.email);
-		res.json({ message: "Xác minh email thành công! Bạn có thể đăng nhập ngay bây giờ." });
-	} catch (error) {
-		console.error("Error in verifyEmail:", error.message);
-		res.status(500).json({ message: "Server error", error: error.message });
-	}
-};
-
-// ─── Resend Verification Email ─────────────────────────────────────────────────
-export const resendVerificationEmail = async (req, res) => {
-	try {
-		const email = (req.body.email || "").toLowerCase().trim();
-		if (!email) {
-			return res.status(400).json({ message: "Vui lòng cung cấp địa chỉ email" });
-		}
-
-		const user = await User.findOne({ email });
-		if (!user) {
-			return res.status(404).json({ message: "Không tìm thấy tài khoản với email này" });
-		}
-		if (user.isEmailVerified) {
-			return res.status(400).json({ message: "Tài khoản này đã được xác minh. Bạn có thể đăng nhập ngay." });
-		}
-
-		// Generate a new raw token (no hashing, store directly)
-		const rawToken = crypto.randomBytes(32).toString("hex");
-		const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-		await User.findByIdAndUpdate(user._id, {
-			$set: {
-				emailVerificationToken: rawToken,
-				emailVerificationExpires: tokenExpires,
-			},
-		});
-
-		const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${rawToken}`;
-		await sendEmail(
-			email,
-			"[Gửi lại] Xác minh tài khoản Luxury Watch Store",
-			`
-			<div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: auto; padding: 30px; background: #0f172a; color: #f1f5f9; border-radius: 12px;">
-				<h2 style="color: #d4af37;">Link xác minh mới</h2>
-				<p style="color: #94a3b8;">Xin chào <strong style="color: #f1f5f9;">${user.name}</strong>, đây là link xác minh mới của bạn.</p>
-				<div style="text-align: center; margin: 32px 0;">
-					<a href="${verifyUrl}" style="background: linear-gradient(135deg, #d4af37, #b8952a); color: #0f172a; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">
-						✓ Xác Minh Email
-					</a>
-				</div>
-				<p style="color: #64748b; font-size: 13px;">Link có hiệu lực trong <strong>24 giờ</strong>.</p>
-			</div>
-			`
-		);
-
-		res.json({ message: "Đã gửi lại email xác minh. Vui lòng kiểm tra hộp thư của bạn." });
-	} catch (error) {
-		console.error("Error in resendVerificationEmail:", error.message);
-		res.status(500).json({ message: "Không thể gửi email. Vui lòng thử lại sau." });
+		const statusCode = error.statusCode || 400;
+		return res.status(statusCode).json({ message: error.message });
 	}
 };
 
 export const login = async (req, res) => {
 	try {
-		const { email: rawEmail, password } = req.body;
-		const email = (rawEmail || "").toLowerCase().trim();
-		const user = await User.findOne({ email });
-
-		if (user && (await user.comparePassword(password))) {
-			console.log("Login: User found and password matches. Role:", user.role);
-
-			// Check email verification — block unverified accounts
-			if (!user.isEmailVerified) {
-				return res.status(403).json({
-					message: "Tài khoản chưa được xác minh. Vui lòng kiểm tra email và click link xác minh.",
-					unverified: true,
-					email: user.email, // send back so FE can auto-fill the resend form
-				});
-			}
-
-			// Check if user is admin
-			if (user.role === "admin") {
-				console.log("Login: Admin detected, triggering OTP flow");
-				// Check for account lockout
-				const lockUntil = await redis.get(`lockUntil:${email}`);
-				if (lockUntil && lockUntil > Date.now()) {
-					const minutesLeft = Math.ceil((lockUntil - Date.now()) / 60000);
-					return res.status(429).json({
-						message: `Tài khoản bị khóa do nhập sai OTP quá nhiều lần. Vui lòng thử lại sau ${minutesLeft} phút.`,
-					});
-				}
-
-				// Check cooldown to prevent spam (even from Step 1 login)
-				const cooldown = await redis.get(`cooldown:${email}`);
-				if (cooldown) {
-					return res.status(429).json({
-						message: "Vui lòng đợi 60 giây giữa các lần yêu cầu mã xác thực.",
-					});
-				}
-
-				// Generate 6-digit OTP
-				const otp = Math.floor(100000 + Math.random() * 900000).toString();
-				const salt = await bcrypt.genSalt(10);
-				const hashedOtp = await bcrypt.hash(otp, salt);
-
-				// Store hashed OTP in Redis (5 mins)
-				await redis.set(`otp:${email}`, hashedOtp, "EX", 5 * 60);
-				// Set cooldown (60s)
-				await redis.set(`cooldown:${email}`, "locked", "EX", 60);
-
-				// Only initialize attempt count if it doesn't exist (preserve progress towards lockout)
-				const existingAttempts = await redis.get(`attempts:${email}`);
-				if (!existingAttempts) {
-					await redis.set(`attempts:${email}`, 0, "EX", 30 * 60);
-				}
-
-				// Extract device info
-				const userAgent = req.headers["user-agent"] || "Không xác định thiết bị";
-				const ip = req.ip || req.connection.remoteAddress || "Không xác định IP";
-
-				// Send email (Resilient flow)
-				try {
-					await sendEmail(
-						email,
-						"Mã xác thực 2FA của bạn",
-						`
-						<div style='font-family: sans-serif; padding: 20px; color: #333;'>
-							<h2>Mã xác thực đăng nhập</h2>
-							<p>Xin chào Admin,</p>
-							<p>Mã OTP của bạn là: <b style='font-size: 24px; color: #10b981;'>${otp}</b></p>
-							<p>Mã này có hiệu lực trong <b>5 phút</b>.</p>
-							<hr />
-							<p style='font-size: 12px; color: #888;'>
-								Thiết bị yêu cầu: ${userAgent}<br />
-								IP: ${ip}
-							</p>
-							<p style='color: #ef4444; font-size: 13px;'>
-								* Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email và kiểm tra lại bảo mật tài khoản.
-							</p>
-						</div>
-						`
-					);
-				} catch (error) {
-					console.error("Non-critical: Email delivery failed, but proceeding to OTP step for UI testing.", error.message);
-				}
-
-				return res.json({ message: "OTP_REQUIRED" });
-			}
-
-			// For normal user, proceed with tokens
-			const { accessToken, refreshToken } = generateTokens(user._id);
-			await storeRefreshToken(user._id, refreshToken);
-			setCookies(res, accessToken, refreshToken);
-
-			// Log LOGIN
-			await logAction({ req, action: "LOGIN", details: "Customer logged in" });
-
-			res.json({
-				_id: user._id,
-				name: user.name,
-				email: user.email,
-				phone: user.phone || "",
-				role: user.role,
-				isEmailVerified: user.isEmailVerified,
-			});
-		} else {
-			res.status(400).json({ message: "Email hoặc mật khẩu không chính xác" });
+		const result = await AuthService.login(req.body.email, req.body.password);
+		if (result.requiresOTP) {
+			const userAgent = req.headers["user-agent"] || "Unknown";
+			const ip = req.ip || req.connection?.remoteAddress || "Unknown";
+			await AuthService.initiateAdminLogin(result.email, userAgent, ip);
+			return res.json({ requiresOTP: true });
 		}
+		AuthService.setCookies(res, result.accessToken, result.refreshToken);
+		return res.json(result);
 	} catch (error) {
-		console.log("Error in login controller:", error);
-		if (error.code === "EAUTH" || error.message.includes("certificate")) {
-			return res.status(503).json({ 
-				message: "Dịch vụ gửi email hiện không khả dụng. Vui lòng thử lại sau hoặc liên hệ hỗ trợ." 
-			});
-		}
-		res.status(500).json({ message: error.message });
+		const statusCode = error.statusCode || 400;
+		return res.status(statusCode).json({ message: error.message });
 	}
 };
 
@@ -377,65 +40,16 @@ export const verifyOTP = async (req, res) => {
 	try {
 		const { email, otp } = req.body;
 		const user = await User.findOne({ email });
+		if (!user) return res.status(404).json({ message: "User not found" });
 
-		if (!user) {
-			return res.status(404).json({ message: "Không tìm thấy người dùng" });
-		}
-
-		// Check lock
-		const lockUntil = await redis.get(`lockUntil:${email}`);
-		if (lockUntil && lockUntil > Date.now()) {
-			const minutesLeft = Math.ceil((lockUntil - Date.now()) / 60000);
-			return res.status(429).json({
-				message: `Tài khoản vẫn đang bị khóa. Thử lại sau ${minutesLeft} phút.`,
-			});
-		}
-
-		const storedHash = await redis.get(`otp:${email}`);
-		if (!storedHash) {
-			return res.status(410).json({ message: "Mã OTP đã hết hạn, vui lòng yêu cầu mã mới" });
-		}
-
-		const isMatch = await bcrypt.compare(otp, storedHash);
-
-		if (isMatch) {
-			// Clear all related keys on success
-			await redis.del(`otp:${email}`);
-			await redis.del(`attempts:${email}`);
-			await redis.del(`lockUntil:${email}`);
-			await redis.del(`cooldown:${email}`);
-
-			// Log LOGIN
-			await logAction({ req, action: "LOGIN", details: "Admin logged in with 2FA" });
-
-			// Generate tokens
-			const { accessToken, refreshToken } = generateTokens(user._id);
-			await storeRefreshToken(user._id, refreshToken);
-			setCookies(res, accessToken, refreshToken);
-
-			res.json({
-				_id: user._id,
-				name: user.name,
-				email: user.email,
-				phone: user.phone || "",
-				role: user.role,
-				isEmailVerified: user.isEmailVerified,
-			});
-		} else {
-			const attempts = await redis.incr(`attempts:${email}`);
-			if (attempts >= 5) {
-				const lockDuration = 30 * 60; // 30 mins
-				const lockTimestamp = Date.now() + lockDuration * 1000;
-				await redis.set(`lockUntil:${email}`, lockTimestamp, "EX", lockDuration);
-				return res.status(429).json({
-					message: "Bạn đã nhập sai quá nhiều lần. Tài khoản bị khóa trong 30 phút.",
-				});
-			}
-			res.status(400).json({ message: `Mã OTP không chính xác. Bạn còn ${5 - attempts} lần thử.` });
-		}
+		await AuthService.validateAdminOTP(email, otp, user);
+		const { accessToken, refreshToken } = AuthService.generateTokens(user._id);
+		await AuthService.storeRefreshToken(user._id, refreshToken);
+		AuthService.setCookies(res, accessToken, refreshToken);
+		return res.json({ _id: user._id, name: user.name, email: user.email, role: user.role });
 	} catch (error) {
-		console.log("Error in verifyOTP controller", error.message);
-		res.status(500).json({ message: error.message });
+		const statusCode = error.statusCode || 400;
+		return res.status(statusCode).json({ message: error.message });
 	}
 };
 
@@ -443,61 +57,15 @@ export const resendOTP = async (req, res) => {
 	try {
 		const { email } = req.body;
 		const user = await User.findOne({ email });
+		if (!user || user.role !== "admin") return res.status(403).json({ message: "Invalid request" });
 
-		if (!user || user.role !== "admin") {
-			return res.status(403).json({ message: "Yêu cầu không hợp lệ" });
-		}
-
-		// Cooldown check (60s)
-		const cooldown = await redis.get(`cooldown:${email}`);
-		if (cooldown) {
-			return res.status(429).json({ message: "Vui lòng đợi 60 giây trước khi yêu cầu mã mới" });
-		}
-
-		// Generate new OTP
-		const otp = Math.floor(100000 + Math.random() * 900000).toString();
-		const salt = await bcrypt.genSalt(10);
-		const hashedOtp = await bcrypt.hash(otp, salt);
-
-		// Store in Redis (refresh TTL)
-		await redis.set(`otp:${email}`, hashedOtp, "EX", 5 * 60);
-		// Reset attempts on manual resend (30 mins to match design)
-		await redis.set(`attempts:${email}`, 0, "EX", 30 * 60);
-		// Set cooldown
-		await redis.set(`cooldown:${email}`, "locked", "EX", 60);
-
-		// Send email (Resilient flow)
-		try {
-			await sendEmail(
-				email,
-				"Mã xác thực 2FA mới của bạn",
-				`
-				<div style='font-family: sans-serif; padding: 20px; color: #333;'>
-					<h2>Mã xác thực mới</h2>
-					<p>Bạn vừa yêu cầu gửi lại mã xác thực đăng nhập.</p>
-					<p>Mã mới của bạn là: <b style='font-size: 24px; color: #10b981;'>${otp}</b></p>
-					<p>Mã này có hiệu lực trong <b>5 phút</b>.</p>
-					<hr />
-					<p style='font-size: 12px; color: #888;'>
-						Yêu cầu từ thiết bị: ${userAgent}<br />
-						IP: ${ip}
-					</p>
-				</div>
-				`
-			);
-		} catch (error) {
-			console.error("Non-critical: Resend email failed, but proceeding for UI testing.", error.message);
-		}
-
-		res.json({ message: "Đã gửi mã OTP mới vào email của bạn" });
+		const userAgent = req.headers["user-agent"] || "Unknown";
+		const ip = req.ip || req.connection?.remoteAddress || "Unknown";
+		await AuthService.resendAdminOTP(email, userAgent, ip);
+		return res.json({ message: "Đã gửi lại mã xác minh 2FA. Vui lòng kiểm tra email." });
 	} catch (error) {
-		console.log("Error in resendOTP controller:", error);
-		if (error.code === "EAUTH" || error.message.includes("certificate")) {
-			return res.status(503).json({ 
-				message: "Dịch vụ gửi email hiện không khả dụng. Vui lòng thử lại sau." 
-			});
-		}
-		res.status(500).json({ message: error.message });
+		const statusCode = error.statusCode || 400;
+		return res.status(statusCode).json({ message: error.message });
 	}
 };
 
@@ -508,318 +76,273 @@ export const logout = async (req, res) => {
 			const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
 			await redis.del(`refresh_token:${decoded.userId}`);
 		}
-
 		res.clearCookie("accessToken");
 		res.clearCookie("refreshToken");
-		res.json({ message: "Logged out successfully" });
+		return res.json({ message: "Logged out" });
 	} catch (error) {
-		console.log("Error in logout controller", error.message);
-		res.status(500).json({ message: "Server error", error: error.message });
+		return res.status(500).json({ message: error.message });
 	}
 };
 
-// this will refresh the access token
 export const refreshToken = async (req, res) => {
 	try {
-		const refreshToken = req.cookies.refreshToken;
+		const rt = req.cookies.refreshToken;
+		if (!rt) return res.status(401).json({ message: "No refresh token" });
 
-		if (!refreshToken) {
-			return res.status(401).json({ message: "No refresh token provided" });
-		}
-
-		const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-		const storedToken = await redis.get(`refresh_token:${decoded.userId}`);
-
-		if (storedToken !== refreshToken) {
-			return res.status(401).json({ message: "Invalid refresh token" });
-		}
-
-		const accessToken = jwt.sign({ userId: decoded.userId }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
-
-		res.cookie("accessToken", accessToken, {
-			httpOnly: true,
-			secure: process.env.NODE_ENV === "production",
-			sameSite: "strict",
-			maxAge: 15 * 60 * 1000,
-		});
-
-		res.json({ message: "Token refreshed successfully" });
+		const result = await AuthService.refreshAccessToken(rt);
+		AuthService.setCookies(res, result.accessToken, result.refreshToken);
+		return res.json({ message: "Token refreshed" });
 	} catch (error) {
-		console.log("Error in refreshToken controller", error.message);
-		res.status(500).json({ message: "Server error", error: error.message });
+		return res.status(401).json({ message: error.message });
 	}
 };
 
 export const getProfile = async (req, res) => {
 	try {
-		res.json(req.user);
+		if (!req.user?._id) return res.status(401).json({ message: "Unauthorized" });
+		const user = await AuthService.getProfile(req.user._id);
+		return res.json(user);
 	} catch (error) {
-		res.status(500).json({ message: "Server error", error: error.message });
+		const statusCode = error.statusCode || 500;
+		return res.status(statusCode).json({ message: error.message });
 	}
 };
 
-export const getAllUsers = async (req, res) => {
+export const verifyEmail = async (req, res) => {
 	try {
-		const page = parseInt(req.query.page) || 1;
-		const limit = parseInt(req.query.limit) || 10;
-		const skip = (page - 1) * limit;
-		const search = req.query.search || "";
-		const roleFilter = req.query.role || "";
+		const token = req.body?.token || req.query?.token;
+		console.log("🔍 [verifyEmail] token received:", token ? "✓ token found" : "✗ token missing");
+		console.log("📦 [verifyEmail] req.body:", req.body);
+		console.log("📦 [verifyEmail] req.query:", req.query);
+		if (!token) return res.status(400).json({ message: "Token required" });
 
-		// Build filter
-		const matchQuery = {};
-		if (search) {
-			matchQuery.$or = [
-				{ name: { $regex: search, $options: "i" } },
-				{ email: { $regex: search, $options: "i" } },
-				{ phone: { $regex: search, $options: "i" } },
-			];
-		}
-		if (roleFilter) {
-			matchQuery.role = roleFilter;
-		}
-
-		// Aggregation pipeline
-		const users = await User.aggregate([
-			{ $match: matchQuery },
-			{
-				$lookup: {
-					from: "orders",
-					localField: "_id",
-					foreignField: "user",
-					as: "orders",
-				},
-			},
-			{
-				$addFields: {
-					totalSpend: {
-						$sum: {
-							$map: {
-								input: {
-									$filter: {
-										input: "$orders",
-										as: "order",
-										cond: { $eq: ["$$order.paymentStatus", "paid"] },
-									},
-								},
-								as: "paidOrder",
-								in: "$$paidOrder.totalAmount",
-							},
-						},
-					},
-					orderCount: {
-						$size: {
-							$filter: {
-								input: "$orders",
-								as: "order",
-								cond: { $eq: ["$$order.status", "delivered"] },
-							},
-						},
-					},
-				},
-			},
-			{
-				$addFields: {
-					segment: {
-						$cond: {
-							if: {
-								$or: [
-									{ $gte: ["$totalSpend", 50000000] },
-									{ $gt: ["$orderCount", 5] },
-								],
-							},
-							then: "VIP",
-							else: {
-								$cond: {
-									if: { $gte: ["$totalSpend", 10000000] },
-									then: "Potential",
-									else: "New",
-								},
-							},
-						},
-					},
-				},
-			},
-			{ $project: { password: 0, orders: 0 } },
-			{ $sort: { createdAt: -1 } },
-			{ $skip: skip },
-			{ $limit: limit },
-		]);
-
-		const totalUsers = await User.countDocuments(matchQuery);
-
-		res.json({
-			users,
-			pagination: {
-				totalUsers,
-				totalPages: Math.ceil(totalUsers / limit),
-				currentPage: page,
-			},
-		});
+		const result = await AuthService.verifyEmail(token);
+		return res.json(result);
 	} catch (error) {
-		console.error("Error in getAllUsers:", error.message);
-		res.status(500).json({ message: "Server error", error: error.message });
+		const statusCode = error.statusCode || 400;
+		return res.status(statusCode).json({ message: error.message });
 	}
 };
 
-export const getAuditLogs = async (req, res) => {
+export const resendVerificationEmail = async (req, res) => {
 	try {
-		const page = parseInt(req.query.page) || 1;
-		const limit = parseInt(req.query.limit) || 20;
-		const skip = (page - 1) * limit;
-		const { action, userId, startDate, endDate } = req.query;
+		const email = req.user?.email || req.body?.email;
+		if (!email) return res.status(400).json({ message: "Email required" });
 
-		const query = {};
-		if (action) query.action = action;
-		if (userId) query.userId = userId;
-		if (startDate || endDate) {
-			query.createdAt = {};
-			if (startDate) query.createdAt.$gte = new Date(startDate);
-			if (endDate) query.createdAt.$lte = new Date(endDate);
-		}
-
-		const logs = await AuditLog.find(query)
-			.populate("userId", "name email role")
-			.sort({ createdAt: -1 })
-			.skip(skip)
-			.limit(limit);
-
-		const totalLogs = await AuditLog.countDocuments(query);
-
-		res.json({
-			logs,
-			pagination: {
-				totalLogs,
-				totalPages: Math.ceil(totalLogs / limit),
-				currentPage: page,
-			},
-		});
+		const result = await AuthService.resendVerificationEmail(email);
+		return res.json(result);
 	} catch (error) {
-		console.error("Error in getAuditLogs:", error.message);
-		res.status(500).json({ message: "Server error", error: error.message });
+		const statusCode = error.statusCode || 400;
+		return res.status(statusCode).json({ message: error.message });
 	}
 };
 
-export const deleteUser = async (req, res) => {
+export const forgotPassword = async (req, res) => {
 	try {
-		const { id } = req.params;
-
-		// Prevent admin from deleting themselves
-		if (id === req.user._id.toString()) {
-			return res.status(400).json({ message: "Không thể xóa chính mình" });
-		}
-
-		const user = await User.findById(id);
-		if (!user) return res.status(404).json({ message: "Không tìm thấy user" });
-
-		// Hard delete — if you want soft delete uncomment below
-		await User.findByIdAndDelete(id);
-
-		res.json({ message: "Đã xóa user thành công" });
+		const result = await AuthService.forgotPassword(req.body.email);
+		return res.json(result);
 	} catch (error) {
-		console.error("Error in deleteUser:", error.message);
-		res.status(500).json({ message: "Server error", error: error.message });
+		return res.json({ message: "If account exists, reset email sent" });
 	}
 };
 
-export const updateUserRole = async (req, res) => {
+export const resetPassword = async (req, res) => {
 	try {
-		const { id } = req.params;
-		const { role } = req.body;
-
-		if (!["customer", "admin", "staff"].includes(role)) {
-			return res.status(400).json({ message: "Role không hợp lệ. Phải là customer, admin hoặc staff" });
-		}
-
-		if (id === req.user._id.toString()) {
-			return res.status(400).json({ message: "Không thể tự thay đổi role của mình" });
-		}
-
-		const user = await User.findByIdAndUpdate(id, { role }, { new: true }).select("-password");
-		if (!user) return res.status(404).json({ message: "Không tìm thấy user" });
-
-		res.json({ message: `Đã cập nhật role thành ${role}`, user });
+		const result = await AuthService.resetPassword(req.body.token, req.body.newPassword, req.body.confirmPassword);
+		return res.json(result);
 	} catch (error) {
-		console.error("Error in updateUserRole:", error.message);
-		res.status(500).json({ message: "Server error", error: error.message });
-	}
-};
-
-export const updateProfile = async (req, res) => {
-	try {
-		const { name, phone } = req.body;
-		const userId = req.user._id;
-
-		// ── Validate name ────────────────────────────────────────────────────────
-		const trimmedName = (name || "").trim();
-		if (!trimmedName) {
-			return res.status(400).json({ message: "Tên không được để trống" });
-		}
-		const NAME_REGEX = /^[\p{L}\s]{2,50}$/u;
-		if (!NAME_REGEX.test(trimmedName)) {
-			return res.status(400).json({
-				message: "Tên không hợp lệ: chỉ được chứa chữ cái và khoảng trắng, độ dài từ 2–50 ký tự",
-			});
-		}
-
-		// ── Validate phone ───────────────────────────────────────────────────────
-		const trimmedPhone = (phone || "").trim();
-		if (trimmedPhone) {
-			const PHONE_REGEX = /^(0[35789])\d{8}$/;
-			if (!PHONE_REGEX.test(trimmedPhone)) {
-				return res.status(400).json({
-					message: "Số điện thoại không hợp lệ (10 số, bắt đầu bằng 03/05/07/08/09)",
-				});
-			}
-
-			// Check unique phone (excluding current user)
-			const existingPhone = await User.findOne({ phone: trimmedPhone, _id: { $ne: userId } });
-			if (existingPhone) {
-				return res.status(400).json({ message: "Số điện thoại này đã được sử dụng bởi tài khoản khác" });
-			}
-		}
-
-		const updatedUser = await User.findByIdAndUpdate(
-			userId,
-			{ name: trimmedName, phone: trimmedPhone || null },
-			{ new: true }
-		).select("-password");
-
-		res.json({ message: "Cập nhật thông tin thành công", user: updatedUser });
-	} catch (error) {
-		console.error("Error in updateProfile:", error.message);
-		res.status(500).json({ message: "Server error", error: error.message });
+		const statusCode = error.statusCode || 400;
+		return res.status(statusCode).json({ message: error.message });
 	}
 };
 
 export const changePassword = async (req, res) => {
 	try {
-		const { oldPassword, newPassword, confirmPassword } = req.body;
-		const user = await User.findById(req.user._id);
+		const result = await AuthService.changePassword(req.user._id, req.body.currentPassword, req.body.newPassword, req.body.confirmPassword);
+		return res.json(result);
+	} catch (error) {
+		const statusCode = error.statusCode || 401;
+		return res.status(statusCode).json({ message: error.message });
+	}
+};
 
-		if (!oldPassword || !newPassword || !confirmPassword) {
-			return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin" });
+export const updateProfile = async (req, res) => {
+	try {
+		const result = await AuthService.updateProfile(req.user._id, req.body);
+		return res.json({ message: "Profile updated", user: result });
+	} catch (error) {
+		const statusCode = error.statusCode || 400;
+		return res.status(statusCode).json({ message: error.message });
+	}
+};
+
+// ADMIN FUNCTIONS
+
+export const getAllUsers = async (req, res) => {
+	try {
+		const page = Math.max(parseInt(req.query.page) || 1, 1);
+		const limit = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 100);
+		const search = (req.query.search || "").trim();
+		const role = (req.query.role || "").trim();
+
+		const query = {};
+		if (role) query.role = role;
+		if (search) {
+			query.$or = [
+				{ name: { $regex: search, $options: "i" } },
+				{ email: { $regex: search, $options: "i" } },
+				{ phone: { $regex: search, $options: "i" } },
+			];
 		}
 
-		if (newPassword !== confirmPassword) {
-			return res.status(400).json({ message: "Mật khẩu mới và xác nhận mật khẩu không khớp" });
+		const totalUsers = await User.countDocuments(query);
+		const totalPages = Math.ceil(totalUsers / limit);
+		const users = await User.find(query)
+			.select("-password")
+			.sort({ createdAt: -1 })
+			.skip((page - 1) * limit)
+			.limit(limit);
+
+		return res.json({ users, pagination: { currentPage: page, totalPages, totalUsers, limit } });
+	} catch (error) {
+		return res.status(500).json({ message: error.message });
+	}
+};
+
+export const deleteUser = async (req, res) => {
+	try {
+		if (req.params.id === req.user._id.toString()) return res.status(400).json({ message: "Cannot delete self" });
+		await User.findByIdAndDelete(req.params.id);
+		return res.json({ message: "User deleted" });
+	} catch (error) {
+		return res.status(500).json({ message: error.message });
+	}
+};
+
+export const bulkDeleteUsers = async (req, res) => {
+	try {
+		const { ids } = req.body;
+		if (!ids || !Array.isArray(ids)) {
+			return res.status(400).json({ message: "Mảng danh sách ID không hợp lệ" });
 		}
 
-		if (newPassword.length < 6) {
-			return res.status(400).json({ message: "Mật khẩu mới phải có ít nhất 6 ký tự" });
+		// Lọc bỏ ID của chính admin đang thực hiện thao tác
+		const filteredIds = ids.filter(id => id !== req.user._id.toString());
+
+		if (filteredIds.length === 0) {
+			return res.status(400).json({ message: "Không thể tự xóa chính mình" });
 		}
 
-		const isMatch = await user.comparePassword(oldPassword);
-		if (!isMatch) {
-			return res.status(400).json({ message: "Mật khẩu hiện tại không chính xác" });
-		}
+		await User.deleteMany({ _id: { $in: filteredIds } });
 
-		user.password = newPassword;
+		return res.json({ message: `Đã xóa ${filteredIds.length} tài khoản thành công` });
+	} catch (error) {
+		return res.status(500).json({ message: error.message });
+	}
+};
+
+export const updateUserRole = async (req, res) => {
+	try {
+		const { role } = req.body;
+		if (!["customer", "staff", "admin"].includes(role)) return res.status(400).json({ message: "Invalid role" });
+		if (req.params.id === req.user._id.toString()) return res.status(400).json({ message: "Cannot self-update" });
+
+		const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true }).select("-password");
+		return res.json({ message: `Role updated to ${role}`, user });
+	} catch (error) {
+		return res.status(500).json({ message: error.message });
+	}
+};
+
+export const adjustLoyaltyPoints = async (req, res) => {
+	try {
+		const { delta } = req.body;
+		if (!delta || isNaN(delta)) return res.status(400).json({ message: "Delta required" });
+
+		const user = await User.findById(req.params.id);
+		if (!user) return res.status(404).json({ message: "User not found" });
+
+		user.rewardPoints = Math.max(0, (user.rewardPoints || 0) + delta);
+		if (delta > 0) user.totalPointsEarned = (user.totalPointsEarned || 0) + delta;
 		await user.save();
 
-		res.json({ message: "Đổi mật khẩu thành công" });
+		return res.json({ message: `${delta > 0 ? "Added" : "Subtracted"} ${Math.abs(delta)} points`, rewardPoints: user.rewardPoints });
 	} catch (error) {
-		console.error("Error in changePassword:", error.message);
-		res.status(500).json({ message: "Server error", error: error.message });
+		return res.status(500).json({ message: error.message });
+	}
+};
+
+export const updateUserAdminNotes = async (req, res) => {
+	try {
+		const { adminNotes, tags } = req.body;
+		const update = {};
+		if (adminNotes !== undefined) update.adminNotes = adminNotes;
+		if (tags !== undefined) {
+			const validTags = ["VIP", "Wholesale", "Problematic", "New", "Loyal"];
+			update.tags = (tags || []).filter(t => validTags.includes(t));
+		}
+
+		const user = await User.findByIdAndUpdate(req.params.id, update, { new: true }).select("-password");
+		if (!user) return res.status(404).json({ message: "User not found" });
+
+		return res.json({ message: "Admin notes updated", user });
+	} catch (error) {
+		return res.status(500).json({ message: error.message });
+	}
+};
+
+export const getAuditLogs = async (req, res) => {
+	try {
+		const page = Math.max(parseInt(req.query.page) || 1, 1);
+		const limit = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 100);
+
+		const totalLogs = await AuditLog.countDocuments();
+		const logs = await AuditLog.find()
+			.populate("userId", "name email role")
+			.sort({ createdAt: -1 })
+			.skip((page - 1) * limit)
+			.limit(limit);
+
+		return res.json({ logs, pagination: { currentPage: page, totalPages: Math.ceil(totalLogs / limit), totalLogs, limit } });
+	} catch (error) {
+		return res.status(500).json({ message: error.message });
+	}
+};
+
+// ============================================================================
+// DEBUG ENDPOINT (DEV ONLY) - Get verification link without email delay
+// ============================================================================
+export const getVerificationLinkDebug = async (req, res) => {
+	try {
+		if (process.env.NODE_ENV === "production") {
+			return res.status(403).json({ message: "Not available in production" });
+		}
+
+		const { email } = req.body;
+		if (!email) return res.status(400).json({ message: "Email required" });
+
+		const user = await User.findOne({ email });
+		if (!user) return res.status(404).json({ message: "User not found" });
+
+		if (user.emailVerified) {
+			return res.json({ message: "Account already verified" });
+		}
+
+		// Generate a new verification token
+		const verifyToken = user.generateEmailVerificationToken();
+		await user.save();
+
+		const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${verifyToken}`;
+
+		return res.json({
+			message: "✅ Verification link generated (DEV ONLY)",
+			email: user.email,
+			verificationUrl: verifyUrl,
+			token: verifyToken,
+			expiresIn: "24 hours"
+		});
+	} catch (error) {
+		const statusCode = error.statusCode || 500;
+		return res.status(statusCode).json({ message: error.message });
 	}
 };

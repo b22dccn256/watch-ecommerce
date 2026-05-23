@@ -1,90 +1,261 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useProductStore } from "../stores/useProductStore";
-import { useCartStore } from "../stores/useCartStore";
-import { useCampaignStore } from "../stores/useCampaignStore";
-import HeroBanner from "../components/HeroBanner";
-import FlashSaleSection from "../components/FlashSaleSection";
-import BestSellerSection from "../components/BestSellerSection";
-import ChatBot from "../components/ChatBot";
+import { RefreshCw, ShieldCheck, Sparkles, Truck } from "lucide-react";
 
+import { useProductStore } from "../stores/useProductStore";
+import { useCampaignStore } from "../stores/useCampaignStore";
+import { useStorefrontStore } from "../stores/useStorefrontStore";
+import HeroBanner from "../components/HeroBanner";
+import PageShell from "../components/PageShell";
+import RecentlyViewed from "../components/RecentlyViewed";
+import FlashSaleSection from "../components/FlashSaleSection";
+import BestSellersSection from "../components/BestSellerSection";
+import FeaturedProducts from "../components/FeaturedProducts";
+import CampaignBannerSection from "../components/CampaignBannerSection";
+import ChatBot from "../components/ChatBot";
+import { SkeletonProductCard } from "../components/SkeletonLoaders";
+
+const TRUST_CARDS = [
+  {
+    label: "Bộ sưu tập",
+    value: "500+ mẫu",
+    sub: "Tuyển chọn tinh gọn theo quiet luxury",
+    icon: Sparkles,
+  },
+  {
+    label: "Bảo hành",
+    value: "5 năm",
+    sub: "Hậu mãi toàn diện cho từng chiếc đồng hồ",
+    icon: ShieldCheck,
+  },
+  {
+    label: "Đổi trả",
+    value: "30 ngày",
+    sub: "Quy trình rõ ràng, hỗ trợ nhanh",
+    icon: RefreshCw,
+  },
+  {
+    label: "Giao hàng",
+    value: "2h nội thành",
+    sub: "Áp dụng khu vực trung tâm phù hợp",
+    icon: Truck,
+  },
+];
 
 const HomePage = () => {
-	const { fetchFeaturedProducts, products, loading } = useProductStore();
-	const { addToCart } = useCartStore();
-	const { campaigns, fetchActiveCampaigns } = useCampaignStore();
+  const { fetchFeaturedProducts, products, loading } = useProductStore();
+  const { fetchActiveCampaigns, campaigns } = useCampaignStore();
+  const { config, fetchConfig } = useStorefrontStore();
+  const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
-	const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-	const [activeCampaign, setActiveCampaign] = useState(null);
+  useEffect(() => {
+    fetchFeaturedProducts();
+    fetchActiveCampaigns();
+    fetchConfig();
+  }, [fetchFeaturedProducts, fetchActiveCampaigns, fetchConfig]);
 
-	useEffect(() => {
-		fetchFeaturedProducts();
-		fetchActiveCampaigns();
-	}, [fetchFeaturedProducts, fetchActiveCampaigns]);
+  // B-02: tinh timeLeft cho Flash Sale campaign dau tien
+  const flashCampaign = campaigns?.find(c => c.isActive && c.endDate);
+  useEffect(() => {
+    if (!flashCampaign?.endDate) return;
+    const tick = () => {
+      const diff = Math.max(0, new Date(flashCampaign.endDate) - Date.now());
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setTimeLeft({ hours: h, minutes: m, seconds: s });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [flashCampaign]);
 
-	useEffect(() => {
-		if (campaigns && campaigns.length > 0) {
-			const active = campaigns.find(c => c.status === "Active");
-			setActiveCampaign(active || null);
-		} else {
-			setActiveCampaign(null);
-		}
-	}, [campaigns]);
+  const showSkeleton = !config || (loading && products.length === 0);
+  const gridCols = Number(config?.gridColumns) || 4;
+  // Ensure featured count aligns with grid columns to avoid an uneven last row
+  const rawCount = config?.featuredCount || 4;
+  let desired = Math.min(rawCount, products.length);
+  if (desired < gridCols) desired = Math.min(gridCols, products.length);
+  if (desired % gridCols !== 0) {
+    desired = Math.floor(desired / gridCols) * gridCols || Math.min(gridCols, products.length);
+  }
+  const featured = products.slice(0, desired);
+  // B-02 + B-03: products cho Flash Sale va Best Sellers
+  const flashProducts = flashCampaign?.products?.slice(0, gridCols) || [];
+  const bestSellers = products
+    .filter(p => (p.salesCount || 0) > 0)
+    .sort((a, b) => b.salesCount - a.salesCount)
+    .slice(0, gridCols);
 
-	useEffect(() => {
-		// If no active campaign, use a mock 24h timer initialized relative to midnight
-		let targetDate;
-		if (activeCampaign) {
-			targetDate = new Date(activeCampaign.endDate).getTime();
-		} else {
-			const tomorrow = new Date();
-			tomorrow.setHours(24, 0, 0, 0); // Next midnight
-			targetDate = tomorrow.getTime();
-		}
+  if (showSkeleton) {
+    return (
+      <div className="min-h-screen pb-16 pt-4 sm:pt-8">
+        <div className="mx-auto max-w-screen-2xl space-y-8 px-4 sm:px-6 lg:px-8">
+          <div className="h-[70vh] animate-pulse rounded-[1.8rem] border border-black/10 bg-surface" />
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => <SkeletonProductCard key={i} />)}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-		const timer = setInterval(() => {
-			const now = new Date().getTime();
-			const distance = targetDate - now;
+  // A3: render section theo thu tu homeLayout
+  const renderSections = () => {
+    const layout = config?.homeLayout || ["hero", "flashSale", "bestSeller"];
+    return layout.map(sectionKey => {
+      switch (sectionKey) {
+        case "flashSale":
+          return flashProducts.length > 0 ? (
+            <FlashSaleSection
+              key="flashSale"
+              products={flashProducts}
+              timeLeft={timeLeft}
+              campaignName={flashCampaign?.name}
+              title={config?.flashSaleTitle || "Uu Dai Dac Biet"}
+              gridCols={gridCols}
+            />
+          ) : null;
+        case "bestSeller":
+          return bestSellers.length > 0 ? (
+            <BestSellersSection
+              key="bestSeller"
+              products={bestSellers}
+              title={config?.bestSellerTitle || "San pham Ban chay"}
+              gridCols={gridCols}
+            />
+          ) : null;
+        case "newsletter":
+          return null; // newsletter section handled by Footer subscribe form
+        default:
+          return null;
+      }
+    });
+  };
 
-			if (distance < 0) {
-				clearInterval(timer);
-				setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-			} else {
-				setTimeLeft({
-					days: Math.floor(distance / (1000 * 60 * 60 * 24)),
-					hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-					minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
-					seconds: Math.floor((distance % (1000 * 60)) / 1000),
-				});
-			}
-		}, 1000);
+  return (
+    <div className="min-h-screen overflow-hidden">
+      <PageShell>
 
-		return () => clearInterval(timer);
-	}, [activeCampaign]);
+        {/* A3: Hero - chi hien neu co trong homeLayout */}
+        {(config?.homeLayout || ["hero"]).includes("hero") && (
+          <div className="pt-2 sm:pt-4">
+            <HeroBanner config={config} slogan={config.heroSlogan} />
+          </div>
+        )}
 
-	return (
-		<div className="min-h-screen bg-white dark:bg-[#1a120b] text-gray-900 dark:text-white transition-colors duration-500 overflow-hidden">
-			{/* HERO BANNER */}
-			<HeroBanner />
+        {/* NOTE: prominent search bar removed to avoid duplication with header search */}
 
-			{/* FLASH SALE / ACTIVE CAMPAIGN */}
-			<FlashSaleSection
-				products={products.slice(0, 4)} // 4 sản phẩm flash
-				timeLeft={timeLeft}
-				addToCart={addToCart}
-				campaignName={activeCampaign?.name}
-			/>
+        {/* ── Featured Products — Grid same as BestSellers ── */}
+        <FeaturedProducts featuredProducts={featured} gridCols={gridCols} />
 
-			{/* SẢN PHẨM BÁN CHẠY */}
-			<BestSellerSection
-				products={products.slice(4, 7)} // 3 sản phẩm bán chạy
-				addToCart={addToCart}
-			/>
+        {/* ── Campaign & Promotion Banners (Giữa trang chủ) ── */}
+        <CampaignBannerSection />
 
-			{/* FLOATING CHATBOT */}
-			<ChatBot />
-		</div>
-	);
+        {/* ── Trust Band — Compact ── */}
+        <section className="py-6 sm:py-8">
+          <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+            {TRUST_CARDS.map((card, i) => (
+              <motion.div
+                key={card.label}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.08 }}
+                className="card-premium flex items-start gap-3 p-3.5 sm:p-4"
+              >
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-[color:var(--color-gold)]/20 bg-[color:var(--color-gold)]/8 text-[color:var(--color-gold)]">
+                  <card.icon className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted">{card.label}</p>
+                  <p className="mt-0.5 text-base font-semibold text-primary">{card.value}</p>
+                  <p className="mt-0.5 text-xs leading-snug text-secondary">{card.sub}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Recently Viewed */}
+        <RecentlyViewed />
+
+        {/* ── Editorial Story — Compact Asymmetric ── */}
+        <section className="grid gap-4 py-10 sm:py-14 lg:grid-cols-[1.15fr_0.85fr]">
+          {/* Text side */}
+          <motion.div
+            initial={{ opacity: 0, x: -16 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="premium-surface flex flex-col justify-between overflow-hidden rounded-2xl p-6 sm:p-8"
+          >
+            <div>
+              <p className="hero-kicker text-[color:var(--color-gold)]">Editorial story</p>
+              <h2 className="heading-section mt-3 max-w-md text-[1.5rem] sm:text-[1.8rem]">
+                Nhịp điệu sống cùng<br />cơ khí chính xác
+              </h2>
+              <p className="mt-3 max-w-lg text-sm leading-relaxed text-secondary sm:text-base">
+                Bộ sưu tập được tuyển theo ngôn ngữ tinh gọn: tỷ lệ mặt số, hoàn thiện vỏ, độ mượt dây đeo
+                và cảm giác đeo trong từng ngữ cảnh đời sống.
+              </p>
+            </div>
+            <Link to="/catalog" className="btn-base btn-outline mt-6 h-10 w-fit px-6 text-sm">
+              Khám phá bộ sưu tập
+            </Link>
+          </motion.div>
+
+          {/* Image side */}
+          <motion.div
+            initial={{ opacity: 0, x: 16 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+            className="group relative overflow-hidden rounded-2xl border border-black/6 bg-black"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=1400&auto=format&fit=crop"
+              alt="Luxury watch lifestyle"
+              className="h-full min-h-[380px] w-full object-cover opacity-90 transition-transform duration-[800ms] ease-out group-hover:scale-[1.04]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-7 sm:p-8">
+              <p className="text-[9px] uppercase tracking-[0.3em] text-white/60">Quiet luxury</p>
+              <p className="hero-title mt-2 text-2xl leading-tight text-white sm:text-[1.7rem]">
+                For Formal, For Daily,<br />For Legacy
+              </p>
+            </div>
+          </motion.div>
+        </section>
+
+        {/* ── Vision Statement — Full Width ── */}
+        <section className="pb-28 sm:pb-36">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.65 }}
+            className="mx-auto max-w-3xl text-center"
+          >
+            <div className="lux-divider mx-auto mb-10 w-16" />
+            <p className="font-serif text-[clamp(1.55rem,3.2vw,2.6rem)] font-medium leading-[1.28] text-primary">
+              &quot;Một chiếc đồng hồ không chỉ đo thời gian —<br className="hidden sm:block" />
+              nó kể câu chuyện về người đeo nó.&quot;
+            </p>
+            <div className="lux-divider mx-auto mt-10 w-16" />
+            <p className="mt-7 text-xs uppercase tracking-[0.22em] text-muted">
+              Luxury Watch Gallery · Hà Nội, Việt Nam
+            </p>
+          </motion.div>
+        </section>
+
+      </PageShell>
+
+      {/* A3: Render sections theo thu tu homeLayout */}
+      {renderSections()}
+    </div>
+  );
 };
 
 export default HomePage;

@@ -1,4 +1,5 @@
 import Campaign from "../models/campaign.model.js";
+import { bustCampaignCache } from "../services/campaign.service.js";
 
 export const createCampaign = async (req, res) => {
     try {
@@ -45,10 +46,21 @@ export const createCampaign = async (req, res) => {
         else if (now >= sDate && now <= eDate) status = "Active";
         else if (now > eDate) status = "Ended";
 
+        const campaignGroup = isGlobal ? "Entire Catalog" : (group === "Toàn bộ danh mục" ? "Entire Catalog" : group);
+
         const newCampaign = await Campaign.create({
-            name, description, group: isGlobal ? undefined : group, discountPercentage, startDate: sDate, endDate: eDate, isActive, isGlobal, status
+            name,
+            description,
+            group: isGlobal ? undefined : campaignGroup,
+            discountPercentage,
+            startDate: sDate,
+            endDate: eDate,
+            isActive,
+            isGlobal,
+            status
         });
 
+        bustCampaignCache();
         res.status(201).json(newCampaign);
     } catch (error) {
         console.error("Error creating campaign:", error);
@@ -95,6 +107,7 @@ export const toggleCampaignStatus = async (req, res) => {
         }
 
         await campaign.save();
+        bustCampaignCache();
         res.json(campaign);
     } catch (error) {
         res.status(500).json({ message: "Lỗi máy chủ", error: error.message });
@@ -105,6 +118,7 @@ export const deleteCampaign = async (req, res) => {
     try {
         const campaign = await Campaign.findByIdAndDelete(req.params.id);
         if (!campaign) return res.status(404).json({ message: "Campaign not found" });
+        bustCampaignCache();
         res.json({ message: "Xoá chiến dịch thành công" });
     } catch (error) {
         res.status(500).json({ message: "Lỗi máy chủ", error: error.message });

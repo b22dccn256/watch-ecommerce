@@ -1,6 +1,7 @@
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { useEffect } from "react";
-import { Toaster } from "react-hot-toast";
+import { AnimatePresence, motion } from "framer-motion";
+import { Toaster, toast } from "react-hot-toast";
 
 import HomePage from "./pages/HomePage";
 import SignUpPage from "./pages/SignUpPage";
@@ -8,12 +9,13 @@ import LoginPage from "./pages/LoginPage";
 import AdminPage from "./pages/AdminPage";
 import CatalogPage from "./pages/CatalogPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
-import ProfilePage from "./pages/ProfilePage";
+import AccountPages from "./pages/AccountPages";
 import CartPage from "./pages/CartPage";
 import PurchaseSuccessPage from "./pages/PurchaseSuccessPage";
 import PurchaseCancelPage from "./pages/PurchaseCancelPage";
 import AboutPage from "./pages/AboutPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import PaymentReturnPage from "./pages/PaymentReturnPage";
 import OrderTrackingPage from "./pages/OrderTrackingPage";
 import WishlistPage from "./pages/WishlistPage";
 import DeliveryPolicyPage from "./pages/DeliveryPolicyPage";
@@ -23,19 +25,32 @@ import ContactPage from "./pages/ContactPage";
 import OrderLookupPage from "./pages/OrderLookupPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
-import EmailVerificationPage from "./pages/EmailVerificationPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import BrandsPage from "./pages/BrandsPage";
+import FAQPage from "./pages/FAQPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import LoadingSpinner from "./components/LoadingSpinner";
 import ChatBot from "./components/ChatBot";
 import CompareModal from "./components/CompareModal";
-
+import MobileCTA from "./components/MobileCTA";
+import LoadingSpinner from "./components/LoadingSpinner";
 import { useUserStore } from "./stores/useUserStore";
 import { useCartStore } from "./stores/useCartStore";
+import axios from "./lib/axios";
 import { useThemeStore } from "./stores/useThemeStore";
 import { useWishlistStore } from "./stores/useWishlistStore";
+import { ShimmerStyle } from "./components/SkeletonLoaders";
 import { useCompareStore } from "./stores/useCompareStore";
+import { useSettingsStore } from "./stores/useSettingsStore";
+import { resources } from "./i18n";
+import { I18nContext } from "./contexts/I18nContext";
+import GlobalErrorBoundary from "./components/GlobalErrorBoundary";
+import { useStorefrontStore } from "./stores/useStorefrontStore";
+import PromoPopup from "./components/PromoPopup";
 
 // Scroll to top khi navigate
 const ScrollToTop = () => {
@@ -47,23 +62,125 @@ const ScrollToTop = () => {
 };
 
 function App() {
+	const location = useLocation();
 	const { user, checkAuth, checkingAuth } = useUserStore();
+	const [resendLoading, setResendLoading] = useState(false);
+	const [resendCooldown, setResendCooldown] = useState(0);
+	const cooldownRef = useRef(null);
 	const { getCartItems } = useCartStore();
-	const { wishlist, fetchWishlist, mergeWishlist, syncFromLocalStorage } = useWishlistStore();
-	const { theme } = useThemeStore();
-	const { isOpen, setIsOpen, compareItems } = useCompareStore();
+	const { fetchWishlist, mergeWishlist, syncFromLocalStorage } = useWishlistStore();
+	const { theme, setTheme } = useThemeStore();
+	const { isOpen, setIsOpen } = useCompareStore();
+	const { lang, currency } = useSettingsStore();
+	const { config, fetchConfig } = useStorefrontStore();
+
+	useEffect(() => {
+		fetchConfig();
+	}, [fetchConfig]);
 
 	useEffect(() => {
 		checkAuth();
 	}, [checkAuth]);
 
+	// Fetch CSRF token on app startup
 	useEffect(() => {
-		if (theme === "dark") {
-			document.documentElement.classList.add("dark");
+		axios.get("/csrf-token");
+	}, []);
+
+	const t = (key) => resources[lang]?.translation[key] || key;
+
+	// 1. Theme Color Presets
+	useEffect(() => {
+		const root = document.documentElement;
+		if (!config) return;
+
+		if (config.themePreset === "emerald") {
+			root.style.setProperty("--color-gold", "#10b981");
+		} else if (config.themePreset === "platinum") {
+			root.style.setProperty("--color-gold", "#475569");
 		} else {
-			document.documentElement.classList.remove("dark");
+			// Midnight Gold (Default)
+			root.style.setProperty("--color-gold", "#c7a06d");
+		}
+	}, [config]);
+
+	// 2. Initialize default themeMode on guest first-visit (preview live in dashboard)
+	useEffect(() => {
+		if (!config) return;
+		const isDashboard = window.location.pathname.startsWith("/secret-dashboard");
+		const initialized = sessionStorage.getItem("theme_initialized");
+
+		if (isDashboard || !initialized) {
+			const mode = config.themeMode || "dark";
+			if (mode === "system") {
+				const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+				setTheme(isDark ? "dark" : "light");
+			} else {
+				setTheme(mode);
+			}
+			if (!isDashboard) {
+				sessionStorage.setItem("theme_initialized", "true");
+			}
+		}
+	}, [config, setTheme]);
+
+	// 3. Render active theme class
+	useEffect(() => {
+		const root = document.documentElement;
+		if (theme === "dark") {
+			root.classList.add("dark");
+		} else {
+			root.classList.remove("dark");
 		}
 	}, [theme]);
+
+	// 4. Dynamic SEO Metadata, Favicon & Custom CSS Update
+	useEffect(() => {
+		if (!config) return;
+		if (config.seoTitle) {
+			document.title = config.seoTitle;
+		}
+		if (config.seoMetaDesc) {
+			let metaDesc = document.querySelector('meta[name="description"]');
+			if (!metaDesc) {
+				metaDesc = document.createElement('meta');
+				metaDesc.setAttribute('name', 'description');
+				document.head.appendChild(metaDesc);
+			}
+			metaDesc.setAttribute('content', config.seoMetaDesc);
+		}
+		// Dynamic favicon
+		if (config.favicon) {
+			let favicon = document.querySelector('link[rel="icon"]');
+			if (!favicon) {
+				favicon = document.createElement('link');
+				favicon.setAttribute('rel', 'icon');
+				document.head.appendChild(favicon);
+			}
+			favicon.setAttribute('href', config.favicon);
+		}
+		// Dynamic custom CSS injection
+		const styleId = 'storefront-custom-css';
+		let styleEl = document.getElementById(styleId);
+		if (config.customCSS) {
+			if (!styleEl) {
+				styleEl = document.createElement('style');
+				styleEl.id = styleId;
+				document.head.appendChild(styleEl);
+			}
+			styleEl.textContent = config.customCSS;
+		} else if (styleEl) {
+			styleEl.remove();
+		}
+	}, [config]);
+
+	// Resend cooldown timer
+	useEffect(() => {
+		if (resendCooldown > 0) {
+			cooldownRef.current = setInterval(() => setResendCooldown((p) => p - 1), 1000);
+		}
+		return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
+	}, [resendCooldown]);
 
 	// Initialize Wishlist and handle Multi-tab Sync
 	useEffect(() => {
@@ -80,63 +197,116 @@ function App() {
 	}, [fetchWishlist, user, syncFromLocalStorage]);
 
 	useEffect(() => {
-		if (!user) return;
-		getCartItems();
+		if (!user || !user.emailVerified && user.role !== "admin") return;
+
+		const syncCartAndFetch = async () => {
+			await useCartStore.getState().syncLocalCartToServer();
+			await getCartItems();
+		};
+		
+		syncCartAndFetch();
 		mergeWishlist();
 	}, [getCartItems, mergeWishlist, user]);
 
 	if (checkingAuth) return <LoadingSpinner />;
 
+	const isVerifiedUser = user && (user.emailVerified || user.role === "admin");
+	const privateRoute = (component) => {
+		if (!user) return <Navigate to='/login' />;
+		if (user.role !== "admin" && !user.emailVerified) return <Navigate to='/verify-email' />;
+		return component;
+	};
+
 	return (
-		<div className={`min-h-screen relative theme-transition ${theme === 'dark' ? 'bg-luxury-dark text-white' : 'bg-white text-black'}`}>
-			<ScrollToTop />
-			<div className='absolute inset-0 overflow-hidden pointer-events-none'>
-				<div className='absolute inset-0'>
-					<div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-full ${theme === 'dark'
-							? 'bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.15)_0%,rgba(46,95,74,0.05)_45%,rgba(15,15,15,0.9)_100%)]'
-							: 'bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.1)_0%,rgba(240,240,240,0.4)_45%,rgba(255,255,255,1)_100%)]'
-						}`} />
-				</div>
-			</div>
-
-			<div className='relative z-50 pt-20 min-h-screen flex flex-col'>
-				<Navbar />
-				<main className='flex-1'>
-					<Routes>
-						<Route path='/' element={<HomePage />} />
-						<Route path='/signup' element={!user ? <SignUpPage /> : <Navigate to='/' />} />
-						<Route path='/login' element={!user ? <LoginPage /> : <Navigate to='/' />} />
-						<Route path='/verify-email' element={<EmailVerificationPage />} />
-						<Route
-							path='/secret-dashboard'
-							element={user?.role === "admin" || user?.role === "staff" ? <AdminPage /> : <Navigate to='/login' />}
-						/>
-						<Route path="/catalog" element={<CatalogPage />} />
-						<Route path='/category/:category' element={<CatalogPage />} />
-						<Route path="/about" element={<AboutPage />} />
-						<Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
-						<Route path='/checkout' element={user ? <CheckoutPage /> : <Navigate to='/login' />} />
-						<Route path='/profile' element={user ? <ProfilePage /> : <Navigate to='/login' />} />
-						<Route path='/wishlist' element={user ? <WishlistPage /> : <Navigate to='/login' />} />
-
-						{/* Public Policy & Support Routes */}
+		<GlobalErrorBoundary>
+		<I18nContext.Provider value={{ t, lang, currency }}>
+			<div className={`min-h-screen relative ${theme === 'dark' ? 'bg-[color:var(--color-bg)] text-[color:var(--color-primary)]' : 'bg-[color:var(--color-bg)] text-[color:var(--color-primary)]'}`}>
+				<ShimmerStyle />
+				<ScrollToTop />
+            
+			<div className={`relative ${!location.pathname.startsWith('/secret-dashboard') ? (config?.announcementEnabled ? 'pt-24' : 'pt-16') : ''} min-h-screen flex flex-col`}>
+				{/* Hide customer-facing Navbar/Footer/overlays on admin routes */}
+				{!location.pathname.startsWith('/secret-dashboard') && <Navbar />}
+				{user && user.role !== "admin" && !user.emailVerified && (
+					<div className="mx-auto w-full max-w-screen-xl px-4 sm:px-6 md:px-8 py-2.5 bg-amber-50/95 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-200 flex justify-between items-center gap-3">
+						<div className="min-w-0">
+							<p className="text-sm font-semibold">Tài khoản cần xác minh bảo mật</p>
+							<p className="text-xs text-amber-700 dark:text-amber-300/80 mt-0.5">Chúng tôi đã gửi email xác minh. Vui lòng mở email và nhấn nút xác thực để kích hoạt tài khoản.</p>
+						</div>
+						<button
+							className={`shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+								resendLoading || resendCooldown > 0
+									? 'bg-amber-200/50 dark:bg-amber-800/30 text-amber-500 cursor-not-allowed'
+									: 'bg-amber-500 text-white hover:bg-amber-600'
+							}`}
+							onClick={async () => {
+								if (resendLoading || resendCooldown > 0) return;
+								try {
+									setResendLoading(true);
+									const res = await axios.post('/auth/resend-verification', { email: user.email });
+									toast.success(res.data.message || 'Đã gửi lại email xác minh');
+									setResendCooldown(60);
+								} catch (err) {
+									const msg = err?.response?.data?.message || 'Gửi lại email xác minh thất bại';
+									toast.error(msg);
+								} finally {
+									setResendLoading(false);
+								}
+							}}
+							disabled={resendLoading || resendCooldown > 0}
+						>
+							{resendLoading ? 'Đang gửi...' : resendCooldown > 0 ? `Gửi lại (${resendCooldown}s)` : 'Gửi lại email xác minh'}
+						</button>
+					</div>
+				)}
+				<main className='flex-1 pb-20 sm:pb-0'>
+					<AnimatePresence mode="wait">
+						<motion.div
+							key={location.pathname}
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							transition={{ duration: 0.12 }}
+						>
+					<Routes location={location}>
+							<Route path='/' element={isVerifiedUser ? <HomePage /> : user ? <Navigate to='/verify-email' /> : <HomePage />} />
+							<Route path='/signup' element={!user ? <SignUpPage /> : <Navigate to='/' />} />
+							<Route path='/login' element={!user ? <LoginPage /> : <Navigate to='/' />} />
+							<Route path='/verify-email/:token?' element={<VerifyEmailPage />} />
+							<Route path='/forgot-password' element={<ForgotPasswordPage />} />
+							<Route path='/reset-password/:token?' element={<ResetPasswordPage />} />
+							<Route
+								path='/secret-dashboard'
+								element={user?.role === "admin" || user?.role === "staff" ? <AdminPage /> : <Navigate to='/login' />}
+							/>
+							<Route path="/catalog" element={<CatalogPage />} />
+							<Route path='/category/:category' element={<CatalogPage />} />
+							<Route path="/about" element={<AboutPage />} />
+							<Route path='/cart' element={privateRoute(<CartPage />)} />
+							<Route path='/checkout' element={privateRoute(<CheckoutPage />)} />
+							<Route path='/profile' element={privateRoute(<AccountPages />)} />
+							<Route path='/wishlist' element={privateRoute(<WishlistPage />)} />
 						<Route path='/delivery-policy' element={<DeliveryPolicyPage />} />
 						<Route path='/warranty' element={<WarrantyPage />} />
 						<Route path='/size-guide' element={<SizeGuidePage />} />
 						<Route path='/contact' element={<ContactPage />} />
+						<Route path='/brands' element={<BrandsPage />} />
 						<Route path='/order-lookup' element={<OrderLookupPage />} />
 						<Route path='/privacy-policy' element={<PrivacyPolicyPage />} />
 						<Route path='/terms' element={<TermsOfServicePage />} />
-						<Route
-							path='/purchase-success'
-							element={user ? <PurchaseSuccessPage /> : <Navigate to='/login' />}
-						/>
-						<Route path='/purchase-cancel' element={user ? <PurchaseCancelPage /> : <Navigate to='/login' />} />
-						<Route path="/product/:id" element={<ProductDetailPage />} />
+						<Route path='/faq' element={<FAQPage />} />
+						<Route path='/support' element={<FAQPage />} />
+						<Route path='/purchase-success' element={<PurchaseSuccessPage />} />
+							<Route path='/purchase-cancel' element={privateRoute(<PurchaseCancelPage />)} />
+						<Route path='/payment/vnpay-return' element={<PaymentReturnPage method="vnpay" />} />
+							<Route path="/product/:slugToken" element={<ProductDetailPage />} />
 						<Route path="/order-tracking/:trackingToken?" element={<OrderTrackingPage />} />
+						<Route path='*' element={<NotFoundPage />} />
 					</Routes>
+						</motion.div>
+					</AnimatePresence>
 				</main>
-				<Footer />
+				{!location.pathname.startsWith('/secret-dashboard') && <Footer />}
 			</div>
 			<Toaster
 				toastOptions={{
@@ -153,23 +323,17 @@ function App() {
 					},
 				}}
 			/>
-			<ChatBot />
-			<CompareModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
-
-			{/* Floating Compare Button */}
-			{compareItems.length > 0 && !isOpen && (
-				<button 
-					onClick={() => setIsOpen(true)}
-					className="fixed bottom-24 right-6 bg-emerald-600 dark:bg-yellow-400 text-white dark:text-black p-4 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.4)] dark:shadow-[0_0_20px_rgba(250,204,21,0.3)] hover:scale-110 transition flex items-center justify-center z-40"
-					title="So sánh sản phẩm"
-				>
-					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m16 16 3-8 3-8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
-					<span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white dark:border-[#0f0c08]">
-						{compareItems.length}
-					</span>
-				</button>
-			)}
-		</div>
+						{!location.pathname.startsWith('/secret-dashboard') && (
+							<>
+								{(!config || config.showChatBot) && <ChatBot />}
+								<MobileCTA />
+								<CompareModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
+								<PromoPopup config={config} />
+							</>
+						)}
+			</div>
+		</I18nContext.Provider>
+		</GlobalErrorBoundary>
 	);
 }
 

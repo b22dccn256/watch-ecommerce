@@ -1,21 +1,38 @@
-import { create } from "zustand";
+import { createWithEqualityFn } from "zustand/traditional";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
 
-export const useInventoryStore = create((set) => ({
+const FETCH_TTL_MS = 30000;
+const lowStockState = { promise: null, lastFetched: 0 };
+
+export const useInventoryStore = createWithEqualityFn((set, get) => ({
     lowStockProducts: [],
     inventoryLogs: [],
     loading: false,
 
-    fetchLowStockProducts: async () => {
-        set({ loading: true });
-        try {
-            const res = await axios.get("/inventory/low-stock");
-            set({ lowStockProducts: res.data, loading: false });
-        } catch (error) {
-            set({ loading: false });
-            toast.error(error.response?.data?.message || "Failed to fetch low stock products");
+    fetchLowStockProducts: async (force = false) => {
+        const now = Date.now();
+        if (!force && get().lowStockProducts.length > 0 && now - lowStockState.lastFetched < FETCH_TTL_MS) {
+            return get().lowStockProducts;
         }
+        if (lowStockState.promise) return lowStockState.promise;
+        set({ loading: true });
+        lowStockState.promise = axios
+            .get("/inventory/low-stock")
+            .then((res) => {
+                set({ lowStockProducts: res.data, loading: false });
+                lowStockState.lastFetched = Date.now();
+                return res.data;
+            })
+            .catch((error) => {
+                set({ loading: false });
+                toast.error(error.response?.data?.message || "Failed to fetch low stock products");
+                return get().lowStockProducts;
+            })
+            .finally(() => {
+                lowStockState.promise = null;
+            });
+        return lowStockState.promise;
     },
 
     fetchProductLogs: async (productId) => {

@@ -1,7 +1,7 @@
-import { create } from "zustand";
+import { createWithEqualityFn } from "zustand/traditional";
 import { toast } from "react-hot-toast";
 
-export const useCompareStore = create((set, get) => ({
+export const useCompareStore = createWithEqualityFn((set, get) => ({
 	compareItems: JSON.parse(localStorage.getItem("watch_compare_items")) || [],
 	isOpen: false,
 	setIsOpen: (isOpen) => set({ isOpen }),
@@ -34,5 +34,9 @@ export const useCompareStore = create((set, get) => ({
 	clearCompare: () => {
 		localStorage.removeItem("watch_compare_items");
 		set({ compareItems: [] });
+	},
+	resetStore: () => {
+		localStorage.removeItem("watch_compare_items");
+		set({ compareItems: [], isOpen: false });
 	},
 }));

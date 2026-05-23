@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import crypto from "crypto";
 
 const newsletterSubscriptionSchema = new mongoose.Schema(
 	{
@@ -16,7 +17,14 @@ const newsletterSubscriptionSchema = new mongoose.Schema(
 			default: "footer" 
 		},
 		unsubscribedAt: { type: Date },
-		unsubscribedReason: { type: String }
+		unsubscribedReason: { type: String },
+		// Token-based unsubscribe to avoid exposing email in URLs
+		unsubscribeToken: { 
+			type: String, 
+			default: () => crypto.randomBytes(32).toString("hex"),
+			unique: true, 
+			sparse: true 
+		}
 	},
 	{ timestamps: true }
 );

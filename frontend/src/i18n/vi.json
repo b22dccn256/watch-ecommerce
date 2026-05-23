@@ -1,0 +1,13 @@
+{
+  "welcome": "Chào mừng",
+  "cart": "Giỏ hàng",
+  "wishlist": "Yêu thích",
+  "compare": "So sánh",
+  "checkout": "Thanh toán",
+  "order_summary": "Tóm tắt đơn hàng",
+  "subtotal": "Tạm tính",
+  "savings": "Tiết kiệm",
+  "total": "Tổng cộng",
+  "currency_vnd": "₫",
+  "currency_usd": "$"
+}

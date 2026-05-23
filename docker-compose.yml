@@ -1,0 +1,112 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # MongoDB Database Service
+  # ==========================================
+  mongodb:
+    image: mongo:6.0-alpine
+    container_name: watch-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: adminpassword
+      MONGO_INITDB_DATABASE: watch_ecommerce
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - watch_network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # Redis Cache Service
+  # ==========================================
+  redis:
+    image: redis:7.2-alpine
+    container_name: watch-redis
+    restart: always
+    command: redis-server --requirepass redispassword
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - watch_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "redispassword", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # Backend API Server Service
+  # ==========================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: watch-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGO_URI=mongodb://admin:adminpassword@mongodb:27017/watch_ecommerce?authSource=admin
+      - REDIS_URL=redis://:redispassword@redis:6379
+      - CLIENT_URL=http://localhost
+      - ACCESS_TOKEN_SECRET=SuperSecureAccessTokenSecret2026123456!
+      - REFRESH_TOKEN_SECRET=SuperSecureRefreshTokenSecret2026123456!
+      # Placeholder credentials - please overwrite in production .env
+      - CLOUDINARY_CLOUD_NAME=dummy
+      - CLOUDINARY_API_KEY=dummy
+      - CLOUDINARY_API_SECRET=dummy
+      - STRIPE_SECRET_KEY=dummy
+      - VNP_TMN_CODE=TESTCODE
+      - VNP_SECRET=TESTSECRET12345678TESTSECRET1234
+    volumes:
+      - backend_uploads:/app/uploads
+    networks:
+      - watch_network
+
+  # ==========================================
+  # Frontend Static Nginx Service
+  # ==========================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: watch-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - watch_network
+
+# ==========================================
+# Network and Volume Definitions
+# ==========================================
+networks:
+  watch_network:
+    driver: bridge
+
+volumes:
+  mongo_data:
+    driver: local
+  redis_data:
+    driver: local
+  backend_uploads:
+    driver: local

@@ -1,8 +1,8 @@
-import { create } from "zustand";
+import { createWithEqualityFn } from "zustand/traditional";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 
-export const useWishlistStore = create((set, get) => ({
+export const useWishlistStore = createWithEqualityFn((set, get) => ({
 	wishlist: [],
 	loading: false,
 
@@ -20,7 +20,10 @@ export const useWishlistStore = create((set, get) => ({
 			set({ wishlist: res.data, loading: false });
 		} catch (error) {
 			set({ loading: false });
-			console.error("Error fetching wishlist:", error);
+			// 401 = not authenticated — expected, not an error
+			if (error.response?.status !== 401) {
+				console.error("Error fetching wishlist:", error.message);
+			}
 		}
 	},
 
@@ -49,7 +52,7 @@ export const useWishlistStore = create((set, get) => ({
 				await axios.post("/wishlist", { productId: product._id });
 			}
 			toast.success(isExisting ? "Đã xóa khỏi yêu thích" : "Đã thêm vào yêu thích");
-		} catch (error) {
+		} catch {
 			// Rollback if server fails
 			set({ wishlist: wishlist });
 			toast.error("Có lỗi xảy ra, vui lòng thử lại sau");
@@ -82,5 +85,9 @@ export const useWishlistStore = create((set, get) => ({
 	syncFromLocalStorage: () => {
 		const saved = localStorage.getItem("wishlist");
 		set({ wishlist: saved ? JSON.parse(saved) : [] });
+	},
+	resetStore: () => {
+		localStorage.removeItem("wishlist");
+		set({ wishlist: [], loading: false });
 	},
 }));

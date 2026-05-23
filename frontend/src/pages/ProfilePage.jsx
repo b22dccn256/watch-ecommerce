@@ -1,577 +1,683 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { User as UserIcon, ShoppingBag, Lock, LogOut, ChevronRight, Eye, EyeOff, Package, ExternalLink, Truck, Copy, XCircle, AlertCircle } from "lucide-react";
-import { toast } from "react-hot-toast";
+import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Lock,
+  LogOut,
+  MapPin,
+  Package,
+  Plus,
+  ShoppingBag,
+  Trash2,
+  Check,
+  User as UserIcon,
+} from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+
 import { useUserStore } from "../stores/useUserStore";
 import { useOrderStore } from "../stores/useOrderStore";
-import { Link } from "react-router-dom";
+import { SkeletonPageShell } from "../components/SkeletonLoaders";
+import Input from "../components/ui/Input";
+
+const tabs = [
+  { id: "profile", label: "Thông tin", icon: UserIcon },
+  { id: "orders", label: "Đơn hàng", icon: ShoppingBag },
+  { id: "password", label: "Mật khẩu", icon: Lock },
+];
+
+const createAddressDraft = (source = {}) => ({
+  id: source.id || `addr-${Date.now()}`,
+  label: source.label || "Địa chỉ mới",
+  fullName: source.fullName || "",
+  phone: source.phone || "",
+  address: source.address || "",
+  city: source.city || "",
+  isDefault: Boolean(source.isDefault),
+});
+
+const normalizeAddressBook = (book = []) => {
+  const list = (Array.isArray(book) ? book : [])
+    .map((item) => {
+      if (!item?.address || !item?.city) return null;
+      return createAddressDraft(item);
+    })
+    .filter(Boolean)
+    .slice(0, 5);
+
+  if (list.length === 0) return [];
+  const defaultIndex = list.findIndex((item) => item.isDefault);
+  if (defaultIndex > 0) {
+    const [defaultItem] = list.splice(defaultIndex, 1);
+    list.unshift({ ...defaultItem, isDefault: true });
+  }
+  if (!list.some((item) => item.isDefault)) {
+    list[0] = { ...list[0], isDefault: true };
+  }
+  return list;
+};
 
 const ProfilePage = () => {
-	const { user, logout, updateProfile, changePassword, loading: userLoading } = useUserStore();
-	const { orders, fetchMyOrders, loading: ordersLoading, cancelOrder } = useOrderStore();
-	const [activeTab, setActiveTab] = useState("info");
-	const [selectedOrder, setSelectedOrder] = useState(null);
+  const { user, loading: userLoading, logout, updateProfile, changePassword } = useUserStore();
+  const { orders, loading: ordersLoading, fetchMyOrders, cancelOrder, requestReturnOrder } = useOrderStore();
 
-	// Profile Form State
-	const [profileData, setProfileData] = useState({
-		name: user?.name || "",
-		phone: user?.phone || "",
-	});
-	const [profileErrors, setProfileErrors] = useState({ name: "", phone: "" });
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(
+    ["profile", "orders", "password"].includes(tabParam) ? tabParam : "profile"
+  );
 
-	// Validation rules (same as backend)
-	const NAME_REGEX = /^[\p{L}\s]{2,50}$/u;
-	const PHONE_REGEX = /^(0[35789])\d{8}$/;
+  useEffect(() => {
+    if (["profile", "orders", "password"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
 
-	const validateProfileField = (field, value) => {
-		if (field === "name") {
-			if (!value.trim()) return "Tên không được để trống";
-			if (!NAME_REGEX.test(value.trim())) return "Tên chỉ chứa chữ cái và khoảng trắng (2–50 ký tự)";
-		}
-		if (field === "phone" && value.trim()) {
-			if (!PHONE_REGEX.test(value.trim())) return "Số ĐT không hợp lệ (10 số, bắt đầu 03/05/07/08/09)";
-		}
-		return "";
-	};
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [profileErrors, setProfileErrors] = useState({});
 
-	// Password Form State
-	const [pwdData, setPwdData] = useState({
-		oldPassword: "",
-		newPassword: "",
-		confirmPassword: "",
-	});
-	const [showPasswords, setShowPasswords] = useState({
-		old: false,
-		newPwd: false,
-		confirm: false,
-	});
+  const [profileData, setProfileData] = useState({ name: "", phone: "", address: "", gender: "", birthday: "" });
+  const [addressBook, setAddressBook] = useState([]);
+  const [defaultAddressId, setDefaultAddressId] = useState("");
+  const [addressDraft, setAddressDraft] = useState(createAddressDraft());
+  const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [showPassword, setShowPassword] = useState({ old: false, next: false, confirm: false });
 
-	useEffect(() => {
-		if (user) {
-			setProfileData({
-				name: user.name,
-				phone: user.phone || "",
-			});
-			fetchMyOrders();
-		}
-	}, [user, fetchMyOrders]);
+  useEffect(() => {
+    if (!user) return;
 
-	const handleProfileChange = (e) => {
-		const { name, value } = e.target;
-		setProfileData((prev) => ({ ...prev, [name]: value }));
-		// Clear error on type
-		if (profileErrors[name]) setProfileErrors((prev) => ({ ...prev, [name]: "" }));
-	};
+    const normalizedBook = normalizeAddressBook(user.addressBook || []);
+    const fallbackAddress = user.address ? createAddressDraft({
+      id: "legacy-default",
+      label: "Địa chỉ mặc định",
+      fullName: user.name || "",
+      phone: user.phone || "",
+      address: user.address || "",
+      city: "",
+      isDefault: true,
+    }) : null;
 
-	const handleProfileBlur = (e) => {
-		const { name, value } = e.target;
-		const error = validateProfileField(name, value);
-		setProfileErrors((prev) => ({ ...prev, [name]: error }));
-	};
+    setProfileData({
+      name: user.name || "",
+      phone: user.phone || "",
+      address: user.address || "",
+      gender: user.gender || "",
+      birthday: user.birthday ? new Date(user.birthday).toISOString().split("T")[0] : "",
+    });
 
-	const handleProfileSubmit = async (e) => {
-		e.preventDefault();
-		// Validate all fields before submitting
-		const nameErr = validateProfileField("name", profileData.name);
-		const phoneErr = validateProfileField("phone", profileData.phone);
-		if (nameErr || phoneErr) {
-			setProfileErrors({ name: nameErr, phone: phoneErr });
-			return;
-		}
-		await updateProfile(profileData);
-	};
+    if (normalizedBook.length > 0) {
+      setAddressBook(normalizedBook);
+      const primaryAddress = normalizedBook.find((item) => item.isDefault) || normalizedBook[0];
+      setDefaultAddressId(primaryAddress.id);
+      setAddressDraft(createAddressDraft(primaryAddress));
+    } else if (fallbackAddress) {
+      setAddressBook([fallbackAddress]);
+      setDefaultAddressId(fallbackAddress.id);
+      setAddressDraft(createAddressDraft(fallbackAddress));
+    } else {
+      setAddressBook([]);
+      setDefaultAddressId("");
+      setAddressDraft(createAddressDraft());
+    }
 
-	const handlePasswordSubmit = async (e) => {
-		e.preventDefault();
-		const success = await changePassword(pwdData);
-		if (success) {
-			setPwdData({
-				oldPassword: "",
-				newPassword: "",
-				confirmPassword: "",
-			});
-		}
-	};
+    fetchMyOrders();
+  }, [fetchMyOrders, user]);
 
-	const menuItems = [
-		{ id: "info", label: "Thông tin cá nhân", icon: UserIcon },
-		{ id: "orders", label: "Lịch sử đơn hàng", icon: ShoppingBag },
-		{ id: "password", label: "Đổi mật khẩu", icon: Lock },
-	];
+  const sortedOrders = useMemo(
+    () => [...(orders || [])].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+    [orders]
+  );
 
-	const getStatusColor = (status) => {
-		switch (status) {
-			case "delivered":
-			case "completed":
-				return "text-emerald-400 bg-emerald-400/10";
-			case "shipping":
-				return "text-blue-400 bg-blue-400/10";
-			case "pending":
-			case "confirmed":
-				return "text-yellow-400 bg-yellow-400/10";
-			case "cancelled":
-				return "text-red-400 bg-red-400/10";
-			default:
-				return "text-gray-400 bg-gray-400/10";
-		}
-	};
+  const validateProfile = () => {
+    const nextErrors = {};
+    if (!profileData.name.trim()) nextErrors.name = "Tên không được để trống";
+    if (profileData.phone && !/^(0|\+84)(3|5|7|8|9)\d{8}$/.test(profileData.phone.replace(/\s/g, ""))) {
+      nextErrors.phone = "Số điện thoại không hợp lệ";
+    }
+    setProfileErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
 
-	const getStatusText = (status) => {
-		switch (status) {
-			case "delivered":
-			case "completed": return "HOÀN THÀNH";
-			case "shipping": return "ĐANG GIAO";
-			case "pending": return "ĐANG CHỜ";
-			case "confirmed": return "ĐÃ XÁC NHẬN";
-			case "cancelled": return "ĐÃ HỦY";
-			default: return status?.toUpperCase();
-		}
-	};
+  const handleProfileSubmit = async (event) => {
+    event.preventDefault();
+    if (!validateProfile()) return;
 
-	return (
-		<div className='min-h-screen pt-28 pb-20 px-4'>
-			<div className='max-w-6xl mx-auto'>
-				<div className='grid grid-cols-1 lg:grid-cols-4 gap-8'>
-					{/* SIDEBAR */}
-					<div className='lg:col-span-1 space-y-6'>
-						<div className='bg-white dark:bg-luxury-darker border border-gray-100 dark:border-luxury-border shadow-xl dark:shadow-none rounded-2xl p-6 flex flex-col items-center text-center'>
-							<div className='w-24 h-24 rounded-full bg-luxury-gold/10 border-2 border-luxury-gold flex items-center justify-center mb-4 overflow-hidden'>
-								{user?.avatar ? (
-									<img src={user.avatar} alt={user.name} className='w-full h-full object-cover' />
-								) : (
-									<UserIcon className='w-12 h-12 text-luxury-gold' />
-								)}
-							</div>
-							<h2 className='text-xl font-bold text-gray-900 dark:text-white'>{user?.name || "Khách hàng"}</h2>
-							<p className='text-luxury-gold text-xs font-semibold tracking-wider uppercase mt-1'>
-								{user?.role === "admin" ? "Quản trị viên" : "Thành viên"}
-							</p>
-						</div>
+    const cleanedAddressBook = addressBook
+      .map((item) => ({
+        ...item,
+        label: item.label?.trim(),
+        fullName: item.fullName?.trim(),
+        phone: item.phone?.trim(),
+        address: item.address?.trim(),
+        city: item.city?.trim(),
+        isDefault: item.id === defaultAddressId,
+      }))
+      .filter((item) => item.label && item.address && item.city)
+      .slice(0, 5);
 
-						<nav className='bg-white dark:bg-luxury-darker border border-gray-100 dark:border-luxury-border shadow-xl dark:shadow-none rounded-2xl overflow-hidden'>
-							{menuItems.map((item) => (
-								<button
-									key={item.id}
-									onClick={() => setActiveTab(item.id)}
-									className={`w-full flex items-center justify-between px-6 py-4 text-sm font-medium transition-colors border-b border-gray-100 dark:border-luxury-border last:border-0 ${activeTab === item.id
-										? "bg-luxury-gold/10 text-luxury-gold"
-										: "text-gray-500 dark:text-luxury-text-muted hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"
-										}`}
-								>
-									<div className='flex items-center gap-3'>
-										<item.icon className='w-5 h-5' />
-										{item.label}
-									</div>
-									<ChevronRight className={`w-4 h-4 transition-transform ${activeTab === item.id ? "rotate-90" : ""}`} />
-								</button>
-							))}
-							<button
-								onClick={logout}
-								className='w-full flex items-center gap-3 px-6 py-4 text-sm font-medium text-red-400 hover:bg-red-400/5 transition-colors'
-							>
-								<LogOut className='w-5 h-5' />
-								Đăng xuất
-							</button>
-						</nav>
-					</div>
+    await updateProfile({
+      ...profileData,
+      address: profileData.address.trim(),
+      addressBook: cleanedAddressBook,
+      defaultAddressId,
+    });
+  };
 
-					{/* CONTENT */}
-					<div className='lg:col-span-3 space-y-8'>
-						<AnimatePresence mode='wait'>
-							<motion.div
-								initial={{ opacity: 0, y: 10 }}
-								animate={{ opacity: 1, y: 0 }}
-								exit={{ opacity: 0, y: -10 }}
-								transition={{ duration: 0.2 }}
-								key={activeTab}
-								className='bg-white dark:bg-luxury-darker border border-gray-100 dark:border-luxury-border shadow-xl dark:shadow-none rounded-3xl p-8 min-h-[500px]'
-							>
-								{activeTab === "info" && (
-									<form onSubmit={handleProfileSubmit} className='space-y-8'>
-										<div>
-											<h1 className='text-3xl font-bold text-gray-900 dark:text-white'>Hồ sơ cá nhân</h1>
-											<p className='text-gray-500 dark:text-luxury-text-muted mt-2'>Quản lý thông tin tài khoản của bạn.</p>
-										</div>
+  const handleSaveAddressDraft = () => {
+    if (!addressDraft.label.trim() || !addressDraft.address.trim() || !addressDraft.city.trim()) {
+      setProfileErrors((prev) => ({
+        ...prev,
+        addressDraft: "Vui lòng nhập nhãn, địa chỉ và tỉnh/thành phố",
+      }));
+      return;
+    }
 
-										<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-											<div className='space-y-2'>
-												<label className='text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>Họ và tên <span className="text-red-500">*</span></label>
-												<input
-													type="text"
-													name="name"
-													value={profileData.name}
-													onChange={handleProfileChange}
-													onBlur={handleProfileBlur}
-													className={`w-full bg-gray-50 dark:bg-luxury-dark border ${profileErrors.name ? "border-red-400 focus:border-red-400" : "border-gray-200 dark:border-luxury-border focus:border-luxury-gold"} text-gray-900 dark:text-white px-5 py-3 rounded-xl focus:outline-none transition`}
-													required
-												/>
-												{profileErrors.name && (
-													<p className="flex items-center gap-1 text-xs text-red-500 mt-1">
-														<AlertCircle className="h-3 w-3 flex-shrink-0" />{profileErrors.name}
-													</p>
-												)}
-											</div>
-											<div className='space-y-2'>
-												<label className='text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>Số điện thoại</label>
-												<input
-													type="text"
-													name="phone"
-													value={profileData.phone}
-													onChange={handleProfileChange}
-													onBlur={handleProfileBlur}
-													placeholder="Ví dụ: 0912345678"
-													className={`w-full bg-gray-50 dark:bg-luxury-dark border ${profileErrors.phone ? "border-red-400 focus:border-red-400" : "border-gray-200 dark:border-luxury-border focus:border-luxury-gold"} text-gray-900 dark:text-white px-5 py-3 rounded-xl focus:outline-none transition`}
-												/>
-												{profileErrors.phone && (
-													<p className="flex items-center gap-1 text-xs text-red-500 mt-1">
-														<AlertCircle className="h-3 w-3 flex-shrink-0" />{profileErrors.phone}
-													</p>
-												)}
-											</div>
-											<div className='space-y-2 col-span-1 md:col-span-2'>
-												<label className='text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>Email (Không thể thay đổi)</label>
-												<div className='relative'>
-													<input
-														type="email"
-														value={user?.email || ""}
-														disabled
-														className='w-full bg-gray-100 dark:bg-luxury-dark/50 border border-gray-200 dark:border-luxury-border text-gray-500 dark:text-luxury-text-muted px-5 py-3 rounded-xl cursor-not-allowed'
-													/>
-													<Lock className='absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-luxury-text-muted' />
-												</div>
-											</div>
-										</div>
+    const nextAddress = createAddressDraft({
+      ...addressDraft,
+      isDefault: addressDraft.isDefault || addressBook.length === 0,
+    });
 
-										<div className='flex justify-end pt-4'>
-											<button
-												type="submit"
-												disabled={userLoading}
-												className='bg-luxury-gold hover:bg-luxury-gold-light text-luxury-dark px-10 py-4 rounded-xl font-bold transition duration-300 shadow-lg shadow-luxury-gold/20 disabled:opacity-50'
-											>
-												{userLoading ? "Đang xử lý..." : "Lưu thay đổi"}
-											</button>
-										</div>
-									</form>
-								)}
+    const nextBook = (() => {
+      const filtered = addressBook.filter((item) => item.id !== nextAddress.id);
+      if (nextAddress.isDefault) {
+        return [{ ...nextAddress, isDefault: true }, ...filtered.map((item) => ({ ...item, isDefault: false }))].slice(0, 5);
+      }
+      return [...filtered, nextAddress].slice(0, 5);
+    })();
 
-								{activeTab === "orders" && (
-									<div className='space-y-8'>
-										<div className='flex items-center justify-between'>
-											<h1 className='text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3'>
-												<ShoppingBag className='w-8 h-8 text-luxury-gold' /> Lịch sử đơn hàng
-											</h1>
-										</div>
+    const defaultItem = nextBook.find((item) => item.isDefault) || nextBook[0];
+    setAddressBook(nextBook);
+    setDefaultAddressId(defaultItem?.id || "");
+    setAddressDraft(createAddressDraft(defaultItem || nextAddress));
+    setProfileErrors((prev) => {
+      const next = { ...prev };
+      delete next.addressDraft;
+      return next;
+    });
+  };
 
-										{ordersLoading ? (
-											<div className='space-y-4'>
-												{[1, 2, 3].map((i) => (
-													<div key={i} className='h-20 bg-white/5 animate-pulse rounded-2xl border border-luxury-border' />
-												))}
-											</div>
-										) : orders.length > 0 ? (
-											<div className='overflow-x-auto'>
-												<table className='w-full'>
-													<thead>
-														<tr className='text-left border-b border-gray-100 dark:border-luxury-border'>
-															<th className='pb-4 text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>Đơn hàng</th>
-															<th className='pb-4 text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>Ngày đặt</th>
-															<th className='pb-4 text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>Tổng cộng</th>
-															<th className='pb-4 text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>Trạng thái</th>
-															<th className='pb-4 text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider text-right'>Chi tiết</th>
-														</tr>
-													</thead>
-													<tbody className='divide-y divide-gray-100 dark:divide-luxury-border'>
-														{orders.map((order) => (
-															<tr key={order._id} className='group hover:bg-gray-50 dark:hover:bg-white/5 transition-colors'>
-																<td className='py-6'>
-																	<div className='font-bold text-gray-900 dark:text-white'>#{order.orderCode || order._id.slice(-6).toUpperCase()}</div>
-																	<div className='text-[10px] text-gray-500 dark:text-luxury-text-muted'>{order.products?.length} sản phẩm</div>
-																</td>
-																<td className='py-6 text-gray-500 dark:text-luxury-text-muted text-sm'>
-																	{new Date(order.createdAt).toLocaleDateString("vi-VN")}
-																</td>
-																<td className='py-6 font-bold text-luxury-gold'>
-																	{order.totalAmount?.toLocaleString("vi-VN")}đ
-																</td>
-																<td className='py-6'>
-																	<span className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wider ${getStatusColor(order.status)}`}>
-																		{getStatusText(order.status)}
-																	</span>
-																</td>
-																<td className='py-6 text-right'>
-																	<div className='flex items-center gap-2 justify-end'>
-																		<button
-																			onClick={() => setSelectedOrder(order)}
-																			className='p-2 hover:bg-luxury-gold/10 rounded-full transition-colors group-hover:text-luxury-gold text-gray-400 dark:text-gray-400'
-																			title="Xem chi tiết"
-																		>
-																			<Eye className='w-5 h-5' />
-																		</button>
-																		{order.trackingToken && (
-																			<Link
-																				to={`/order-tracking/${order.trackingToken}`}
-																				className='p-2 hover:bg-emerald-500/10 rounded-full transition-colors text-gray-400 hover:text-emerald-500'
-																				title="Theo dõi vận chuyển"
-																			>
-																				<ExternalLink className='w-5 h-5' />
-																			</Link>
-																		)}
-																		{order.status === 'pending' && (
-																			<button
-																				onClick={async () => {
-																					if (window.confirm(`Hủy đơn hàng #${order.orderCode}? Hành động này không thể hoàn tác.`)) {
-																						await cancelOrder(order._id);
-																					}
-																				}}
-																				className='p-2 hover:bg-red-500/10 rounded-full transition-colors text-gray-400 hover:text-red-500'
-																				title="Hủy đơn hàng"
-																			>
-																				<XCircle className='w-5 h-5' />
-																			</button>
-																		)}
-																	</div>
-																</td>
-															</tr>
-														))}
-													</tbody>
-												</table>
-											</div>
-										) : (
-											<div className='flex flex-col items-center justify-center py-20 text-center gap-4'>
-												<div className='w-20 h-20 bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center'>
-													<Package className='w-10 h-10 text-gray-400 dark:text-luxury-text-muted opacity-20' />
-												</div>
-												<div>
-													<h3 className='text-xl font-bold text-gray-900 dark:text-white'>Chưa có đơn hàng nào</h3>
-													<p className='text-gray-500 dark:text-luxury-text-muted mt-2'>Bắt đầu mua sắm để nhận những ưu đãi tốt nhất.</p>
-												</div>
-												<Link to='/catalog' className='mt-4 bg-luxury-gold text-luxury-dark px-8 py-3 rounded-xl font-bold hover:bg-luxury-gold-light transition duration-300'>
-													Mua sắm ngay
-												</Link>
-											</div>
-										)}
-									</div>
-								)}
+  const handleEditAddress = (address) => {
+    setAddressDraft(createAddressDraft(address));
+  };
 
-								{activeTab === "password" && (
-									<form onSubmit={handlePasswordSubmit} className='space-y-8'>
-										<h1 className='text-3xl font-bold text-gray-900 dark:text-white'>Đổi mật khẩu</h1>
-										<div className='max-w-md space-y-6'>
-											<div className='space-y-2'>
-												<label className='text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>Mật khẩu hiện tại</label>
-												<div className='relative'>
-													<input
-														type={showPasswords.old ? "text" : "password"}
-														value={pwdData.oldPassword}
-														onChange={(e) => setPwdData({ ...pwdData, oldPassword: e.target.value })}
-														className='w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border focus:border-luxury-gold text-gray-900 dark:text-white px-5 py-3 pr-12 rounded-xl focus:outline-none transition'
-														required
-													/>
-													<button type='button' onClick={() => setShowPasswords(p => ({ ...p, old: !p.old }))} className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition'>
-														{showPasswords.old ? <EyeOff className='w-5 h-5' /> : <Eye className='w-5 h-5' />}
-													</button>
-												</div>
-											</div>
-											<div className='space-y-2'>
-												<label className='text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>Mật khẩu mới</label>
-												<div className='relative'>
-													<input
-														type={showPasswords.newPwd ? "text" : "password"}
-														value={pwdData.newPassword}
-														onChange={(e) => setPwdData({ ...pwdData, newPassword: e.target.value })}
-														className='w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border focus:border-luxury-gold text-gray-900 dark:text-white px-5 py-3 pr-12 rounded-xl focus:outline-none transition'
-														required
-													/>
-													<button type='button' onClick={() => setShowPasswords(p => ({ ...p, newPwd: !p.newPwd }))} className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition'>
-														{showPasswords.newPwd ? <EyeOff className='w-5 h-5' /> : <Eye className='w-5 h-5' />}
-													</button>
-												</div>
-											</div>
-											<div className='space-y-2'>
-												<label className='text-xs font-semibold text-gray-500 dark:text-luxury-text-muted uppercase tracking-wider'>Xác nhận mật khẩu mới</label>
-												<div className='relative'>
-													<input
-														type={showPasswords.confirm ? "text" : "password"}
-														value={pwdData.confirmPassword}
-														onChange={(e) => setPwdData({ ...pwdData, confirmPassword: e.target.value })}
-														className='w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border focus:border-luxury-gold text-gray-900 dark:text-white px-5 py-3 pr-12 rounded-xl focus:outline-none transition'
-														required
-													/>
-													<button type='button' onClick={() => setShowPasswords(p => ({ ...p, confirm: !p.confirm }))} className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition'>
-														{showPasswords.confirm ? <EyeOff className='w-5 h-5' /> : <Eye className='w-5 h-5' />}
-													</button>
-												</div>
-											</div>
-											<button
-												type='submit'
-												disabled={userLoading}
-												className='w-full bg-luxury-gold hover:bg-luxury-gold-light text-luxury-dark py-4 rounded-xl font-bold transition duration-300 disabled:opacity-50'
-											>
-												{userLoading ? "Đang cập nhật..." : "Cập nhật mật khẩu"}
-											</button>
-										</div>
-									</form>
-								)}
-							</motion.div>
-						</AnimatePresence>
-					</div>
-				</div>
-			</div>
+  const handleDeleteAddress = (id) => {
+    const nextBook = addressBook.filter((item) => item.id !== id);
+    const nextDefault = defaultAddressId === id ? nextBook[0]?.id || "" : defaultAddressId;
+    setAddressBook(nextBook);
+    setDefaultAddressId(nextDefault);
+    if (addressDraft.id === id) {
+      setAddressDraft(createAddressDraft(nextBook[0] || {}));
+    }
+  };
 
-			{/* ORDER DETAIL MODAL */}
-			<AnimatePresence>
-				{selectedOrder && (
-					<motion.div
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-						className='fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm'
-						onClick={() => setSelectedOrder(null)}
-					>
-						<motion.div
-							initial={{ scale: 0.9, opacity: 0, y: 20 }}
-							animate={{ scale: 1, opacity: 1, y: 0 }}
-							exit={{ scale: 0.9, opacity: 0, y: 20 }}
-							className='bg-white dark:bg-luxury-darker border border-gray-100 dark:border-luxury-border shadow-2xl rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto'
-							onClick={(e) => e.stopPropagation()}
-						>
-							<div className='p-8'>
-								{/* Header */}
-								<div className='flex justify-between items-start mb-8'>
-									<div>
-										<h2 className='text-2xl font-bold text-gray-900 dark:text-white mb-2'>
-											Chi tiết đơn hàng #{selectedOrder.orderCode || selectedOrder._id.slice(-6).toUpperCase()}
-										</h2>
-										<p className='text-gray-500 dark:text-luxury-text-muted text-sm flex items-center gap-2'>
-											Ngày đặt: {new Date(selectedOrder.createdAt).toLocaleString("vi-VN")}
-											{selectedOrder.trackingToken && (
-												<button
-													onClick={() => {
-														navigator.clipboard.writeText(selectedOrder.trackingToken);
-														toast.success("Đã sao chép mã theo dõi!");
-													}}
-													className="ml-2 p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded text-gray-400 hover:text-luxury-gold transition-colors"
-													title="Sao chép mã theo dõi"
-												>
-													<Copy size={14} />
-												</button>
-											)}
-										</p>
-									</div>
-									<button
-										onClick={() => setSelectedOrder(null)}
-										className='p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors text-gray-400 dark:text-luxury-text-muted hover:text-gray-900 dark:hover:text-white'
-									>
-										<ChevronRight className='w-6 h-6 rotate-180' />
-									</button>
-								</div>
+  const handlePasswordSubmit = async (event) => {
+    event.preventDefault();
 
-								{/* Order Status Timeline with Tracking Link */}
-								<div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl">
-									<div className="flex items-center gap-3">
-										<div className="w-10 h-10 bg-emerald-500/10 rounded-full flex items-center justify-center">
-											<Truck className="w-5 h-5 text-emerald-500" />
-										</div>
-										<div>
-											<p className="text-sm font-bold text-white uppercase tracking-tight">Trạng thái: {getStatusText(selectedOrder.status)}</p>
-											<p className="text-[10px] text-emerald-500 font-medium">Cập nhật lúc: {new Date(selectedOrder.updatedAt).toLocaleTimeString("vi-VN")}</p>
-										</div>
-									</div>
-									<Link
-										to={`/order-tracking/${selectedOrder.trackingToken}`}
-										className="flex items-center gap-2 px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20"
-									>
-										Theo dõi hành trình <ExternalLink className="w-4 h-4" />
-									</Link>
-								</div>
+    const success = await changePassword(passwordData);
+    if (!success) return;
 
-								<div className='grid grid-cols-1 md:grid-cols-2 gap-8 mb-8'>
-									{/* Shipping Info */}
-									<div className='bg-gray-50 dark:bg-white/5 rounded-2xl p-6 border border-gray-100 dark:border-luxury-border'>
-										<h3 className='text-sm font-bold text-luxury-gold uppercase tracking-widest mb-4'>Thông tin giao hàng</h3>
-										<div className='space-y-3 text-sm'>
-											<p className='text-gray-900 dark:text-white'><span className='text-gray-500 dark:text-luxury-text-muted'>Người nhận:</span> {selectedOrder.shippingDetails?.fullName}</p>
-											<p className='text-gray-900 dark:text-white'><span className='text-gray-500 dark:text-luxury-text-muted'>Số điện thoại:</span> {selectedOrder.shippingDetails?.phoneNumber}</p>
-											<p className='text-gray-900 dark:text-white'><span className='text-gray-500 dark:text-luxury-text-muted'>Địa chỉ:</span> {selectedOrder.shippingDetails?.address}</p>
-										</div>
-									</div>
+    setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  };
 
-									{/* Payment Info */}
-									<div className='bg-gray-50 dark:bg-white/5 rounded-2xl p-6 border border-gray-100 dark:border-luxury-border'>
-										<h3 className='text-sm font-bold text-luxury-gold uppercase tracking-widest mb-4'>Thanh toán</h3>
-										<div className='space-y-3 text-sm'>
-											<p className='text-gray-900 dark:text-white'><span className='text-gray-500 dark:text-luxury-text-muted'>Phương thức:</span> {selectedOrder.paymentMethod?.toUpperCase()}</p>
-											<p className='text-gray-900 dark:text-white'>
-												<span className='text-gray-500 dark:text-luxury-text-muted'>Trạng thái:</span>{" "}
-												<span className={selectedOrder.paymentStatus === "paid" ? "text-emerald-500 dark:text-emerald-400" : "text-yellow-600 dark:text-yellow-400"}>
-													{selectedOrder.paymentStatus === "paid" ? "Đã thanh toán" : "Chờ thanh toán"}
-												</span>
-											</p>
-											<p className='text-2xl font-bold text-luxury-gold mt-4'>
-												{selectedOrder.totalAmount?.toLocaleString("vi-VN")}đ
-											</p>
-										</div>
-									</div>
-								</div>
+  const statusText = (status) => {
+    switch (status) {
+      case "pending":
+        return "Đang chờ";
+      case "confirmed":
+        return "Đã xác nhận";
+      case "shipped":
+        return "Đang giao";
+      case "return_requested":
+        return "Chờ duyệt trả hàng";
+      case "delivered":
+      case "completed":
+        return "Hoàn thành";
+      case "returned":
+        return "Đã trả hàng";
+      case "cancelled":
+        return "Đã hủy";
+      default:
+        return status;
+    }
+  };
 
-								{/* Product List */}
-								<div className='space-y-4 mb-8'>
-									<h3 className='text-sm font-bold text-luxury-gold uppercase tracking-widest'>Sản phẩm</h3>
-									<div className='border border-gray-100 dark:border-luxury-border rounded-2xl overflow-hidden'>
-										{selectedOrder.products?.map((item, idx) => (
-											<div key={idx} className='flex items-center gap-4 p-4 border-b border-gray-100 dark:border-luxury-border last:border-0 bg-gray-50 dark:bg-white/5'>
-												<div className='w-20 h-20 bg-gray-100 dark:bg-luxury-dark rounded-xl overflow-hidden border border-gray-200 dark:border-luxury-border flex-shrink-0'>
-													<img src={item.product?.image} alt={item.product?.name} className='w-full h-full object-cover' />
-												</div>
-												<div className='flex-grow min-w-0'>
-													<h4 className='text-gray-900 dark:text-white font-bold truncate'>{item.product?.name}</h4>
-													<p className='text-gray-500 dark:text-luxury-text-muted text-xs mt-1'>Số lượng: {item.quantity}</p>
-												</div>
-												<div className='text-right'>
-													<p className='text-luxury-gold font-bold'>{item.price?.toLocaleString("vi-VN")}đ</p>
-												</div>
-											</div>
-										))}
-									</div>
-								</div>
+  const statusDotClass = (status) => {
+    if (["delivered", "completed"].includes(status)) return "bg-[color:var(--color-gold)]";
+    if (status === "shipped") return "bg-gray-500";
+    if (["pending", "confirmed", "cancelled", "return_requested", "returned"].includes(status)) return "bg-gray-400";
+    return "bg-gray-400";
+  };
 
-								{/* Order Status Timeline */}
-								<div className='pt-6 border-t border-luxury-border'>
-									<h3 className='text-sm font-bold text-luxury-gold uppercase tracking-widest mb-6'>Trạng thái đơn hàng</h3>
-									<div className='relative flex justify-between'>
-										{[
-											{ key: "pending", label: "Đang chờ" },
-											{ key: "confirmed", label: "Đã xác nhận" },
-											{ key: "shipping", label: "Đang giao" },
-											{ key: "completed", label: "Hoàn thành" },
-										].map((step, idx, arr) => {
-											const statuses = ["pending", "confirmed", "shipping", "delivered", "completed"];
-											const currentIdx = statuses.indexOf(selectedOrder.status === "delivered" ? "completed" : selectedOrder.status);
-											const isDone = idx <= currentIdx;
+  if (userLoading && !user) {
+    return <SkeletonPageShell rows={5} />;
+  }
 
-											return (
-												<div key={step.key} className='flex flex-col items-center relative z-10 flex-1'>
-													<div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 transition-colors duration-500 ${isDone ? "bg-luxury-gold text-luxury-dark" : "bg-gray-100 dark:bg-white/10 text-gray-400 dark:text-luxury-text-muted border border-gray-200 dark:border-luxury-border"}`}>
-														{isDone ? <Eye className='w-4 h-4' /> : idx + 1}
-													</div>
-													<span className={`text-[10px] font-bold uppercase tracking-tighter ${isDone ? "text-gray-900 dark:text-white" : "text-gray-400 dark:text-luxury-text-muted"}`}>
-														{step.label}
-													</span>
-													{idx < arr.length - 1 && (
-														<div className={`absolute left-1/2 top-4 w-full h-[2px] -z-10 ${idx < currentIdx ? "bg-luxury-gold" : "bg-gray-100 dark:bg-white/10"}`} />
-													)}
-												</div>
-											);
-										})}
-									</div>
-								</div>
-							</div>
-						</motion.div>
-					</motion.div>
-				)}
-			</AnimatePresence>
-		</div>
-	);
+  return (
+    <div className="min-h-screen px-4 pb-16 pt-24 sm:px-6 lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[280px_1fr]">
+        <aside className="space-y-4">
+          <div className="rounded-[1.4rem] border border-black/10 bg-surface p-5 shadow-sm dark:border-white/10">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-[color:var(--color-gold)]/30 bg-[color:var(--color-gold)]/10">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="h-full w-full rounded-full object-cover" />
+                ) : (
+                  <UserIcon className="h-6 w-6 text-[color:var(--color-gold)]" />
+                )}
+              </div>
+              <div>
+                <p className="font-semibold text-primary">{user?.name || "Khách hàng"}</p>
+                <p className="text-xs uppercase tracking-[0.14em] text-muted">
+                  {user?.role === "admin" ? "Quản trị viên" : "Thành viên"}
+                </p>
+              </div>
+            </div>
+
+            {typeof user?.rewardPoints === "number" && (
+              <div className="rounded-xl bg-surface-soft p-3 text-sm">
+                <p className="text-muted">Điểm thưởng</p>
+                <p className="mt-1 text-xl font-bold text-[color:var(--color-gold)]">{user.rewardPoints.toLocaleString("vi-VN")}</p>
+              </div>
+            )}
+          </div>
+
+          <nav className="rounded-[1.4rem] border border-black/10 bg-surface p-2 shadow-sm dark:border-white/10">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setSearchParams({ tab: tab.id });
+                  }}
+                  className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm transition ${active ? "bg-[color:var(--color-gold)]/12 text-[color:var(--color-gold)]" : "text-secondary hover:bg-surface-soft"}`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+
+            <button
+              type="button"
+              onClick={logout}
+              className="mt-1 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-secondary transition hover:bg-[color:var(--color-gold)]/10 hover:text-[color:var(--color-gold)]"
+            >
+              <LogOut className="h-4 w-4" />
+              Đăng xuất
+            </button>
+          </nav>
+        </aside>
+
+        <section className="rounded-[1.4rem] border border-black/10 bg-surface p-5 shadow-sm dark:border-white/10 sm:p-7">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.16 }}
+            >
+              {activeTab === "profile" && (
+                <form onSubmit={handleProfileSubmit} className="space-y-5">
+                  <div>
+                    <h1 className="hero-title text-3xl">Thông tin cá nhân</h1>
+                    <p className="mt-1 text-sm text-secondary">Quản lý thông tin liên hệ và hồ sơ tài khoản.</p>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Input
+                      label="Họ và tên"
+                      name="name"
+                      value={profileData.name}
+                      onChange={(event) => setProfileData((prev) => ({ ...prev, name: event.target.value }))}
+                      error={profileErrors.name}
+                    />
+                    <Input
+                      label="Số điện thoại"
+                      name="phone"
+                      value={profileData.phone}
+                      onChange={(event) => setProfileData((prev) => ({ ...prev, phone: event.target.value }))}
+                      error={profileErrors.phone}
+                      placeholder="0912345678"
+                    />
+                    <Input
+                      label="Địa chỉ"
+                      name="address"
+                      value={profileData.address}
+                      onChange={(event) => setProfileData((prev) => ({ ...prev, address: event.target.value }))}
+                      placeholder="Số nhà, đường, quận, thành phố"
+                    />
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Giới tính</label>
+                      <select
+                        value={profileData.gender}
+                        onChange={(e) => setProfileData((prev) => ({ ...prev, gender: e.target.value }))}
+                        className="input-base h-11 w-full rounded-lg"
+                      >
+                        <option value="">Chọn giới tính</option>
+                        <option value="male">Nam</option>
+                        <option value="female">Nữ</option>
+                        <option value="other">Khác</option>
+                      </select>
+                    </div>
+                    <Input
+                      label="Ngày sinh"
+                      name="birthday"
+                      type="date"
+                      value={profileData.birthday}
+                      onChange={(event) => setProfileData((prev) => ({ ...prev, birthday: event.target.value }))}
+                    />
+                    <Input
+                      label="Email"
+                      value={user?.email || ""}
+                      disabled
+                      hint="Email không thể chỉnh sửa"
+                      containerClassName="sm:col-span-2"
+                    />
+                  </div>
+
+                  <button type="submit" disabled={userLoading} className="btn-base btn-primary h-11 px-6">
+                    {userLoading ? "Đang xử lý" : "Lưu thay đổi"}
+                  </button>
+
+                  <div className="mt-8 space-y-5 rounded-[1.2rem] border border-black/10 bg-surface-soft p-4 dark:border-white/10">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h2 className="text-lg font-semibold text-primary">Địa chỉ giao hàng đã lưu</h2>
+                        <p className="text-sm text-secondary">Chọn một địa chỉ mặc định và thêm vài địa chỉ khác để dùng khi thanh toán.</p>
+                      </div>
+                      <div className="inline-flex items-center gap-2 text-sm text-[color:var(--color-gold)]">
+                        <MapPin className="h-4 w-4" />
+                        {addressBook.length}/5 địa chỉ
+                      </div>
+                    </div>
+
+                    {profileErrors.addressDraft && (
+                      <p className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-600 dark:border-red-500/30 dark:bg-red-500/10">
+                        {profileErrors.addressDraft}
+                      </p>
+                    )}
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Input
+                        label="Nhãn địa chỉ"
+                        value={addressDraft.label}
+                        onChange={(event) => setAddressDraft((prev) => ({ ...prev, label: event.target.value }))}
+                        placeholder="Nhà riêng, Công ty..."
+                      />
+                      <Input
+                        label="Người nhận"
+                        value={addressDraft.fullName}
+                        onChange={(event) => setAddressDraft((prev) => ({ ...prev, fullName: event.target.value }))}
+                        placeholder="Nguyễn Văn A"
+                      />
+                      <Input
+                        label="Số điện thoại"
+                        value={addressDraft.phone}
+                        onChange={(event) => setAddressDraft((prev) => ({ ...prev, phone: event.target.value }))}
+                        placeholder="0912345678"
+                      />
+                      <Input
+                        label="Tỉnh/Thành phố"
+                        value={addressDraft.city}
+                        onChange={(event) => setAddressDraft((prev) => ({ ...prev, city: event.target.value }))}
+                        placeholder="Hà Nội"
+                      />
+                      <Input
+                        label="Địa chỉ chi tiết"
+                        value={addressDraft.address}
+                        onChange={(event) => setAddressDraft((prev) => ({ ...prev, address: event.target.value }))}
+                        placeholder="Số nhà, đường, phường/xã"
+                        containerClassName="sm:col-span-2"
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setAddressDraft((prev) => ({ ...prev, isDefault: !prev.isDefault }))}
+                        className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition ${addressDraft.isDefault ? "border-[color:var(--color-gold)]/40 bg-[color:var(--color-gold)]/10 text-[color:var(--color-gold)]" : "border-black/10 bg-white text-secondary dark:border-white/10 dark:bg-black/20"}`}
+                      >
+                        <Check className="h-4 w-4" />
+                        {addressDraft.isDefault ? "Đang đặt làm mặc định" : "Đặt làm mặc định"}
+                      </button>
+                      <button type="button" onClick={handleSaveAddressDraft} className="btn-base btn-primary h-10 px-4">
+                        <Plus className="h-4 w-4" />
+                        Lưu địa chỉ
+                      </button>
+                    </div>
+
+                    <div className="grid gap-3">
+                      {addressBook.map((address) => (
+                        <div key={address.id} className={`rounded-2xl border p-4 ${address.id === defaultAddressId ? "border-[color:var(--color-gold)]/40 bg-[color:var(--color-gold)]/5" : "border-black/10 bg-white dark:border-white/10 dark:bg-black/10"}`}>
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold text-primary">{address.label}</p>
+                                {address.id === defaultAddressId && <span className="rounded-full bg-[color:var(--color-gold)]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[color:var(--color-gold)]">Mặc định</span>}
+                              </div>
+                              <p className="text-sm text-secondary">{address.fullName || user?.name} • {address.phone || user?.phone || "Chưa có SĐT"}</p>
+                              <p className="text-sm text-secondary">{address.address}{address.city ? `, ${address.city}` : ""}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button type="button" onClick={() => { setDefaultAddressId(address.id); setAddressBook((prev) => prev.map((item) => ({ ...item, isDefault: item.id === address.id }))); }} className="rounded-full border border-black/10 px-3 py-1.5 text-xs font-semibold text-secondary hover:border-[color:var(--color-gold)]/40 hover:text-[color:var(--color-gold)]">
+                                Đặt mặc định
+                              </button>
+                              <button type="button" onClick={() => handleEditAddress(address)} className="rounded-full border border-black/10 px-3 py-1.5 text-xs font-semibold text-secondary hover:border-[color:var(--color-gold)]/40 hover:text-[color:var(--color-gold)]">
+                                Sửa
+                              </button>
+                              <button type="button" onClick={() => handleDeleteAddress(address.id)} className="rounded-full border border-black/10 px-3 py-1.5 text-xs font-semibold text-secondary hover:border-red-300 hover:text-red-600">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </form>
+              )}
+
+              {activeTab === "orders" && (
+                <div className="space-y-4">
+                  <div>
+                    <h1 className="hero-title text-3xl">Đơn hàng của tôi</h1>
+                    <p className="mt-1 text-sm text-secondary">Theo dõi trạng thái và quản lý các đơn đã đặt.</p>
+                  </div>
+
+                  {ordersLoading ? (
+                    <div className="space-y-3">
+                      {[1, 2, 3].map((item) => (
+                        <div key={item} className="h-16 animate-pulse rounded-xl bg-surface-soft" />
+                      ))}
+                    </div>
+                  ) : sortedOrders.length === 0 ? (
+                    <div className="rounded-[1.8rem] border border-black/10 bg-surface p-10 text-center shadow-md dark:border-white/10">
+                      <div className="mx-auto mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full border border-black/10 bg-surface-soft dark:border-white/10">
+                        <Package className="h-8 w-8 text-[color:var(--color-gold)]" />
+                      </div>
+                      <h2 className="hero-title text-3xl">Chưa có dấu ấn nào</h2>
+                      <p className="mx-auto mt-4 max-w-lg text-sm text-secondary sm:text-base">
+                        Bộ sưu tập cá nhân của bạn hiện chưa có sản phẩm nào. Khám phá ngay những thiết kế độc bản.
+                      </p>
+                      <Link to="/catalog" className="btn-base btn-primary mt-7 h-11 px-6">
+                        Khám phá Bộ Sưu Tập
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {sortedOrders.map((order) => (
+                        <button
+                          key={order._id}
+                          type="button"
+                          onClick={() => setSelectedOrder(order)}
+                          className="w-full rounded-xl border border-black/10 bg-surface-soft p-4 text-left transition hover:border-[color:var(--color-gold)]/40 dark:border-white/10"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                              <p className="font-semibold text-primary">#{order.orderCode || order._id.slice(-6).toUpperCase()}</p>
+                              <p className="text-xs text-muted">{new Date(order.createdAt).toLocaleDateString("vi-VN")} • {order.products?.length || 0} sản phẩm</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold text-[color:var(--color-gold)]">{order.totalAmount?.toLocaleString("vi-VN")} đ</p>
+                              <span className="mt-1 inline-flex items-center gap-1.5 text-xs text-secondary">
+                                <span className={`inline-flex h-1.5 w-1.5 rounded-full ${statusDotClass(order.status)}`} />
+                                {statusText(order.status)}
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === "password" && (
+                <form onSubmit={handlePasswordSubmit} className="max-w-lg space-y-4">
+                  <div>
+                    <h1 className="hero-title text-3xl">Đổi mật khẩu</h1>
+                    <p className="mt-1 text-sm text-secondary">Cập nhật mật khẩu để tăng cường bảo mật tài khoản.</p>
+                  </div>
+
+                  {[
+                    ["currentPassword", "Mật khẩu hiện tại", "old"],
+                    ["newPassword", "Mật khẩu mới", "next"],
+                    ["confirmPassword", "Xác nhận mật khẩu", "confirm"],
+                  ].map(([field, label, flag]) => (
+                    <div key={field} className="space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">{label}</p>
+                      <div className="relative">
+                        <input
+                          type={showPassword[flag] ? "text" : "password"}
+                          value={passwordData[field]}
+                          onChange={(event) => setPasswordData((prev) => ({ ...prev, [field]: event.target.value }))}
+                          className="input-base pr-11"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((prev) => ({ ...prev, [flag]: !prev[flag] }))}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 text-muted transition hover:text-primary"
+                        >
+                          {showPassword[flag] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <button type="submit" disabled={userLoading} className="btn-base btn-primary h-11 px-6">
+                    {userLoading ? "Đang cập nhật" : "Cập nhật mật khẩu"}
+                  </button>
+                </form>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </section>
+      </div>
+
+      <AnimatePresence>
+        {selectedOrder && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/65 p-4"
+            onClick={() => setSelectedOrder(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 18, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 18, scale: 0.96 }}
+              className="max-h-[88vh] w-full max-w-3xl overflow-y-auto rounded-[1.3rem] border border-black/10 bg-surface p-6 dark:border-white/10 sm:p-7"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="hero-title text-3xl">Đơn #{selectedOrder.orderCode || selectedOrder._id.slice(-6).toUpperCase()}</h2>
+                  <p className="mt-1 text-sm text-secondary">{new Date(selectedOrder.createdAt).toLocaleString("vi-VN")}</p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 text-xs text-secondary">
+                  <span className={`inline-flex h-1.5 w-1.5 rounded-full ${statusDotClass(selectedOrder.status)}`} />
+                  {statusText(selectedOrder.status)}
+                </span>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-xl bg-surface-soft p-4 text-sm">
+                  <p className="font-semibold text-primary">Thông tin giao hàng</p>
+                  <p className="mt-2 text-secondary">{selectedOrder.shippingDetails?.fullName}</p>
+                  <p className="text-secondary">{selectedOrder.shippingDetails?.phoneNumber}</p>
+                  <p className="text-secondary">{selectedOrder.shippingDetails?.address}</p>
+                </div>
+                <div className="rounded-xl bg-surface-soft p-4 text-sm">
+                  <p className="font-semibold text-primary">Thanh toán</p>
+                  <p className="mt-2 text-secondary">Phương thức: {selectedOrder.paymentMethod?.toUpperCase()}</p>
+                  <p className="text-secondary">Trạng thái: {selectedOrder.paymentStatus === "paid" ? "Đã thanh toán" : "Chờ thanh toán"}</p>
+                  <p className="mt-1 font-semibold text-[color:var(--color-gold)]">{selectedOrder.totalAmount?.toLocaleString("vi-VN")} đ</p>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                {selectedOrder.products?.map((item, index) => (
+                  <div key={`${item.product?._id || index}-${index}`} className="flex items-center gap-3 rounded-xl border border-black/10 bg-surface-soft p-3 text-sm dark:border-white/10">
+                    <img src={item.product?.image} alt={item.product?.name} className="h-14 w-14 rounded-lg object-cover" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-primary">{item.product?.name}</p>
+                      <p className="text-xs text-muted">x{item.quantity}</p>
+                    </div>
+                    <p className="font-semibold text-primary">{item.price?.toLocaleString("vi-VN")} đ</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                {selectedOrder.status === "pending" && (
+                  <button
+                    type="button"
+                    onClick={() => cancelOrder(selectedOrder._id)}
+                    className="btn-base btn-outline h-10 px-5 text-secondary hover:text-[color:var(--color-gold)]"
+                  >
+                    Hủy đơn hàng
+                  </button>
+                )}
+
+                {selectedOrder.status === "delivered" && (
+                  <button
+                    type="button"
+                    onClick={() => requestReturnOrder(selectedOrder._id)}
+                    className="btn-base btn-outline h-10 px-5"
+                  >
+                    Yêu cầu trả hàng
+                  </button>
+                )}
+
+                {selectedOrder.trackingToken && (
+                  <Link to={`/order-tracking/${selectedOrder.trackingToken}`} className="btn-base btn-secondary h-10 px-5">
+                    Theo dõi đơn
+                  </Link>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {Object.keys(profileErrors).length > 0 && activeTab === "profile" && (
+        <div className="fixed bottom-4 right-4 rounded-xl border border-black/15 bg-white/95 px-4 py-2 text-sm text-secondary shadow-lg dark:border-white/15 dark:bg-black/75 dark:text-gray-200">
+          <span className="inline-flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-[color:var(--color-gold)]" />
+            Vui lòng kiểm tra thông tin hồ sơ.
+          </span>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default ProfilePage;

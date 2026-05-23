@@ -1,13 +1,13 @@
 import express from "express";
-import { protectRoute, adminRoute } from "../middleware/auth.middleware.js";
+import { protectRoute, managementRoute } from "../middleware/auth.middleware.js";
 import { 
 	// Admin routes
-	getInbox, markContactRead, replyToContact,
-	getSubscribers, exportSubscribers,
+	getMailStats, getInbox, deleteMessage, markContactRead, replyToContact,
+	getSubscribers, exportSubscribers, deleteSubscriber,
 	getTemplates, createTemplate, updateTemplate,
 	getCampaigns, createCampaign, sendCampaignNow, scheduleCampaign,
 	// Public/Tracking routes
-	subscribeNewsletter, trackOpen, trackClick, unsubscribe
+	subscribeNewsletter, trackOpen, trackClick, unsubscribe, unsubscribeByToken
 } from "../controllers/mail.controller.js";
 import rateLimit from "express-rate-limit";
 
@@ -24,27 +24,33 @@ const trackingLimiter = rateLimit({
 router.post("/subscribe", trackingLimiter, subscribeNewsletter);
 router.get("/track/open/:logId", trackingLimiter, trackOpen);
 router.get("/track/click/:logId", trackingLimiter, trackClick);
+// C.4: Token-based unsubscribe (secure, no PII in URL)
+router.get("/unsubscribe/by-token/:token", trackingLimiter, unsubscribeByToken);
+// Legacy email-based unsubscribe kept for backward compatibility
 router.get("/unsubscribe/:email", trackingLimiter, unsubscribe);
 
 // --- Admin Protected Routes ---
+router.get("/stats", protectRoute, managementRoute, getMailStats);
 // Inbox
-router.get("/inbox", protectRoute, adminRoute, getInbox);
-router.patch("/inbox/:id/read", protectRoute, adminRoute, markContactRead);
-router.post("/inbox/:id/reply", protectRoute, adminRoute, replyToContact);
+router.get("/inbox", protectRoute, managementRoute, getInbox);
+router.delete("/inbox/:id", protectRoute, managementRoute, deleteMessage);
+router.patch("/inbox/:id/read", protectRoute, managementRoute, markContactRead);
+router.post("/inbox/:id/reply", protectRoute, managementRoute, replyToContact);
 
 // Subscribers
-router.get("/subscribers", protectRoute, adminRoute, getSubscribers);
-router.get("/subscribers/export", protectRoute, adminRoute, exportSubscribers);
+router.get("/subscribers", protectRoute, managementRoute, getSubscribers);
+router.get("/subscribers/export", protectRoute, managementRoute, exportSubscribers);
+router.delete("/subscribers/:id", protectRoute, managementRoute, deleteSubscriber);
 
 // Templates
-router.get("/templates", protectRoute, adminRoute, getTemplates);
-router.post("/templates", protectRoute, adminRoute, createTemplate);
-router.put("/templates/:id", protectRoute, adminRoute, updateTemplate);
+router.get("/templates", protectRoute, managementRoute, getTemplates);
+router.post("/templates", protectRoute, managementRoute, createTemplate);
+router.put("/templates/:id", protectRoute, managementRoute, updateTemplate);
 
 // Campaigns
-router.get("/campaigns", protectRoute, adminRoute, getCampaigns);
-router.post("/campaigns", protectRoute, adminRoute, createCampaign);
-router.post("/campaigns/:id/send", protectRoute, adminRoute, sendCampaignNow);
-router.post("/campaigns/:id/schedule", protectRoute, adminRoute, scheduleCampaign);
+router.get("/campaigns", protectRoute, managementRoute, getCampaigns);
+router.post("/campaigns", protectRoute, managementRoute, createCampaign);
+router.post("/campaigns/:id/send", protectRoute, managementRoute, sendCampaignNow);
+router.post("/campaigns/:id/schedule", protectRoute, managementRoute, scheduleCampaign);
 
 export default router;

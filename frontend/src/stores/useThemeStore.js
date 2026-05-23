@@ -1,7 +1,7 @@
-import { create } from "zustand";
+import { createWithEqualityFn } from "zustand/traditional";
 import { persist } from "zustand/middleware";
 
-export const useThemeStore = create(
+export const useThemeStore = createWithEqualityFn(
 	persist(
 		(set) => ({
 			theme: window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
