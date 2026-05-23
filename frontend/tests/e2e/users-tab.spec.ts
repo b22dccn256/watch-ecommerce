@@ -1,4 +1,4 @@
-import { test, expect, request as playwrightRequest } from '@playwright/test';
+import { test, expect, request as playwrightRequest, Page } from '@playwright/test';
 import { skipIfBackendUnavailable } from './helpers/backend';
 import { createAuthenticatedPage } from './helpers/auth';
 
@@ -8,7 +8,7 @@ const ADMIN_OTP = process.env.E2E_ADMIN_OTP || '';
 const BACKEND_URL = process.env.E2E_BACKEND_URL || 'http://localhost:5000';
 const FRONTEND_URL = process.env.PW_BASE_URL || 'http://localhost:5173';
 
-const ensureAdminLogin = async (page) => {
+const ensureAdminLogin = async (page: Page) => {
   const api = await playwrightRequest.newContext({ baseURL: BACKEND_URL });
   const loginRes = await api.post('/api/auth/login', {
     data: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },

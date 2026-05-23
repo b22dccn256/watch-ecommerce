@@ -17,8 +17,8 @@ export default {
 				}
 			},
 			fontFamily: {
-				'luxury': ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-				'sans': ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+				'luxury': ['var(--font-sans)'],
+				'sans': ['var(--font-sans)'],
 			},
 			fontSize: {
 				'display': ['3rem', { lineHeight: '1.1', fontWeight: '700', letterSpacing: '-0.025em' }],

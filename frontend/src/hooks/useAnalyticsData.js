@@ -10,7 +10,7 @@ export const useAnalyticsData = () => {
     users: 0, products: 0, totalSales: 0, totalRevenue: 0,
     aov: 0, totalOrdersPlaced: 0, conversionRate: 0,
     pendingRevenue: 0, pendingCount: 0, cancellationRate: 0,
-    paymentStats: [], wristSizeStats: [], watchTypeStats: [], dialColorStats: [],
+    paymentStats: [], wristSizeStats: [], watchTypeStats: [], dialColorStats: [], categoryStats: [], recentPendingOrders: [],
   });
   const [prevData, setPrevData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,6 +57,8 @@ export const useAnalyticsData = () => {
             wristSizeStats: d.wristSizeStats || [],
             watchTypeStats: d.watchTypeStats || [],
             dialColorStats: d.dialColorStats || [],
+            categoryStats: d.categoryStats || [],
+            recentPendingOrders: d.recentPendingOrders || [],
           });
           setDailySalesData(d.dailySales || []);
 

@@ -1,7 +1,7 @@
 import {
   PlusCircle, ShoppingBasket, LayoutDashboard, Users, Mail,
   Megaphone, ShieldCheck, Archive, Menu, X, Watch, LayoutTemplate, Tag, MessageSquare, Layers,
-  AlertTriangle, Clock, CheckCircle, Search, Bell, Settings, Home
+  AlertTriangle, Clock, CheckCircle, Search, Bell, Settings, Home, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -53,6 +53,7 @@ const AdminPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = useMemo(() => resolveTabFromParams(searchParams, accessibleTabs), [searchParams, accessibleTabs]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Dashboard alerts & notifications — extracted to useDashboardAlerts hook
   const { tasks, notifications, notifCount, notifOpen, setNotifOpen, markAllRead } = useDashboardAlerts();
@@ -114,33 +115,60 @@ const AdminPage = () => {
   const totalAlerts = tasks.pendingOrders + tasks.lowStock;
 
   const SidebarNav = () => (
-    <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto admin-scroll">
+    <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto admin-scroll overflow-x-hidden">
       {/* Home link */}
       <a
         href="/"
-        className="admin-sidebar-link w-full text-left flex items-center gap-2.5 mb-2 text-gray-500 hover:text-luxury-gold transition-colors"
+        className={`admin-sidebar-link group relative w-full transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "!px-2 !justify-center" : "text-left"}`}
       >
         <Home className="w-4 h-4 flex-shrink-0" />
-        <span className="truncate text-xs">Trang chủ</span>
+        <span className={`truncate transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"}`}>Trang chủ</span>
+        {isSidebarCollapsed && (
+          <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 delay-200 z-50 whitespace-nowrap shadow-lg">
+            Trang chủ
+          </div>
+        )}
       </a>
       <div className="border-t border-gray-100 dark:border-luxury-border my-1" />
       {accessibleTabs.map(tab => (
         <button
           key={tab.id}
           onClick={() => handleTabChange(tab.id)}
-          className={`admin-sidebar-link w-full text-left ${activeTab === tab.id ? "active" : ""}`}
+          className={`admin-sidebar-link group relative w-full transition-all duration-300 ease-in-out ${activeTab === tab.id ? "active" : ""} ${isSidebarCollapsed ? "!px-2 !justify-center" : "text-left"}`}
         >
           <tab.icon className="w-4 h-4 flex-shrink-0" />
-          <span className="truncate">{tab.label}</span>
-          {tab.id === "orders" && tasks.pendingOrders > 0 && (
+          <span className={`truncate transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"}`}>{tab.label}</span>
+          
+          {isSidebarCollapsed && (
+            <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 delay-200 z-50 whitespace-nowrap shadow-lg flex items-center gap-2">
+              {tab.label}
+              {tab.id === "orders" && tasks.pendingOrders > 0 && (
+                <span className="w-4 h-4 bg-amber-500 text-[8px] font-bold text-white rounded-full flex items-center justify-center">{tasks.pendingOrders > 9 ? "9+" : tasks.pendingOrders}</span>
+              )}
+              {tab.id === "inventory" && tasks.lowStock > 0 && (
+                <span className="w-4 h-4 bg-red-500 text-[8px] font-bold text-white rounded-full flex items-center justify-center">{tasks.lowStock > 9 ? "9+" : tasks.lowStock}</span>
+              )}
+            </div>
+          )}
+
+          {/* Badges for expanded state */}
+          {tab.id === "orders" && tasks.pendingOrders > 0 && !isSidebarCollapsed && (
             <span className="ml-auto min-w-[18px] h-[18px] px-1 bg-amber-500 text-[10px] font-bold text-white rounded-full flex items-center justify-center flex-shrink-0">
               {tasks.pendingOrders > 9 ? "9+" : tasks.pendingOrders}
             </span>
           )}
-          {tab.id === "inventory" && tasks.lowStock > 0 && (
+          {tab.id === "inventory" && tasks.lowStock > 0 && !isSidebarCollapsed && (
             <span className="ml-auto min-w-[18px] h-[18px] px-1 bg-red-500 text-[10px] font-bold text-white rounded-full flex items-center justify-center flex-shrink-0">
               {tasks.lowStock}
             </span>
+          )}
+          
+          {/* Dot indicators for collapsed state */}
+          {tab.id === "orders" && tasks.pendingOrders > 0 && isSidebarCollapsed && (
+            <span className="absolute top-1 right-1 w-2 h-2 bg-amber-500 rounded-full border border-white dark:border-luxury-darker"></span>
+          )}
+          {tab.id === "inventory" && tasks.lowStock > 0 && isSidebarCollapsed && (
+            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-luxury-darker"></span>
           )}
         </button>
       ))}
@@ -148,15 +176,15 @@ const AdminPage = () => {
   );
 
   return (
-    <div className="min-h-screen flex bg-gray-50 dark:bg-luxury-dark">
+    <div className="min-h-screen flex bg-gray-50 dark:bg-luxury-dark font-sans" style={{ '--font-display': 'var(--font-sans)' }}>
 
       {/* ── Desktop Sidebar — Dense ──────────── */}
-      <aside className="hidden md:flex flex-col w-48 flex-shrink-0 bg-white dark:bg-luxury-darker border-r border-gray-100 dark:border-luxury-border h-screen sticky top-0 left-0">
-        <div className="flex items-center gap-2 px-3 py-3 border-b border-gray-100 dark:border-luxury-border">
+      <aside className={`hidden md:flex flex-col flex-shrink-0 bg-white dark:bg-luxury-darker border-r border-gray-100 dark:border-luxury-border h-screen sticky top-0 left-0 transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-[4.5rem]" : "w-48"}`}>
+        <div className={`flex items-center px-3 py-3 border-b border-gray-100 dark:border-luxury-border overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? "justify-center" : "gap-2"}`}>
           <div className="w-6 h-6 rounded-md bg-luxury-gold flex items-center justify-center flex-shrink-0">
             <Watch className="w-3 h-3 text-black" />
           </div>
-          <div className="min-w-0">
+          <div className={`min-w-0 transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}>
             <p className="text-[11px] font-bold text-gray-900 dark:text-white truncate">Watch Admin</p>
             <p className="text-[9px] text-gray-400 truncate capitalize">{currentRole}</p>
           </div>
@@ -164,7 +192,16 @@ const AdminPage = () => {
 
         <SidebarNav />
 
-        
+        {/* Toggle Collapse Button */}
+        <div className="border-t border-gray-100 dark:border-luxury-border p-2">
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="w-full flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-luxury-gold hover:bg-gray-50 dark:hover:bg-luxury-border transition-colors"
+            title={isSidebarCollapsed ? "Mở rộng" : "Thu gọn"}
+          >
+            {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+        </div>
       </aside>
 
       {/* ── Mobile overlay sidebar ──────────────── */}

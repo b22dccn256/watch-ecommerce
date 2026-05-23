@@ -2,8 +2,9 @@ import { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Users, Package, ShoppingCart, DollarSign,
-  TrendingUp, ArrowUpRight, ArrowDownRight, Download, Trophy, AlertTriangle,
+  TrendingUp, ArrowUpRight, ArrowDownRight, Download, Trophy, AlertTriangle, Clock, ArrowRight
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   Bar, BarChart, PieChart, Pie, Cell, Legend,
@@ -139,6 +140,7 @@ const AnalyticsTab = () => {
     topProducts, bottomProducts, plData,
     hasChart, revDelta, saleDelta, exportCsv,
   } = useAnalyticsData();
+  const { recentPendingOrders = [] } = data;
 
   // Date range selector state
   const [rangeType, setRangeType] = useState(7); // 7,30,90 or 'custom'
@@ -294,10 +296,18 @@ const AnalyticsTab = () => {
         )}
       </CardShell>
 
-      {/* Payment & Watch Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Payment, Categories & Watch Insights */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <PieStatsCard
-          title="Doanh thu theo Thanh toán"
+          title="Doanh thu theo Danh mục"
+          loading={isLoading}
+          data={data.categoryStats}
+          emptyMessage="Chưa có dữ liệu danh mục"
+          tooltipFormatter={(v) => [formatVND(v) + " ₫", "Doanh thu"]}
+          legendFormatter={(v) => v}
+        />
+        <PieStatsCard
+          title="Doanh thu Thanh toán"
           loading={isLoading}
           data={data.paymentStats}
           emptyMessage="Chưa có dữ liệu thanh toán"
@@ -338,8 +348,8 @@ const AnalyticsTab = () => {
         )}
       </CardShell>
 
-      {/* Top Products & Low Stock */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Top Products & Low Stock & Pending Orders */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {noTransactions ? (
           <CardShell title="Dữ liệu giao dịch" icon={Trophy}>
             <div className="py-8 text-center">
@@ -390,6 +400,47 @@ const AnalyticsTab = () => {
               <p className="text-xs font-semibold text-secondary flex-shrink-0">{p.price?.toLocaleString("vi-VN")} ₫</p>
             </div>
           ))}
+        </CardShell>
+
+        <CardShell
+          title="Đơn chờ duyệt mới nhất"
+          icon={Clock}
+          action={
+            <Link to="/admin?tab=orders&status=pending" className="text-[10px] font-semibold text-blue-500 hover:text-blue-600 flex items-center gap-0.5 transition">
+              Xem tất cả <ArrowRight className="w-3 h-3" />
+            </Link>
+          }
+        >
+          {isLoading ? (
+            <div className="space-y-3">{Array(5).fill(0).map((_, i) => <SkeletonBlock key={i} h="h-10" />)}</div>
+          ) : recentPendingOrders.length === 0 ? (
+            <div className="py-8 text-center flex flex-col items-center">
+              <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center mb-2">
+                <Trophy className="w-5 h-5 text-emerald-500" />
+              </div>
+              <p className="text-sm font-medium text-primary">Tuyệt vời!</p>
+              <p className="text-xs text-muted mt-1">Không còn đơn hàng nào đang chờ duyệt.</p>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {recentPendingOrders.map(order => (
+                <div key={order._id} className="flex items-center justify-between p-2.5 rounded-lg border border-transparent hover:border-black/5 dark:hover:border-white/5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition">
+                  <div>
+                    <Link to={`/admin?tab=orders&search=${order.orderCode}`} className="text-xs font-bold text-primary hover:text-blue-500 transition">
+                      #{order.orderCode}
+                    </Link>
+                    <p className="text-[10px] text-muted mt-0.5 truncate max-w-[120px] sm:max-w-[160px]">{order.shippingDetails?.fullName}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-bold text-[color:var(--color-gold)]">{formatVND(order.totalAmount)} ₫</p>
+                    <p className="text-[9px] text-muted mt-0.5">
+                      {new Date(order.createdAt).toLocaleDateString("vi-VN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardShell>
       </div>
 

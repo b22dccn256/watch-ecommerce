@@ -49,7 +49,7 @@ const FilterSection = ({ title, children, defaultOpen = true }) => {
 				onClick={() => setOpen((value) => !value)}
 				className="flex w-full items-center justify-between gap-3 text-left"
 			>
-				<h3 className="text-[10px] font-semibold uppercase tracking-[0.32em] text-gray-500 transition group-hover:text-luxury-gold">
+				<h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 transition group-hover:text-luxury-gold">
 					{title}
 				</h3>
 				<ChevronDown className={`h-3.5 w-3.5 text-gray-500 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
@@ -118,7 +118,7 @@ const FilterSidebar = () => {
 		<aside className="w-full lg:w-72 flex-shrink-0">
 			<div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto pr-1 custom-scrollbar pb-10">
 				<div className="rounded-[1.5rem] border border-black/5 dark:border-white/5 bg-[linear-gradient(180deg,rgba(248,245,240,0.95),rgba(255,255,255,0.96))] dark:bg-[linear-gradient(180deg,rgba(17,17,17,0.95),rgba(10,10,10,0.98))] px-4 py-4 mb-6 shadow-[0_24px_80px_-45px_rgba(0,0,0,0.35)]">
-					<p className="hero-kicker text-[10px] font-semibold text-luxury-gold mb-3">Filter controls</p>
+					<p className="text-[11px] font-bold uppercase tracking-wider text-luxury-gold mb-3">Filter controls</p>
 					<div className="flex items-center justify-between gap-3">
 						<div className="flex items-center gap-2">
 							<Filter className="h-4 w-4 text-luxury-gold" />

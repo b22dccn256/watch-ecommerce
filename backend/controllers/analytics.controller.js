@@ -114,6 +114,51 @@ export const getAnalyticsData = async ({ startDate, endDate } = {}) => {
 		{ $limit: 8 },
 	]);
 
+	// ── Watch-specific: Doanh thu theo Danh mục (Sales by Category) ─────────────
+	const categoryStats = await Order.aggregate([
+		{ $match: paidRangeMatch },
+		{ $unwind: "$products" },
+		{
+			$lookup: {
+				from: "products",
+				localField: "products.product",
+				foreignField: "_id",
+				as: "productInfo",
+			},
+		},
+		{ $unwind: { path: "$productInfo", preserveNullAndEmptyArrays: true } },
+		{
+			$lookup: {
+				from: "categories",
+				localField: "productInfo.categoryId",
+				foreignField: "_id",
+				as: "categoryInfo",
+			},
+		},
+		{ $unwind: { path: "$categoryInfo", preserveNullAndEmptyArrays: true } },
+		{
+			$group: {
+				_id: { $ifNull: ["$categoryInfo.name", "Khác/Chưa phân loại"] },
+				count: { $sum: "$products.quantity" },
+				revenue: { $sum: { $multiply: ["$products.price", "$products.quantity"] } },
+			},
+		},
+		{ $sort: { revenue: -1 } },
+	]);
+
+	// ── Danh sách Đơn hàng chờ duyệt (Recent Pending Orders) ───────────────────
+	const recentPendingOrders = await Order.find({
+		$or: [
+			{ status: "pending" },
+			{ paymentStatus: "pending" },
+			{ status: "processing" }
+		]
+	})
+		.sort({ createdAt: -1 })
+		.limit(5)
+		.select("_id orderCode totalAmount shippingDetails.fullName createdAt status paymentStatus")
+		.lean();
+
 	// ── Doanh thu dự kiến: đơn đang giao nhưng chưa thanh toán hoàn tất ─────────
 	const pendingRevenueData = await Order.aggregate([
 		{
@@ -212,6 +257,12 @@ export const getAnalyticsData = async ({ startDate, endDate } = {}) => {
 			name: s._id,
 			value: s.count,
 		})),
+		categoryStats: categoryStats.map(s => ({
+			name: s._id,
+			value: s.revenue, // PieChart for Sales by Category
+			count: s.count,
+		})),
+		recentPendingOrders,
 	};
 };
 
