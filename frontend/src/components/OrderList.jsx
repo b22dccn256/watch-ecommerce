@@ -47,7 +47,7 @@ const PAYMENT_LABELS = {
 
 function StatusBadge({ status }) {
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${STATUS_STYLES[status] || 'bg-surface text-secondary'}`}>
+    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${STATUS_STYLES[status] || 'bg-surface text-secondary'}`}>
       {STATUS_LABELS[status] || status}
     </span>
   );
@@ -75,8 +75,8 @@ export default function OrderList({ onOpenOrder }) {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-primary">Quản lý Đơn hàng</h2>
-          <p className="mt-0.5 text-[11px] text-secondary">
+          <h2 className="text-xl font-bold text-primary">Quản lý Đơn hàng</h2>
+          <p className="mt-1 text-sm text-secondary">
             Tổng <span className="font-semibold text-primary">{totalOrders.toLocaleString()}</span> đơn
             {stats.pendingCount > 0 && (
               <> · <span className="font-semibold text-yellow-600">{stats.pendingCount} chờ xử lý</span></>
@@ -125,13 +125,13 @@ export default function OrderList({ onOpenOrder }) {
           <table className="w-full min-w-[700px] text-sm">
             <thead>
               <tr className="border-b border-black/8 bg-[color:var(--color-surface-2)] dark:border-white/8">
-                <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">Mã đơn</th>
-                <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">Khách hàng</th>
-                <th className="px-3 py-2.5 text-right text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">Tổng tiền</th>
-                <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">Thanh toán</th>
-                <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">Trạng thái</th>
-                <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">Ngày đặt</th>
-                <th className="px-3 py-2.5 text-right text-[10px] font-semibold uppercase tracking-[0.1em] text-muted w-10"></th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">Mã đơn</th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">Khách hàng</th>
+                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-muted">Tổng tiền</th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">Thanh toán</th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">Trạng thái</th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">Ngày đặt</th>
+                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-muted w-14"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-black/5 dark:divide-white/5">
@@ -158,42 +158,42 @@ export default function OrderList({ onOpenOrder }) {
                     key={o._id}
                     className="group transition-colors hover:bg-[color:var(--color-surface-2)]"
                   >
-                    <td className="px-3 py-2.5">
-                      <span className="font-mono text-[11px] font-bold text-primary">
+                    <td className="px-4 py-3.5">
+                      <span className="font-mono text-sm font-bold text-primary">
                         {o.orderCode || (o._id || '').slice(0, 8).toUpperCase()}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5">
-                      <p className="text-[13px] font-medium text-primary">
+                    <td className="px-4 py-3.5">
+                      <p className="text-sm font-semibold text-primary">
                         {o.shippingDetails?.fullName || o.user?.name || 'Khách vãng lai'}
                       </p>
-                      <p className="text-[10px] text-muted">{o.shippingDetails?.phoneNumber || o.user?.email || ''}</p>
+                      <p className="text-xs text-muted mt-0.5">{o.shippingDetails?.phoneNumber || o.user?.email || ''}</p>
                     </td>
-                    <td className="px-3 py-2.5 text-right">
-                      <span className="text-[13px] font-semibold text-primary">
+                    <td className="px-4 py-3.5 text-right">
+                      <span className="text-sm font-bold text-primary">
                         {o.totalAmount?.toLocaleString('vi-VN')} ₫
                       </span>
                     </td>
-                    <td className="px-3 py-2.5">
-                      <span className="text-[12px] text-secondary">
+                    <td className="px-4 py-3.5">
+                      <span className="text-sm text-secondary font-medium">
                         {PAYMENT_LABELS[o.paymentMethod] || o.paymentMethod || '—'}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5">
+                    <td className="px-4 py-3.5">
                       <StatusBadge status={o.status} />
                     </td>
-                    <td className="px-3 py-2.5">
-                      <span className="text-[12px] text-muted">
+                    <td className="px-4 py-3.5">
+                      <span className="text-sm text-muted">
                         {o.createdAt ? new Date(o.createdAt).toLocaleDateString('vi-VN') : '—'}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5 text-right">
+                    <td className="px-4 py-3.5 text-right">
                       <button
                         type="button"
                         onClick={() => onOpenOrder?.(o)}
-                        className="inline-flex items-center gap-1 rounded-md border border-black/8 px-2 py-1 text-[11px] text-muted transition hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)] dark:border-white/8"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 px-3 py-1.5 text-xs font-semibold text-secondary transition hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)] dark:border-white/10 hover:bg-[color:var(--color-gold)]/5"
                       >
-                        <Eye className="h-3 w-3" />
+                        <Eye className="h-4 w-4" />
                         Xem
                       </button>
                     </td>
