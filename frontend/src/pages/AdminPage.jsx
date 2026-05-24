@@ -1,8 +1,7 @@
 import {
   PlusCircle, ShoppingBasket, LayoutDashboard, Users, Mail,
   Megaphone, ShieldCheck, Archive, Menu, X, Watch, LayoutTemplate, Tag, MessageSquare, Layers,
-  AlertTriangle, Clock, CheckCircle, Search, Bell, Settings, Home, ChevronLeft, ChevronRight,
-  ChevronUp, ChevronDown, ChevronsLeft, ChevronsRight
+  AlertTriangle, Clock, CheckCircle, Search, Bell, Settings, Home, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -32,17 +31,10 @@ const tabs = [
   { id: "catalog",   label: "Danh mục",       icon: Layers,          roles: ["admin", "staff"] },
   { id: "products",  label: "Sản phẩm",      icon: PlusCircle,      roles: ["admin", "staff"] },
   { id: "inventory", label: "Kho hàng",      icon: Archive,         roles: ["admin", "staff"] },
-  { 
-    id: "marketing_group", 
-    label: "Marketing",     
-    icon: Megaphone,       
-    roles: ["admin", "staff"],
-    subItems: [
-      { id: "email",     label: "Email",         icon: Mail,            roles: ["admin", "staff"] },
-      { id: "reviews",   label: "Reviews & Q&A", icon: MessageSquare,   roles: ["admin", "staff"] },
-      { id: "coupons",   label: "Mã giảm giá",   icon: Tag,             roles: ["admin"] },
-    ]
-  },
+  { id: "marketing", label: "Marketing",     icon: Megaphone,       roles: ["admin", "staff"] },
+  { id: "email",     label: "Email",         icon: Mail,            roles: ["admin", "staff"] },
+  { id: "reviews",   label: "Reviews & Q&A", icon: MessageSquare,   roles: ["admin", "staff"] },
+  { id: "coupons",   label: "Mã giảm giá",   icon: Tag,             roles: ["admin"] },
   { id: "users",     label: "Người dùng",    icon: Users,           roles: ["admin"] },
   { id: "ai",        label: "AI System",     icon: ShieldCheck,     roles: ["admin"] },
   { id: "settings",  label: "Giao diện",     icon: LayoutTemplate,  roles: ["admin"] },
@@ -50,26 +42,14 @@ const tabs = [
 
 const resolveTabFromParams = (searchParams, accessibleTabs) => {
   const tabParam = searchParams.get("tab");
-  let allIds = [];
-  accessibleTabs.forEach(t => {
-      if (t.id) allIds.push(t.id);
-      if (t.subItems) t.subItems.forEach(s => allIds.push(s.id));
-  });
-  const ids = new Set(allIds);
+  const ids = new Set(accessibleTabs.map(t => t.id));
   return ids.has(tabParam) ? tabParam : accessibleTabs[0]?.id || "analytics";
 };
 
 const AdminPage = () => {
   const { user } = useUserStore();
   const currentRole = user?.role || "admin";
-  const accessibleTabs = useMemo(() => {
-      return tabs.filter(t => t.roles.includes(currentRole)).map(t => {
-          if (t.subItems) {
-              return { ...t, subItems: t.subItems.filter(s => s.roles.includes(currentRole)) };
-          }
-          return t;
-      });
-  }, [currentRole]);
+  const accessibleTabs = useMemo(() => tabs.filter(t => t.roles.includes(currentRole)), [currentRole]);
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = useMemo(() => resolveTabFromParams(searchParams, accessibleTabs), [searchParams, accessibleTabs]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -134,113 +114,50 @@ const AdminPage = () => {
 
   const totalAlerts = tasks.pendingOrders + tasks.lowStock;
 
-  const [expandedGroups, setExpandedGroups] = useState({ marketing_group: true });
-
-  const toggleGroup = (groupId) => {
-    if (isSidebarCollapsed) {
-        setIsSidebarCollapsed(false);
-        setExpandedGroups(prev => ({ ...prev, [groupId]: true }));
-    } else {
-        setExpandedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
-    }
-  };
-
   const SidebarNav = () => (
     <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto admin-scroll overflow-x-hidden">
-      {accessibleTabs.map(tab => {
-        if (tab.subItems) {
-            const isExpanded = expandedGroups[tab.id];
-            const hasActiveChild = tab.subItems.some(s => s.id === activeTab);
-            
-            return (
-                <div key={tab.id} className="space-y-1">
-                    <button
-                        onClick={() => toggleGroup(tab.id)}
-                        className={`admin-sidebar-link group relative w-full transition-all duration-300 ease-in-out ${hasActiveChild && !isExpanded ? "active" : ""} ${isSidebarCollapsed ? "!px-3 !justify-center" : "text-left justify-between"}`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <tab.icon className="w-5 h-5 flex-shrink-0" />
-                            <span className={`truncate transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-0 opacity-0 overflow-hidden hidden" : "w-auto opacity-100"}`}>{tab.label}</span>
-                        </div>
-                        {!isSidebarCollapsed && (
-                            isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                        )}
-                        
-                        {isSidebarCollapsed && (
-                             <div className="absolute left-full ml-2 px-3 py-1.5 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 delay-200 z-50 whitespace-nowrap shadow-lg">
-                                 {tab.label}
-                             </div>
-                        )}
-                    </button>
-                    
-                    <AnimatePresence>
-                        {isExpanded && !isSidebarCollapsed && (
-                            <motion.div 
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: "auto", opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                className="pl-6 space-y-1 overflow-hidden"
-                            >
-                                {tab.subItems.map(subItem => (
-                                    <button
-                                        key={subItem.id}
-                                        onClick={() => handleTabChange(subItem.id)}
-                                        className={`admin-sidebar-link group relative w-full transition-all duration-300 ease-in-out ${activeTab === subItem.id ? "active" : ""} text-left text-sm`}
-                                    >
-                                        <subItem.icon className="w-4 h-4 flex-shrink-0" />
-                                        <span className="truncate">{subItem.label}</span>
-                                    </button>
-                                ))}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-            );
-        }
+      {accessibleTabs.map(tab => (
+        <button
+          key={tab.id}
+          onClick={() => handleTabChange(tab.id)}
+          className={`admin-sidebar-link group relative w-full transition-all duration-300 ease-in-out ${activeTab === tab.id ? "active" : ""} ${isSidebarCollapsed ? "!px-3 !justify-center" : "text-left"}`}
+        >
+          <tab.icon className="w-5 h-5 flex-shrink-0" />
+          <span className={`truncate transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"}`}>{tab.label}</span>
+          
+          {isSidebarCollapsed && (
+            <div className="absolute left-full ml-2 px-3 py-1.5 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 delay-200 z-50 whitespace-nowrap shadow-lg flex items-center gap-2">
+              {tab.label}
+              {tab.id === "orders" && tasks.pendingOrders > 0 && (
+                <span className="w-5 h-5 bg-amber-500 text-[10px] font-bold text-white rounded-full flex items-center justify-center">{tasks.pendingOrders > 9 ? "9+" : tasks.pendingOrders}</span>
+              )}
+              {tab.id === "inventory" && tasks.lowStock > 0 && (
+                <span className="w-5 h-5 bg-red-500 text-[10px] font-bold text-white rounded-full flex items-center justify-center">{tasks.lowStock > 9 ? "9+" : tasks.lowStock}</span>
+              )}
+            </div>
+          )}
 
-        return (
-          <button
-            key={tab.id}
-            onClick={() => handleTabChange(tab.id)}
-            className={`admin-sidebar-link group relative w-full transition-all duration-300 ease-in-out ${activeTab === tab.id ? "active" : ""} ${isSidebarCollapsed ? "!px-3 !justify-center" : "text-left"}`}
-          >
-            <tab.icon className="w-5 h-5 flex-shrink-0" />
-            <span className={`truncate transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-0 opacity-0 overflow-hidden hidden" : "w-auto opacity-100"}`}>{tab.label}</span>
-            
-            {isSidebarCollapsed && (
-              <div className="absolute left-full ml-2 px-3 py-1.5 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 delay-200 z-50 whitespace-nowrap shadow-lg flex items-center gap-2">
-                {tab.label}
-                {tab.id === "orders" && tasks.pendingOrders > 0 && (
-                  <span className="w-5 h-5 bg-amber-500 text-[10px] font-bold text-white rounded-full flex items-center justify-center">{tasks.pendingOrders > 9 ? "9+" : tasks.pendingOrders}</span>
-                )}
-                {tab.id === "inventory" && tasks.lowStock > 0 && (
-                  <span className="w-5 h-5 bg-red-500 text-[10px] font-bold text-white rounded-full flex items-center justify-center">{tasks.lowStock > 9 ? "9+" : tasks.lowStock}</span>
-                )}
-              </div>
-            )}
-
-            {/* Badges for expanded state */}
-            {tab.id === "orders" && tasks.pendingOrders > 0 && !isSidebarCollapsed && (
-              <span className="ml-auto min-w-[20px] h-[20px] px-1 bg-amber-500 text-xs font-bold text-white rounded-full flex items-center justify-center flex-shrink-0">
-                {tasks.pendingOrders > 9 ? "9+" : tasks.pendingOrders}
-              </span>
-            )}
-            {tab.id === "inventory" && tasks.lowStock > 0 && !isSidebarCollapsed && (
-              <span className="ml-auto min-w-[20px] h-[20px] px-1 bg-red-500 text-xs font-bold text-white rounded-full flex items-center justify-center flex-shrink-0">
-                {tasks.lowStock}
-              </span>
-            )}
-            
-            {/* Dot indicators for collapsed state */}
-            {tab.id === "orders" && tasks.pendingOrders > 0 && isSidebarCollapsed && (
-              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-amber-500 rounded-full border border-white dark:border-luxury-darker"></span>
-            )}
-            {tab.id === "inventory" && tasks.lowStock > 0 && isSidebarCollapsed && (
-              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border border-white dark:border-luxury-darker"></span>
-            )}
-          </button>
-        );
-      })}
+          {/* Badges for expanded state */}
+          {tab.id === "orders" && tasks.pendingOrders > 0 && !isSidebarCollapsed && (
+            <span className="ml-auto min-w-[20px] h-[20px] px-1 bg-amber-500 text-xs font-bold text-white rounded-full flex items-center justify-center flex-shrink-0">
+              {tasks.pendingOrders > 9 ? "9+" : tasks.pendingOrders}
+            </span>
+          )}
+          {tab.id === "inventory" && tasks.lowStock > 0 && !isSidebarCollapsed && (
+            <span className="ml-auto min-w-[20px] h-[20px] px-1 bg-red-500 text-xs font-bold text-white rounded-full flex items-center justify-center flex-shrink-0">
+              {tasks.lowStock}
+            </span>
+          )}
+          
+          {/* Dot indicators for collapsed state */}
+          {tab.id === "orders" && tasks.pendingOrders > 0 && isSidebarCollapsed && (
+            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-amber-500 rounded-full border border-white dark:border-luxury-darker"></span>
+          )}
+          {tab.id === "inventory" && tasks.lowStock > 0 && isSidebarCollapsed && (
+            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border border-white dark:border-luxury-darker"></span>
+          )}
+        </button>
+      ))}
     </nav>
   );
 
@@ -248,30 +165,24 @@ const AdminPage = () => {
     <div className="min-h-screen flex bg-gray-50 dark:bg-luxury-dark font-sans" style={{ '--font-display': 'var(--font-sans)' }}>
 
       {/* ── Desktop Sidebar — Dense ──────────── */}
-      <aside className={`hidden md:flex flex-col flex-shrink-0 bg-white dark:bg-luxury-darker border-r border-gray-100 dark:border-luxury-border h-screen sticky top-0 left-0 transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-[4.5rem]" : "w-[240px]"}`}>
-        <div className="h-[72px] border-b border-gray-100 dark:border-luxury-border px-4 flex items-center justify-between">
-          <a href="/" className={`flex items-center gap-3 transition-all duration-300 overflow-hidden hover:opacity-80 ${isSidebarCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
-            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400 flex-shrink-0">
-              <Home className="w-5 h-5" />
-            </div>
-            <span className="font-bold text-lg text-gray-900 dark:text-white whitespace-nowrap">Trang Chủ</span>
+      <aside className={`hidden md:flex flex-col flex-shrink-0 bg-white dark:bg-luxury-darker border-r border-gray-100 dark:border-luxury-border h-screen sticky top-0 left-0 transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-[4.5rem]" : "w-48"}`}>
+        <div className="h-[72px] border-b border-gray-100 dark:border-luxury-border px-3 flex items-center justify-center">
+          <a href="/" className={`admin-sidebar-link group relative w-full transition-all duration-300 ease-in-out text-gray-900 dark:text-white hover:text-luxury-gold hover:bg-gray-50 dark:hover:bg-luxury-border/50 ${isSidebarCollapsed ? "!px-3 !justify-center" : "text-left"}`}>
+            <Home className="w-5 h-5 flex-shrink-0" />
+            <span className={`truncate transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}>Trang chủ</span>
           </a>
-          
-          <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-luxury-border transition-colors flex-shrink-0">
-            {isSidebarCollapsed ? <ChevronsRight className="w-5 h-5" /> : <ChevronsLeft className="w-5 h-5" />}
-          </button>
         </div>
 
         <SidebarNav />
 
         {/* Toggle Collapse Button */}
-        <div className={`border-t border-gray-100 dark:border-luxury-border p-3 flex ${isSidebarCollapsed ? 'justify-center' : 'justify-end'}`}>
+        <div className="border-t border-gray-100 dark:border-luxury-border p-3">
           <button
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-luxury-border transition-colors"
+            className="w-full flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-luxury-gold hover:bg-gray-50 dark:hover:bg-luxury-border transition-colors"
             title={isSidebarCollapsed ? "Mở rộng" : "Thu gọn"}
           >
-            {isSidebarCollapsed ? <ChevronsRight className="w-5 h-5" /> : <ChevronsLeft className="w-5 h-5" />}
+            {isSidebarCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
           </button>
         </div>
       </aside>
