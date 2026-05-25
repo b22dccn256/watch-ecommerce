@@ -1,14 +1,8 @@
 import { CheckSquare, Square, Package, Star, Pencil, Trash } from "lucide-react";
 import { SkeletonTableRow } from "../SkeletonLoaders";
+import { MOVEMENT_LABELS } from "../../constants/watchFilters";
 
-const machineLabels = {
-	mechanical: "Cơ lên cót",
-	quartz: "Bộ máy pin",
-	automatic: "Cơ tự động",
-	solar: "Năng lượng ánh sáng",
-	digital: "Điện tử",
-	smartwatch: "Đồng hồ thông minh",
-};
+const machineLabels = MOVEMENT_LABELS;
 
 // Stock badge helper
 const StockBadge = ({ stock }) => {

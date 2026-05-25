@@ -1638,7 +1638,7 @@ const StoreSettingsTab = () => {
 								<div>
 									<label className="block text-xs font-medium mb-2 text-gray-400">Số cột hiển thị sản phẩm (Desktop)</label>
 									<div className="flex gap-2">
-										{[3, 4, 5, 6].map(num => (
+										{[4, 6].map(num => (
 											<label key={num} className={`flex-1 flex flex-col items-center justify-center cursor-pointer p-3.5 rounded-xl border-2 transition ${Number(formData.gridColumns) === num ? "border-luxury-gold bg-luxury-gold/5" : "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-transparent"}`}>
 												<input type="radio" name="gridColumns" value={num} checked={Number(formData.gridColumns) === num} onChange={handleChange} className="sr-only" />
 												<span className="font-bold text-base mb-0.5">{num}</span>

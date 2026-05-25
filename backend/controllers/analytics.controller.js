@@ -62,7 +62,7 @@ export const getAnalyticsData = async ({ startDate, endDate } = {}) => {
 		{ $limit: 10 }
 	]);
 
-	// ── Watch-specific: Máy Cơ (Automatic) vs Máy Pin (Quartz) ──────────────────
+	// Watch-specific movement analytics.
 	const watchTypeStats = await Order.aggregate([
 		{ $match: paidRangeMatch },
 		{ $unwind: "$products" },
@@ -243,12 +243,10 @@ export const getAnalyticsData = async ({ startDate, endDate } = {}) => {
 		})),
 		// Watch-specific analytics
 		watchTypeStats: watchTypeStats.map(s => ({
-			name: s._id === "automatic" ? "Máy Cơ Tự Động" :
-				s._id === "mechanical" ? "Máy Cơ Tay" :
-				s._id === "quartz" ? "Máy Pin (Quartz)" :
-				s._id === "solar" ? "Năng Lượng Mặt Trời" :
-				s._id === "digital" ? "Điện Tử" :
-				s._id === "smartwatch" ? "Đồng Hồ Thông Minh" :
+			name: s._id === "automatic" ? "Cơ tự động" :
+				s._id === "mechanical" ? "Cơ lên cót tay" :
+				s._id === "quartz" ? "Máy pin" :
+				s._id === "solar" ? "Năng lượng ánh sáng" :
 				s._id || "Khác",
 			value: s.count,
 			revenue: s.revenue,

@@ -13,7 +13,11 @@
     "test:cms": "node --test test/store-config.test.mjs",
     "test:api": "node --test test/admin-api.test.mjs test/user-api.test.mjs test/payment-order.test.mjs",
     "test:all": "node --test test/*.test.mjs",
-    "migrate:product-slugs": "node scripts/migrate_product_slugs.js"
+    "migrate:product-slugs": "node scripts/migrate_product_slugs.js",
+    "taxonomy:dry": "node scripts/normalize-watch-taxonomy.mjs --dry-run",
+    "taxonomy:apply": "node scripts/normalize-watch-taxonomy.mjs --apply",
+    "remove-dbg:dry": "node scripts/remove-dbg-entities.mjs --dry-run --backup",
+    "remove-dbg:run": "node scripts/remove-dbg-entities.mjs --backup --delete-products"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

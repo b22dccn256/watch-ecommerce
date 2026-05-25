@@ -1,15 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import { PlusCircle, Loader, ImagePlus, Tag, DollarSign, X, Plus } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
+import { MOVEMENT_FILTERS } from "../constants/watchFilters";
+import { toast } from "react-hot-toast";
 
-const machineTypes = [
-	{ value: "mechanical", label: "Cơ lên cót" },
-	{ value: "quartz", label: "Bộ máy pin" },
-	{ value: "automatic", label: "Cơ tự động" },
-	{ value: "solar", label: "Năng lượng ánh sáng" },
-	{ value: "digital", label: "Điện tử" },
-	{ value: "smartwatch", label: "Đồng hồ thông minh" },
-];
+const machineTypes = MOVEMENT_FILTERS;
 
 const inputCls = "w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold focus:ring-1 focus:ring-luxury-gold/40 transition";
 const labelCls = "block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5";
@@ -46,6 +41,10 @@ const CreateProductForm = ({ onSuccess }) => {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		if (!newProduct.image) {
+			toast.error("Vui lòng tải lên ảnh đại diện của sản phẩm");
+			return;
+		}
 		try {
 			const finalStock = newProduct.wristSizeOptions.length > 0 
 				? newProduct.wristSizeOptions.reduce((acc, curr) => acc + (Number(curr.stock) || 0), 0)
@@ -278,7 +277,7 @@ const CreateProductForm = ({ onSuccess }) => {
 
 					{/* Image drag-and-drop */}
 					<div>
-						<label className={labelCls}>Ảnh đại diện</label>
+						<label className={labelCls}>Ảnh đại diện *</label>
 						<div
 							className={`drop-zone p-4 flex flex-col items-center justify-center gap-2 cursor-pointer min-h-[120px] ${dragOver ? "drag-over" : ""}`}
 							onClick={() => fileInputRef.current?.click()}

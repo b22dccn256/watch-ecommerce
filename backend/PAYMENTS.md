@@ -10,7 +10,7 @@ This document summarizes required environment variables and local testing comman
   - `VNP_SECRET` (legacy fallback; code accepts both)
   - `VNP_URL` (payment gateway URL, sandbox default used)
   - `VNP_RETURN_URL` (frontend return URL)
-  - `VNP_IPN_URL` (backend IPN URL)
+  - `VNP_IPN_URL` (backend IPN URL, default path `/api/payments/vnpay-ipn`)
 
 - Stripe
   - `STRIPE_SECRET_KEY` (required for creating sessions)

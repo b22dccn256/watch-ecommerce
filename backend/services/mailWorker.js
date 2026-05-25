@@ -18,6 +18,10 @@ if (process.env.NODE_ENV !== 'test' && !isNodeTestRunner) {
 		tls: process.env.UPSTASH_REDIS_URL ? { rejectUnauthorized: false } : undefined
 	});
 
+	redisConnection.on("error", (err) => {
+		console.error("[Mail Worker] IORedis connection error:", err.message);
+	});
+
 	worker = new Worker(
 		"email-campaigns",
 		async (job) => {

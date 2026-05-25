@@ -16,6 +16,7 @@ import { SkeletonProductDetail } from "../components/SkeletonLoaders";
 import ReviewsList from "../components/ReviewsList";
 import NotFoundPage from "./NotFoundPage";
 import { buildProductPath } from "../utils/productUrl";
+import { MOVEMENT_LABELS } from "../constants/watchFilters";
 
 const ProductDetailPage = () => {
   const { slugToken, slug, token } = useParams();
@@ -171,14 +172,7 @@ const ProductDetailPage = () => {
 
   const category = currentProduct.categoryId?.name || currentProduct.category || "Đồng hồ";
   const brandName = currentProduct.brand?.name || currentProduct.brand || "Không rõ";
-  const machineTypeLabel = {
-    mechanical: "Cơ lên cót",
-    quartz: "Bộ máy pin",
-    automatic: "Cơ tự động",
-    solar: "Năng lượng ánh sáng",
-    digital: "Điện tử",
-    smartwatch: "Đồng hồ thông minh",
-  }[currentProduct.type] || currentProduct.type || null;
+  const machineTypeLabel = MOVEMENT_LABELS[currentProduct.type] || currentProduct.type || null;
   const specItems = [
     { label: "Thương hiệu", value: brandName },
     { label: "Bộ máy", value: machineTypeLabel },

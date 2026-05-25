@@ -3,11 +3,9 @@ import ProductCard from "./ProductCard";
 const BestSellersSection = ({ products, addToCart, title, gridCols }) => {
     // Helper mapper since tailwind doesn't support completely dynamic numeric classes safely
     const gridColsClass = {
-        3: "md:grid-cols-3",
-        4: "md:grid-cols-3 lg:grid-cols-4",
-        5: "md:grid-cols-4 lg:grid-cols-5",
+        4: "md:grid-cols-4 lg:grid-cols-4",
         6: "md:grid-cols-4 lg:grid-cols-6",
-    }[gridCols] || "md:grid-cols-3 lg:grid-cols-4";
+    }[gridCols] || "md:grid-cols-4 lg:grid-cols-4";
 
     return (
         <div className="section-divider py-10 md:py-14 max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">

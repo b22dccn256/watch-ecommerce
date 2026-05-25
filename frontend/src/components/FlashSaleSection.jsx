@@ -5,11 +5,9 @@ const FlashSaleSection = ({ products, timeLeft, addToCart, campaignName, title, 
 	if (!products.length) return null;
 
 	const gridColsClass = {
-		3: "md:grid-cols-3",
-		4: "md:grid-cols-3 lg:grid-cols-4",
-		5: "md:grid-cols-4 lg:grid-cols-5",
+		4: "md:grid-cols-4 lg:grid-cols-4",
 		6: "md:grid-cols-4 lg:grid-cols-6",
-	}[gridCols] || "md:grid-cols-3 lg:grid-cols-4";
+	}[gridCols] || "md:grid-cols-4 lg:grid-cols-4";
 
 	return (
 		<div className="section-divider py-10 md:py-14 bg-[linear-gradient(180deg,#fff7f0_0%,#ffffff_25%,#ffffff_100%)] dark:bg-[linear-gradient(180deg,#1a0e0e_0%,#100c09_30%,#0d0b08_100%)] relative">

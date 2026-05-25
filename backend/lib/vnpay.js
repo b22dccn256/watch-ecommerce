@@ -13,11 +13,19 @@ const buildSortedQuery = (params) => {
 	return qs.stringify(sortedParams, { encode: false });
 };
 
+const normalizeIpAddress = (value) => {
+	const raw = String(value || "").split(",")[0].trim().replace(/^::ffff:/, "");
+	if (!raw) return "127.0.0.1";
+	if (raw === "::1") return "127.0.0.1";
+	return raw;
+};
+
 export const createVNPayUrl = ({ amount, orderId, ipAddr }) => {
 	const tmnCode = process.env.VNP_TMN_CODE;
-	const secretKey = process.env.VNP_HASH_SECRET;
+	const secretKey = process.env.VNP_HASH_SECRET || process.env.VNP_SECRET;
 	const vnpUrl = process.env.VNP_URL || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
 	const returnUrl = process.env.VNP_RETURN_URL || "http://localhost:5173/payment/vnpay-return";
+	const ipnUrl = process.env.VNP_IPN_URL || "http://localhost:5000/api/payments/vnpay-ipn";
 
 	if (!tmnCode || !secretKey) {
 		throw new Error("VNPAY chưa cấu hình VNP_TMN_CODE hoặc VNP_HASH_SECRET");
@@ -34,6 +42,7 @@ export const createVNPayUrl = ({ amount, orderId, ipAddr }) => {
 		vnp_OrderType: "other",
 		vnp_Amount: amount * 100,
 		vnp_ReturnUrl: returnUrl,
+		vnp_IpnUrl: ipnUrl,
 		vnp_IpAddr: ipAddr,
 		vnp_CreateDate: moment().format("YYYYMMDDHHmmss"),
 	};
@@ -55,7 +64,7 @@ export const createVNPayUrl = ({ amount, orderId, ipAddr }) => {
 };
 
 export const verifyVNPaySignature = (query) => {
-	const secretKey = process.env.VNP_HASH_SECRET || "";
+	const secretKey = process.env.VNP_HASH_SECRET || process.env.VNP_SECRET || "";
 	if (!secretKey) return false;
 
 	const secureHash = query.vnp_SecureHash || query.vnp_SecureHash?.toLowerCase();
@@ -64,6 +73,11 @@ export const verifyVNPaySignature = (query) => {
 	const clone = { ...query };
 	delete clone.vnp_SecureHash;
 	delete clone.vnp_SecureHashType;
+	Object.keys(clone).forEach((key) => {
+		if (clone[key] === undefined || clone[key] === null || clone[key] === "") {
+			delete clone[key];
+		}
+	});
 
 	const signData = buildSortedQuery(clone);
 	const signed = crypto
@@ -73,3 +87,5 @@ export const verifyVNPaySignature = (query) => {
 
 	return signed.toLowerCase() === secureHash.toLowerCase();
 };
+
+export { normalizeIpAddress };

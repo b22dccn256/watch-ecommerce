@@ -6,11 +6,107 @@ import MailCampaign from "../models/mailCampaign.model.js";
 import NewsletterSubscription from "../models/newsletterSubscription.model.js";
 import EmailTemplate from "../models/emailTemplate.model.js";
 
+// Imports for synchronous fallback direct sending
+import Handlebars from "handlebars";
+import { sendEmail } from "../lib/email.js";
+import { 
+	welcomeTemplate, 
+	orderConfirmationTemplate, 
+	adminNotificationTemplate, 
+	abandonedCartTemplate 
+} from "../lib/emailTemplates.js";
+
 // Provide a safe stub queue when running tests or when Redis is unavailable
 let emailQueue = {
 	add: async (name, payload) => {
-		// minimal no-op for tests
-		return Promise.resolve();
+		console.log(`[Mail Stub Queue] Fallback directly sending email "${name}" to ${payload.email}...`);
+		try {
+			let finalHtml = payload.html;
+			if (!finalHtml) {
+				if (name === "welcome-email") {
+					finalHtml = Handlebars.compile(welcomeTemplate)(payload);
+				} else if (name === "order-confirmation") {
+					finalHtml = Handlebars.compile(orderConfirmationTemplate)(payload);
+				} else if (name === "admin-notification") {
+					finalHtml = Handlebars.compile(adminNotificationTemplate)(payload);
+				} else if (name === "abandoned-cart") {
+					finalHtml = Handlebars.compile(abandonedCartTemplate)(payload);
+				} else if (name === "verify-email") {
+					finalHtml = `
+						<div style="font-family: Arial, sans-serif; color: #1f2937; max-width: 1000px; margin: auto; padding: 40px 16px; background: #f7f5ef; border-radius: 18px;">
+							<div style="max-width: 680px; margin: auto; background: #fff; border-radius: 16px; border: 1px solid #e3e3e3; padding: 28px;">
+								<h2 style="font-size: 24px; color: #b7925a; margin-bottom: 16px; text-align: center;">Xác minh tài khoản Luxury Watch</h2>
+								<p style="font-size: 16px; color: #374151; line-height: 1.6;">Chào <strong>${payload.userName || "Khách Hàng"}</strong>,</p>
+								<p style="font-size: 16px; color: #374151; line-height: 1.6;">Cảm ơn bạn đã đăng ký tài khoản tại Luxury Watch. Nhấn nút bên dưới để xác minh email và hoàn tất kích hoạt tài khoản.</p>
+								<div style="text-align: center; margin: 24px 0;">
+									<a href="${payload.verifyUrl}" target="_blank" rel="noreferrer" style="background: #b7925a; color: #fff; text-decoration: none; font-weight: 700; padding: 12px 26px; border-radius: 8px; font-size: 16px; display: inline-block;">Xác minh tài khoản</a>
+								</div>
+								<p style="font-size: 14px; color: #6b7280; line-height: 1.5;">Nếu nút không hoạt động, sao chép và dán liên kết dưới đây vào trình duyệt:</p>
+								<p style="font-size: 13px; color: #9ca3af; word-break: break-all;">${payload.verifyUrl}</p>
+								<p style="font-size: 14px; color: #6b7280; line-height: 1.5;">Liên kết này có hiệu lực trong 15 phút và chỉ sử dụng một lần.</p>
+								<p style="font-size: 14px; color: #6b7280; margin-top: 18px;">Trân trọng,<br/><strong>Đội ngũ Luxury Watch</strong></p>
+							</div>
+							<div style="text-align:center; font-size:12px; color:#9ca3af; margin-top:12px;">Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.</div>
+						</div>
+					`;
+				} else if (name === "order-status-update") {
+					finalHtml = `
+						<div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+							<h2 style="color: #D4AF37; text-align: center;">Thông báo cập nhật đơn hàng</h2>
+							<p>Kính gửi quý khách,</p>
+							<p>Đơn hàng <strong>#${payload.order.orderCode}</strong> của quý khách đã được cập nhật trạng thái: <strong style="color: #b8860b; text-transform: uppercase;">${payload.order.status}</strong>.</p>
+							<p>Quý khách có thể xem chi tiết hành trình vận chuyển tại: <br/><a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/order-tracking/${payload.order.trackingToken}" style="color: #D4AF37; font-weight: bold; text-decoration: none;">Theo dõi đơn hàng</a></p>
+							<hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+							<p style="font-size: 12px; color: #777; text-align: center;">Cảm ơn quý khách đã mua sắm tại Luxury Watch Store.</p>
+						</div>
+					`;
+				}
+			} else {
+				const compiled = Handlebars.compile(finalHtml);
+				finalHtml = compiled(payload);
+			}
+
+			// Capture/Create Email Log for tracking in dev
+			let log = null;
+			if (payload.campaignId || payload.type === "marketing" || name === "abandoned-cart") {
+				try {
+					log = await EmailLog.create({
+						campaignId: payload.campaignId,
+						email: payload.email,
+						status: "queued"
+					});
+				} catch (logErr) {
+					console.error("[Mail Stub Queue] Failed to create email log:", logErr.message);
+				}
+			}
+
+			// Add unsubscribe link for Marketing/Campaigns/Abandoned Cart
+			if (payload.campaignId || payload.type === "marketing" || name === "abandoned-cart") {
+				const unsubLink = `<div style="margin-top: 50px; text-align: center; font-size: 12px; color: #999;">
+					Bạn nhận được email này vì đã có hoạt động tại Luxury Watch Store. 
+					<a href="${process.env.BACKEND_URL || "http://localhost:5000"}/api/mail/unsubscribe/${payload.email}" style="color: #D4AF37;">Hủy đăng ký</a>
+				</div>`;
+				finalHtml += unsubLink;
+			}
+
+			const recipient = payload.type === "admin-notification" ? (process.env.ADMIN_EMAIL || "admin@watchstore.com") : payload.email;
+			await sendEmail(recipient, payload.subject, finalHtml);
+
+			if (log) {
+				log.status = "sent";
+				await log.save();
+			}
+			console.log(`[Mail Stub Queue] Fallback email sent successfully to ${recipient}`);
+		} catch (error) {
+			console.error(`[Mail Stub Queue] Fallback direct send failed:`, error.message);
+			throw error;
+		}
+	},
+	addBulk: async (jobs) => {
+		console.log(`[Mail Stub Queue] Processing ${jobs.length} bulk jobs directly...`);
+		for (const job of jobs) {
+			await emailQueue.add(job.name, job.data);
+		}
 	}
 };
 
@@ -21,6 +117,9 @@ if (process.env.NODE_ENV !== 'test' && !isNodeTestRunner) {
 		const redisConnection = new IORedis(process.env.UPSTASH_REDIS_URL || process.env.REDIS_URL || "redis://localhost:6379", {
 			maxRetriesPerRequest: null,
 			tls: process.env.UPSTASH_REDIS_URL ? { rejectUnauthorized: false } : undefined
+		});
+		redisConnection.on("error", (err) => {
+			console.error("[Mail] IORedis connection error on controller Queue:", err.message);
 		});
 		emailQueue = new Queue("email-campaigns", { connection: redisConnection });
 	} catch (err) {

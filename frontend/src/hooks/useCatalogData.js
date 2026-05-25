@@ -6,7 +6,7 @@ export const useCatalogData = () => {
   const [activeSection, setActiveSection] = useState('brands');
 
   useEffect(() => {
-    fetchBrands();
+    fetchBrands(true, true);
     fetchCategories();
     fetchAllProducts();
   }, [fetchBrands, fetchCategories, fetchAllProducts]);

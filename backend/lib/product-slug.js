@@ -2,6 +2,8 @@ import crypto from "crypto";
 
 export const slugifyProductName = (value) => {
 	return String(value || "")
+		.replace(/đ/g, "d")
+		.replace(/Đ/g, "d")
 		.normalize("NFKD")
 		.replace(/[\u0300-\u036f]/g, "")
 		.toLowerCase()

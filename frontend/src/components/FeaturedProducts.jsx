@@ -2,10 +2,8 @@ import ProductCard from "./ProductCard";
 
 const FeaturedProducts = ({ featuredProducts, gridCols = 4 }) => {
     const gridColsClass = {
-        3: "md:grid-cols-3 lg:grid-cols-3",
         4: "md:grid-cols-4 lg:grid-cols-4",
-        5: "md:grid-cols-5 lg:grid-cols-5",
-        6: "md:grid-cols-6 lg:grid-cols-6",
+        6: "md:grid-cols-4 lg:grid-cols-6",
     }[gridCols] || "md:grid-cols-4 lg:grid-cols-4";
 
     return (

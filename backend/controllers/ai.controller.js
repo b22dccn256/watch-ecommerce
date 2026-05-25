@@ -159,7 +159,7 @@ const buildProductContext = async () => {
 
         const products = await CampaignService.applyCampaignToProducts(rawProducts);
 
-        const typeLabel = { mechanical: "Cơ", quartz: "Quartz", automatic: "Tự động", digital: "Điện tử", smartwatch: "Smartwatch" };
+        const typeLabel = { mechanical: "Cơ lên cót tay", quartz: "Máy pin", automatic: "Cơ tự động", solar: "Năng lượng ánh sáng" };
 
         const lines = products.map((p) => {
             let priceStr = p.price ? p.price.toLocaleString("vi-VN") + "đ" : "Liên hệ";
