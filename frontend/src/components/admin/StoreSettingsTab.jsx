@@ -9,9 +9,9 @@ import {
 import { useStorefrontStore } from "../../stores/useStorefrontStore";
 
 const ALL_SECTIONS = [
-	{ key: "hero",       label: "Hero Banner",        desc: "Banner động dạng Slide trượt đầu trang kèm slogan" },
-	{ key: "flashSale",  label: "Flash Sale",          desc: "Khu vực khuyến mãi, sản phẩm sale & đếm ngược" },
-	{ key: "bestSeller", label: "Sản phẩm Bán Chạy",  desc: "Grid sản phẩm được lọc theo doanh số bán cao nhất" },
+	{ key: "hero", label: "Hero Banner", desc: "Banner động dạng Slide trượt đầu trang kèm slogan" },
+	{ key: "flashSale", label: "Flash Sale", desc: "Khu vực khuyến mãi, sản phẩm sale & đếm ngược" },
+	{ key: "bestSeller", label: "Sản phẩm Bán Chạy", desc: "Grid sản phẩm được lọc theo doanh số bán cao nhất" },
 ];
 
 const THEME_PRESETS = [
@@ -271,22 +271,22 @@ const StoreSettingsTab = () => {
 	if (!formData) return <div className="p-8 text-center text-sm text-gray-400">Đang tải cấu hình Storefront...</div>;
 
 	const sidebarMenu = [
-		{ id: "sections",    label: "Sections trang chủ",  icon: Layers },
-		{ id: "branding",    label: "Bản sắc & Menu",      icon: Type },
-		{ id: "theme",       label: "Chủ đề & Màu sắc",    icon: Palette },
-		{ id: "slides",      label: "Slide Hero (Đầu trang chủ)", icon: ImageIcon },
-		{ id: "marketing",   label: "Văn bản & Tiêu đề",   icon: Megaphone },
-		{ id: "popup",       label: "Pop-up Đón khách VIP", icon: Sparkles },
-		{ id: "footer",      label: "Thông tin Chân trang", icon: Globe },
-		{ id: "footerDetail",label: "Footer Nâng cao",     icon: Star },
-		{ id: "seo",         label: "SEO & Giờ mở cửa",    icon: Globe },
-		{ id: "layout",      label: "Bố cục",              icon: Sliders },
+		{ id: "sections", label: "Sections trang chủ", icon: Layers },
+		{ id: "branding", label: "Bản sắc & Menu", icon: Type },
+		{ id: "theme", label: "Chủ đề & Màu sắc", icon: Palette },
+		{ id: "slides", label: "Slide Hero (Đầu trang chủ)", icon: ImageIcon },
+		{ id: "marketing", label: "Văn bản & Tiêu đề", icon: Megaphone },
+		{ id: "popup", label: "Pop-up Đón khách VIP", icon: Sparkles },
+		{ id: "footer", label: "Thông tin Chân trang", icon: Globe },
+		{ id: "footerDetail", label: "Footer Nâng cao", icon: Star },
+		{ id: "seo", label: "SEO & Giờ mở cửa", icon: Globe },
+		{ id: "layout", label: "Bố cục", icon: Sliders },
 		// Orphan tabs — stored in DB but not yet consumed by user frontend (đang phát triển)
-		{ id: "colors",      label: "🎨 Màu Tuỳ chỉnh",     icon: Paintbrush, dev: true },
-		{ id: "typography",  label: "🔤 Kiểu chữ",         icon: Type, dev: true },
-		{ id: "integrations",label: "📊 Tích hợp",          icon: BarChart3, dev: true },
-		{ id: "catalog",     label: "📦 Cấu hình Catalog",  icon: ShoppingBag, dev: true },
-		{ id: "advanced",    label: "🎯 CSS & Nâng cao",    icon: Code2, dev: true },
+		{ id: "colors", label: "Màu Tuỳ chỉnh", icon: Paintbrush, dev: true },
+		{ id: "typography", label: "Kiểu chữ", icon: Type, dev: true },
+		{ id: "integrations", label: "Tích hợp", icon: BarChart3, dev: true },
+		{ id: "catalog", label: "Cấu hình Catalog", icon: ShoppingBag, dev: true },
+		{ id: "advanced", label: "CSS & Nâng cao", icon: Code2, dev: true },
 	];
 
 	return (
@@ -297,7 +297,7 @@ const StoreSettingsTab = () => {
 					<h2 className="text-xl font-bold font-luxury text-luxury-gold flex items-center gap-2.5">
 						<Layout className="w-5 h-5" /> Quản Lý Giao Diện Khách Hàng
 					</h2>
-					<p className="text-gray-400 text-xs mt-1">
+					<p className="mt-1 text-gray-400 text-xs mt-1">
 						Thiết kế thẩm mỹ, cấu trúc hiển thị và các văn bản quảng bá toàn trang. Mọi thay đổi áp dụng trực tiếp thời gian thực.
 					</p>
 				</div>
@@ -319,11 +319,10 @@ const StoreSettingsTab = () => {
 								key={menu.id}
 								type="button"
 								onClick={() => setActiveSubTab(menu.id)}
-								className={`flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-									active
-										? "bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30"
-										: "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
-								}`}
+								className={`flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${active
+									? "bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30"
+									: "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+									}`}
 							>
 								<Icon className="w-4 h-4 shrink-0" />
 								{menu.label}
@@ -334,7 +333,7 @@ const StoreSettingsTab = () => {
 
 				{/* Main Config Form Area */}
 				<main className="bg-white/60 dark:bg-luxury-darker/30 backdrop-blur-md rounded-2xl border border-gray-100 dark:border-white/5 p-5 md:p-6 min-h-[480px]">
-					
+
 					{/* 1. SECTIONS LAYOUT MANAGER */}
 					{activeSubTab === "sections" && (
 						<div className="space-y-5 animate-fade-in">
@@ -344,7 +343,7 @@ const StoreSettingsTab = () => {
 								</h3>
 								<p className="text-xs text-gray-400 mt-1">Sắp xếp luồng cuộn trang của khách hàng theo thứ tự ưu tiên của chiến dịch bán hàng.</p>
 							</div>
-							
+
 							<div className="space-y-2">
 								{sectionLayout.map((item, idx) => {
 									const meta = ALL_SECTIONS.find(s => s.key === item.key);
@@ -487,9 +486,9 @@ const StoreSettingsTab = () => {
 											<label className="block text-[11px] font-bold text-gray-400 mb-1">HÒA SẮC NỀN THANH THÔNG BÁO</label>
 											<div className="grid grid-cols-3 gap-2">
 												{[
-													{ key: "gold",  label: "Vàng Hoàng Gia", class: "bg-luxury-gold text-black" },
-													{ key: "dark",  label: "Đen Quyền Lực",   class: "bg-black text-white" },
-													{ key: "light", label: "Kem/Bạc Sáng",    class: "bg-gray-100 text-black border border-gray-300" }
+													{ key: "gold", label: "Vàng Hoàng Gia", class: "bg-luxury-gold text-black" },
+													{ key: "dark", label: "Đen Quyền Lực", class: "bg-black text-white" },
+													{ key: "light", label: "Kem/Bạc Sáng", class: "bg-gray-100 text-black border border-gray-300" }
 												].map(preset => (
 													<button
 														key={preset.key}
@@ -539,7 +538,7 @@ const StoreSettingsTab = () => {
 									{(formData.navigationItems || []).map((item, index) => (
 										<div key={index} className="flex items-center gap-3 p-3 bg-white/5 dark:bg-black/30 rounded-lg border border-gray-200/50 dark:border-white/5">
 											<span className="text-[10px] font-bold text-luxury-gold shrink-0 w-6">#{index + 1}</span>
-											
+
 											<div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
 												<div className="flex items-center gap-2">
 													<span className="text-[10px] font-medium text-gray-400 whitespace-nowrap">Tên hiển thị:</span>
@@ -1148,11 +1147,10 @@ const StoreSettingsTab = () => {
 										return (
 											<label
 												key={p.key}
-												className={`flex flex-col cursor-pointer p-4 rounded-xl border-2 transition-all relative ${
-													selected
-														? "border-luxury-gold bg-luxury-gold/5 shadow-md shadow-luxury-gold/5"
-														: "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-transparent"
-												}`}
+												className={`flex flex-col cursor-pointer p-4 rounded-xl border-2 transition-all relative ${selected
+													? "border-luxury-gold bg-luxury-gold/5 shadow-md shadow-luxury-gold/5"
+													: "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-transparent"
+													}`}
 											>
 												<input
 													type="radio"
@@ -1190,11 +1188,10 @@ const StoreSettingsTab = () => {
 										return (
 											<label
 												key={mode.key}
-												className={`flex flex-col items-center justify-center text-center cursor-pointer p-4 rounded-xl border-2 transition ${
-													selected
-														? "border-luxury-gold bg-luxury-gold/5"
-														: "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-transparent"
-												}`}
+												className={`flex flex-col items-center justify-center text-center cursor-pointer p-4 rounded-xl border-2 transition ${selected
+													? "border-luxury-gold bg-luxury-gold/5"
+													: "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-transparent"
+													}`}
 											>
 												<input
 													type="radio"
@@ -1236,7 +1233,7 @@ const StoreSettingsTab = () => {
 							<div className="space-y-4">
 								{(formData.heroSlides || []).map((slide, index) => (
 									<div key={index} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-black/10 dark:bg-black/30 p-4 space-y-4 relative">
-										
+
 										{/* Slide header & order controls */}
 										<div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-2">
 											<div className="flex items-center gap-4">
@@ -1372,7 +1369,7 @@ const StoreSettingsTab = () => {
 												</div>
 												{slide.image && (
 													<div className="border border-gray-200 dark:border-gray-800 rounded overflow-hidden h-24 bg-black/20 flex items-center justify-center">
-														<img src={slide.image} alt="Preview" className="h-full w-full object-cover" onError={(e) => { e.target.src="https://placehold.co/600x200?text=Invalid+Image+URL"; }} />
+														<img src={slide.image} alt="Preview" className="h-full w-full object-cover" onError={(e) => { e.target.src = "https://placehold.co/600x200?text=Invalid+Image+URL"; }} />
 													</div>
 												)}
 											</div>
@@ -1395,7 +1392,7 @@ const StoreSettingsTab = () => {
 
 							<div className="space-y-4">
 								<h4 className="text-xs font-bold uppercase tracking-widest text-luxury-gold">1. Tiêu đề khối & Slogan Tiếp thị</h4>
-								
+
 								<div>
 									<label className="block text-xs font-medium mb-1 text-gray-400">Slogan Trang Chủ (Hero Slogan)</label>
 									<textarea
@@ -1407,7 +1404,7 @@ const StoreSettingsTab = () => {
 										placeholder="Nhập câu châm ngôn thương hiệu..."
 									/>
 								</div>
-								
+
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div>
 										<label className="block text-xs font-medium mb-1 text-gray-400">Tiêu đề Banner Flash Sale</label>
@@ -1473,7 +1470,7 @@ const StoreSettingsTab = () => {
 											placeholder="VD: ĐĂNG KÝ THÀNH VIÊN VIP"
 										/>
 									</div>
-									
+
 									<div>
 										<label className="block text-xs font-medium mb-1 text-gray-400">Văn bản chiêu dụ nhận ưu đãi</label>
 										<textarea
@@ -1521,7 +1518,7 @@ const StoreSettingsTab = () => {
 												src={formData.promoPopupImage}
 												alt="Popup preview"
 												className="h-full w-full object-cover"
-												onError={(e) => { e.target.src="https://placehold.co/300x200?text=Invalid+Image+URL"; }}
+												onError={(e) => { e.target.src = "https://placehold.co/300x200?text=Invalid+Image+URL"; }}
 											/>
 											<div className="absolute inset-0 bg-black/40 p-3 flex flex-col justify-end text-white">
 												<p className="text-[10px] font-bold tracking-wider text-luxury-gold uppercase">{formData.promoPopupTitle}</p>
@@ -1648,7 +1645,7 @@ const StoreSettingsTab = () => {
 									</div>
 									<p className="text-[10px] text-gray-500 mt-1.5">Mật độ hiển thị lưới đồng hồ trên màn hình máy tính của trang Danh mục (Catalog).</p>
 								</div>
-								
+
 								<div>
 									<label className="block text-xs font-medium mb-2 text-gray-400">Số lượng SP trưng bày trang chủ</label>
 									<div className="flex gap-2">
