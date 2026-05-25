@@ -39,6 +39,13 @@ AGENTS.md
 frontend/playwright-report/
 frontend/test-results/
 
+# Uploaded media and test artifacts (ignore local uploads and e2e artifacts)
+backend/uploads/
+frontend/frontend/tests/e2e/artifacts/
+
+# Temporary / local-only files
+msg.json
+
 # Runtime log files - do not commit
 stripe-error.log
 # IDE - Antigravity
