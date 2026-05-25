@@ -32,19 +32,19 @@ const ProductsTable = ({
 				<thead className="bg-gray-50/95 dark:bg-gray-700/95 backdrop-blur-sm sticky top-0 z-10">
 					<tr>
 						{/* Checkbox */}
-						<th className="px-2.5 py-1.5 w-8">
+						<th className="px-3 py-3 w-10">
 							<button onClick={onToggleSelectAll} className="text-gray-400 hover:text-luxury-gold transition">
-								{allPageSelected ? <CheckSquare className="w-3.5 h-3.5 text-luxury-gold pointer-events-none" /> : <Square className="w-3.5 h-3.5 pointer-events-none" />}
+								{allPageSelected ? <CheckSquare className="w-4 h-4 text-luxury-gold pointer-events-none" /> : <Square className="w-4 h-4 pointer-events-none" />}
 							</button>
 						</th>
-						<th className="px-3 py-1.5 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider min-w-[350px]">Sản phẩm</th>
-						<th className="px-3 py-1.5 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Thương hiệu</th>
-						<th className="px-3 py-1.5 text-right text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Giá</th>
-						<th className="px-3 py-1.5 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Bộ máy</th>
-						<th className="px-3 py-1.5 text-right text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tồn kho</th>
-						<th className="px-3 py-1.5 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Danh mục</th>
-						<th className="px-3 py-1.5 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nổi bật</th>
-						<th className="px-3 py-1.5 w-10"></th>
+						<th className="px-4 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider min-w-[350px]">Sản phẩm</th>
+						<th className="px-4 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Thương hiệu</th>
+						<th className="px-4 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Giá</th>
+						<th className="px-4 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Bộ máy</th>
+						<th className="px-4 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tồn kho</th>
+						<th className="px-4 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Danh mục</th>
+						<th className="px-4 py-3 text-center text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nổi bật</th>
+						<th className="px-4 py-3 w-12"></th>
 					</tr>
 				</thead>
 				<tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
@@ -69,75 +69,75 @@ const ProductsTable = ({
 									key={product._id}
 									className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${isSelected ? "bg-luxury-gold/5 dark:bg-luxury-gold/5" : ""}`}
 								>
-									<td className="px-2.5 py-1.5">
+									<td className="px-3 py-3 text-center">
 										<button onClick={() => onToggleSelect(product._id)} className="text-gray-400 hover:text-luxury-gold transition">
-											{isSelected ? <CheckSquare className="w-3.5 h-3.5 text-luxury-gold pointer-events-none" /> : <Square className="w-3.5 h-3.5 pointer-events-none" />}
+											{isSelected ? <CheckSquare className="w-4 h-4 text-luxury-gold pointer-events-none" /> : <Square className="w-4 h-4 pointer-events-none" />}
 										</button>
 									</td>
-									<td className="px-3 py-1.5">
-										<div className="flex items-center gap-2.5">
+									<td className="px-4 py-3">
+										<div className="flex items-center gap-3">
 											<img
-												className="h-9 w-9 rounded-md object-cover flex-shrink-0 border border-gray-200 dark:border-gray-600"
+												className="h-10 w-10 rounded-md object-cover flex-shrink-0 border border-gray-200 dark:border-gray-600"
 												src={product.image}
 												alt={product.name}
 												onError={(e) => { e.target.onerror = null; e.target.style.display = "none"; }}
 											/>
 											<div className="min-w-0 flex-1">
-												<p className="text-[13px] font-semibold text-gray-900 dark:text-white truncate" title={product.name}>{product.name}</p>
-												<p className="text-[9px] text-gray-400 mt-0.5 truncate">{product.categoryId?.name || product.category || '—'}</p>
+												<p className="text-sm font-semibold text-gray-900 dark:text-white truncate" title={product.name}>{product.name}</p>
+												<p className="text-xs text-gray-500 mt-0.5 truncate">{product.categoryId?.name || product.category || '—'}</p>
 											</div>
 										</div>
 									</td>
-									<td className="px-3 py-1.5 whitespace-nowrap text-[13px] text-gray-600 dark:text-gray-300">{brandName}</td>
-									<td className="px-3 py-1.5 whitespace-nowrap text-right text-[13px] font-semibold text-luxury-gold">
+									<td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">{brandName}</td>
+									<td className="px-4 py-3 whitespace-nowrap text-right text-sm font-bold text-luxury-gold">
 										{product.price?.toLocaleString("vi-VN")} ₫
 									</td>
-									<td className="px-3 py-1.5 whitespace-nowrap">
+									<td className="px-4 py-3 whitespace-nowrap">
 										{product.type ? (
-											<span className="px-1.5 py-0.5 bg-luxury-gold/10 text-luxury-gold text-[9px] font-semibold rounded-full border border-luxury-gold/20">
+											<span className="px-2 py-1 bg-luxury-gold/10 text-luxury-gold text-xs font-semibold rounded-full border border-luxury-gold/20">
 												{machineLabels[product.type] || product.type}
 											</span>
-										) : <span className="text-gray-400 text-[11px]">—</span>}
+										) : <span className="text-gray-400 text-xs">—</span>}
 									</td>
-									<td className="px-3 py-1.5 whitespace-nowrap text-right">
+									<td className="px-4 py-3 whitespace-nowrap text-right">
 										<StockBadge stock={product.stock} />
 									</td>
-									<td className="px-3 py-1.5 whitespace-nowrap">
+									<td className="px-4 py-3 whitespace-nowrap">
 										{(() => {
 											const parentCategoryName = product.categoryId?.parentCategory?.name;
 											const currentCategoryName = product.categoryId?.name || product.category || product.categoryName || '—';
 											const categoryName = parentCategoryName ? `${parentCategoryName} > ${currentCategoryName}` : currentCategoryName;
 											return (
-												<span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-[9px] font-medium text-gray-600 dark:text-gray-300 max-w-[170px] truncate inline-block" title={categoryName}>
+												<span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-xs font-medium text-gray-600 dark:text-gray-300 max-w-[170px] truncate inline-block" title={categoryName}>
 												{categoryName}
 											</span>
 											);
 										})()}
 									</td>
-									<td className="px-3 py-1.5 whitespace-nowrap">
+									<td className="px-4 py-3 whitespace-nowrap text-center">
 										<button
 											onClick={() => onToggleFeatured(product._id, product.isFeatured)}
-											className={`p-1 rounded-md transition-colors ${product.isFeatured ? "bg-yellow-400 text-gray-900 shadow-sm" : "bg-gray-100 dark:bg-gray-600 text-gray-400 hover:bg-yellow-500 hover:text-white"}`}
+											className={`p-1.5 rounded-md transition-colors ${product.isFeatured ? "bg-yellow-400 text-gray-900 shadow-sm" : "bg-gray-100 dark:bg-gray-600 text-gray-400 hover:bg-yellow-500 hover:text-white"}`}
 											title={product.isFeatured ? "Bỏ nổi bật" : "Đặt nổi bật"}
 										>
-											<Star className="h-3 w-3 pointer-events-none" />
+											<Star className="h-4 w-4 pointer-events-none" />
 										</button>
 									</td>
-									<td className="px-3 py-1.5 whitespace-nowrap">
-										<div className="flex items-center gap-1">
+									<td className="px-4 py-3 whitespace-nowrap">
+										<div className="flex items-center gap-1.5 justify-end">
 											<button
 												onClick={() => onEdit(product)}
-												className="p-1 text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-md transition-colors"
+												className="p-1.5 text-blue-500 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-md transition-colors"
 												title="Chỉnh sửa sản phẩm"
 											>
-												<Pencil className="h-3.5 w-3.5 pointer-events-none" />
+												<Pencil className="h-4 w-4 pointer-events-none" />
 											</button>
 											<button
 												onClick={() => onDelete(product._id)}
-												className="p-1.5 text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors"
+												className="p-1.5 text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors"
 												title="Xóa sản phẩm"
 											>
-												<Trash className="h-3.5 w-3.5 pointer-events-none" />
+												<Trash className="h-4 w-4 pointer-events-none" />
 											</button>
 										</div>
 									</td>

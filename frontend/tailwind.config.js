@@ -21,6 +21,9 @@ export default {
 				'sans': ['var(--font-sans)'],
 			},
 			fontSize: {
+				'xs': ['0.8125rem', { lineHeight: '1.35rem' }], // 13px (was 12px)
+				'sm': ['0.9375rem', { lineHeight: '1.5rem' }], // 15px (was 14px)
+				'base': ['1.0625rem', { lineHeight: '1.65rem' }], // 17px (was 16px)
 				'display': ['3rem', { lineHeight: '1.1', fontWeight: '700', letterSpacing: '-0.025em' }],
 				'display-sm': ['2.25rem', { lineHeight: '1.15', fontWeight: '700' }],
 				'heading': ['1.875rem', { lineHeight: '1.2', fontWeight: '600' }],

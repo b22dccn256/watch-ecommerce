@@ -15,39 +15,39 @@ const STATUS_OPTIONS = [
 ];
 
 const STATUS_STYLES = {
-  pending:                 'bg-yellow-500/12 text-yellow-600 dark:text-yellow-400',
-  awaiting_verification:   'bg-blue-500/12 text-blue-600 dark:text-blue-400',
-  confirmed:               'bg-sky-500/12 text-sky-600 dark:text-sky-400',
-  processing:              'bg-indigo-500/12 text-indigo-600 dark:text-indigo-400',
-  shipped:                 'bg-violet-500/12 text-violet-600 dark:text-violet-400',
-  delivered:               'bg-green-500/12 text-green-600 dark:text-green-400',
-  cancelled:               'bg-red-500/12 text-red-600 dark:text-red-400',
-  return_requested:        'bg-orange-500/12 text-orange-600 dark:text-orange-400',
-  returned:                'bg-gray-500/12 text-secondary',
+  pending: 'bg-yellow-500/12 text-yellow-600 dark:text-yellow-400',
+  awaiting_verification: 'bg-blue-500/12 text-blue-600 dark:text-blue-400',
+  confirmed: 'bg-sky-500/12 text-sky-600 dark:text-sky-400',
+  processing: 'bg-indigo-500/12 text-indigo-600 dark:text-indigo-400',
+  shipped: 'bg-violet-500/12 text-violet-600 dark:text-violet-400',
+  delivered: 'bg-green-500/12 text-green-600 dark:text-green-400',
+  cancelled: 'bg-red-500/12 text-red-600 dark:text-red-400',
+  return_requested: 'bg-orange-500/12 text-orange-600 dark:text-orange-400',
+  returned: 'bg-gray-500/12 text-secondary',
 };
 
 const STATUS_LABELS = {
-  pending:               'Chờ xử lý',
+  pending: 'Chờ xử lý',
   awaiting_verification: 'Chờ xác minh',
-  confirmed:             'Đã xác nhận',
-  processing:            'Đang xử lý',
-  shipped:               'Đang giao',
-  delivered:             'Đã giao',
-  cancelled:             'Đã hủy',
-  return_requested:      'Yêu cầu trả',
-  returned:              'Đã trả',
+  confirmed: 'Đã xác nhận',
+  processing: 'Đang xử lý',
+  shipped: 'Đang giao',
+  delivered: 'Đã giao',
+  cancelled: 'Đã hủy',
+  return_requested: 'Yêu cầu trả',
+  returned: 'Đã trả',
 };
 
 const PAYMENT_LABELS = {
-  cod:    'COD',
+  cod: 'COD',
   stripe: 'Thẻ / Stripe',
-  vnpay:  'VNPay',
+  vnpay: 'VNPay',
   paypal: 'PayPal',
 };
 
 function StatusBadge({ status }) {
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${STATUS_STYLES[status] || 'bg-surface text-secondary'}`}>
+    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${STATUS_STYLES[status] || 'bg-surface text-secondary'}`}>
       {STATUS_LABELS[status] || status}
     </span>
   );
@@ -71,12 +71,14 @@ export default function OrderList({ onOpenOrder }) {
   const { totalPages, totalOrders } = pagination;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-primary">Quản lý Đơn hàng</h2>
-          <p className="mt-0.5 text-[11px] text-secondary">
+          <h2 className="text-2xl font-semibold text-primary flex items-center gap-3">
+            Quản lý đơn hàng
+          </h2>
+          <p className="mt-1 text-sm text-secondary">
             Tổng <span className="font-semibold text-primary">{totalOrders.toLocaleString()}</span> đơn
             {stats.pendingCount > 0 && (
               <> · <span className="font-semibold text-yellow-600">{stats.pendingCount} chờ xử lý</span></>
@@ -125,13 +127,13 @@ export default function OrderList({ onOpenOrder }) {
           <table className="w-full min-w-[700px] text-sm">
             <thead>
               <tr className="border-b border-black/8 bg-[color:var(--color-surface-2)] dark:border-white/8">
-                <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">Mã đơn</th>
-                <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">Khách hàng</th>
-                <th className="px-3 py-2.5 text-right text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">Tổng tiền</th>
-                <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">Thanh toán</th>
-                <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">Trạng thái</th>
-                <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">Ngày đặt</th>
-                <th className="px-3 py-2.5 text-right text-[10px] font-semibold uppercase tracking-[0.1em] text-muted w-10"></th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">Mã đơn</th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">Khách hàng</th>
+                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-muted">Tổng tiền</th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">Thanh toán</th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">Trạng thái</th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">Ngày đặt</th>
+                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-muted w-14"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-black/5 dark:divide-white/5">
@@ -158,42 +160,42 @@ export default function OrderList({ onOpenOrder }) {
                     key={o._id}
                     className="group transition-colors hover:bg-[color:var(--color-surface-2)]"
                   >
-                    <td className="px-3 py-2.5">
-                      <span className="font-mono text-[11px] font-bold text-primary">
+                    <td className="px-4 py-3.5">
+                      <span className="text-sm font-bold text-primary">
                         {o.orderCode || (o._id || '').slice(0, 8).toUpperCase()}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5">
-                      <p className="text-[13px] font-medium text-primary">
+                    <td className="px-4 py-3.5">
+                      <p className="text-sm font-semibold text-primary">
                         {o.shippingDetails?.fullName || o.user?.name || 'Khách vãng lai'}
                       </p>
-                      <p className="text-[10px] text-muted">{o.shippingDetails?.phoneNumber || o.user?.email || ''}</p>
+                      <p className="text-xs text-muted mt-0.5">{o.shippingDetails?.phoneNumber || o.user?.email || ''}</p>
                     </td>
-                    <td className="px-3 py-2.5 text-right">
-                      <span className="text-[13px] font-semibold text-primary">
+                    <td className="px-4 py-3.5 text-right">
+                      <span className="text-sm font-bold text-primary">
                         {o.totalAmount?.toLocaleString('vi-VN')} ₫
                       </span>
                     </td>
-                    <td className="px-3 py-2.5">
-                      <span className="text-[12px] text-secondary">
+                    <td className="px-4 py-3.5">
+                      <span className="text-sm text-secondary font-medium">
                         {PAYMENT_LABELS[o.paymentMethod] || o.paymentMethod || '—'}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5">
+                    <td className="px-4 py-3.5">
                       <StatusBadge status={o.status} />
                     </td>
-                    <td className="px-3 py-2.5">
-                      <span className="text-[12px] text-muted">
+                    <td className="px-4 py-3.5">
+                      <span className="text-sm text-muted">
                         {o.createdAt ? new Date(o.createdAt).toLocaleDateString('vi-VN') : '—'}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5 text-right">
+                    <td className="px-4 py-3.5 text-right">
                       <button
                         type="button"
                         onClick={() => onOpenOrder?.(o)}
-                        className="inline-flex items-center gap-1 rounded-md border border-black/8 px-2 py-1 text-[11px] text-muted transition hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)] dark:border-white/8"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 px-3 py-1.5 text-xs font-semibold text-secondary transition hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)] dark:border-white/10 hover:bg-[color:var(--color-gold)]/5"
                       >
-                        <Eye className="h-3 w-3" />
+                        <Eye className="h-4 w-4" />
                         Xem
                       </button>
                     </td>
@@ -228,11 +230,10 @@ export default function OrderList({ onOpenOrder }) {
                   key={p}
                   type="button"
                   onClick={() => setPage(p)}
-                  className={`flex h-8 w-8 items-center justify-center rounded-lg border text-xs font-medium transition ${
-                    p === page
-                      ? 'border-[color:var(--color-gold)] bg-[color:var(--color-gold)]/12 text-[color:var(--color-gold)]'
-                      : 'border-black/10 text-secondary hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)] dark:border-white/10'
-                  }`}
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg border text-xs font-medium transition ${p === page
+                    ? 'border-[color:var(--color-gold)] bg-[color:var(--color-gold)]/12 text-[color:var(--color-gold)]'
+                    : 'border-black/10 text-secondary hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)] dark:border-white/10'
+                    }`}
                 >
                   {p}
                 </button>

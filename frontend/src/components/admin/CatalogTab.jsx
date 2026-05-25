@@ -56,7 +56,7 @@ const CatalogTab = () => {
             <Layers className="w-6 h-6 text-[color:var(--color-gold)]" />
             Danh mục & Thương hiệu
           </h2>
-          <p className="text-sm text-secondary">
+          <p className="mt-1 text-sm text-secondary">
             Quản lý Master Data: thương hiệu đối tác, cấu trúc cây danh mục.
           </p>
         </div>
@@ -75,22 +75,20 @@ const CatalogTab = () => {
         <button
           type="button"
           onClick={() => setActiveSection('brands')}
-          className={`px-5 py-3 text-sm font-semibold border-b-2 transition ${
-            activeSection === 'brands'
+          className={`px-5 py-3 text-sm font-semibold border-b-2 transition ${activeSection === 'brands'
               ? 'border-[color:var(--color-gold)] text-[color:var(--color-gold)]'
               : 'border-transparent text-secondary hover:text-primary'
-          }`}
+            }`}
         >
           Thương Hiệu ({brands.length})
         </button>
         <button
           type="button"
           onClick={() => setActiveSection('categories')}
-          className={`px-5 py-3 text-sm font-semibold border-b-2 transition ${
-            activeSection === 'categories'
+          className={`px-5 py-3 text-sm font-semibold border-b-2 transition ${activeSection === 'categories'
               ? 'border-[color:var(--color-gold)] text-[color:var(--color-gold)]'
               : 'border-transparent text-secondary hover:text-primary'
-          }`}
+            }`}
         >
           Cấu Trúc Danh Mục ({categories.length})
         </button>
@@ -119,7 +117,7 @@ const CatalogTab = () => {
                 <button
                   type="button"
                   onClick={() => openEditBrand(b)}
-                    className="absolute top-2 right-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 bg-blue-500/10 text-blue-500 rounded-lg transition"
+                  className="absolute top-2 right-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 bg-blue-500/10 text-blue-500 rounded-lg transition"
                   title="Sửa thương hiệu"
                 >
                   <Pencil className="w-4 h-4 pointer-events-none" />
@@ -127,7 +125,7 @@ const CatalogTab = () => {
                 <button
                   type="button"
                   onClick={() => brand.deleteBrand(b._id, b.name)}
-                    className="absolute top-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 bg-red-500/10 text-red-500 rounded-lg transition"
+                  className="absolute top-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 bg-red-500/10 text-red-500 rounded-lg transition"
                 >
                   <Trash2 className="w-4 h-4 pointer-events-none" />
                 </button>
