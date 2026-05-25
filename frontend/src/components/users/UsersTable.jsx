@@ -11,7 +11,6 @@ const UsersTable = ({
 	onDeleteUser,
 	onUpdateRole,
 	getSegmentBadge,
-	pagination,
 	menuRef,
 	selectedUserIds = [],
 	onToggleSelectUser,
@@ -96,7 +95,9 @@ const UsersTable = ({
 							<td className='px-6 py-4'>
 								<span className={`px-2 py-0.5 rounded text-[9px] font-bold border transition-all ${getSegmentBadge(user.segment)}`}>
 									{user.segment === "VIP" ? "KHÁCH VIP" : 
-									 user.segment === "Potential" ? "TIỀM NĂNG" : "KHÁCH MỚI"}
+									 user.segment === "Potential" ? "TIỀM NĂNG" :
+									 user.segment === "Regular" ? "THÂN THIẾT" :
+									 user.segment === "At Risk" ? "CÓ RỦI RO" : "KHÁCH MỚI"}
 								</span>
 							</td>
 							<td className='px-6 py-4 text-xs font-bold text-gray-900 dark:text-white'>

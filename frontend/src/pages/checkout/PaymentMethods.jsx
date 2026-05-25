@@ -1,4 +1,3 @@
-import React from "react";
 import { ChevronLeft, CreditCard, Banknote } from "lucide-react";
 
 const paymentOptions = [

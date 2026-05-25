@@ -13,8 +13,8 @@ const RecentlyViewed = ({ max = 6 }) => {
       const top = ids.slice(0, max);
       Promise.all(top.map(id => axios.get(`/products/${id}`).then(r => r.data).catch(() => null)))
         .then(res => setItems(res.filter(Boolean)));
-    } catch (err) {
-      // ignore
+    } catch (error) {
+      void error;
     }
   }, [max]);
 

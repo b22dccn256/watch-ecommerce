@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Mail, Lock } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
 
 import axios from "../lib/axios";

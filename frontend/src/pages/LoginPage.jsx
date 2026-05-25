@@ -4,8 +4,6 @@ import { Link } from "react-router-dom";
 import { LogIn, Mail, Lock, ArrowRight, Loader, ShieldCheck, RefreshCw, Gift, Truck, Percent, Star, BadgeCheck, Gem } from "lucide-react";
 import { useUserStore } from "../stores/useUserStore";
 
-const EDITORIAL_IMAGE = null;
-
 const BENEFITS = [
   { icon: Percent, title: "Chiết khấu đến 5%", desc: "Khi mua các sản phẩm tại Luxury Watch Gallery" },
   { icon: Truck, title: "Miễn phí giao hàng", desc: "Cho thành viên VIP và đơn hàng từ 10 triệu" },

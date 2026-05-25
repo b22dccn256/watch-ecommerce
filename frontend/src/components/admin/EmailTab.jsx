@@ -1,10 +1,9 @@
 import { motion, AnimatePresence } from "framer-motion";
 import {
-	Mail, Send, MousePointer2, Plus,
-	Eye, Inbox, Users, BarChart3,
+	Mail, Send, Plus,
+	Inbox, Users, BarChart3,
 	FileCode, Settings,
 } from "lucide-react";
-import { toast } from "react-hot-toast";
 import { useEmailTabData } from "../../hooks/useEmailTabData";
 
 import EmailDashboardView from "./email/EmailDashboardView";

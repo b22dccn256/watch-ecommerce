@@ -29,7 +29,6 @@ import { useErrorHandler } from './useErrorHandler';
  */
 export const useApiFetch = (options = {}) => {
   const {
-    autoFetch = false,
     onSuccess,
     onError,
     initialData = null,

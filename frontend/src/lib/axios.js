@@ -15,7 +15,7 @@ const readCookie = (name) => {
 
 axiosInstance.interceptors.request.use((config) => {
 	// attach timing metadata for client-side diagnostics
-	try { config.metadata = { startTime: Date.now() }; } catch (e) {}
+	try { config.metadata = { startTime: Date.now() }; } catch (error) { void error; }
 	const method = (config.method || "get").toLowerCase();
 	if (["post", "put", "patch", "delete"].includes(method)) {
 		const csrfToken = readCookie("csrfToken");
@@ -49,7 +49,7 @@ axiosInstance.interceptors.response.use(
 				const elapsed = Date.now() - meta.startTime;
 				console.log(`[axios] ${response.config.method?.toUpperCase() || 'GET'} ${response.config.url} ${elapsed}ms`);
 			}
-		} catch (e) {}
+		} catch (error) { void error; }
 		return response;
 	},
 	async (error) => {
@@ -59,7 +59,7 @@ axiosInstance.interceptors.response.use(
 				const elapsed = Date.now() - meta.startTime;
 				console.log(`[axios] ERROR ${error.config?.method?.toUpperCase() || 'GET'} ${error.config?.url} ${elapsed}ms`);
 			}
-		} catch (e) {}
+		} catch (error) { void error; }
 
 		const originalRequest = error.config;
 

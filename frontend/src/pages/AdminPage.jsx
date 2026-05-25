@@ -3,7 +3,7 @@ import {
   Megaphone, ShieldCheck, Archive, Menu, X, Watch, LayoutTemplate, Tag, MessageSquare, Layers,
   AlertTriangle, Clock, CheckCircle, Search, Bell, Settings, Home, ChevronLeft, ChevronRight
 } from "lucide-react";
-import { useMemo, useState, useCallback, useRef, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "../lib/axios";
@@ -21,9 +21,7 @@ import StoreSettingsTab from "../components/admin/StoreSettingsTab";
 import CouponsTab from "../components/admin/CouponsTab";
 import ReviewsTab from "../components/admin/ReviewsTab";
 import CatalogTab from "../components/admin/CatalogTab";
-import { useProductStore } from "../stores/useProductStore";
 import { useUserStore } from "../stores/useUserStore";
-import PageShell from "../components/PageShell";
 
 const tabs = [
   { id: "analytics", label: "Dashboard",     icon: LayoutDashboard, roles: ["admin", "staff"] },
@@ -111,8 +109,6 @@ const AdminPage = () => {
       default:           return null;
     }
   };
-
-  const totalAlerts = tasks.pendingOrders + tasks.lowStock;
 
   const SidebarNav = () => (
     <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto admin-scroll overflow-x-hidden">
@@ -369,7 +365,7 @@ const AdminPage = () => {
                   {notifications.length === 0 ? (
                     <p className="text-center text-xs text-gray-400 py-6">Không có thông báo mới 🎉</p>
                   ) : notifications.map(n => (
-                    <button key={n.id} onClick={() => { handleTabChange(n.tab); setNotifOpen(false); setNotifCount(0); }}
+                    <button key={n.id} onClick={() => { handleTabChange(n.tab); markAllRead(); }}
                       className="w-full flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/5 transition text-left">
                       <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${n.type === "order" ? "bg-amber-400" : "bg-red-400"}`} />
                       <div className="min-w-0 flex-1">

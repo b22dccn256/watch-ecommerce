@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
 import { Users, Trash2 } from 'lucide-react';
-import axios from '../../lib/axios';
-import { toast } from 'react-hot-toast';
 import { useUserStore } from '../../stores/useUserStore';
-import { useErrorHandler } from '../../hooks/useErrorHandler';
 
 // Custom hooks
 import useUsersData from '../../hooks/useUsersData';
@@ -25,7 +21,6 @@ import LogDetailModal from '../users/LogDetailModal';
 
 const UsersTab = () => {
 	const { user: currentUser } = useUserStore();
-	const { handleError } = useErrorHandler();
 
 	// ============ NEW: Use custom hooks for cleaner state management ============
 	const {
@@ -49,13 +44,10 @@ const UsersTab = () => {
 
 	const {
 		selectedUser,
-		setSelectedUser,
 		userDetailTab,
 		setUserDetailTab,
 		userOrders,
-		setUserOrders,
 		userOrdersLoading,
-		setUserOrdersLoading,
 		showLogDetail,
 		setShowLogDetail,
 		confirmConfig,
@@ -197,7 +189,11 @@ const UsersTab = () => {
 			case 'VIP':
 				return 'text-luxury-gold border-luxury-gold/30 bg-luxury-gold/10';
 			case 'Potential':
-				return 'text-luxury-gold border-luxury-gold/20 bg-luxury-gold/5';
+				return 'text-blue-400 border-blue-400/30 bg-blue-400/10';
+			case 'Regular':
+				return 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10';
+			case 'At Risk':
+				return 'text-red-400 border-red-400/30 bg-red-400/10';
 			default:
 				return 'text-gray-500 border-gray-200 bg-gray-50 dark:bg-luxury-darker dark:border-luxury-border';
 		}

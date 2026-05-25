@@ -1,4 +1,3 @@
-import React from "react";
 import { ShoppingBag, Truck } from "lucide-react";
 
 const OrderSummary = ({ checkoutItems, subtotal, total, shippingFee, coupon, isCouponApplied }) => {

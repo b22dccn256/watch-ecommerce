@@ -61,7 +61,12 @@ const UserDetailModal = ({
 								<p className="text-gray-500 dark:text-luxury-text-muted text-sm">{selectedUser.email}</p>
 								<div className="flex gap-2 items-center mt-1">
 									<span className={`px-2 py-0.5 rounded text-[9px] font-bold border ${userRoleColor(selectedUser.role)} uppercase tracking-tighter`}>{selectedUser.role}</span>
-									<span className={`px-2 py-0.5 rounded text-[9px] font-bold border transition-all ${getSegmentBadge(selectedUser.segment)} uppercase tracking-tighter`}>{selectedUser.segment}</span>
+									<span className={`px-2 py-0.5 rounded text-[9px] font-bold border transition-all ${getSegmentBadge(selectedUser.segment)} uppercase tracking-tighter`}>
+										{selectedUser.segment === "VIP" ? "KHÁCH VIP" : 
+										 selectedUser.segment === "Potential" ? "TIỀM NĂNG" :
+										 selectedUser.segment === "Regular" ? "THÂN THIẾT" :
+										 selectedUser.segment === "At Risk" ? "CÓ RỦI RO" : "KHÁCH MỚI"}
+									</span>
 								</div>
 							</div>
 						</div>

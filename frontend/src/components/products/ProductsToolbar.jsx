@@ -14,7 +14,6 @@ const ProductsToolbar = ({
 	onFilePreview,
 	onFileImport,
 	onAddNew,
-	totalCount,
 	bulkDeleting
 }) => {
 	const previewInputRef = useRef(null);

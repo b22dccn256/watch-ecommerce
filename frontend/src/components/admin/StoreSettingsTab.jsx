@@ -282,11 +282,11 @@ const StoreSettingsTab = () => {
 		{ id: "seo",         label: "SEO & Giờ mở cửa",    icon: Globe },
 		{ id: "layout",      label: "Bố cục",              icon: Sliders },
 		// Orphan tabs — stored in DB but not yet consumed by user frontend (đang phát triển)
-		{ id: "colors",      label: "🎨 Màu Tuỳ chỉnh",     icon: Paintbrush, dev: true },
-		{ id: "typography",  label: "🔤 Kiểu chữ",         icon: Type, dev: true },
-		{ id: "integrations",label: "📊 Tích hợp",          icon: BarChart3, dev: true },
-		{ id: "catalog",     label: "📦 Cấu hình Catalog",  icon: ShoppingBag, dev: true },
-		{ id: "advanced",    label: "🎯 CSS & Nâng cao",    icon: Code2, dev: true },
+		{ id: "colors",      label: "Màu Tuỳ chỉnh",     icon: Paintbrush, dev: true },
+		{ id: "typography",  label: "Kiểu chữ",         icon: Type, dev: true },
+		{ id: "integrations",label: "Tích hợp",          icon: BarChart3, dev: true },
+		{ id: "catalog",     label: "Cấu hình Catalog",  icon: ShoppingBag, dev: true },
+		{ id: "advanced",    label: "CSS & Nâng cao",    icon: Code2, dev: true },
 	];
 
 	return (
@@ -605,7 +605,7 @@ const StoreSettingsTab = () => {
 								<h3 className="text-base font-bold flex items-center gap-2 text-primary border-b border-gray-100 dark:border-white/5 pb-3">
 									<Paintbrush className="w-4 h-4 text-luxury-gold" /> Bảng Màu Tuỳ Chỉnh Thương Hiệu
 								</h3>
-								<p className="text-xs text-gray-400 mt-1">Tuỳ chỉnh từng mã màu HEX cho giao diện. Để trống để dùng màu mặc định của Theme Preset. Chọn "Custom" ở tab Chủ đề để kích hoạt.</p>
+								<p className="text-xs text-gray-400 mt-1">Tuỳ chỉnh từng mã màu HEX cho giao diện. Để trống để dùng màu mặc định của Theme Preset. Chọn &quot;Custom&quot; ở tab Chủ đề để kích hoạt.</p>
 							</div>
 
 							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

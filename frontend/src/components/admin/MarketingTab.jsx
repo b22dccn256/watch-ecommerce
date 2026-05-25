@@ -60,8 +60,8 @@ const MarketingTab = () => {
                         <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
                             <ImageIcon className="w-5 h-5 text-[color:var(--color-gold)]" /> Quản lý Banner Chiến Dịch & Khuyến Mãi (Giữa trang chủ)
                         </h3>
-                        <p className="text-[11px] text-gray-400 mt-1 max-w-2xl">
-                            * Lưu ý: Banner tại đây hiển thị tại phần Chiến dịch Khuyến mãi giữa trang chủ. Để thay đổi các Slide trượt kích thước lớn ở đầu trang chủ, vui lòng sử dụng tab <span className="font-semibold text-luxury-gold">"Slide Hero (Đầu trang chủ)"</span> trong phần <span className="font-semibold text-luxury-gold">Quản lý giao diện</span>.
+                            <p className="text-[11px] text-gray-400 mt-1 max-w-2xl">
+                                * Lưu ý: Banner tại đây hiển thị tại phần Chiến dịch Khuyến mãi giữa trang chủ. Để thay đổi các Slide trượt kích thước lớn ở đầu trang chủ, vui lòng sử dụng tab <span className="font-semibold text-luxury-gold">&quot;Slide Hero (Đầu trang chủ)&quot;</span> trong phần <span className="font-semibold text-luxury-gold">Quản lý giao diện</span>.
                         </p>
                     </div>
                     <button

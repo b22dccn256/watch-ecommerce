@@ -164,7 +164,7 @@ if (isCronEnabled) {
     // AI tự động xác nhận đơn COD (mỗi 30 phút)
     cron.schedule("*/30 * * * *", async () => {
         try {
-            // Check for AI keys: Gemini preferred, Groq fallback
+            // Check for AI keys: Groq preferred, Gemini fallback
             const geminiKey = process.env.GEMINI_API_KEY;
             const groqKey = process.env.GROQ_API_KEY;
 
@@ -183,16 +183,7 @@ if (isCronEnabled) {
 
             let model, providerName;
 
-            if (geminiKey) {
-                const { GoogleGenerativeAI } = await import("@google/generative-ai");
-                const genAI = new GoogleGenerativeAI(geminiKey);
-                const geminiModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-                providerName = "Gemini";
-                model = async (prompt) => {
-                    const result = await geminiModel.generateContent(prompt);
-                    return result.response.text().replace(/```json|```/g, "").trim();
-                };
-            } else {
+            if (groqKey) {
                 const { default: Groq } = await import("groq-sdk");
                 const groq = new Groq({ apiKey: groqKey });
                 providerName = "Groq";
@@ -208,6 +199,22 @@ if (isCronEnabled) {
                         response_format: { type: "json_object" },
                     });
                     return completion.choices[0]?.message?.content || "";
+                };
+            } else {
+                const { GoogleGenerativeAI } = await import("@google/generative-ai");
+                const genAI = new GoogleGenerativeAI(geminiKey);
+                const geminiModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+                providerName = "Gemini";
+                model = async (prompt) => {
+                    try {
+                        const result = await geminiModel.generateContent(prompt);
+                        return result.response.text().replace(/```json|```/g, "").trim();
+                    } catch (err) {
+                        if (/429|quota|rate limit|too many requests/i.test(err?.message || "")) {
+                            return "";
+                        }
+                        throw err;
+                    }
                 };
             }
 

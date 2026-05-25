@@ -10,7 +10,7 @@ import axios from '../lib/axios';
 import toast from 'react-hot-toast';
 import { useErrorHandler } from './useErrorHandler';
 
-export const useUsersModal = (onUsersRefetch) => {
+export const useUsersModal = () => {
   // Modal states
   const [selectedUser, setSelectedUser] = useState(null);
   const [userDetailTab, setUserDetailTab] = useState('info');
