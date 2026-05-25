@@ -1,5 +1,8 @@
-import { ArrowRight, Crown, Gem, Globe2, ShieldCheck, Star } from "lucide-react";
+import { ArrowRight, Crown, Gem, Globe2, ShieldCheck, Star, X } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import OrderLookupForm from "../components/OrderLookupForm";
 
 const HOT_BRANDS = [
 	{ name: "Hublot", tagline: "Đậm cá tính, thể thao và hiện đại.", description: "Lựa chọn nổi bật cho khách hàng thích thiết kế táo bạo.", link: "/catalog?brand=Hublot" },
@@ -24,6 +27,16 @@ const FEATURE_POINTS = [
 ];
 
 const BrandsPage = () => {
+	const [showLookup, setShowLookup] = useState(false);
+
+	useEffect(() => {
+		const onKey = (e) => {
+			if (e.key === 'Escape' && showLookup) setShowLookup(false);
+		};
+		window.addEventListener('keydown', onKey);
+		return () => window.removeEventListener('keydown', onKey);
+	}, [showLookup]);
+
 	return (
 		<div className="min-h-screen bg-[#f6f2ea] dark:bg-[#0f0c08] text-gray-900 dark:text-white pt-0 pb-20">
 			<div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
@@ -41,12 +54,32 @@ const BrandsPage = () => {
 							<Link to="/catalog" className="inline-flex items-center justify-center gap-2 rounded-full bg-luxury-gold px-6 py-3 font-semibold text-luxury-dark hover:bg-luxury-gold-light transition-colors">
 								Xem toàn bộ sản phẩm <ArrowRight className="w-4 h-4" />
 							</Link>
-							<Link to="/order-lookup" className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-300 dark:border-white/15 px-6 py-3 font-semibold text-gray-700 dark:text-white hover:bg-white/60 dark:hover:bg-white/10 transition-colors">
+							<button className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-300 dark:border-white/15 px-6 py-3 font-semibold text-gray-700 dark:text-white hover:bg-white/60 dark:hover:bg-white/10 transition-colors" onClick={() => setShowLookup(true)}>
 								Tra cứu đơn hàng
-							</Link>
+							</button>
 						</div>
 					</div>
 				</section>
+
+				<AnimatePresence>
+				{showLookup && (
+					<motion.div className="fixed inset-0 z-50 flex items-start justify-center p-6"
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+					>
+						<motion.div className="fixed inset-0 bg-black/50" onClick={() => setShowLookup(false)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
+						<motion.div className="relative z-10 w-full max-w-3xl" initial={{ y: -12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -8, opacity: 0 }}>
+							<div className="flex justify-end mb-4">
+								<button onClick={() => setShowLookup(false)} className="inline-flex items-center justify-center p-2 rounded-full bg-white/90 dark:bg-luxury-darker/90 border">
+									<X className="w-4 h-4" />
+								</button>
+							</div>
+							<OrderLookupForm onClose={() => setShowLookup(false)} autoFocusFirst={true} />
+						</motion.div>
+					</motion.div>
+				)}
+				</AnimatePresence>
 
 				{/* Brand story box placed directly under hero and closer to navbar */}
 				<section className="-mt-24 md:-mt-40 rounded-[1.5rem] border border-black/5 dark:border-white/10 bg-white/90 dark:bg-white/5 p-6 md:p-8 shadow-sm max-w-screen-xl mx-auto relative z-30">

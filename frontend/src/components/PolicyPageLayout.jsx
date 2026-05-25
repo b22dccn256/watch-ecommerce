@@ -33,7 +33,7 @@ const PolicyPageLayout = ({ children, title, description, activeId }) => {
 
 				<div className="mb-8 grid gap-4 rounded-[2rem] editorial-surface px-5 py-5 md:grid-cols-[1.15fr_0.85fr] md:px-7 md:py-6 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.35)]">
 					<div>
-						<p className="hero-kicker text-xs font-semibold text-luxury-gold mb-2">Support / policy hub</p>
+						<p className="hero-kicker text-xs font-semibold text-luxury-gold mb-2">Trung tâm Hỗ trợ</p>
 						<p className="text-sm md:text-base text-gray-600 dark:text-luxury-text-muted leading-relaxed">{description}</p>
 					</div>
 					<div className="md:justify-self-end md:text-right">
