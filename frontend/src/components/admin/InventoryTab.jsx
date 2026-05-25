@@ -1,5 +1,6 @@
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, History, X, Search, ChevronLeft, ChevronRight, Edit3, PlusCircle, BookOpen } from "lucide-react";
+import { AlertCircle, History, X, Search, ChevronLeft, ChevronRight, Edit3, PlusCircle, BookOpen, Coins, ClipboardList, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useInventoryManagement } from "../../hooks/useInventoryManagement";
 
 const InventoryTab = () => {
@@ -34,188 +35,271 @@ const InventoryTab = () => {
         handleAdjustSubmit,
     } = useInventoryManagement();
 
+    const [stockFilter, setStockFilter] = useState("all"); // "all" | "low" | "in"
+    const [stockSort, setStockSort]     = useState(null);   // null | "asc" | "desc"
+    const [brandSort, setBrandSort]     = useState(null);   // null | "asc" | "desc"
+
+    const getStockStatus = (p) => {
+        const threshold = p.lowStockThreshold || 5;
+        if (p.stock <= 0) return { label: "Out of Stock", key: "low", cls: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" };
+        if (p.stock <= threshold) return { label: "Low Stock", key: "low", cls: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" };
+        return { label: "In Stock", key: "in", cls: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" };
+    };
+
+    const toggleStockSort = () => {
+        setBrandSort(null);
+        setStockSort(prev => prev === null ? "asc" : prev === "asc" ? "desc" : null);
+    };
+
+    const toggleBrandSort = () => {
+        setStockSort(null);
+        setBrandSort(prev => prev === null ? "asc" : prev === "asc" ? "desc" : null);
+    };
+
+    const getBrandName = (p) => (p.brand?.name || (typeof p.brand === "string" ? p.brand : "") || "").toLowerCase();
+
+    const displayedProducts = useMemo(() => {
+        let list = stockFilter === "all"
+            ? [...paginatedProducts]
+            : paginatedProducts.filter(p => getStockStatus(p).key === stockFilter);
+        if (stockSort === "asc")  list.sort((a, b) => a.stock - b.stock);
+        if (stockSort === "desc") list.sort((a, b) => b.stock - a.stock);
+        if (brandSort === "asc")  list.sort((a, b) => getBrandName(a).localeCompare(getBrandName(b)));
+        if (brandSort === "desc") list.sort((a, b) => getBrandName(b).localeCompare(getBrandName(a)));
+        return list;
+    }, [paginatedProducts, stockFilter, stockSort, brandSort]); // eslint-disable-line react-hooks/exhaustive-deps
+
     return (
-        <div className="space-y-8">
-            {/* Thống kê Tổng quan */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border p-6 rounded-2xl shadow-sm">
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Tổng giá trị kho</p>
-                    <p className="text-3xl font-bold text-luxury-gold">
-                        {warehouseValue.toLocaleString("vi-VN")} ₫
-                    </p>
+        <div className="space-y-6">
+
+            {/* ── Stat Cards ── */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {/* Tổng giá trị kho */}
+                <div className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center shrink-0">
+                        <Coins className="w-7 h-7 text-luxury-gold" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Tổng Giá Trị Kho</p>
+                        <p className="text-2xl font-bold text-luxury-gold leading-tight">
+                            {warehouseValue.toLocaleString("vi-VN")} <span className="text-lg">đ</span>
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">Giá trị hiện tại</p>
+                    </div>
+                </div>
+
+                {/* Sản phẩm sắp hết */}
+                <div className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center shrink-0">
+                        <AlertCircle className="w-7 h-7 text-orange-500" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Sản Phẩm Sắp Hết</p>
+                        <p className="text-3xl font-bold text-red-500 leading-tight">{lowStockProducts.length}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">Mức báo động: <span className="text-red-400 font-semibold">5</span></p>
+                    </div>
+                </div>
+
+                {/* Đang kiểm kê */}
+                <div className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0">
+                        <ClipboardList className="w-7 h-7 text-gray-500 dark:text-gray-400" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Đang Kiểm Kê</p>
+                        <p className="text-3xl font-bold text-gray-700 dark:text-gray-200 leading-tight">0</p>
+                        <p className="text-xs text-gray-400 mt-0.5">Chờ xử lý</p>
+                    </div>
                 </div>
             </div>
 
-            {/* Low Stock Alerts */}
-            <section className="bg-red-50/50 dark:bg-red-900/10 rounded-2xl p-6 border border-red-100 dark:border-red-900/30 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
-                <h2 className="text-lg font-bold flex items-center text-luxury-gold mb-4">
-                    <AlertCircle className="w-6 h-6 mr-2" />
-                    Cảnh báo Tồn kho Thiếu Hụt
-                </h2>
-                {lowStockProducts.length === 0 ? (
-                    <p className="text-sm font-medium text-[color:var(--color-gold)] flex items-center gap-2 p-3 rounded-lg w-fit border border-[color:var(--color-gold)]/20 bg-[color:var(--color-gold)]/8">
-                        Tất cả sản phẩm đều đang đạt mức tồn kho an toàn.
-                    </p>
-                ) : (
-                    <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-red-100 dark:border-red-900/30">
-                        <table className="min-w-full divide-y divide-gray-100 dark:divide-gray-700">
-                            <thead className="bg-red-50/50 dark:bg-red-900/20">
-                                <tr>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider">Sản phẩm</th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider">Tồn kho hiện tại</th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider">Hạn mức đề xuất</th>
-                                    <th className="px-5 py-3 text-right text-xs font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
-                                {lowStockProducts.map(p => (
-                                    <tr key={p._id} className="hover:bg-red-50/30 dark:hover:bg-red-900/10 transition-colors">
-                                        <td className="px-5 py-3 font-medium text-gray-900 dark:text-gray-200">
-                                            <div className="flex items-center gap-3">
-                                                <img src={p.image} className="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-700 object-cover" alt="" />
-                                                <span className="max-w-[180px] truncate" title={p.name}>{p.name}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-5 py-3 font-bold text-red-600 dark:text-red-400 text-lg">{p.stock}</td>
-                                        <td className="px-5 py-3 text-gray-500 dark:text-gray-400">{p.lowStockThreshold || 5} sản phẩm</td>
-                                        <td className="px-5 py-3 text-right">
-                                            <button
-                                                onClick={() => openAdjust(p._id, "IN")}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 shadow-sm transition-colors text-xs font-bold"
-                                            >
-                                                <PlusCircle className="w-3.5 h-3.5" /> Nhập Kho Ngay
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </section>
-
-            {/* Inventory Tools */}
-            <section>
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-luxury-gold flex items-center gap-2">
-                        <History className="w-6 h-6 text-luxury-gold" /> Kiểm Kê
-                    </h2>
-                    <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-                        <div className="relative w-full sm:w-64">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="Tìm kiếm sản phẩm..."
-                                value={search}
-                                onChange={(e) => handleSearch(e.target.value)}
-                                className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-luxury-gold transition"
-                            />
-                        </div>
-                        <button
-                            onClick={openBlankAdjust}
-                            className="bg-luxury-gold font-bold text-luxury-dark px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-yellow-500 transition shadow w-full sm:w-auto justify-center"
-                        >
-                            <Edit3 className="w-4 h-4" /> Khởi tạo Kiểm kê
-                        </button>
-                    </div>
+            {/* ── Toolbar: Search + Filter + CTA ── */}
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+                {/* Search */}
+                <div className="relative flex-1 w-full">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm sản phẩm, SKU, kho..."
+                        value={search}
+                        onChange={(e) => handleSearch(e.target.value)}
+                        className="w-full bg-white dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-luxury-gold focus:ring-1 focus:ring-luxury-gold/40 transition shadow-sm"
+                    />
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-transparent overflow-hidden flex flex-col">
-                    <div className="overflow-x-auto overflow-y-auto max-h-[55vh] custom-scrollbar">
-                        <table className="min-w-full divide-y divide-gray-100 dark:divide-gray-700 relative">
-                            <thead className="bg-gray-50/95 dark:bg-gray-700/95 backdrop-blur-sm sticky top-0 z-10 shadow-sm">
+                {/* Stock Filter Buttons */}
+                <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-luxury-darker p-1 rounded-xl shrink-0">
+                    {[
+                        { key: "all", label: "Tất cả" },
+                        { key: "low", label: "Low Stock" },
+                        { key: "in",  label: "In Stock" },
+                    ].map(f => (
+                        <button
+                            key={f.key}
+                            onClick={() => setStockFilter(f.key)}
+                            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                                stockFilter === f.key
+                                    ? f.key === "low"
+                                        ? "bg-red-500 text-white shadow-sm"
+                                        : f.key === "in"
+                                        ? "bg-green-500 text-white shadow-sm"
+                                        : "bg-white dark:bg-luxury-dark text-gray-800 dark:text-white shadow-sm"
+                                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                            }`}
+                        >
+                            {f.label}
+                        </button>
+                    ))}
+                </div>
+
+                {/* CTA */}
+                <button
+                    onClick={openBlankAdjust}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-luxury-gold text-black font-bold text-sm rounded-xl hover:bg-yellow-500 transition shadow-md whitespace-nowrap"
+                >
+                    <PlusCircle className="w-4 h-4" /> Khởi tạo Kiểm kê
+                </button>
+            </div>
+
+            {/* ── Inventory Table ── */}
+            <div className="bg-white dark:bg-luxury-dark rounded-2xl border border-gray-100 dark:border-luxury-border shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-100 dark:divide-luxury-border">
+                        <thead>
+                            <tr className="bg-gray-50 dark:bg-luxury-darker/60">
+                                <th className="px-5 py-3.5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sản Phẩm</th>
+                                <th className="px-5 py-3.5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <button
+                                        onClick={toggleBrandSort}
+                                        className="flex items-center gap-1.5 hover:text-luxury-gold transition-colors group"
+                                        title="Sắp xếp theo tên thương hiệu"
+                                    >
+                                        Brand
+                                        {brandSort === null  && <ArrowUpDown className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity" />}
+                                        {brandSort === "asc"  && <ArrowUp   className="w-3.5 h-3.5 text-luxury-gold" />}
+                                        {brandSort === "desc" && <ArrowDown  className="w-3.5 h-3.5 text-luxury-gold" />}
+                                    </button>
+                                </th>
+                                <th className="px-5 py-3.5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <button
+                                        onClick={toggleStockSort}
+                                        className="flex items-center gap-1.5 hover:text-luxury-gold transition-colors group"
+                                        title="Sắp xếp theo tồn kho"
+                                    >
+                                        Tồn Kho
+                                        {stockSort === null && <ArrowUpDown className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity" />}
+                                        {stockSort === "asc"  && <ArrowUp   className="w-3.5 h-3.5 text-luxury-gold" />}
+                                        {stockSort === "desc" && <ArrowDown  className="w-3.5 h-3.5 text-luxury-gold" />}
+                                    </button>
+                                </th>
+                                <th className="px-5 py-3.5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Trạng Thái</th>
+                                <th className="px-5 py-3.5 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50 dark:divide-luxury-border/50">
+                            {displayedProducts.length === 0 ? (
                                 <tr>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Sản phẩm</th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">SKU / Brand</th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Tồn kho</th>
-                                    <th className="px-5 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Thao tác</th>
+                                    <td colSpan="5" className="text-center py-16 text-gray-400 text-sm">
+                                        Không tìm thấy sản phẩm nào.
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                {paginatedProducts.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="4" className="text-center py-12 text-gray-400">
-                                            Không tìm thấy sản phẩm nào.
-                                        </td>
-                                    </tr>
-                                ) : paginatedProducts.map(p => (
-                                    <tr key={p._id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                        <td className="px-5 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                            ) : displayedProducts.map(p => {
+                                const status = getStockStatus(p);
+                                return (
+                                    <tr key={p._id} className="hover:bg-gray-50/70 dark:hover:bg-luxury-darker/30 transition-colors">
+                                        {/* Sản phẩm */}
+                                        <td className="px-5 py-3.5 whitespace-nowrap">
                                             <div className="flex items-center gap-3">
-                                                <img src={p.image} className="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-600 object-cover" alt="" />
-                                                <span className="font-medium max-w-[180px] truncate" title={p.name}>{p.name}</span>
+                                                <img
+                                                    src={p.image}
+                                                    alt={p.name}
+                                                    className="w-10 h-10 rounded-xl border border-gray-100 dark:border-luxury-border object-cover shadow-sm"
+                                                />
+                                                <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 max-w-[200px] truncate" title={p.name}>
+                                                    {p.name}
+                                                </span>
                                             </div>
                                         </td>
-                                        <td className="px-5 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{p.brand?.name || p.brand}</td>
-                                        <td className="px-5 py-3 whitespace-nowrap text-sm">
-                                            <span className={`px-2.5 py-1 rounded-md font-bold text-xs ${p.stock <= (p.lowStockThreshold || 5) ? 'stock-badge-out' : 'stock-badge-high'}`}>
-                                                {p.stock}
+                                        {/* Brand */}
+                                        <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            {p.brand?.name || p.brand || "—"}
+                                        </td>
+                                        {/* Tồn kho */}
+                                        <td className="px-5 py-3.5 whitespace-nowrap text-sm font-bold text-gray-800 dark:text-gray-100">
+                                            {p.stock}
+                                        </td>
+                                        {/* Trạng thái */}
+                                        <td className="px-5 py-3.5 whitespace-nowrap">
+                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${status.cls}`}>
+                                                {status.label}
                                             </span>
                                         </td>
-                                        <td className="px-5 py-3 whitespace-nowrap text-right space-x-2">
-                                            <button
-                                                onClick={() => openAdjust(p._id, "ADJUST")}
-                                                className="inline-flex items-center justify-center p-2 bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-luxury-gold hover:text-luxury-dark transition-colors"
-                                                title="Điều chỉnh số lượng"
-                                            >
-                                                <Edit3 className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => openLogs(p._id)}
-                                                className="inline-flex items-center justify-center p-2 bg-[color:var(--color-gold)]/10 text-[color:var(--color-gold)] rounded-lg hover:bg-[color:var(--color-gold)]/20 transition-colors"
-                                                title="Xem lịch sử"
-                                            >
-                                                <BookOpen className="w-4 h-4" />
-                                            </button>
+                                        {/* Thao tác */}
+                                        <td className="px-5 py-3.5 whitespace-nowrap text-right">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={() => openAdjust(p._id, "ADJUST")}
+                                                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 dark:border-luxury-border bg-white dark:bg-luxury-darker text-gray-500 dark:text-gray-400 hover:bg-luxury-gold hover:text-black hover:border-luxury-gold transition-colors"
+                                                    title="Điều chỉnh số lượng"
+                                                >
+                                                    <Edit3 className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => openLogs(p._id)}
+                                                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 dark:border-luxury-border bg-white dark:bg-luxury-darker text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-luxury-dark transition-colors"
+                                                    title="Xem lịch sử"
+                                                >
+                                                    <BookOpen className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Pagination */}
-                    {totalPages > 1 && (
-                        <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 flex items-center justify-between border-t border-gray-100 dark:border-gray-600">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Trang {currentPage} / {totalPages} • {filteredProducts.length} sản phẩm
-                            </p>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                    disabled={currentPage === 1}
-                                    className="p-2 rounded-lg bg-white dark:bg-gray-600 text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-transparent hover:bg-gray-50 disabled:opacity-40 transition"
-                                >
-                                    <ChevronLeft className="w-4 h-4" />
-                                </button>
-                                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                                    let page = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
-                                    if (page > totalPages) return null;
-                                    return (
-                                        <button
-                                            key={page}
-                                            onClick={() => setCurrentPage(page)}
-                                            className={`w-8 h-8 rounded-lg text-sm font-bold transition ${currentPage === page ? "bg-luxury-gold text-luxury-dark shadow" : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-500"}`}
-                                        >
-                                            {page}
-                                        </button>
-                                    );
-                                })}
-                                <button
-                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                    disabled={currentPage === totalPages}
-                                    className="p-2 rounded-lg bg-white dark:bg-gray-600 text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-transparent hover:bg-gray-50 disabled:opacity-40 transition"
-                                >
-                                    <ChevronRight className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                                );
+                            })}
+                        </tbody>
+                    </table>
                 </div>
-            </section>
 
-            {/* Adjust Modal */}
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="px-5 py-3.5 bg-gray-50 dark:bg-luxury-darker/40 flex items-center justify-between border-t border-gray-100 dark:border-luxury-border">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Trang {currentPage} / {totalPages} • {filteredProducts.length} sản phẩm
+                        </p>
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="p-1.5 rounded-lg border border-gray-200 dark:border-luxury-border text-gray-500 dark:text-gray-400 hover:bg-gray-100 disabled:opacity-40 transition"
+                            >
+                                <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                                let page = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
+                                if (page > totalPages) return null;
+                                return (
+                                    <button
+                                        key={page}
+                                        onClick={() => setCurrentPage(page)}
+                                        className={`w-8 h-8 rounded-lg text-sm font-bold transition ${currentPage === page ? "bg-luxury-gold text-black shadow-sm" : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-luxury-dark"}`}
+                                    >
+                                        {page}
+                                    </button>
+                                );
+                            })}
+                            <button
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="p-1.5 rounded-lg border border-gray-200 dark:border-luxury-border text-gray-500 dark:text-gray-400 hover:bg-gray-100 disabled:opacity-40 transition"
+                            >
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* ── Adjust Modal ── */}
             <AnimatePresence>
                 {showAdjustModal && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
@@ -304,7 +388,7 @@ const InventoryTab = () => {
                 )}
             </AnimatePresence>
 
-            {/* Logs Modal */}
+            {/* ── Logs Modal ── */}
             <AnimatePresence>
                 {showLogsModal && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -333,7 +417,7 @@ const InventoryTab = () => {
                                         {inventoryLogs.map(log => (
                                             <div key={log._id} className="p-3 bg-gray-50 dark:bg-luxury-darker rounded-lg border border-gray-100 dark:border-luxury-border text-sm">
                                                 <div className="flex justify-between font-semibold mb-1">
-                                                    <span className={log.action === "OUT" ? "text-[color:var(--color-danger)]" : log.action === "IN" ? "text-[color:var(--color-gold)]" : "text-secondary"}>
+                                                    <span className={log.action === "OUT" ? "text-red-500" : log.action === "IN" ? "text-luxury-gold" : "text-gray-500 dark:text-gray-400"}>
                                                         {log.action} ({log.quantity > 0 ? `+${log.quantity}` : log.quantity})
                                                     </span>
                                                     <span className="text-gray-400">{new Date(log.createdAt).toLocaleString()}</span>
@@ -343,7 +427,7 @@ const InventoryTab = () => {
                                                     <p className="text-xs text-gray-500 mt-1">Order Ref: {log.referenceOrderId.orderCode || log.referenceOrderId._id}</p>
                                                 )}
                                                 {log.userId && (
-                                                    <p className="text-xs text-gray-500 mt-1">User/Admin: {log.userId.email}</p>
+                                                    <p className="text-xs text-gray-500 mt-1">Admin: {log.userId.email}</p>
                                                 )}
                                             </div>
                                         ))}

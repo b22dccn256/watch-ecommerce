@@ -32,6 +32,9 @@ const tabs = [
   { id: "catalog",   label: "Danh mục",       icon: Layers,          roles: ["admin", "staff"] },
   { id: "products",  label: "Sản phẩm",      icon: PlusCircle,      roles: ["admin", "staff"] },
   { id: "inventory", label: "Kho hàng",      icon: Archive,         roles: ["admin", "staff"] },
+  { id: "users",     label: "Người dùng",    icon: Users,           roles: ["admin"] },
+  { id: "ai",        label: "AI System",     icon: ShieldCheck,     roles: ["admin"] },
+  { id: "settings",  label: "Giao diện",     icon: LayoutTemplate,  roles: ["admin"] },
   { 
     id: "marketing_group", 
     label: "Marketing",     
@@ -43,9 +46,6 @@ const tabs = [
       { id: "coupons",   label: "Mã giảm giá",   icon: Tag,             roles: ["admin"] },
     ]
   },
-  { id: "users",     label: "Người dùng",    icon: Users,           roles: ["admin"] },
-  { id: "ai",        label: "AI System",     icon: ShieldCheck,     roles: ["admin"] },
-  { id: "settings",  label: "Giao diện",     icon: LayoutTemplate,  roles: ["admin"] },
 ];
 
 const resolveTabFromParams = (searchParams, accessibleTabs) => {
