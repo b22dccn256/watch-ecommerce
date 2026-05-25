@@ -1,16 +1,17 @@
 import crypto from "crypto";
 import moment from "moment";
-import qs from "qs";
 
-const buildSortedQuery = (params) => {
-	const sortedParams = Object.keys(params)
+const buildSortedSearchParams = (params) => {
+	const searchParams = new URLSearchParams();
+	Object.keys(params)
 		.sort()
-		.reduce((result, key) => {
-			result[key] = params[key];
-			return result;
-		}, {});
-
-	return qs.stringify(sortedParams, { encode: false });
+		.forEach((key) => {
+			const value = params[key];
+			if (value !== undefined && value !== null && value !== "") {
+				searchParams.append(key, String(value));
+			}
+		});
+	return searchParams;
 };
 
 const normalizeIpAddress = (value) => {
@@ -25,7 +26,6 @@ export const createVNPayUrl = ({ amount, orderId, ipAddr }) => {
 	const secretKey = process.env.VNP_HASH_SECRET || process.env.VNP_SECRET;
 	const vnpUrl = process.env.VNP_URL || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
 	const returnUrl = process.env.VNP_RETURN_URL || "http://localhost:5173/payment/vnpay-return";
-	const ipnUrl = process.env.VNP_IPN_URL || "http://localhost:5000/api/payments/vnpay-ipn";
 
 	if (!tmnCode || !secretKey) {
 		throw new Error("VNPAY chưa cấu hình VNP_TMN_CODE hoặc VNP_HASH_SECRET");
@@ -42,7 +42,6 @@ export const createVNPayUrl = ({ amount, orderId, ipAddr }) => {
 		vnp_OrderType: "other",
 		vnp_Amount: amount * 100,
 		vnp_ReturnUrl: returnUrl,
-		vnp_IpnUrl: ipnUrl,
 		vnp_IpAddr: ipAddr,
 		vnp_CreateDate: moment().format("YYYYMMDDHHmmss"),
 	};
@@ -54,13 +53,17 @@ export const createVNPayUrl = ({ amount, orderId, ipAddr }) => {
 			return result;
 		}, {});
 
-	const signData = buildSortedQuery(vnpParams);
+	const signData = buildSortedSearchParams(vnpParams).toString();
+	if (process.env.NODE_ENV === "development") {
+		console.debug("[vnpay] signData", signData);
+	}
 	const secureHash = crypto
 		.createHmac("sha512", secretKey)
 		.update(Buffer.from(signData, "utf-8"))
 		.digest("hex");
 
-	return `${vnpUrl}?${buildSortedQuery({ ...vnpParams, vnp_SecureHash: secureHash })}`;
+	const finalSearchParams = buildSortedSearchParams({ ...vnpParams, vnp_SecureHash: secureHash });
+	return `${vnpUrl}?${finalSearchParams.toString()}`;
 };
 
 export const verifyVNPaySignature = (query) => {
@@ -79,7 +82,10 @@ export const verifyVNPaySignature = (query) => {
 		}
 	});
 
-	const signData = buildSortedQuery(clone);
+	const signData = buildSortedSearchParams(clone).toString();
+	if (process.env.NODE_ENV === "development") {
+		console.debug("[vnpay] verify signData", signData);
+	}
 	const signed = crypto
 		.createHmac("sha512", secretKey)
 		.update(Buffer.from(signData, "utf-8"))
