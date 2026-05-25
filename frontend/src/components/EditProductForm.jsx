@@ -89,9 +89,15 @@ const EditProductForm = ({ product, onSuccess, onClose }) => {
 		setFormData((prev) => ({ ...prev, wristSizeOptions: [...prev.wristSizeOptions, { size: "", stock: 0 }] }));
 
 	const updateWristOption = (index, field, value) => {
-		const opts = [...formData.wristSizeOptions];
-		opts[index][field] = value;
-		setFormData((prev) => ({ ...prev, wristSizeOptions: opts }));
+		setFormData(prev => {
+			const newOptions = prev.wristSizeOptions.map((opt, i) => {
+				if (i === index) {
+					return { ...opt, [field]: value };
+				}
+				return opt;
+			});
+			return { ...prev, wristSizeOptions: newOptions };
+		});
 	};
 
 	const removeWristOption = (index) => {
@@ -225,37 +231,40 @@ const EditProductForm = ({ product, onSuccess, onClose }) => {
 
 					{/* Wrist size options */}
 					<div className="pt-2 border-t border-gray-100 dark:border-luxury-border">
-						<div className="flex items-center justify-between mb-2">
+						<div className="flex items-center justify-between mb-3">
 							<label className={labelCls + " !mb-0"}>Kích cỡ cổ tay (Tùy chọn)</label>
-							<button
+							<button 
 								type="button" onClick={addWristSizeOption}
-								className="text-xs flex items-center gap-1 text-luxury-gold hover:text-yellow-500 font-medium cursor-pointer"
+								className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-luxury-gold/10 text-luxury-gold hover:bg-luxury-gold hover:text-white font-bold rounded-md transition-colors cursor-pointer"
 							>
-								<Plus className="w-3 h-3" /> Thêm size
+								<Plus className="w-3.5 h-3.5" /> Thêm size
 							</button>
 						</div>
 						{formData.wristSizeOptions.length > 0 ? (
-							<div className="space-y-2">
+							<div className="space-y-3">
 								{formData.wristSizeOptions.map((opt, i) => (
-									<div key={i} className="flex items-center gap-2">
-										<input
-											type="text" placeholder="Size (vd: 38-42mm)" required
-											value={opt.size}
-											onChange={(e) => updateWristOption(i, "size", e.target.value)}
-											className={inputCls + " flex-1 !py-1.5 !text-xs"}
+									<div key={i} className="flex flex-row items-center gap-2 p-2 bg-gray-50/80 dark:bg-luxury-darker/50 border border-gray-100 dark:border-luxury-border rounded-lg shadow-sm">
+										<input 
+											type="text" placeholder="Tên size (vd: 38mm, S, M...)" required
+											value={opt.size} onChange={(e) => updateWristOption(i, "size", e.target.value)}
+											className={inputCls + " flex-1 bg-white dark:bg-luxury-dark shadow-sm"} 
 										/>
-										<input
-											type="number" placeholder="Số lượng" min="0" required
-											value={opt.stock}
-											onChange={(e) => updateWristOption(i, "stock", Number(e.target.value))}
-											className={inputCls + " w-24 !py-1.5 !text-xs text-center"}
-										/>
-										<button
-											type="button" onClick={() => removeWristOption(i)}
-											className="p-1 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
-										>
-											<X className="w-4 h-4" />
-										</button>
+										<div className="flex items-center gap-2 shrink-0">
+											<input 
+												type="number" placeholder="Số lượng" min="0" required
+												value={opt.stock} onChange={(e) => updateWristOption(i, "stock", Number(e.target.value))}
+												className={inputCls + " w-24 text-center bg-white dark:bg-luxury-dark shadow-sm"} 
+												title="Số lượng tồn kho"
+											/>
+											<button 
+												type="button" 
+												onClick={() => removeWristOption(i)} 
+												className="p-2 text-red-500 hover:text-red-600 bg-white dark:bg-luxury-dark hover:bg-red-50 dark:hover:bg-red-900/20 border border-gray-100 dark:border-luxury-border rounded-lg transition-colors shadow-sm"
+												title="Xóa size này"
+											>
+												<X className="w-4 h-4" />
+											</button>
+										</div>
 									</div>
 								))}
 							</div>

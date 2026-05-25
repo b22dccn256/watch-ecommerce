@@ -80,7 +80,7 @@ const InventoryTab = () => {
                                         <td className="px-5 py-3 font-bold text-red-600 dark:text-red-400 text-lg">{p.stock}</td>
                                         <td className="px-5 py-3 text-gray-500 dark:text-gray-400">{p.lowStockThreshold || 5} sản phẩm</td>
                                         <td className="px-5 py-3 text-right">
-                                            <button 
+                                            <button
                                                 onClick={() => openAdjust(p._id, "IN")}
                                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 shadow-sm transition-colors text-xs font-bold"
                                             >
@@ -99,7 +99,7 @@ const InventoryTab = () => {
             <section>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-luxury-gold flex items-center gap-2">
-                        <History className="w-6 h-6 text-luxury-gold" /> Kiểm Kê & Lịch Sự
+                        <History className="w-6 h-6 text-luxury-gold" /> Kiểm Kê
                     </h2>
                     <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
                         <div className="relative w-full sm:w-64">
@@ -112,7 +112,7 @@ const InventoryTab = () => {
                                 className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-luxury-gold transition"
                             />
                         </div>
-                        <button 
+                        <button
                             onClick={openBlankAdjust}
                             className="bg-luxury-gold font-bold text-luxury-dark px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-yellow-500 transition shadow w-full sm:w-auto justify-center"
                         >
@@ -120,7 +120,7 @@ const InventoryTab = () => {
                         </button>
                     </div>
                 </div>
-                
+
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-transparent overflow-hidden flex flex-col">
                     <div className="overflow-x-auto overflow-y-auto max-h-[55vh] custom-scrollbar">
                         <table className="min-w-full divide-y divide-gray-100 dark:divide-gray-700 relative">
@@ -154,15 +154,15 @@ const InventoryTab = () => {
                                             </span>
                                         </td>
                                         <td className="px-5 py-3 whitespace-nowrap text-right space-x-2">
-                                            <button 
-                                                onClick={() => openAdjust(p._id, "ADJUST")} 
+                                            <button
+                                                onClick={() => openAdjust(p._id, "ADJUST")}
                                                 className="inline-flex items-center justify-center p-2 bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-luxury-gold hover:text-luxury-dark transition-colors"
                                                 title="Điều chỉnh số lượng"
                                             >
                                                 <Edit3 className="w-4 h-4" />
                                             </button>
-                                            <button 
-                                                onClick={() => openLogs(p._id)} 
+                                            <button
+                                                onClick={() => openLogs(p._id)}
                                                 className="inline-flex items-center justify-center p-2 bg-[color:var(--color-gold)]/10 text-[color:var(--color-gold)] rounded-lg hover:bg-[color:var(--color-gold)]/20 transition-colors"
                                                 title="Xem lịch sử"
                                             >
@@ -174,7 +174,7 @@ const InventoryTab = () => {
                             </tbody>
                         </table>
                     </div>
-                
+
                     {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 flex items-center justify-between border-t border-gray-100 dark:border-gray-600">
@@ -217,142 +217,142 @@ const InventoryTab = () => {
 
             {/* Adjust Modal */}
             <AnimatePresence>
-            {showAdjustModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="bg-white dark:bg-luxury-darker rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto border border-gray-100 dark:border-luxury-border shadow-2xl custom-scrollbar"
-                    >
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-bold dark:text-luxury-gold flex items-center gap-2">
-                                <Edit3 className="w-5 h-5" /> Điều chỉnh tồn kho
-                            </h3>
-                            <button 
-                                onClick={closeAdjustModal}
-                                className="p-2 bg-gray-100 dark:bg-luxury-border text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white rounded-full transition"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <form onSubmit={handleAdjustSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Chọn sản phẩm</label>
-                                <select 
-                                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold focus:ring-1 focus:ring-luxury-gold transition"
-                                    value={selectedProduct}
-                                    onChange={(e) => setSelectedProduct(e.target.value)}
-                                    required
+                {showAdjustModal && (
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-white dark:bg-luxury-darker rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto border border-gray-100 dark:border-luxury-border shadow-2xl custom-scrollbar"
+                        >
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-bold dark:text-luxury-gold flex items-center gap-2">
+                                    <Edit3 className="w-5 h-5" /> Điều chỉnh tồn kho
+                                </h3>
+                                <button
+                                    onClick={closeAdjustModal}
+                                    className="p-2 bg-gray-100 dark:bg-luxury-border text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white rounded-full transition"
                                 >
-                                    <option value="" className="text-gray-400">-- Chọn sản phẩm --</option>
-                                    {products.length === 0 && (
-                                        <option value="" disabled className="text-gray-400">Đang tải danh sách sản phẩm...</option>
-                                    )}
-                                    {products.map(p => (
-                                        <option key={p._id} value={p._id} className="text-gray-900 dark:text-gray-100">
-                                            {p.name} {p.brand?.name ? `(${p.brand.name})` : ''} - Tồn: {p.stock || 0}
-                                        </option>
-                                    ))}
-                                </select>
-                                {products.length === 0 && !loading && (
-                                    <p className="text-xs text-amber-500 mt-1">⚠ Chưa có sản phẩm. Vui lòng tải lại trang hoặc vào tab Sản phẩm trước.</p>
-                                )}
-                            </div>
-                            <div className="flex gap-4">
-                                <div className="flex-1">
-                                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Loại thao tác</label>
-                                    <select 
-                                        className="w-full bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border rounded-lg px-3 py-2 dark:text-white"
-                                        value={action}
-                                        onChange={(e) => setAction(e.target.value)}
-                                    >
-                                        <option value="IN">Nhập Kho (+)</option>
-                                        <option value="OUT">Xuất Kho (-)</option>
-                                        <option value="ADJUST">Kiểm Kê (Set số mới)</option>
-                                    </select>
-                                </div>
-                                <div className="flex-1">
-                                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Số lượng</label>
-                                    <input 
-                                        type="number" min="1" required
-                                        className="w-full bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border rounded-lg px-3 py-2 dark:text-white"
-                                        value={quantity} onChange={e => setQuantity(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Ghi chú / Lý do</label>
-                                <textarea 
-                                    className="w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold focus:ring-1 focus:ring-luxury-gold transition resize-none"
-                                    rows="2" required
-                                    placeholder="Vd: Nhập lô hàng mới tháng 4..."
-                                    value={note} onChange={e => setNote(e.target.value)}
-                                />
-                            </div>
-                            <div className="pt-2">
-                                <button 
-                                    type="submit" disabled={loading}
-                                    className="w-full bg-luxury-gold text-luxury-dark font-bold py-2.5 rounded-lg hover:bg-yellow-500 shadow-md transition-colors disabled:opacity-50"
-                                >
-                                    {loading ? "Đang xử lý..." : "Xác nhận cập nhật"}
+                                    <X className="w-5 h-5" />
                                 </button>
                             </div>
-                        </form>
-                    </motion.div>
-                </div>
-            )}
+                            <form onSubmit={handleAdjustSubmit} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Chọn sản phẩm</label>
+                                    <select
+                                        className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold focus:ring-1 focus:ring-luxury-gold transition"
+                                        value={selectedProduct}
+                                        onChange={(e) => setSelectedProduct(e.target.value)}
+                                        required
+                                    >
+                                        <option value="" className="text-gray-400">-- Chọn sản phẩm --</option>
+                                        {products.length === 0 && (
+                                            <option value="" disabled className="text-gray-400">Đang tải danh sách sản phẩm...</option>
+                                        )}
+                                        {products.map(p => (
+                                            <option key={p._id} value={p._id} className="text-gray-900 dark:text-gray-100">
+                                                {p.name} {p.brand?.name ? `(${p.brand.name})` : ''} - Tồn: {p.stock || 0}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {products.length === 0 && !loading && (
+                                        <p className="text-xs text-amber-500 mt-1">⚠ Chưa có sản phẩm. Vui lòng tải lại trang hoặc vào tab Sản phẩm trước.</p>
+                                    )}
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="flex-1">
+                                        <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Loại thao tác</label>
+                                        <select
+                                            className="w-full bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border rounded-lg px-3 py-2 dark:text-white"
+                                            value={action}
+                                            onChange={(e) => setAction(e.target.value)}
+                                        >
+                                            <option value="IN">Nhập Kho (+)</option>
+                                            <option value="OUT">Xuất Kho (-)</option>
+                                            <option value="ADJUST">Kiểm Kê (Set số mới)</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Số lượng</label>
+                                        <input
+                                            type="number" min="1" required
+                                            className="w-full bg-gray-50 dark:bg-luxury-darker border border-gray-200 dark:border-luxury-border rounded-lg px-3 py-2 dark:text-white"
+                                            value={quantity} onChange={e => setQuantity(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Ghi chú / Lý do</label>
+                                    <textarea
+                                        className="w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold focus:ring-1 focus:ring-luxury-gold transition resize-none"
+                                        rows="2" required
+                                        placeholder="Vd: Nhập lô hàng mới tháng 4..."
+                                        value={note} onChange={e => setNote(e.target.value)}
+                                    />
+                                </div>
+                                <div className="pt-2">
+                                    <button
+                                        type="submit" disabled={loading}
+                                        className="w-full bg-luxury-gold text-luxury-dark font-bold py-2.5 rounded-lg hover:bg-yellow-500 shadow-md transition-colors disabled:opacity-50"
+                                    >
+                                        {loading ? "Đang xử lý..." : "Xác nhận cập nhật"}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
             </AnimatePresence>
 
             {/* Logs Modal */}
             <AnimatePresence>
-            {showLogsModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="bg-white dark:bg-luxury-darker rounded-2xl p-6 w-full max-w-2xl border border-gray-100 dark:border-luxury-border max-h-[85vh] flex flex-col shadow-2xl"
-                    >
-                        <div className="flex justify-between items-center mb-6 border-b border-gray-100 dark:border-luxury-border pb-4">
-                            <h3 className="text-xl font-bold dark:text-luxury-gold flex items-center gap-2">
-                                <History className="w-5 h-5" /> Lịch sử xuất / nhập kho
-                            </h3>
-                            <button 
-                                onClick={closeLogsModal}
-                                className="p-2 bg-gray-100 dark:bg-luxury-border text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white rounded-full transition"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
-                            {inventoryLogs.length === 0 ? (
-                                <p className="text-center text-gray-500 py-8">Chưa có lịch sử nào ghi nhận.</p>
-                            ) : (
-                                <div className="space-y-3">
-                                    {inventoryLogs.map(log => (
-                                        <div key={log._id} className="p-3 bg-gray-50 dark:bg-luxury-darker rounded-lg border border-gray-100 dark:border-luxury-border text-sm">
-                                            <div className="flex justify-between font-semibold mb-1">
-                                                <span className={log.action === "OUT" ? "text-[color:var(--color-danger)]" : log.action === "IN" ? "text-[color:var(--color-gold)]" : "text-secondary"}>
-                                                    {log.action} ({log.quantity > 0 ? `+${log.quantity}` : log.quantity})
-                                                </span>
-                                                <span className="text-gray-400">{new Date(log.createdAt).toLocaleString()}</span>
+                {showLogsModal && (
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-white dark:bg-luxury-darker rounded-2xl p-6 w-full max-w-2xl border border-gray-100 dark:border-luxury-border max-h-[85vh] flex flex-col shadow-2xl"
+                        >
+                            <div className="flex justify-between items-center mb-6 border-b border-gray-100 dark:border-luxury-border pb-4">
+                                <h3 className="text-xl font-bold dark:text-luxury-gold flex items-center gap-2">
+                                    <History className="w-5 h-5" /> Lịch sử xuất / nhập kho
+                                </h3>
+                                <button
+                                    onClick={closeLogsModal}
+                                    className="p-2 bg-gray-100 dark:bg-luxury-border text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white rounded-full transition"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                                {inventoryLogs.length === 0 ? (
+                                    <p className="text-center text-gray-500 py-8">Chưa có lịch sử nào ghi nhận.</p>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {inventoryLogs.map(log => (
+                                            <div key={log._id} className="p-3 bg-gray-50 dark:bg-luxury-darker rounded-lg border border-gray-100 dark:border-luxury-border text-sm">
+                                                <div className="flex justify-between font-semibold mb-1">
+                                                    <span className={log.action === "OUT" ? "text-[color:var(--color-danger)]" : log.action === "IN" ? "text-[color:var(--color-gold)]" : "text-secondary"}>
+                                                        {log.action} ({log.quantity > 0 ? `+${log.quantity}` : log.quantity})
+                                                    </span>
+                                                    <span className="text-gray-400">{new Date(log.createdAt).toLocaleString()}</span>
+                                                </div>
+                                                <p className="text-gray-600 dark:text-gray-300">Lý do: <span className="font-medium">{log.note}</span></p>
+                                                {log.referenceOrderId && (
+                                                    <p className="text-xs text-gray-500 mt-1">Order Ref: {log.referenceOrderId.orderCode || log.referenceOrderId._id}</p>
+                                                )}
+                                                {log.userId && (
+                                                    <p className="text-xs text-gray-500 mt-1">User/Admin: {log.userId.email}</p>
+                                                )}
                                             </div>
-                                            <p className="text-gray-600 dark:text-gray-300">Lý do: <span className="font-medium">{log.note}</span></p>
-                                            {log.referenceOrderId && (
-                                                <p className="text-xs text-gray-500 mt-1">Order Ref: {log.referenceOrderId.orderCode || log.referenceOrderId._id}</p>
-                                            )}
-                                            {log.userId && (
-                                                <p className="text-xs text-gray-500 mt-1">User/Admin: {log.userId.email}</p>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </motion.div>
-                </div>
-            )}
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
             </AnimatePresence>
         </div>
     );

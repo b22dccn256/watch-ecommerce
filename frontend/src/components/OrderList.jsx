@@ -15,33 +15,33 @@ const STATUS_OPTIONS = [
 ];
 
 const STATUS_STYLES = {
-  pending:                 'bg-yellow-500/12 text-yellow-600 dark:text-yellow-400',
-  awaiting_verification:   'bg-blue-500/12 text-blue-600 dark:text-blue-400',
-  confirmed:               'bg-sky-500/12 text-sky-600 dark:text-sky-400',
-  processing:              'bg-indigo-500/12 text-indigo-600 dark:text-indigo-400',
-  shipped:                 'bg-violet-500/12 text-violet-600 dark:text-violet-400',
-  delivered:               'bg-green-500/12 text-green-600 dark:text-green-400',
-  cancelled:               'bg-red-500/12 text-red-600 dark:text-red-400',
-  return_requested:        'bg-orange-500/12 text-orange-600 dark:text-orange-400',
-  returned:                'bg-gray-500/12 text-secondary',
+  pending: 'bg-yellow-500/12 text-yellow-600 dark:text-yellow-400',
+  awaiting_verification: 'bg-blue-500/12 text-blue-600 dark:text-blue-400',
+  confirmed: 'bg-sky-500/12 text-sky-600 dark:text-sky-400',
+  processing: 'bg-indigo-500/12 text-indigo-600 dark:text-indigo-400',
+  shipped: 'bg-violet-500/12 text-violet-600 dark:text-violet-400',
+  delivered: 'bg-green-500/12 text-green-600 dark:text-green-400',
+  cancelled: 'bg-red-500/12 text-red-600 dark:text-red-400',
+  return_requested: 'bg-orange-500/12 text-orange-600 dark:text-orange-400',
+  returned: 'bg-gray-500/12 text-secondary',
 };
 
 const STATUS_LABELS = {
-  pending:               'Chờ xử lý',
+  pending: 'Chờ xử lý',
   awaiting_verification: 'Chờ xác minh',
-  confirmed:             'Đã xác nhận',
-  processing:            'Đang xử lý',
-  shipped:               'Đang giao',
-  delivered:             'Đã giao',
-  cancelled:             'Đã hủy',
-  return_requested:      'Yêu cầu trả',
-  returned:              'Đã trả',
+  confirmed: 'Đã xác nhận',
+  processing: 'Đang xử lý',
+  shipped: 'Đang giao',
+  delivered: 'Đã giao',
+  cancelled: 'Đã hủy',
+  return_requested: 'Yêu cầu trả',
+  returned: 'Đã trả',
 };
 
 const PAYMENT_LABELS = {
-  cod:    'COD',
+  cod: 'COD',
   stripe: 'Thẻ / Stripe',
-  vnpay:  'VNPay',
+  vnpay: 'VNPay',
   paypal: 'PayPal',
 };
 
@@ -71,11 +71,13 @@ export default function OrderList({ onOpenOrder }) {
   const { totalPages, totalOrders } = pagination;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold text-primary">Quản lý Đơn hàng</h2>
+          <h2 className="text-2xl font-semibold text-primary flex items-center gap-3">
+            Quản lý đơn hàng
+          </h2>
           <p className="mt-1 text-sm text-secondary">
             Tổng <span className="font-semibold text-primary">{totalOrders.toLocaleString()}</span> đơn
             {stats.pendingCount > 0 && (
@@ -159,7 +161,7 @@ export default function OrderList({ onOpenOrder }) {
                     className="group transition-colors hover:bg-[color:var(--color-surface-2)]"
                   >
                     <td className="px-4 py-3.5">
-                      <span className="font-mono text-sm font-bold text-primary">
+                      <span className="text-sm font-bold text-primary">
                         {o.orderCode || (o._id || '').slice(0, 8).toUpperCase()}
                       </span>
                     </td>
@@ -228,11 +230,10 @@ export default function OrderList({ onOpenOrder }) {
                   key={p}
                   type="button"
                   onClick={() => setPage(p)}
-                  className={`flex h-8 w-8 items-center justify-center rounded-lg border text-xs font-medium transition ${
-                    p === page
-                      ? 'border-[color:var(--color-gold)] bg-[color:var(--color-gold)]/12 text-[color:var(--color-gold)]'
-                      : 'border-black/10 text-secondary hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)] dark:border-white/10'
-                  }`}
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg border text-xs font-medium transition ${p === page
+                    ? 'border-[color:var(--color-gold)] bg-[color:var(--color-gold)]/12 text-[color:var(--color-gold)]'
+                    : 'border-black/10 text-secondary hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)] dark:border-white/10'
+                    }`}
                 >
                   {p}
                 </button>

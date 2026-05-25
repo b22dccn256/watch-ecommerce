@@ -55,8 +55,8 @@ html {
   --color-surface: #fffdf8;
   --color-surface-2: #f8f3ea;
   --color-primary: #101010;
-  --color-secondary: #5f5953;
-  --color-muted: #867d74;
+  --color-secondary: #4a4540;
+  --color-muted: #665f58;
   --color-border: #dfd7ca;
   --color-gold: #b7925a;
   --color-gold-soft: #c7a775;
@@ -775,9 +775,9 @@ h6,
 /* ENTERPRISE UX — Admin Dense Table */
 /* ================================================= */
 .table-dense thead th {
-  padding: 0.5rem 0.75rem;
-  font-size: var(--fs-2xs);
-  letter-spacing: 0.08em;
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  letter-spacing: 0.05em;
   font-weight: 700;
   color: var(--color-muted);
   text-transform: uppercase;
@@ -785,8 +785,8 @@ h6,
   white-space: nowrap;
 }
 .table-dense tbody td {
-  padding: 0.5rem 0.75rem;
-  font-size: var(--fs-sm);
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
   border-bottom: 1px solid color-mix(in srgb, var(--color-border) 40%, transparent);
 }
 .table-dense tbody tr {
@@ -895,9 +895,9 @@ h6,
 
 /* Sidebar */
 .admin-sidebar-link {
-  display: flex; align-items: center; gap: 0.625rem;
-  border-radius: 8px; padding: 0.6rem 0.85rem;
-  font-size: 0.8125rem; font-weight: 500;
+  display: flex; align-items: center; gap: 0.75rem;
+  border-radius: 8px; padding: 0.75rem 1rem;
+  font-size: 0.9375rem; font-weight: 500;
   color: var(--admin-text-muted);
   transition: all 150ms ease;
   position: relative; white-space: nowrap;
