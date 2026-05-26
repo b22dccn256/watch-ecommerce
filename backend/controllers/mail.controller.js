@@ -111,8 +111,9 @@ let emailQueue = {
 };
 
 const isNodeTestRunner = process.execArgv && process.execArgv.some((a) => String(a).includes("--test"));
+const shouldDisableQueue = process.env.USE_REDIS_MOCK === "true" || process.env.DISABLE_REDIS_QUEUE === "true";
 
-if (process.env.NODE_ENV !== 'test' && !isNodeTestRunner) {
+if (process.env.NODE_ENV !== 'test' && !isNodeTestRunner && !shouldDisableQueue) {
 	try {
 		const redisConnection = new IORedis(process.env.UPSTASH_REDIS_URL || process.env.REDIS_URL || "redis://localhost:6379", {
 			maxRetriesPerRequest: null,
