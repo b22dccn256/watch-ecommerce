@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Users, Shield, Zap, ShieldCheck, MoreVertical, Eye, Trash2 } from "lucide-react";
+import { Users, Shield, Zap, ShieldCheck, Edit2, Trash2 } from "lucide-react";
 
 const UsersTable = ({
 	users,
@@ -78,9 +78,13 @@ const UsersTable = ({
 							</td>
 							<td className='px-6 py-4'>
 								<div className='flex items-center gap-3'>
-									<div className='w-8 h-8 rounded-full bg-gray-200 dark:bg-luxury-border flex items-center justify-center text-xs font-bold text-gray-600 dark:text-white uppercase'>
-										{user.name.substring(0, 2)}
-									</div>
+									{user.avatar ? (
+										<img src={user.avatar} alt={user.name} className='w-10 h-10 rounded-full object-cover shadow-sm' />
+									) : (
+										<div className='w-10 h-10 rounded-full bg-gray-200 dark:bg-luxury-border flex items-center justify-center text-sm font-bold text-gray-600 dark:text-white uppercase shadow-sm'>
+											{user.name.substring(0, 2)}
+										</div>
+									)}
 									<div>
 										<div className='text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2'>
 											{user.name}
@@ -107,58 +111,21 @@ const UsersTable = ({
 								{user.orderCount || 0} đơn thành công
 							</td>
 							<td className='px-6 py-4 text-right'>
-								<div className='relative inline-block' ref={openMenu === user._id ? menuRef : null}>
+								<div className='flex flex-col items-end justify-center gap-1.5'>
 									<button
-										onClick={() => onSetOpenMenu(openMenu === user._id ? null : user._id)}
-										className='p-2 rounded-lg text-luxury-text-muted hover:text-white hover:bg-white/10 transition-colors'
+										onClick={() => onSelectUser(user)}
+										className='p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors'
+										title="Sửa"
 									>
-										<MoreVertical className='w-4 h-4' />
+										<Edit2 className='w-4 h-4' />
 									</button>
-									{openMenu === user._id && (
-										<motion.div
-											initial={{ opacity: 0, scale: 0.95, y: -5 }}
-											animate={{ opacity: 1, scale: 1, y: 0 }}
-											className='absolute right-0 top-full mt-1 w-56 bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border rounded-xl shadow-2xl z-20 overflow-hidden'
-										>
-											<button
-												onClick={() => { onSelectUser(user); onSetOpenMenu(null); }}
-												className='w-full px-4 py-3 flex items-center gap-3 text-sm text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/10 transition-colors text-left'
-											>
-												<Eye className='w-4 h-4 text-luxury-gold' /> Xem chi tiết
-											</button>
-											
-											{currentUser?.role === "admin" && (
-												<>
-													<div className='px-4 py-2 text-[9px] font-bold text-gray-400 uppercase border-t border-gray-100 dark:border-luxury-border/50'>Đổi vai trò</div>
-													
-													{user.role !== "customer" && (
-														<button
-															onClick={() => onUpdateRole(user._id, "customer", user.name)}
-															className='w-full px-4 py-3 flex items-center gap-3 text-sm text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/10 transition-colors text-left'
-														>
-															<Zap className='w-4 h-4 text-gray-400' /> Thành Khách hàng
-														</button>
-													)}
-													{user.role !== "admin" && (
-														<button
-															onClick={() => onUpdateRole(user._id, "admin", user.name)}
-															className='w-full px-4 py-3 flex items-center gap-3 text-sm text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/10 transition-colors text-left'
-														>
-															<ShieldCheck className='w-4 h-4 text-luxury-gold' /> Thành Quản trị viên
-														</button>
-													)}
-
-													<div className='border-t border-gray-100 dark:border-luxury-border/50' />
-													<button
-														onClick={() => onDeleteUser(user._id, user.name)}
-														className='w-full px-4 py-3 flex items-center gap-3 text-sm text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-400/10 transition-colors text-left'
-													>
-														<Trash2 className='w-4 h-4' /> Xóa tài khoản
-													</button>
-												</>
-											)}
-										</motion.div>
-									)}
+									<button
+										onClick={() => onDeleteUser(user._id, user.name)}
+										className='p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors'
+										title="Xóa"
+									>
+										<Trash2 className='w-4 h-4' />
+									</button>
 								</div>
 							</td>
 						</tr>

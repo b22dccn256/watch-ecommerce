@@ -4,7 +4,7 @@ import {
 	// Admin routes
 	getMailStats, getInbox, deleteMessage, markContactRead, replyToContact,
 	getSubscribers, exportSubscribers, deleteSubscriber,
-	getTemplates, createTemplate, updateTemplate,
+	getTemplates, createTemplate, updateTemplate, deleteTemplate,
 	getCampaigns, createCampaign, sendCampaignNow, scheduleCampaign,
 	// Public/Tracking routes
 	subscribeNewsletter, trackOpen, trackClick, unsubscribe, unsubscribeByToken
@@ -46,6 +46,7 @@ router.delete("/subscribers/:id", protectRoute, managementRoute, deleteSubscribe
 router.get("/templates", protectRoute, managementRoute, getTemplates);
 router.post("/templates", protectRoute, managementRoute, createTemplate);
 router.put("/templates/:id", protectRoute, managementRoute, updateTemplate);
+router.delete("/templates/:id", protectRoute, managementRoute, deleteTemplate);
 
 // Campaigns
 router.get("/campaigns", protectRoute, managementRoute, getCampaigns);

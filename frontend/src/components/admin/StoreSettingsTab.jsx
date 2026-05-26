@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
 	Save, Layout, Type, Grid, MessageSquareText, Eye, EyeOff,
 	ChevronUp, ChevronDown, Layers, GripVertical, Sliders, Palette,
@@ -9,9 +9,9 @@ import {
 import { useStorefrontStore } from "../../stores/useStorefrontStore";
 
 const ALL_SECTIONS = [
-	{ key: "hero",       label: "Hero Banner",        desc: "Banner động dạng Slide trượt đầu trang kèm slogan" },
-	{ key: "flashSale",  label: "Flash Sale",          desc: "Khu vực khuyến mãi, sản phẩm sale & đếm ngược" },
-	{ key: "bestSeller", label: "Sản phẩm Bán Chạy",  desc: "Grid sản phẩm được lọc theo doanh số bán cao nhất" },
+	{ key: "hero", label: "Hero Banner", desc: "Banner động dạng Slide trượt đầu trang kèm slogan" },
+	{ key: "flashSale", label: "Flash Sale", desc: "Khu vực khuyến mãi, sản phẩm sale & đếm ngược" },
+	{ key: "bestSeller", label: "Sản phẩm Bán Chạy", desc: "Grid sản phẩm được lọc theo doanh số bán cao nhất" },
 ];
 
 const THEME_PRESETS = [
@@ -20,72 +20,12 @@ const THEME_PRESETS = [
 	{ key: "emerald", label: "Emerald Prestige (Quyền quý)", desc: "Sắc xanh lục bảo ngọc bảo sang trọng kết hợp xám đen", accent: "bg-[#0b1b17] text-emerald-400 border-emerald-900" },
 ];
 
-// A helper component to prevent lag on text input by buffering values locally and only calling onChange on blur
-const BufferedInput = ({ value, onChange, className, placeholder, ...props }) => {
-	const [localValue, setLocalValue] = useState(value || "");
-
-	useEffect(() => {
-		setLocalValue(value || "");
-	}, [value]);
-
-	const handleBlur = () => {
-		if (localValue !== (value || "")) {
-			onChange(localValue);
-		}
-	};
-
-	const handleKeyDown = (e) => {
-		if (e.key === "Enter") {
-			handleBlur();
-		}
-	};
-
-	return (
-		<input
-			{...props}
-			value={localValue}
-			onChange={(e) => setLocalValue(e.target.value)}
-			onBlur={handleBlur}
-			onKeyDown={handleKeyDown}
-			className={className}
-			placeholder={placeholder}
-		/>
-	);
-};
-
-const BufferedTextarea = ({ value, onChange, className, placeholder, rows, ...props }) => {
-	const [localValue, setLocalValue] = useState(value || "");
-
-	useEffect(() => {
-		setLocalValue(value || "");
-	}, [value]);
-
-	const handleBlur = () => {
-		if (localValue !== (value || "")) {
-			onChange(localValue);
-		}
-	};
-
-	return (
-		<textarea
-			{...props}
-			value={localValue}
-			onChange={(e) => setLocalValue(e.target.value)}
-			onBlur={handleBlur}
-			className={className}
-			placeholder={placeholder}
-			rows={rows}
-		/>
-	);
-};
-
 const StoreSettingsTab = () => {
 	const { config, fetchConfig, updateConfig, loading } = useStorefrontStore();
 	const [formData, setFormData] = useState(null);
 	const [sectionLayout, setSectionLayout] = useState([]);
 	const [activeSubTab, setActiveSubTab] = useState("sections"); // sections, theme, slides, marketing, popup, footer, layout
 	const [uploadingIndex, setUploadingIndex] = useState(null);
-	const [collapsedSlides, setCollapsedSlides] = useState({}); // { [index]: true } means collapsed
 
 	useEffect(() => { fetchConfig(); }, [fetchConfig]);
 
@@ -211,36 +151,12 @@ const StoreSettingsTab = () => {
 	};
 
 	// Slides dynamic list manipulation
-	const handleSlideChange = useCallback((index, field, value) => {
+	const handleSlideChange = (index, field, value) => {
 		setFormData(prev => {
 			const slides = [...(prev.heroSlides || [])];
 			slides[index] = { ...slides[index], [field]: value };
 			return { ...prev, heroSlides: slides };
 		});
-	}, []);
-
-	// Reorder slide: move slide at `fromIndex` to position `toPosition` (1-based)
-	const reorderSlide = (fromIndex, toPosition) => {
-		const slides = formData.heroSlides || [];
-		const toIndex = Math.max(0, Math.min(slides.length - 1, toPosition - 1));
-		if (toIndex === fromIndex) return;
-		const arr = [...slides];
-		const [moved] = arr.splice(fromIndex, 1);
-		arr.splice(toIndex, 0, moved);
-		// Update collapsed state to follow the moved slide
-		setCollapsedSlides(prev => {
-			const next = {};
-			arr.forEach((_, i) => {
-				if (!prev[i]) next[i] = false;
-				else next[i] = true;
-			});
-			return next;
-		});
-		setFormData(prev => ({ ...prev, heroSlides: arr }));
-	};
-
-	const toggleSlideCollapse = (index) => {
-		setCollapsedSlides(prev => ({ ...prev, [index]: !prev[index] }));
 	};
 
 	const handleImageUpload = (indexOrKey, field, file) => {
@@ -355,36 +271,29 @@ const StoreSettingsTab = () => {
 	if (!formData) return <div className="p-8 text-center text-sm text-gray-400">Đang tải cấu hình Storefront...</div>;
 
 	const sidebarMenu = [
-		{ id: "sections",    label: "Sections trang chủ",  icon: Layers },
-		{ id: "branding",    label: "Bản sắc & Menu",      icon: Type },
-		{ id: "theme",       label: "Chủ đề & Màu sắc",    icon: Palette },
-		{ id: "slides",      label: "Slide Hero (Đầu trang chủ)", icon: ImageIcon },
-		{ id: "marketing",   label: "Văn bản & Tiêu đề",   icon: Megaphone },
-		{ id: "popup",       label: "Pop-up Đón khách VIP", icon: Sparkles },
-		{ id: "footer",      label: "Thông tin Chân trang", icon: Globe },
-		{ id: "footerDetail",label: "Footer Nâng cao",     icon: Star },
-		{ id: "seo",         label: "SEO & Giờ mở cửa",    icon: Globe },
-		{ id: "layout",      label: "Bố cục",              icon: Sliders },
+		{ id: "sections", label: "Sections trang chủ", icon: Layers },
+		{ id: "branding", label: "Bản sắc & Menu", icon: Type },
+		{ id: "theme", label: "Chủ đề & Màu sắc", icon: Palette },
+		{ id: "slides", label: "Slide Hero (Đầu trang chủ)", icon: ImageIcon },
+		{ id: "marketing", label: "Văn bản & Tiêu đề", icon: Megaphone },
+		{ id: "popup", label: "Pop-up Đón khách VIP", icon: Sparkles },
+		{ id: "footer", label: "Thông tin Chân trang", icon: Globe },
+		{ id: "footerDetail", label: "Footer Nâng cao", icon: Star },
+		{ id: "seo", label: "SEO & Giờ mở cửa", icon: Globe },
+		{ id: "layout", label: "Bố cục", icon: Sliders },
 		// Orphan tabs — stored in DB but not yet consumed by user frontend (đang phát triển)
-		{ id: "colors",      label: "Màu Tuỳ chỉnh",     icon: Paintbrush, dev: true },
-		{ id: "typography",  label: "Kiểu chữ",         icon: Type, dev: true },
-		{ id: "integrations",label: "Tích hợp",          icon: BarChart3, dev: true },
-		{ id: "catalog",     label: "Cấu hình Catalog",  icon: ShoppingBag, dev: true },
-		{ id: "advanced",    label: "CSS & Nâng cao",    icon: Code2, dev: true },
+		{ id: "colors", label: "Màu Tuỳ chỉnh", icon: Paintbrush, dev: true },
+		{ id: "typography", label: "Kiểu chữ", icon: Type, dev: true },
+		{ id: "integrations", label: "Tích hợp", icon: BarChart3, dev: true },
+		{ id: "catalog", label: "Cấu hình Catalog", icon: ShoppingBag, dev: true },
+		{ id: "advanced", label: "CSS & Nâng cao", icon: Code2, dev: true },
+
 	];
 
 	return (
 		<div className="w-full p-4">
 			{/* Header */}
-			<div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 dark:border-white/5 pb-5">
-				<div>
-					<h2 className="text-xl font-bold font-luxury text-luxury-gold flex items-center gap-2.5">
-						<Layout className="w-5 h-5" /> Quản Lý Giao Diện Khách Hàng
-					</h2>
-					<p className="text-gray-400 text-xs mt-1">
-						Thiết kế thẩm mỹ, cấu trúc hiển thị và các văn bản quảng bá toàn trang. Mọi thay đổi áp dụng trực tiếp thời gian thực.
-					</p>
-				</div>
+			<div className="mb-6 flex flex-col md:flex-row md:items-center justify-end gap-4 border-b border-gray-100 dark:border-white/5 pb-5">
 				<button type="button" onClick={handleSubmit} disabled={loading}
 					className="bg-luxury-gold hover:bg-yellow-500 text-lux-dark font-bold text-xs px-6 py-3 rounded-lg flex items-center gap-2 transition shadow-lg disabled:opacity-50 flex-shrink-0 self-start md:self-auto">
 					{loading ? <span className="animate-spin rounded-full w-3.5 h-3.5 border-b-2 border-lux-dark"></span> : <Save className="w-4 h-4" />}
@@ -403,11 +312,10 @@ const StoreSettingsTab = () => {
 								key={menu.id}
 								type="button"
 								onClick={() => setActiveSubTab(menu.id)}
-								className={`flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-									active
-										? "bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30"
-										: "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
-								}`}
+								className={`flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${active
+									? "bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30"
+									: "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+									}`}
 							>
 								<Icon className="w-4 h-4 shrink-0" />
 								{menu.label}
@@ -418,7 +326,7 @@ const StoreSettingsTab = () => {
 
 				{/* Main Config Form Area */}
 				<main className="bg-white/60 dark:bg-luxury-darker/30 backdrop-blur-md rounded-2xl border border-gray-100 dark:border-white/5 p-5 md:p-6 min-h-[480px]">
-					
+
 					{/* 1. SECTIONS LAYOUT MANAGER */}
 					{activeSubTab === "sections" && (
 						<div className="space-y-5 animate-fade-in">
@@ -428,7 +336,7 @@ const StoreSettingsTab = () => {
 								</h3>
 								<p className="text-xs text-gray-400 mt-1">Sắp xếp luồng cuộn trang của khách hàng theo thứ tự ưu tiên của chiến dịch bán hàng.</p>
 							</div>
-							
+
 							<div className="space-y-2">
 								{sectionLayout.map((item, idx) => {
 									const meta = ALL_SECTIONS.find(s => s.key === item.key);
@@ -439,9 +347,9 @@ const StoreSettingsTab = () => {
 												<div className="flex items-center gap-2">
 													<p className="font-bold text-sm text-gray-900 dark:text-white">{meta?.label}</p>
 													{item.enabled ? (
-														<span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold uppercase">Hiển thị</span>
+														<span className="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-semibold">Hiển thị</span>
 													) : (
-														<span className="text-[9px] bg-gray-500/10 text-gray-400 border border-gray-500/20 px-1.5 py-0.5 rounded font-bold uppercase">Đã ẩn</span>
+														<span className="text-xs bg-gray-500/10 text-gray-400 border border-gray-500/20 px-1.5 py-0.5 rounded font-semibold">Đã ẩn</span>
 													)}
 												</div>
 												<p className="text-xs text-gray-500 mt-0.5">{meta?.desc}</p>
@@ -481,12 +389,12 @@ const StoreSettingsTab = () => {
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 								{/* Logo configuration card */}
 								<div className="space-y-4 bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-gray-800">
-									<h4 className="text-xs font-bold uppercase tracking-wider text-luxury-gold flex items-center gap-1.5 mb-1">
+									<h4 className="text-xs font-bold  text-luxury-gold flex items-center gap-1.5 mb-1">
 										<ImageIcon className="w-3.5 h-3.5" /> Logo & Tên Cửa Hàng
 									</h4>
 									<div className="space-y-3">
 										<div>
-											<label className="block text-[11px] font-bold text-gray-400 mb-1">TÊN THƯƠNG HIỆU CHÍNH (LOGO TEXT)</label>
+											<label className="block text-sm font-bold text-gray-400 mb-1">TÊN THƯƠNG HIỆU CHÍNH (LOGO TEXT)</label>
 											<input
 												type="text"
 												name="logoText"
@@ -497,7 +405,7 @@ const StoreSettingsTab = () => {
 											/>
 										</div>
 										<div>
-											<label className="block text-[11px] font-bold text-gray-400 mb-1">CHỮ VIẾT TẮT (LOGO SUBTEXT / ICON)</label>
+											<label className="block text-sm font-bold text-gray-400 mb-1">CHỮ VIẾT TẮT (LOGO SUBTEXT / ICON)</label>
 											<input
 												type="text"
 												name="logoSubtext"
@@ -508,7 +416,7 @@ const StoreSettingsTab = () => {
 											/>
 										</div>
 										<div>
-											<label className="block text-[11px] font-bold text-gray-400 mb-1">HOẶC DÙNG ẢNH LOGO RIÊNG (DESKTOP LOGO IMAGE)</label>
+											<label className="block text-sm font-bold text-gray-400 mb-1">HOẶC DÙNG ẢNH LOGO RIÊNG (DESKTOP LOGO IMAGE)</label>
 											<div className="flex gap-2">
 												<input
 													type="text"
@@ -532,7 +440,7 @@ const StoreSettingsTab = () => {
 													/>
 												</label>
 											</div>
-											<p className="text-[10px] text-gray-500 mt-1">Khuyên dùng logo định dạng SVG hoặc PNG nền trong suốt để có hiển thị hoàn hảo nhất.</p>
+											<p className="text-xs text-gray-500 mt-1">Khuyên dùng logo định dạng SVG hoặc PNG nền trong suốt để có hiển thị hoàn hảo nhất.</p>
 										</div>
 									</div>
 								</div>
@@ -540,7 +448,7 @@ const StoreSettingsTab = () => {
 								{/* Announcement Bar card */}
 								<div className="space-y-4 bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-gray-800">
 									<div className="flex items-center justify-between">
-										<h4 className="text-xs font-bold uppercase tracking-wider text-luxury-gold flex items-center gap-1.5">
+										<h4 className="text-xs font-bold  text-luxury-gold flex items-center gap-1.5">
 											<Megaphone className="w-3.5 h-3.5" /> Thanh Thông Báo Khuyến Mãi Đầu Trang
 										</h4>
 										<label className="flex items-center gap-1.5 cursor-pointer select-none">
@@ -557,7 +465,7 @@ const StoreSettingsTab = () => {
 
 									<div className="space-y-3">
 										<div>
-											<label className="block text-[11px] font-bold text-gray-400 mb-1">NỘI DUNG THÔNG BÁO</label>
+											<label className="block text-sm font-bold text-gray-400 mb-1">NỘI DUNG THÔNG BÁO</label>
 											<textarea
 												name="announcementText"
 												value={formData.announcementText || ""}
@@ -568,18 +476,18 @@ const StoreSettingsTab = () => {
 											/>
 										</div>
 										<div>
-											<label className="block text-[11px] font-bold text-gray-400 mb-1">HÒA SẮC NỀN THANH THÔNG BÁO</label>
+											<label className="block text-sm font-bold text-gray-400 mb-1">HÒA SẮC NỀN THANH THÔNG BÁO</label>
 											<div className="grid grid-cols-3 gap-2">
 												{[
-													{ key: "gold",  label: "Vàng Hoàng Gia", class: "bg-luxury-gold text-black" },
-													{ key: "dark",  label: "Đen Quyền Lực",   class: "bg-black text-white" },
-													{ key: "light", label: "Kem/Bạc Sáng",    class: "bg-gray-100 text-black border border-gray-300" }
+													{ key: "gold", label: "Vàng Hoàng Gia", class: "bg-luxury-gold text-black" },
+													{ key: "dark", label: "Đen Quyền Lực", class: "bg-black text-white" },
+													{ key: "light", label: "Kem/Bạc Sáng", class: "bg-gray-100 text-black border border-gray-300" }
 												].map(preset => (
 													<button
 														key={preset.key}
 														type="button"
 														onClick={() => setFormData(prev => ({ ...prev, announcementBg: preset.key }))}
-														className={`p-2 rounded-lg text-[10px] font-bold text-center flex flex-col items-center justify-center gap-1 transition-all ${preset.class} ${formData.announcementBg === preset.key ? "ring-2 ring-blue-500 scale-[1.03]" : "opacity-75 hover:opacity-100"}`}
+														className={`p-2 rounded-lg text-xs font-bold text-center flex flex-col items-center justify-center gap-1 transition-all ${preset.class} ${formData.announcementBg === preset.key ? "ring-2 ring-blue-500 scale-[1.03]" : "opacity-75 hover:opacity-100"}`}
 													>
 														<span>{preset.label}</span>
 													</button>
@@ -587,7 +495,7 @@ const StoreSettingsTab = () => {
 											</div>
 										</div>
 										<div>
-											<label className="block text-[11px] font-bold text-gray-400 mb-1">ĐƯỜNG DẪN LIÊN KẾT (URL CHUYỂN TRANG)</label>
+											<label className="block text-sm font-bold text-gray-400 mb-1">ĐƯỜNG DẪN LIÊN KẾT (URL CHUYỂN TRANG)</label>
 											<input
 												type="text"
 												name="announcementLink"
@@ -605,15 +513,15 @@ const StoreSettingsTab = () => {
 							<div className="space-y-4 bg-gray-50 dark:bg-black/20 p-5 rounded-xl border border-gray-200 dark:border-gray-800">
 								<div className="flex items-center justify-between border-b border-gray-100 dark:border-white/5 pb-3">
 									<div>
-										<h4 className="text-xs font-bold uppercase tracking-wider text-luxury-gold flex items-center gap-1.5">
+										<h4 className="text-xs font-bold  text-luxury-gold flex items-center gap-1.5">
 											<Layers className="w-3.5 h-3.5" /> Quản Lý Menu Điều Hướng (Navigation Links)
 										</h4>
-										<p className="text-[10px] text-gray-500 mt-1">Thay đổi nhãn, hoán đổi vị trí và thêm mới các tab liên kết hiển thị ở Navbar đầu trang.</p>
+										<p className="text-xs text-gray-500 mt-1">Thay đổi nhãn, hoán đổi vị trí và thêm mới các tab liên kết hiển thị ở Navbar đầu trang.</p>
 									</div>
 									<button
 										type="button"
 										onClick={addNavItem}
-										className="bg-luxury-gold/10 hover:bg-luxury-gold/20 text-luxury-gold border border-luxury-gold/30 font-bold text-[10px] px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition"
+										className="bg-luxury-gold/10 hover:bg-luxury-gold/20 text-luxury-gold border border-luxury-gold/30 font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition"
 									>
 										<Plus className="w-3 h-3" /> Thêm Menu Link
 									</button>
@@ -622,11 +530,11 @@ const StoreSettingsTab = () => {
 								<div className="space-y-2">
 									{(formData.navigationItems || []).map((item, index) => (
 										<div key={index} className="flex items-center gap-3 p-3 bg-white/5 dark:bg-black/30 rounded-lg border border-gray-200/50 dark:border-white/5">
-											<span className="text-[10px] font-bold text-luxury-gold shrink-0 w-6">#{index + 1}</span>
-											
+											<span className="text-xs font-bold text-luxury-gold shrink-0 w-6">#{index + 1}</span>
+
 											<div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
 												<div className="flex items-center gap-2">
-													<span className="text-[10px] font-medium text-gray-400 whitespace-nowrap">Tên hiển thị:</span>
+													<span className="text-xs font-medium text-gray-400 whitespace-nowrap">Tên hiển thị:</span>
 													<input
 														type="text"
 														value={item.label || ""}
@@ -636,7 +544,7 @@ const StoreSettingsTab = () => {
 													/>
 												</div>
 												<div className="flex items-center gap-2">
-													<span className="text-[10px] font-medium text-gray-400 whitespace-nowrap">Đường dẫn:</span>
+													<span className="text-xs font-medium text-gray-400 whitespace-nowrap">Đường dẫn:</span>
 													<input
 														type="text"
 														value={item.link || ""}
@@ -714,19 +622,19 @@ const StoreSettingsTab = () => {
 										</div>
 										<div className="flex-1 min-w-0">
 											<p className="text-xs font-bold text-gray-900 dark:text-white">{color.label}</p>
-											<p className="text-[10px] text-gray-500">{color.desc}</p>
+											<p className="text-xs text-gray-500">{color.desc}</p>
 										</div>
 										<input
 											type="text"
 											value={formData[color.key] || ""}
 											onChange={(e) => setFormData(prev => ({ ...prev, [color.key]: e.target.value }))}
 											placeholder={color.defaultHex}
-											className="w-24 px-2 py-1.5 rounded border border-gray-200 dark:border-white/10 bg-transparent text-[11px] text-center font-mono outline-none focus:border-luxury-gold"
+											className="w-24 px-2 py-1.5 rounded border border-gray-200 dark:border-white/10 bg-transparent text-sm text-center font-mono outline-none focus:border-luxury-gold"
 										/>
 										<button
 											type="button"
 											onClick={() => setFormData(prev => ({ ...prev, [color.key]: "" }))}
-											className="text-[10px] text-gray-400 hover:text-red-400 transition shrink-0"
+											className="text-xs text-gray-400 hover:text-red-400 transition shrink-0"
 											title="Reset về mặc định"
 										>
 											<Trash2 className="w-3 h-3" />
@@ -737,15 +645,15 @@ const StoreSettingsTab = () => {
 
 							{/* Preview */}
 							<div className="p-4 rounded-xl border border-gray-200 dark:border-white/5" style={{ background: formData.bgColor || "#0A0A0A" }}>
-								<p className="text-[10px] font-bold uppercase tracking-wider mb-3" style={{ color: formData.textSecondaryColor || "#9CA3AF" }}>XEM TRƯỚC GIAO DIỆN</p>
+								<p className="text-xs font-bold  mb-3" style={{ color: formData.textSecondaryColor || "#9CA3AF" }}>XEM TRƯỚC GIAO DIỆN</p>
 								<div className="flex gap-2 mb-3">
-									<button className="px-3 py-1.5 rounded text-[10px] font-bold" style={{ background: formData.primaryColor || "#D4AF37", color: "#000" }}>Primary Button</button>
-									<button className="px-3 py-1.5 rounded text-[10px] font-bold border" style={{ borderColor: formData.secondaryColor || "#B49450", color: formData.secondaryColor || "#B49450" }}>Secondary</button>
-									<span className="px-2 py-1.5 rounded text-[10px] font-bold" style={{ background: formData.accentColor || "#EF4444", color: "#fff" }}>Accent</span>
+									<button className="px-3 py-1.5 rounded text-xs font-bold" style={{ background: formData.primaryColor || "#D4AF37", color: "#000" }}>Primary Button</button>
+									<button className="px-3 py-1.5 rounded text-xs font-bold border" style={{ borderColor: formData.secondaryColor || "#B49450", color: formData.secondaryColor || "#B49450" }}>Secondary</button>
+									<span className="px-2 py-1.5 rounded text-xs font-bold" style={{ background: formData.accentColor || "#EF4444", color: "#fff" }}>Accent</span>
 								</div>
 								<div className="p-3 rounded-lg border" style={{ background: formData.cardBgColor || "#1A1A1A", borderColor: formData.borderColor || "#2A2A2A" }}>
 									<p className="text-xs font-bold" style={{ color: formData.textPrimaryColor || "#FFFFFF" }}>Rolex Submariner Date</p>
-									<p className="text-[10px]" style={{ color: formData.textSecondaryColor || "#9CA3AF" }}>Đồng hồ lặn chuyên nghiệp, chống nước 300m</p>
+									<p className="text-xs" style={{ color: formData.textSecondaryColor || "#9CA3AF" }}>Đồng hồ lặn chuyên nghiệp, chống nước 300m</p>
 								</div>
 							</div>
 						</div>
@@ -763,7 +671,7 @@ const StoreSettingsTab = () => {
 
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 								<div className="space-y-4 bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-gray-800">
-									<h4 className="text-xs font-bold uppercase tracking-wider text-luxury-gold">Font Chữ Tiêu đề (Heading Font)</h4>
+									<h4 className="text-xs font-bold  text-luxury-gold">Font Chữ Tiêu đề (Heading Font)</h4>
 									<select
 										value={formData.headingFont || ""}
 										onChange={(e) => setFormData(prev => ({ ...prev, headingFont: e.target.value }))}
@@ -779,7 +687,7 @@ const StoreSettingsTab = () => {
 										<option value="Libre Baskerville">Libre Baskerville (Lịch lãm)</option>
 									</select>
 
-									<h4 className="text-xs font-bold uppercase tracking-wider text-luxury-gold mt-4">Font Chữ Nội dung (Body Font)</h4>
+									<h4 className="text-xs font-bold  text-luxury-gold mt-4">Font Chữ Nội dung (Body Font)</h4>
 									<select
 										value={formData.bodyFont || ""}
 										onChange={(e) => setFormData(prev => ({ ...prev, bodyFont: e.target.value }))}
@@ -797,7 +705,7 @@ const StoreSettingsTab = () => {
 								</div>
 
 								<div className="space-y-4 bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-gray-800">
-									<h4 className="text-xs font-bold uppercase tracking-wider text-luxury-gold">Tỉ lệ Kích thước</h4>
+									<h4 className="text-xs font-bold  text-luxury-gold">Tỉ lệ Kích thước</h4>
 									<p className="text-xs text-gray-500 leading-relaxed">
 										Đã lược bỏ slider điều chỉnh scale để giữ phần quản trị gọn hơn. Nếu cần thay đổi nhịp chữ, hãy dùng theme preset hoặc bảng màu tuỳ chỉnh.
 									</p>
@@ -819,7 +727,7 @@ const StoreSettingsTab = () => {
 							{/* About Text & Copyright */}
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div className="space-y-2">
-									<label className="block text-xs font-bold uppercase text-luxury-gold">Văn bản Giới thiệu Footer</label>
+									<label className="block text-xs font-semibold text-luxury-gold">Văn bản Giới thiệu Footer</label>
 									<textarea
 										value={formData.footerAboutText || ""}
 										onChange={(e) => setFormData(prev => ({ ...prev, footerAboutText: e.target.value }))}
@@ -828,7 +736,7 @@ const StoreSettingsTab = () => {
 									/>
 								</div>
 								<div className="space-y-2">
-									<label className="block text-xs font-bold uppercase text-luxury-gold">Dòng Bản quyền (Copyright)</label>
+									<label className="block text-xs font-semibold text-luxury-gold">Dòng Bản quyền (Copyright)</label>
 									<input
 										type="text"
 										value={formData.footerCopyright || ""}
@@ -836,18 +744,18 @@ const StoreSettingsTab = () => {
 										className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-transparent text-xs outline-none focus:border-luxury-gold"
 										placeholder='© {year} Luxury Watch Gallery. Tất cả quyền được bảo lưu.'
 									/>
-									<p className="text-[10px] text-gray-500">Dùng {'{year}'} để tự động điền năm hiện tại.</p>
+									<p className="text-xs text-gray-500">Dùng {'{year}'} để tự động điền năm hiện tại.</p>
 								</div>
 							</div>
 
 							{/* Footer Columns Editor */}
 							<div className="border-t border-gray-100 dark:border-white/5 pt-5 space-y-4">
 								<div className="flex items-center justify-between">
-									<h4 className="text-xs font-bold uppercase tracking-wider text-luxury-gold">Cột Liên kết Footer (Footer Columns)</h4>
+									<h4 className="text-xs font-bold  text-luxury-gold">Cột Liên kết Footer (Footer Columns)</h4>
 									<button
 										type="button"
 										onClick={() => setFormData(prev => ({ ...prev, footerColumns: [...(prev.footerColumns || []), { title: "Cột mới", links: [{ label: "Link mới", link: "/" }] }] }))}
-										className="bg-luxury-gold/10 hover:bg-luxury-gold/20 text-luxury-gold border border-luxury-gold/30 font-bold text-[10px] px-3 py-1.5 rounded-lg flex items-center gap-1.5"
+										className="bg-luxury-gold/10 hover:bg-luxury-gold/20 text-luxury-gold border border-luxury-gold/30 font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5"
 									>
 										<Plus className="w-3 h-3" /> Thêm Cột
 									</button>
@@ -889,7 +797,7 @@ const StoreSettingsTab = () => {
 															cols[colIdx] = { ...cols[colIdx], links };
 															setFormData(prev => ({ ...prev, footerColumns: cols }));
 														}}
-														className="flex-1 px-2.5 py-1.5 rounded border border-gray-200 dark:border-white/10 bg-transparent text-[11px] outline-none focus:border-luxury-gold"
+														className="flex-1 px-2.5 py-1.5 rounded border border-gray-200 dark:border-white/10 bg-transparent text-sm outline-none focus:border-luxury-gold"
 														placeholder="Tên hiển thị"
 													/>
 													<input
@@ -902,7 +810,7 @@ const StoreSettingsTab = () => {
 															cols[colIdx] = { ...cols[colIdx], links };
 															setFormData(prev => ({ ...prev, footerColumns: cols }));
 														}}
-														className="w-32 px-2.5 py-1.5 rounded border border-gray-200 dark:border-white/10 bg-transparent text-[11px] outline-none focus:border-luxury-gold"
+														className="w-32 px-2.5 py-1.5 rounded border border-gray-200 dark:border-white/10 bg-transparent text-sm outline-none focus:border-luxury-gold"
 														placeholder="/path"
 													/>
 													<button
@@ -912,7 +820,7 @@ const StoreSettingsTab = () => {
 															cols[colIdx] = { ...cols[colIdx], links: (cols[colIdx].links || []).filter((_, i) => i !== linkIdx) };
 															setFormData(prev => ({ ...prev, footerColumns: cols }));
 														}}
-														className="text-red-400 hover:text-red-300 text-[10px] px-1"
+														className="text-red-400 hover:text-red-300 text-xs px-1"
 													>
 														<Trash2 className="w-3 h-3" />
 													</button>
@@ -925,7 +833,7 @@ const StoreSettingsTab = () => {
 													cols[colIdx] = { ...cols[colIdx], links: [...(cols[colIdx].links || []), { label: "Link mới", link: "/" }] };
 													setFormData(prev => ({ ...prev, footerColumns: cols }));
 												}}
-												className="text-[10px] text-luxury-gold hover:underline flex items-center gap-1 mt-1"
+												className="text-xs text-luxury-gold hover:underline flex items-center gap-1 mt-1"
 											>
 												<Plus className="w-2.5 h-2.5" /> Thêm link
 											</button>
@@ -936,20 +844,20 @@ const StoreSettingsTab = () => {
 
 							{/* Extended Social Links */}
 							<div className="border-t border-gray-100 dark:border-white/5 pt-5 space-y-3">
-								<h4 className="text-xs font-bold uppercase tracking-wider text-luxury-gold flex items-center gap-1.5">
+								<h4 className="text-xs font-bold  text-luxury-gold flex items-center gap-1.5">
 									<Share2 className="w-3.5 h-3.5" /> Mạng Xã Hội Mở Rộng
 								</h4>
 								<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 									<div>
-										<label className="block text-[11px] font-bold text-gray-400 mb-1">TikTok URL</label>
+										<label className="block text-sm font-bold text-gray-400 mb-1">TikTok URL</label>
 										<input type="text" value={formData.footerTiktok || ""} onChange={(e) => setFormData(prev => ({ ...prev, footerTiktok: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-transparent text-xs outline-none focus:border-luxury-gold" placeholder="https://tiktok.com/@..." />
 									</div>
 									<div>
-										<label className="block text-[11px] font-bold text-gray-400 mb-1">YouTube URL</label>
+										<label className="block text-sm font-bold text-gray-400 mb-1">YouTube URL</label>
 										<input type="text" value={formData.footerYoutube || ""} onChange={(e) => setFormData(prev => ({ ...prev, footerYoutube: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-transparent text-xs outline-none focus:border-luxury-gold" placeholder="https://youtube.com/@..." />
 									</div>
 									<div>
-										<label className="block text-[11px] font-bold text-gray-400 mb-1">Pinterest URL</label>
+										<label className="block text-sm font-bold text-gray-400 mb-1">Pinterest URL</label>
 										<input type="text" value={formData.footerPinterest || ""} onChange={(e) => setFormData(prev => ({ ...prev, footerPinterest: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-transparent text-xs outline-none focus:border-luxury-gold" placeholder="https://pinterest.com/..." />
 									</div>
 								</div>
@@ -985,7 +893,7 @@ const StoreSettingsTab = () => {
 											className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-transparent text-xs outline-none focus:border-luxury-gold font-mono"
 											placeholder={item.placeholder}
 										/>
-										<p className="text-[10px] text-gray-500 mt-1">{item.desc}</p>
+										<p className="text-xs text-gray-500 mt-1">{item.desc}</p>
 									</div>
 								))}
 							</div>
@@ -993,7 +901,7 @@ const StoreSettingsTab = () => {
 							{/* Cookie Consent */}
 							<div className="border-t border-gray-100 dark:border-white/5 pt-5 space-y-4">
 								<div className="flex items-center justify-between">
-									<h4 className="text-xs font-bold uppercase tracking-wider text-luxury-gold flex items-center gap-1.5">
+									<h4 className="text-xs font-bold  text-luxury-gold flex items-center gap-1.5">
 										<Cookie className="w-3.5 h-3.5" /> Thông báo Cookie (GDPR)
 									</h4>
 									<label className="flex items-center gap-2 cursor-pointer">
@@ -1004,11 +912,11 @@ const StoreSettingsTab = () => {
 								</div>
 								<div className={`space-y-3 transition-all ${formData.cookieConsentEnabled ? "opacity-100" : "opacity-40 pointer-events-none"}`}>
 									<div>
-										<label className="block text-[11px] font-bold text-gray-400 mb-1">Tiêu đề Cookie Banner</label>
+										<label className="block text-sm font-bold text-gray-400 mb-1">Tiêu đề Cookie Banner</label>
 										<input type="text" value={formData.cookieConsentTitle || ""} onChange={(e) => setFormData(prev => ({ ...prev, cookieConsentTitle: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-transparent text-xs outline-none focus:border-luxury-gold" />
 									</div>
 									<div>
-										<label className="block text-[11px] font-bold text-gray-400 mb-1">Nội dung Cookie Banner</label>
+										<label className="block text-sm font-bold text-gray-400 mb-1">Nội dung Cookie Banner</label>
 										<textarea value={formData.cookieConsentText || ""} onChange={(e) => setFormData(prev => ({ ...prev, cookieConsentText: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-transparent text-xs outline-none focus:border-luxury-gold" rows={2} />
 									</div>
 								</div>
@@ -1061,7 +969,7 @@ const StoreSettingsTab = () => {
 										<div className="relative w-9 h-5 bg-gray-300 dark:bg-gray-700 rounded-full peer peer-focus:ring-1 peer-focus:ring-luxury-gold peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-luxury-gold"></div>
 										<span className="text-xs font-bold text-gray-400">Hiển thị sản phẩm hết hàng</span>
 									</label>
-									<p className="text-[10px] text-gray-500">Khi tắt, sản phẩm hết hàng sẽ bị ẩn khỏi trang danh mục.</p>
+									<p className="text-xs text-gray-500">Khi tắt, sản phẩm hết hàng sẽ bị ẩn khỏi trang danh mục.</p>
 								</div>
 							</div>
 						</div>
@@ -1080,7 +988,7 @@ const StoreSettingsTab = () => {
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 								{/* Favicon */}
 								<div className="space-y-3 bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-gray-800">
-									<h4 className="text-xs font-bold uppercase tracking-wider text-luxury-gold flex items-center gap-1.5">
+									<h4 className="text-xs font-bold  text-luxury-gold flex items-center gap-1.5">
 										<Monitor className="w-3.5 h-3.5" /> Favicon (Biểu tượng Tab trình duyệt)
 									</h4>
 									<div className="flex gap-3">
@@ -1099,15 +1007,15 @@ const StoreSettingsTab = () => {
 									{formData.favicon && (
 										<div className="flex items-center gap-2 p-2 rounded bg-white dark:bg-black/30">
 											<img src={formData.favicon} alt="Favicon" className="w-6 h-6 object-contain" onError={(e) => { e.target.style.display = "none"; }} />
-											<span className="text-[10px] text-gray-500 truncate">{formData.favicon}</span>
+											<span className="text-xs text-gray-500 truncate">{formData.favicon}</span>
 										</div>
 									)}
-									<p className="text-[10px] text-gray-500">Khuyên dùng ảnh PNG hoặc ICO kích thước 32x32px hoặc 64x64px.</p>
+									<p className="text-xs text-gray-500">Khuyên dùng ảnh PNG hoặc ICO kích thước 32x32px hoặc 64x64px.</p>
 								</div>
 
 								{/* Mobile Logo */}
 								<div className="space-y-3 bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-gray-800">
-									<h4 className="text-xs font-bold uppercase tracking-wider text-luxury-gold flex items-center gap-1.5">
+									<h4 className="text-xs font-bold  text-luxury-gold flex items-center gap-1.5">
 										<Smartphone className="w-3.5 h-3.5" /> Logo Riêng Cho Mobile
 									</h4>
 									<div className="flex gap-3">
@@ -1123,13 +1031,13 @@ const StoreSettingsTab = () => {
 											<input type="file" accept="image/*" onChange={(e) => handleImageUpload("advanced", "mobileLogoImage", e.target.files[0])} className="hidden" />
 										</label>
 									</div>
-									<p className="text-[10px] text-gray-500">Nếu để trống, hệ thống sẽ dùng logo chính co dãn tự động.</p>
+									<p className="text-xs text-gray-500">Nếu để trống, hệ thống sẽ dùng logo chính co dãn tự động.</p>
 								</div>
 							</div>
 
 							{/* Custom CSS editor intentionally removed to keep the admin UI focused and predictable. */}
 							<div className="space-y-3 bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-gray-800">
-								<h4 className="text-xs font-bold uppercase tracking-wider text-luxury-gold flex items-center gap-1.5">
+								<h4 className="text-xs font-bold  text-luxury-gold flex items-center gap-1.5">
 									<Code2 className="w-3.5 h-3.5" /> CSS Tuỳ Chỉnh Toàn Trang
 								</h4>
 								<p className="text-xs text-gray-500 leading-relaxed">
@@ -1151,12 +1059,12 @@ const StoreSettingsTab = () => {
 
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 								<div className="space-y-4 bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-gray-800">
-									<h4 className="text-xs font-bold uppercase tracking-wider text-luxury-gold flex items-center gap-1.5 mb-1">
+									<h4 className="text-xs font-bold  text-luxury-gold flex items-center gap-1.5 mb-1">
 										<Globe className="w-3.5 h-3.5" /> Tối ưu hóa SEO Metadata
 									</h4>
 									<div className="space-y-3">
 										<div>
-											<label className="block text-[11px] font-bold text-gray-400 mb-1">TIÊU ĐỀ TRANG CỬA HÀNG (SEO TITLE)</label>
+											<label className="block text-sm font-bold text-gray-400 mb-1">TIÊU ĐỀ TRANG CỬA HÀNG (SEO TITLE)</label>
 											<input
 												type="text"
 												name="seoTitle"
@@ -1165,10 +1073,10 @@ const StoreSettingsTab = () => {
 												className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-transparent text-xs outline-none focus:border-luxury-gold transition font-medium"
 												placeholder="VD: Luxury Watch Gallery | Đồng Hồ Cao Cấp Chính Hãng"
 											/>
-											<p className="text-[9px] text-gray-500 mt-1">Khuyên dùng độ dài từ 50-60 ký tự để hiển thị tốt nhất trên kết quả tìm kiếm Google.</p>
+											<p className="text-xs text-gray-500 mt-1">Khuyên dùng độ dài từ 50-60 ký tự để hiển thị tốt nhất trên kết quả tìm kiếm Google.</p>
 										</div>
 										<div>
-											<label className="block text-[11px] font-bold text-gray-400 mb-1">MÔ TẢ THƯƠNG HIỆU (META DESCRIPTION)</label>
+											<label className="block text-sm font-bold text-gray-400 mb-1">MÔ TẢ THƯƠNG HIỆU (META DESCRIPTION)</label>
 											<textarea
 												name="seoMetaDesc"
 												value={formData.seoMetaDesc || ""}
@@ -1177,19 +1085,19 @@ const StoreSettingsTab = () => {
 												placeholder="VD: Hệ thống phân phối đồng hồ cao cấp chính hãng..."
 												rows={4}
 											/>
-											<p className="text-[9px] text-gray-500 mt-1">Khuyên dùng dưới 160 ký tự để Google không bị cắt bớt nội dung mô tả của bạn.</p>
+											<p className="text-xs text-gray-500 mt-1">Khuyên dùng dưới 160 ký tự để Google không bị cắt bớt nội dung mô tả của bạn.</p>
 										</div>
 									</div>
 								</div>
 
 								<div className="space-y-4 bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-gray-800 flex flex-col justify-between">
 									<div>
-										<h4 className="text-xs font-bold uppercase tracking-wider text-luxury-gold flex items-center gap-1.5 mb-1">
+										<h4 className="text-xs font-bold  text-luxury-gold flex items-center gap-1.5 mb-1">
 											<Clock className="w-3.5 h-3.5" /> Thời Gian Vận Hành Cửa Hàng
 										</h4>
 										<div className="space-y-3 mt-3">
 											<div>
-												<label className="block text-[11px] font-bold text-gray-400 mb-1">GIỜ MỞ CỬA SHOWROOM</label>
+												<label className="block text-sm font-bold text-gray-400 mb-1">GIỜ MỞ CỬA SHOWROOM</label>
 												<input
 													type="text"
 													name="storeWorkingHours"
@@ -1198,16 +1106,16 @@ const StoreSettingsTab = () => {
 													className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-transparent text-xs outline-none focus:border-luxury-gold transition font-medium"
 													placeholder="VD: Mở cửa hàng ngày: 09:00 - 21:00"
 												/>
-												<p className="text-[10px] text-gray-500 mt-1">Giờ làm việc này sẽ được hiển thị ở các khu vực thông tin liên hệ và Chân trang Footer.</p>
+												<p className="text-xs text-gray-500 mt-1">Giờ làm việc này sẽ được hiển thị ở các khu vực thông tin liên hệ và Chân trang Footer.</p>
 											</div>
 										</div>
 									</div>
 
 									{/* SEO Google Mockup Preview Card */}
 									<div className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-black/40 rounded-xl p-3.5 mt-4 space-y-1">
-										<p className="text-[9px] text-gray-400 flex items-center gap-1.5"><Globe className="w-2.5 h-2.5" /> {window.location.origin}</p>
+										<p className="text-xs text-gray-400 flex items-center gap-1.5"><Globe className="w-2.5 h-2.5" /> {window.location.origin}</p>
 										<h5 className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer truncate">{formData.seoTitle}</h5>
-										<p className="text-[10px] text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-2">{formData.seoMetaDesc}</p>
+										<p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-2">{formData.seoMetaDesc}</p>
 									</div>
 								</div>
 							</div>
@@ -1225,18 +1133,17 @@ const StoreSettingsTab = () => {
 							</div>
 
 							<div className="space-y-3">
-								<label className="block text-xs font-bold uppercase tracking-wider text-luxury-gold">1. Chọn Hệ màu chủ đề chính</label>
+								<label className="block text-xs font-bold  text-luxury-gold">1. Chọn Hệ màu chủ đề chính</label>
 								<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
 									{THEME_PRESETS.map((p) => {
 										const selected = formData.themePreset === p.key;
 										return (
 											<label
 												key={p.key}
-												className={`flex flex-col cursor-pointer p-4 rounded-xl border-2 transition-all relative ${
-													selected
-														? "border-luxury-gold bg-luxury-gold/5 shadow-md shadow-luxury-gold/5"
-														: "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-transparent"
-												}`}
+												className={`flex flex-col cursor-pointer p-4 rounded-xl border-2 transition-all relative ${selected
+													? "border-luxury-gold bg-luxury-gold/5 shadow-md shadow-luxury-gold/5"
+													: "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-transparent"
+													}`}
 											>
 												<input
 													type="radio"
@@ -1252,8 +1159,8 @@ const StoreSettingsTab = () => {
 														{selected && <span className="w-1.5 h-1.5 rounded-full bg-luxury-gold" />}
 													</span>
 												</div>
-												<p className="text-[11px] text-gray-500 leading-relaxed mb-3">{p.desc}</p>
-												<div className={`mt-auto text-[10px] font-mono px-2 py-1 rounded text-center border ${p.accent}`}>
+												<p className="text-sm text-gray-500 leading-relaxed mb-3">{p.desc}</p>
+												<div className={`mt-auto text-xs font-mono px-2 py-1 rounded text-center border ${p.accent}`}>
 													Accent Color Variable
 												</div>
 											</label>
@@ -1263,7 +1170,7 @@ const StoreSettingsTab = () => {
 							</div>
 
 							<div className="border-t border-gray-100 dark:border-white/5 pt-5 space-y-3">
-								<label className="block text-xs font-bold uppercase tracking-wider text-luxury-gold">2. Chế độ hiển thị phông sáng/tối mặc định</label>
+								<label className="block text-xs font-bold  text-luxury-gold">2. Chế độ hiển thị phông sáng/tối mặc định</label>
 								<div className="grid grid-cols-3 gap-3">
 									{[
 										{ key: "dark", label: "Always Dark (Khuyên dùng)", desc: "Đúng chuẩn quiet luxury" },
@@ -1274,11 +1181,10 @@ const StoreSettingsTab = () => {
 										return (
 											<label
 												key={mode.key}
-												className={`flex flex-col items-center justify-center text-center cursor-pointer p-4 rounded-xl border-2 transition ${
-													selected
-														? "border-luxury-gold bg-luxury-gold/5"
-														: "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-transparent"
-												}`}
+												className={`flex flex-col items-center justify-center text-center cursor-pointer p-4 rounded-xl border-2 transition ${selected
+													? "border-luxury-gold bg-luxury-gold/5"
+													: "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-transparent"
+													}`}
 											>
 												<input
 													type="radio"
@@ -1289,7 +1195,7 @@ const StoreSettingsTab = () => {
 													className="sr-only"
 												/>
 												<span className="font-bold text-xs text-gray-900 dark:text-white mb-1">{mode.label}</span>
-												<span className="text-[10px] text-gray-500">{mode.desc}</span>
+												<span className="text-xs text-gray-500">{mode.desc}</span>
 											</label>
 										);
 									})}
@@ -1300,197 +1206,169 @@ const StoreSettingsTab = () => {
 
 					{/* 3. HERO SLIDES MANAGER */}
 					{activeSubTab === "slides" && (
-						<div className="space-y-5 animate-fade-in">
+						<div className="space-y-6 animate-fade-in">
 							<div className="flex items-center justify-between border-b border-gray-100 dark:border-white/5 pb-3">
 								<div>
 									<h3 className="text-base font-bold flex items-center gap-2 text-primary">
 										<ImageIcon className="w-4 h-4 text-luxury-gold" /> Trình Quản Lý Carousel Slides đầu trang
 									</h3>
-									<p className="text-xs text-gray-400 mt-1">
-										Cấu hình nhiều banner quảng cáo dạng Slide trượt ở trang chủ.
-										<span className="ml-2 text-luxury-gold/70">Nhập số thứ tự để sắp xếp lại vị trí tức thì.</span>
-									</p>
+									<p className="text-xs text-gray-400 mt-1">Cấu hình nhiều banner quảng cáo dạng Slide trượt cực kỳ sang trọng ở trang chủ.</p>
 								</div>
 								<button
 									type="button"
 									onClick={addSlide}
-									className="bg-luxury-gold/10 hover:bg-luxury-gold/20 text-luxury-gold border border-luxury-gold/30 font-bold text-xs px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition flex-shrink-0"
+									className="bg-luxury-gold/10 hover:bg-luxury-gold/20 text-luxury-gold border border-luxury-gold/30 font-bold text-xs px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition"
 								>
 									<Plus className="w-3.5 h-3.5" /> Thêm Slide
 								</button>
 							</div>
 
-							{/* Slide order overview pills */}
-							{(formData.heroSlides || []).length > 1 && (
-								<div className="flex flex-wrap gap-1.5 px-1">
-									{(formData.heroSlides || []).map((s, i) => (
-										<span
-											key={i}
-											onClick={() => setCollapsedSlides(prev => Object.fromEntries((formData.heroSlides || []).map((_, j) => [j, j !== i])))}
-											className={`cursor-pointer text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all ${
-												!collapsedSlides[i]
-													? 'bg-luxury-gold text-black border-luxury-gold'
-													: s.active !== false
-														? 'bg-luxury-gold/10 text-luxury-gold border-luxury-gold/30 hover:bg-luxury-gold/20'
-														: 'bg-gray-700/30 text-gray-500 border-gray-700 hover:bg-gray-700/50'
-											}`}
-											title={s.title || `Slide ${i + 1}`}
-										>
-											#{i + 1} {s.active === false ? '(tắt)' : ''}
-										</span>
-									))}
-									<span className="text-[10px] text-gray-500 self-center ml-1">— click để mở nhanh</span>
-								</div>
-							)}
+							<div className="space-y-4">
+								{(formData.heroSlides || []).map((slide, index) => (
+									<div key={index} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-black/10 dark:bg-black/30 p-4 space-y-4 relative">
 
-							<div className="space-y-3">
-								{(formData.heroSlides || []).map((slide, index) => {
-									const isCollapsed = !!collapsedSlides[index];
-									return (
-										<div key={index} className={`rounded-xl border transition-all ${
-											isCollapsed
-												? 'border-gray-200 dark:border-gray-800 bg-black/5 dark:bg-black/20'
-												: 'border-luxury-gold/30 bg-black/10 dark:bg-black/30'
-										}`}>
+										{/* Slide header & order controls */}
+										<div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-2">
+											<div className="flex items-center gap-4">
+												<span className="text-xs font-bold text-luxury-gold">Slide #{index + 1}</span>
+												<label className="flex items-center gap-1.5 cursor-pointer select-none">
+													<input
+														type="checkbox"
+														checked={slide.active !== false}
+														onChange={(e) => handleSlideChange(index, "active", e.target.checked)}
+														className="sr-only peer"
+													/>
+													<div className="relative w-8 h-4 bg-gray-300 dark:bg-gray-700 rounded-full peer peer-focus:ring-1 peer-focus:ring-luxury-gold peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-luxury-gold"></div>
+													<span className="text-xs font-semibold text-gray-400">
+														{slide.active !== false ? "Đang bật" : "Đang tắt"}
+													</span>
+												</label>
+											</div>
+											<div className="flex items-center gap-1">
+												<button
+													type="button"
+													onClick={() => moveSlide(index, -1)}
+													disabled={index === 0}
+													className="p-1 rounded hover:bg-white/10 disabled:opacity-20 text-gray-400 transition"
+													title="Lên trên"
+												>
+													<ChevronUp className="w-4 h-4" />
+												</button>
+												<button
+													type="button"
+													onClick={() => moveSlide(index, 1)}
+													disabled={index === formData.heroSlides.length - 1}
+													className="p-1 rounded hover:bg-white/10 disabled:opacity-20 text-gray-400 transition"
+													title="Xuống dưới"
+												>
+													<ChevronDown className="w-4 h-4" />
+												</button>
+												<button
+													type="button"
+													onClick={() => removeSlide(index)}
+													className="p-1 rounded hover:bg-red-500/10 text-red-400 ml-1.5 transition"
+													title="Xóa Slide này"
+												>
+													<Trash2 className="w-4 h-4" />
+												</button>
+											</div>
+										</div>
 
-											{/* ── Slide accordion header ── */}
-											<div
-												className="flex items-center justify-between px-4 py-3 cursor-pointer select-none group"
-												onClick={() => toggleSlideCollapse(index)}
-											>
-												{/* Left: order input + title preview + status badge */}
-												<div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
-													{/* Numeric position input */}
-													<div className="flex items-center gap-1.5">
-														<span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Vị trí</span>
-														<input
-															type="number"
-															min={1}
-															max={(formData.heroSlides || []).length}
-															value={index + 1}
-															onChange={(e) => {
-																const val = parseInt(e.target.value, 10);
-																if (!isNaN(val)) reorderSlide(index, val);
-															}}
-															onClick={e => e.stopPropagation()}
-															className="w-12 px-1.5 py-1 rounded border border-luxury-gold/40 bg-luxury-gold/5 text-luxury-gold text-xs font-bold text-center outline-none focus:border-luxury-gold focus:ring-1 focus:ring-luxury-gold/30 transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-															title={`Nhập số thứ tự (1–${(formData.heroSlides || []).length}) để di chuyển slide này`}
-														/>
-													</div>
-													{/* Active toggle */}
-													<label className="flex items-center gap-1.5 cursor-pointer" onClick={e => e.stopPropagation()}>
-														<input
-															type="checkbox"
-															checked={slide.active !== false}
-															onChange={(e) => handleSlideChange(index, "active", e.target.checked)}
-															className="sr-only peer"
-														/>
-														<div className="relative w-8 h-4 bg-gray-300 dark:bg-gray-700 rounded-full peer peer-focus:ring-1 peer-focus:ring-luxury-gold peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-luxury-gold"></div>
-														<span className="text-[10px] font-semibold text-gray-400">{slide.active !== false ? 'Bật' : 'Tắt'}</span>
-													</label>
+										{/* Inputs */}
+										<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+											<div className="space-y-3">
+												<div>
+													<label className="block text-sm font-bold  text-gray-400 mb-1">Tiêu đề Slide (Title)</label>
+													<input
+														type="text"
+														value={slide.title || ""}
+														onChange={(e) => handleSlideChange(index, "title", e.target.value)}
+														className="w-full px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
+														placeholder="VD: Kiệt tác Thời gian"
+													/>
 												</div>
-
-												{/* Right: title preview + expand/delete */}
-												<div className="flex items-center gap-2 min-w-0">
-													<span className="text-xs text-gray-400 truncate max-w-[120px] sm:max-w-[200px]">{slide.title || `(Chưa đặt tên)`}</span>
-													<button
-														type="button"
-														onClick={(e) => { e.stopPropagation(); removeSlide(index); }}
-														className="p-1 rounded hover:bg-red-500/10 text-red-400 transition flex-shrink-0"
-														title="Xóa Slide này"
-													>
-														<Trash2 className="w-3.5 h-3.5" />
-													</button>
-													<ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${isCollapsed ? '' : 'rotate-180'}`} />
+												<div>
+													<label className="block text-sm font-bold  text-gray-400 mb-1">Mô tả phụ (Subtitle)</label>
+													<textarea
+														value={slide.subtitle || ""}
+														onChange={(e) => handleSlideChange(index, "subtitle", e.target.value)}
+														className="w-full px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
+														placeholder="VD: Slogan tinh tế..."
+														rows={2}
+													/>
+												</div>
+												<div>
+													<label className="block text-sm font-bold  text-gray-400 mb-1">Link liên kết nút bấm (URL)</label>
+													<input
+														type="text"
+														value={slide.link || ""}
+														onChange={(e) => handleSlideChange(index, "link", e.target.value)}
+														className="w-full px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
+														placeholder="VD: /catalog?brand=Rolex"
+													/>
 												</div>
 											</div>
 
-											{/* ── Slide body (collapsible) ── */}
-											{!isCollapsed && (
-												<div className="px-4 pb-4 pt-1 border-t border-gray-200 dark:border-gray-800">
-													<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-														<div className="space-y-3">
-															<div>
-																<label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Tiêu đề Slide (Title)</label>
-																<BufferedInput
-																	type="text"
-																	value={slide.title || ""}
-																	onChange={(val) => handleSlideChange(index, "title", val)}
-																	className="w-full px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
-																	placeholder="VD: Kiệt tác Thời gian"
-																/>
-															</div>
-															<div>
-																<label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Mô tả phụ (Subtitle)</label>
-																<BufferedTextarea
-																	value={slide.subtitle || ""}
-																	onChange={(val) => handleSlideChange(index, "subtitle", val)}
-																	className="w-full px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
-																	placeholder="VD: Slogan tinh tế..."
-																	rows={2}
-																/>
-															</div>
-															<div>
-																<label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Link liên kết nút bấm (URL)</label>
-																<BufferedInput
-																	type="text"
-																	value={slide.link || ""}
-																	onChange={(val) => handleSlideChange(index, "link", val)}
-																	className="w-full px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
-																	placeholder="VD: /catalog?brand=Rolex"
-																/>
-															</div>
-														</div>
-
-														<div className="space-y-3">
-															<div>
-																<label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Ảnh nền (Desktop Banner URL)</label>
-																<div className="flex gap-2">
-																	<BufferedInput
-																		type="text"
-																		value={slide.image || ""}
-																		onChange={(val) => handleSlideChange(index, "image", val)}
-																		className="flex-1 px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
-																		placeholder="VD: https://images.unsplash.com..."
-																	/>
-																	<label className="flex items-center justify-center px-3 py-2 rounded border border-luxury-gold/30 bg-luxury-gold/5 text-luxury-gold hover:bg-luxury-gold/10 text-xs font-semibold cursor-pointer transition select-none flex-shrink-0 min-w-[90px]">
-																		{uploadingIndex?.index === index && uploadingIndex?.field === "image" ? (
-																			<span className="w-3.5 h-3.5 border-2 border-luxury-gold border-t-transparent rounded-full animate-spin"></span>
-																		) : "Tải ảnh từ máy"}
-																		<input type="file" accept="image/*" onChange={(e) => handleImageUpload(index, "image", e.target.files[0])} className="hidden" />
-																	</label>
-																</div>
-															</div>
-															<div>
-																<label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Ảnh nền riêng cho Mobile (Tùy chọn)</label>
-																<div className="flex gap-2">
-																	<BufferedInput
-																		type="text"
-																		value={slide.mobileImage || ""}
-																		onChange={(val) => handleSlideChange(index, "mobileImage", val)}
-																		className="flex-1 px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
-																		placeholder="Để trống nếu muốn co dãn ảnh desktop tự động"
-																	/>
-																	<label className="flex items-center justify-center px-3 py-2 rounded border border-luxury-gold/30 bg-luxury-gold/5 text-luxury-gold hover:bg-luxury-gold/10 text-xs font-semibold cursor-pointer transition select-none flex-shrink-0 min-w-[90px]">
-																		{uploadingIndex?.index === index && uploadingIndex?.field === "mobileImage" ? (
-																			<span className="w-3.5 h-3.5 border-2 border-luxury-gold border-t-transparent rounded-full animate-spin"></span>
-																		) : "Tải ảnh từ máy"}
-																		<input type="file" accept="image/*" onChange={(e) => handleImageUpload(index, "mobileImage", e.target.files[0])} className="hidden" />
-																	</label>
-																</div>
-															</div>
-															{slide.image && (
-																<div className="border border-gray-200 dark:border-gray-800 rounded overflow-hidden h-24 bg-black/20">
-																	<img src={slide.image} alt="Preview" className="h-full w-full object-cover" onError={(e) => { e.target.src="https://placehold.co/600x200?text=Invalid+Image+URL"; }} />
-																</div>
+											<div className="space-y-3">
+												<div>
+													<label className="block text-sm font-bold  text-gray-400 mb-1">Ảnh nền (Desktop Banner URL)</label>
+													<div className="flex gap-2">
+														<input
+															type="text"
+															value={slide.image || ""}
+															onChange={(e) => handleSlideChange(index, "image", e.target.value)}
+															className="flex-1 px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
+															placeholder="VD: https://images.unsplash.com..."
+														/>
+														<label className="flex items-center justify-center px-3 py-2 rounded border border-luxury-gold/30 bg-luxury-gold/5 text-luxury-gold hover:bg-luxury-gold/10 text-xs font-semibold cursor-pointer transition select-none flex-shrink-0 min-w-[90px]">
+															{uploadingIndex?.index === index && uploadingIndex?.field === "image" ? (
+																<span className="w-3.5 h-3.5 border-2 border-luxury-gold border-t-transparent rounded-full animate-spin"></span>
+															) : (
+																"Tải ảnh từ máy"
 															)}
-														</div>
+															<input
+																type="file"
+																accept="image/*"
+																onChange={(e) => handleImageUpload(index, "image", e.target.files[0])}
+																className="hidden"
+															/>
+														</label>
 													</div>
 												</div>
-											)}
+												<div>
+													<label className="block text-sm font-bold  text-gray-400 mb-1">Ảnh nền riêng cho Mobile URL (Tùy chọn)</label>
+													<div className="flex gap-2">
+														<input
+															type="text"
+															value={slide.mobileImage || ""}
+															onChange={(e) => handleSlideChange(index, "mobileImage", e.target.value)}
+															className="flex-1 px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
+															placeholder="Để trống nếu muốn co dãn ảnh desktop tự động"
+														/>
+														<label className="flex items-center justify-center px-3 py-2 rounded border border-luxury-gold/30 bg-luxury-gold/5 text-luxury-gold hover:bg-luxury-gold/10 text-xs font-semibold cursor-pointer transition select-none flex-shrink-0 min-w-[90px]">
+															{uploadingIndex?.index === index && uploadingIndex?.field === "mobileImage" ? (
+																<span className="w-3.5 h-3.5 border-2 border-luxury-gold border-t-transparent rounded-full animate-spin"></span>
+															) : (
+																"Tải ảnh từ máy"
+															)}
+															<input
+																type="file"
+																accept="image/*"
+																onChange={(e) => handleImageUpload(index, "mobileImage", e.target.files[0])}
+																className="hidden"
+															/>
+														</label>
+													</div>
+												</div>
+												{slide.image && (
+													<div className="border border-gray-200 dark:border-gray-800 rounded overflow-hidden h-24 bg-black/20 flex items-center justify-center">
+														<img src={slide.image} alt="Preview" className="h-full w-full object-cover" onError={(e) => { e.target.src = "https://placehold.co/600x200?text=Invalid+Image+URL"; }} />
+													</div>
+												)}
+											</div>
 										</div>
-									);
-								})}
+									</div>
+								))}
 							</div>
 						</div>
 					)}
@@ -1506,8 +1384,8 @@ const StoreSettingsTab = () => {
 							</div>
 
 							<div className="space-y-4">
-								<h4 className="text-xs font-bold uppercase tracking-widest text-luxury-gold">1. Tiêu đề khối & Slogan Tiếp thị</h4>
-								
+								<h4 className="text-xs font-semibold tracking-widest text-luxury-gold">1. Tiêu đề khối & Slogan Tiếp thị</h4>
+
 								<div>
 									<label className="block text-xs font-medium mb-1 text-gray-400">Slogan Trang Chủ (Hero Slogan)</label>
 									<textarea
@@ -1519,7 +1397,7 @@ const StoreSettingsTab = () => {
 										placeholder="Nhập câu châm ngôn thương hiệu..."
 									/>
 								</div>
-								
+
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div>
 										<label className="block text-xs font-medium mb-1 text-gray-400">Tiêu đề Banner Flash Sale</label>
@@ -1585,7 +1463,7 @@ const StoreSettingsTab = () => {
 											placeholder="VD: ĐĂNG KÝ THÀNH VIÊN VIP"
 										/>
 									</div>
-									
+
 									<div>
 										<label className="block text-xs font-medium mb-1 text-gray-400">Văn bản chiêu dụ nhận ưu đãi</label>
 										<textarea
@@ -1611,7 +1489,7 @@ const StoreSettingsTab = () => {
 											/>
 											<span className="text-xs text-gray-400">giây</span>
 										</div>
-										<p className="text-[10px] text-gray-500 mt-1">Xuất hiện sau khi khách hàng vào lướt website đúng N giây.</p>
+										<p className="text-xs text-gray-500 mt-1">Xuất hiện sau khi khách hàng vào lướt website đúng N giây.</p>
 									</div>
 								</div>
 
@@ -1633,11 +1511,11 @@ const StoreSettingsTab = () => {
 												src={formData.promoPopupImage}
 												alt="Popup preview"
 												className="h-full w-full object-cover"
-												onError={(e) => { e.target.src="https://placehold.co/300x200?text=Invalid+Image+URL"; }}
+												onError={(e) => { e.target.src = "https://placehold.co/300x200?text=Invalid+Image+URL"; }}
 											/>
 											<div className="absolute inset-0 bg-black/40 p-3 flex flex-col justify-end text-white">
-												<p className="text-[10px] font-bold tracking-wider text-luxury-gold uppercase">{formData.promoPopupTitle}</p>
-												<p className="text-[9px] text-gray-200 truncate mt-0.5">{formData.promoPopupText}</p>
+												<p className="text-xs font-bold tracking-wider text-luxury-gold uppercase">{formData.promoPopupTitle}</p>
+												<p className="text-xs text-gray-200 truncate mt-0.5">{formData.promoPopupText}</p>
 											</div>
 										</div>
 									)}
@@ -1696,7 +1574,7 @@ const StoreSettingsTab = () => {
 							</div>
 
 							<div className="border-t border-gray-100 dark:border-white/5 pt-5 space-y-4">
-								<h4 className="text-xs font-bold uppercase tracking-widest text-luxury-gold flex items-center gap-1.5">
+								<h4 className="text-xs font-semibold tracking-widest text-luxury-gold flex items-center gap-1.5">
 									<Share2 className="w-3.5 h-3.5" /> Đường dẫn Mạng xã hội của thương hiệu
 								</h4>
 
@@ -1754,13 +1632,13 @@ const StoreSettingsTab = () => {
 											<label key={num} className={`flex-1 flex flex-col items-center justify-center cursor-pointer p-3.5 rounded-xl border-2 transition ${Number(formData.gridColumns) === num ? "border-luxury-gold bg-luxury-gold/5" : "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-transparent"}`}>
 												<input type="radio" name="gridColumns" value={num} checked={Number(formData.gridColumns) === num} onChange={handleChange} className="sr-only" />
 												<span className="font-bold text-base mb-0.5">{num}</span>
-												<span className="text-[10px] text-gray-500">Cột</span>
+												<span className="text-xs text-gray-500">Cột</span>
 											</label>
 										))}
 									</div>
-									<p className="text-[10px] text-gray-500 mt-1.5">Mật độ hiển thị lưới đồng hồ trên màn hình máy tính của trang Danh mục (Catalog).</p>
+									<p className="text-xs text-gray-500 mt-1.5">Mật độ hiển thị lưới đồng hồ trên màn hình máy tính của trang Danh mục (Catalog).</p>
 								</div>
-								
+
 								<div>
 									<label className="block text-xs font-medium mb-2 text-gray-400">Số lượng SP trưng bày trang chủ</label>
 									<div className="flex gap-2">
@@ -1768,11 +1646,11 @@ const StoreSettingsTab = () => {
 											<label key={num} className={`flex-1 flex flex-col items-center justify-center cursor-pointer p-3.5 rounded-xl border-2 transition ${Number(formData.featuredCount) === num ? "border-luxury-gold bg-luxury-gold/5" : "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-transparent"}`}>
 												<input type="radio" name="featuredCount" value={num} checked={Number(formData.featuredCount) === num} onChange={handleChange} className="sr-only" />
 												<span className="font-bold text-base mb-0.5">{num}</span>
-												<span className="text-[10px] text-gray-500">Đồng hồ</span>
+												<span className="text-xs text-gray-500">Đồng hồ</span>
 											</label>
 										))}
 									</div>
-									<p className="text-[10px] text-gray-500 mt-1.5">Số lượng sản phẩm tối đa xuất hiện ở khối &quot;Tuyển chọn tinh hoa&quot;.</p>
+									<p className="text-xs text-gray-500 mt-1.5">Số lượng sản phẩm tối đa xuất hiện ở khối &quot;Tuyển chọn tinh hoa&quot;.</p>
 								</div>
 							</div>
 
@@ -1787,7 +1665,7 @@ const StoreSettingsTab = () => {
 										<MessageSquareText className="w-5 h-5 text-luxury-gold" />
 										<div>
 											<span className="font-bold text-xs text-gray-900 dark:text-white block">Kích hoạt Trợ lý AI Cố vấn mua sắm</span>
-											<span className="text-[10px] text-gray-500">Hiển thị bong bóng trò chuyện tư vấn đồng hồ AI thông minh ở góc phải màn hình của khách hàng.</span>
+											<span className="text-xs text-gray-500">Hiển thị bong bóng trò chuyện tư vấn đồng hồ AI thông minh ở góc phải màn hình của khách hàng.</span>
 										</div>
 									</div>
 								</label>

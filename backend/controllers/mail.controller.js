@@ -289,6 +289,18 @@ export const updateTemplate = async (req, res) => {
 	}
 };
 
+export const deleteTemplate = async (req, res) => {
+	try {
+		const template = await EmailTemplate.findByIdAndDelete(req.params.id);
+		if (!template) {
+			return res.status(404).json({ message: "Không tìm thấy mẫu email" });
+		}
+		res.json({ message: "Đã xóa mẫu email thành công" });
+	} catch (error) {
+		res.status(500).json({ message: error.message });
+	}
+};
+
 // 4. Campaigns
 export const getCampaigns = async (req, res) => {
 	try {

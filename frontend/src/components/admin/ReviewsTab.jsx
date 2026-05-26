@@ -67,7 +67,7 @@ const ReviewsTab = () => {
 							{ label: "Đã Ẩn", value: reviewStats.hidden, color: "text-muted" },
 						].map((stat, i) => (
 							<div key={i} className="rounded-2xl border border-black/8 dark:border-white/8 bg-surface p-5">
-								<p className="text-[10px] font-semibold text-muted uppercase tracking-[0.18em]">{stat.label}</p>
+								<p className="text-sm font-medium text-muted">{stat.label}</p>
 								<p className={`text-2xl font-bold mt-1 ${stat.color}`}>{stat.value}</p>
 							</div>
 						))}
@@ -102,7 +102,7 @@ const ReviewsTab = () => {
 								<thead className="border-b border-black/8 dark:border-white/8 bg-[color:var(--color-surface-2)]">
 									<tr>
 										{["Khách hàng","Sản phẩm","Đánh giá","Nội dung","Ngày","Trạng thái","Hành động"].map(h => (
-											<th key={h} className="px-5 py-3.5 text-left text-[10px] font-semibold text-muted uppercase tracking-[0.12em] whitespace-nowrap">{h}</th>
+											<th key={h} className="px-5 py-3.5 text-left text-xs font-semibold text-muted uppercase tracking-wider whitespace-nowrap">{h}</th>
 										))}
 									</tr>
 								</thead>
@@ -281,7 +281,7 @@ const ReviewsTab = () => {
 								<p className="text-sm text-primary">{selectedQuestion.question}</p>
 							</div>
 							<form onSubmit={submitReply}>
-								<label className="block text-[10px] font-semibold text-muted uppercase tracking-[0.14em] mb-2">Câu trả lời từ cửa hàng</label>
+								<label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-2">Câu trả lời từ cửa hàng</label>
 								<textarea
 									required rows="4"
 									value={replyContent}

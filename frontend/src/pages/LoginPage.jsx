@@ -4,14 +4,7 @@ import { Link } from "react-router-dom";
 import { LogIn, Mail, Lock, ArrowRight, Loader, ShieldCheck, RefreshCw, Gift, Truck, Percent, Star, BadgeCheck, Gem } from "lucide-react";
 import { useUserStore } from "../stores/useUserStore";
 
-const BENEFITS = [
-  { icon: Percent, title: "Chiết khấu đến 5%", desc: "Khi mua các sản phẩm tại Luxury Watch Gallery" },
-  { icon: Truck, title: "Miễn phí giao hàng", desc: "Cho thành viên VIP và đơn hàng từ 10 triệu" },
-  { icon: Gift, title: "Voucher sinh nhật", desc: "Tặng voucher đến 500.000đ cho thành viên" },
-  { icon: Gem, title: "Trợ giá thu cũ lên đời", desc: "Thu cũ đổi mới, trợ giá đến 5 triệu" },
-  { icon: Star, title: "Thăng hạng nhận voucher", desc: "Nhận voucher đến 300.000đ khi lên hạng" },
-  { icon: BadgeCheck, title: "Đặc quyền VIP", desc: "Ưu đãi thêm đến 10% cho khách hàng thân thiết" },
-];
+import AuthLeftPanel from "../components/AuthLeftPanel";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -72,55 +65,11 @@ const LoginPage = () => {
   return (
     <div className="flex min-h-screen bg-[#f5f3ef] dark:bg-[#0f0c08]">
       {/* ═══ LEFT — Benefits Panel ═══ */}
-      <div className="hidden lg:flex lg:w-[46%] flex-col bg-gradient-to-br from-[#1a1815] via-[#141210] to-[#0d0c0a] relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(212,175,55,0.3) 0.5px, transparent 0.5px)`,
-          backgroundSize: "24px 24px",
-        }} />
-        <div className="relative px-10 pt-10 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[color:var(--color-gold)]/15 border border-[color:var(--color-gold)]/30 flex items-center justify-center">
-              <span className="text-sm font-bold tracking-wider text-[color:var(--color-gold)]">LW</span>
-            </div>
-            <div>
-              <p className="text-lg font-bold tracking-[0.2em] text-white">LUXURY</p>
-              <p className="text-[10px] uppercase tracking-[0.25em] text-white/40">Watch Gallery</p>
-            </div>
-          </div>
-          <div className="mt-6 mb-1">
-            <span className="inline-block px-3 py-1 rounded-full bg-[color:var(--color-gold)]/10 border border-[color:var(--color-gold)]/20 text-[11px] font-semibold text-[color:var(--color-gold)] uppercase tracking-wider">SMEMBER</span>
-          </div>
-          <h2 className="text-xl font-bold text-white leading-tight mt-3">Nhập hội khách hàng<br />thành viên SMEMBER</h2>
-          <p className="text-sm text-white/50 mt-1">Để không bỏ lỡ các ưu đãi hấp dẫn</p>
-        </div>
-        <div className="relative flex-1 px-10 py-3 space-y-3.5 overflow-y-auto">
-          {BENEFITS.map((item, i) => {
-            const Icon = item.icon;
-            return (
-              <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 * i }}
-                className="flex items-start gap-3 group">
-                <div className="w-7 h-7 rounded-lg bg-[color:var(--color-gold)]/10 border border-[color:var(--color-gold)]/15 flex items-center justify-center flex-shrink-0 group-hover:bg-[color:var(--color-gold)]/20 transition-colors">
-                  <Icon className="w-3.5 h-3.5 text-[color:var(--color-gold)]" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-white/90">{item.title}</p>
-                  <p className="text-xs text-white/45 mt-0.5">{item.desc}</p>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-        <div className="relative px-10 pb-8">
-          <Link to="/faq" className="inline-flex items-center gap-1 text-xs text-[color:var(--color-gold)] hover:underline">
-            Xem chi tiết chính sách ưu đãi Smember <ArrowRight className="w-3 h-3" />
-          </Link>
-          <p className="text-[10px] text-white/20 mt-5">© 2026 Luxury Watch Gallery · Hanoi · Vietnam</p>
-        </div>
-      </div>
+      <AuthLeftPanel />
 
       {/* ═══ RIGHT — Form Panel ═══ */}
-      <div className="flex flex-1 items-center justify-center bg-white dark:bg-[#161310] px-6 py-14 sm:px-12">
-        <div className="w-full max-w-[360px]">
+      <div className="flex flex-1 items-center justify-center bg-white dark:bg-[#161310] px-6 py-14 sm:px-12 w-full lg:w-1/2">
+        <div className="w-full max-w-[400px]">
 
           {/* Mobile brand */}
           <div className="mb-8 lg:hidden">

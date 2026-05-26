@@ -38,7 +38,7 @@ const CouponsTab = () => {
             key={idx}
             className="rounded-2xl border border-black/8 dark:border-white/8 bg-surface p-5"
           >
-            <p className="text-[10px] font-semibold text-muted uppercase tracking-[0.18em]">{stat.label}</p>
+            <p className="text-sm font-medium text-muted">{stat.label}</p>
             <p className={`text-3xl font-bold mt-2 ${stat.color}`}>{stat.value}</p>
           </div>
         ))}
@@ -50,13 +50,13 @@ const CouponsTab = () => {
           <table className="min-w-full">
             <thead className="border-b border-black/8 dark:border-white/8 bg-[color:var(--color-surface-2)] sticky top-0 z-10">
               <tr>
-                <th className="px-5 py-3.5 text-left text-[10px] font-semibold text-muted uppercase tracking-[0.12em]">Mã</th>
-                <th className="px-5 py-3.5 text-left text-[10px] font-semibold text-muted uppercase tracking-[0.12em]">Loại Giảm</th>
-                <th className="px-5 py-3.5 text-right text-[10px] font-semibold text-muted uppercase tracking-[0.12em]">Đơn tối thiểu</th>
-                <th className="px-5 py-3.5 text-center text-[10px] font-semibold text-muted uppercase tracking-[0.12em]">Đã Dùng</th>
-                <th className="px-5 py-3.5 text-left text-[10px] font-semibold text-muted uppercase tracking-[0.12em]">Hết Hạn</th>
-                <th className="px-5 py-3.5 text-left text-[10px] font-semibold text-muted uppercase tracking-[0.12em]">Trạng Thái</th>
-                <th className="px-5 py-3.5 text-right text-[10px] font-semibold text-muted uppercase tracking-[0.12em]">Hành Động</th>
+                <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted uppercase tracking-wider">Mã</th>
+                <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted uppercase tracking-wider">Loại Giảm</th>
+                <th className="px-5 py-3.5 text-right text-xs font-semibold text-muted uppercase tracking-wider">Đơn tối thiểu</th>
+                <th className="px-5 py-3.5 text-center text-xs font-semibold text-muted uppercase tracking-wider">Đã Dùng</th>
+                <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted uppercase tracking-wider">Hết Hạn</th>
+                <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted uppercase tracking-wider">Trạng Thái</th>
+                <th className="px-5 py-3.5 text-right text-xs font-semibold text-muted uppercase tracking-wider">Hành Động</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-black/5 dark:divide-white/5">
