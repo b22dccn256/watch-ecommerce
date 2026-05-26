@@ -83,7 +83,7 @@ export const useInventoryManagement = () => {
     try {
       await adjustStock(selectedProduct, action, quantity, note);
       closeAdjustModal();
-      fetchLowStockProducts();
+      await Promise.all([fetchLowStockProducts(true), fetchAllProducts(true)]);
     } catch {
       // store handles toast
     }

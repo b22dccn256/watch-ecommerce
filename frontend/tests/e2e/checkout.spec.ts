@@ -1,98 +1,172 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { test, expect, request as playwrightRequest } from '@playwright/test';
-import { createAuthenticatedPage } from './helpers/auth';
 
-const BASE = process.env.BASE_URL || 'http://localhost:5173';
-const BACKEND_URL = process.env.E2E_BACKEND_URL || 'http://localhost:5000';
-const TEST_USER = {
-  name: 'E2E Checkout User',
-  email: `checkout.e2e.${Date.now()}@testmail.com`,
-  phone: '0901234567',
-  password: 'TestPassw0rd!',
-};
+const BACKEND_URL = process.env.E2E_BACKEND_URL || 'http://127.0.0.1:5000';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const AUTH_STATE_PATH = path.resolve(__dirname, '..', '.auth', 'checkout-user-real.json');
 
 let PRODUCT_ID = '';
+let PRODUCT_PRICE = 0;
 
 test.beforeAll(async () => {
-  const signupApi = await playwrightRequest.newContext({ baseURL: BACKEND_URL });
-  await signupApi.post('/api/auth/signup', {
-    data: {
-      name: TEST_USER.name,
-      email: TEST_USER.email,
-      phone: TEST_USER.phone,
-      password: TEST_USER.password,
-      confirmPassword: TEST_USER.password,
-    },
-  }).catch(() => {});
-  await signupApi.dispose();
-
-  // Find a product with stock > 0 for a reliable checkout test
-  const api = await playwrightRequest.newContext({ baseURL: BACKEND_URL });
+  const api = await playwrightRequest.newContext({ baseURL: BACKEND_URL, timeout: 10000 });
   const res = await api.get('/api/products?limit=20');
+
   if (res.ok()) {
     const data = await res.json();
     const products = data.products || data || [];
-    // Prefer a product with stock > 0 and no wristSizeOptions (simpler flow)
-    const simple = products.find((p: any) => p.stock > 0 && (!p.wristSizeOptions || p.wristSizeOptions.length === 0));
-    const any = products.find((p: any) => p.stock > 0);
-    PRODUCT_ID = (simple || any)?._id || products[0]?._id || '';
+    const product = products.find((item) => item.stock > 1) || products.find((item) => item.stock > 0) || products[0];
+    PRODUCT_ID = product?._id || '';
+    PRODUCT_PRICE = product?.price || 0;
   }
+
   await api.dispose();
-  if (!PRODUCT_ID) throw new Error('No product ID found — cannot run checkout test');
+
+  if (!PRODUCT_ID) {
+    throw new Error('No product ID found - cannot run checkout API test');
+  }
 });
 
-test('authenticated checkout selects attributes and completes COD order', async ({ page }) => {
-  const authPage = await createAuthenticatedPage(page, TEST_USER);
+test('COD checkout API accepts authenticated payload', async () => {
+  const authState = JSON.parse(fs.readFileSync(AUTH_STATE_PATH, 'utf-8'));
+  const csrfToken = authState.cookies.find((cookie) => cookie.name === 'csrfToken')?.value;
 
-  const api = await playwrightRequest.newContext({ baseURL: BACKEND_URL, timeout: 10000 });
-  const loginRes = await api.post('/api/auth/login', {
-    data: { email: TEST_USER.email, password: TEST_USER.password },
+  expect(csrfToken, 'CSRF token missing from saved auth state').toBeTruthy();
+
+  const api = await playwrightRequest.newContext({
+    baseURL: BACKEND_URL,
+    timeout: 10000,
+    storageState: AUTH_STATE_PATH,
+    extraHTTPHeaders: csrfToken ? { 'x-csrf-token': csrfToken } : {},
   });
-  expect(loginRes.ok()).toBeTruthy();
-  const cartRes = await api.post('/api/cart', { data: { productId: PRODUCT_ID } });
-  expect(cartRes.ok()).toBeTruthy();
-  await api.dispose();
 
-  await authPage.goto(`${BASE}/cart`);
-  // Ensure the server-seeded cart item is selected in the client store
-  // The store's getUniqueId format: <productId>_wrist_default_selectedColor_default_selectedSize_default
-  await authPage.evaluate((pid) => {
-    const uid = `${pid}_default_default_default`;
-    localStorage.setItem('watch_selected_items', JSON.stringify([uid]));
-  }, PRODUCT_ID);
-  await authPage.waitForTimeout(200);
-  const selectAllCheckbox = authPage.locator('input[type="checkbox"]').first();
-  if (await selectAllCheckbox.count() > 0 && !(await selectAllCheckbox.isChecked())) {
-    await selectAllCheckbox.check();
-    await authPage.waitForTimeout(300);
+  const profileRes = await api.get('/api/auth/profile');
+  expect(profileRes.ok()).toBeTruthy();
+  const profile = await profileRes.json();
+
+  const checkoutPayload = {
+    products: [
+      {
+        _id: PRODUCT_ID,
+        quantity: 1,
+        price: PRODUCT_PRICE,
+        wristSize: null,
+        selectedColor: null,
+        selectedSize: null,
+      },
+    ],
+    shippingDetails: {
+      fullName: profile.name || 'E2E Tester',
+      address: '123 Test Street',
+      city: 'Hà Nội',
+      phoneNumber: profile.phone || '0901234567',
+      email: profile.email,
+    },
+    paymentMethod: 'cod',
+  };
+
+  const checkoutRes = await api.post('/api/payments/create-checkout-session', {
+    data: checkoutPayload,
+  });
+
+  const checkoutStatus = checkoutRes.status();
+  if (checkoutStatus !== 201) {
+    throw new Error(`Checkout request failed: ${checkoutStatus} ${await checkoutRes.text()}`);
+  }
+  const checkoutJson = await checkoutRes.json();
+
+  expect(checkoutJson.success).toBe(true);
+  expect(checkoutJson.orderCode).toMatch(/^DH/);
+  expect(checkoutJson.orderId).toBeTruthy();
+
+  const lookupRes = await api.post('/api/orders/lookup', {
+    data: { orderNumber: checkoutJson.orderCode, email: profile.email },
+  });
+
+  if (!lookupRes.ok()) {
+    throw new Error(`Lookup request failed: ${lookupRes.status()} ${await lookupRes.text()}`);
+  }
+  const lookupJson = await lookupRes.json();
+  expect(lookupJson.trackingToken).toBeTruthy();
+
+  const trackingRes = await api.get(`/api/orders/track/${lookupJson.trackingToken}`);
+  if (!trackingRes.ok()) {
+    throw new Error(`Tracking request failed: ${trackingRes.status()} ${await trackingRes.text()}`);
+  }
+  const trackingJson = await trackingRes.json();
+
+  expect(trackingJson.orderCode).toBe(checkoutJson.orderCode);
+  expect(trackingJson.paymentMethod).toBe('cod');
+  expect(trackingJson.status).toBe('pending');
+  expect(trackingJson.shippingDetails.fullName).toBe(checkoutPayload.shippingDetails.fullName);
+
+  await api.dispose();
+});
+
+test('COD checkout UI completes purchase from cart to success page', async ({ page }) => {
+  const browser = page.context().browser();
+  if (!browser) {
+    throw new Error('Browser instance is unavailable');
   }
 
-  const checkoutBtn = authPage.locator('button:has-text("Tiến hành thanh toán"), button:has-text("Checkout")').first();
-  await expect(checkoutBtn).toBeVisible({ timeout: 10000 });
-  await checkoutBtn.click();
+  const authState = JSON.parse(fs.readFileSync(AUTH_STATE_PATH, 'utf-8'));
+  const csrfToken = authState.cookies.find((cookie) => cookie.name === 'csrfToken')?.value;
 
-  // Expect navigation to /checkout
-  await expect(authPage).toHaveURL(/\/checkout/, { timeout: 10000 });
-  await authPage.waitForLoadState('networkidle');
-  await authPage.waitForTimeout(800);
+  const uiContext = await browser.newContext({ storageState: AUTH_STATE_PATH });
+  const uiPage = await uiContext.newPage();
 
-  // Fill shipping form (guest) — using actual field names from ShippingForm.jsx
-  await expect(authPage.locator('input[name="fullName"]')).toBeVisible({ timeout: 8000 });
-  await authPage.fill('input[name="fullName"]', 'E2E Tester');
-  await authPage.fill('input[name="phoneNumber"]', '0901234567');
-  await authPage.fill('input[name="email"]', 'e2e@example.com');
-  await authPage.fill('input[name="address"]', '123 Test Street');
-  await authPage.fill('input[name="city"]', 'hanoi');
+  try {
+    const api = await playwrightRequest.newContext({
+      baseURL: BACKEND_URL,
+      timeout: 10000,
+      storageState: AUTH_STATE_PATH,
+      extraHTTPHeaders: csrfToken ? { 'x-csrf-token': csrfToken } : {},
+    });
 
-  // Proceed to review/payment step 2
-  await authPage.getByRole('button', { name: /Tiếp tục đến thanh toán/i }).click();
-  await authPage.waitForTimeout(500);
+    const cartSeedRes = await api.post('/api/cart', {
+      data: { productId: PRODUCT_ID },
+    });
+    expect(cartSeedRes.ok()).toBeTruthy();
+    await api.dispose();
 
-  // Select COD payment method
-  await authPage.locator('label:has-text("COD")').first().click();
+    await uiPage.goto('http://127.0.0.1:5173/cart');
+    await uiPage.waitForLoadState('networkidle');
+    await expect(uiPage.getByText('Giỏ hàng của bạn')).toBeVisible({ timeout: 15000 });
 
-  // Place order
-  await authPage.getByRole('button', { name: /Xác nhận và thanh toán/i }).click();
+    const selectAll = uiPage.locator('input[type="checkbox"]').first();
+    if (!(await selectAll.isChecked())) {
+      await selectAll.check();
+      await uiPage.waitForTimeout(300);
+    }
 
-  // Expect confirmation message on the purchase success page
-  await expect(authPage).toHaveURL(/\/purchase-success/, { timeout: 15000 });
+    const checkoutButton = uiPage.getByRole('button', { name: 'Tiến hành thanh toán' });
+    await expect(checkoutButton).toBeVisible({ timeout: 15000 });
+    await checkoutButton.click({ force: true });
+
+    await expect(uiPage).toHaveURL(/\/checkout$/, { timeout: 15000 });
+    await uiPage.waitForLoadState('networkidle');
+
+    await expect(uiPage.getByText('Hoàn tất đơn hàng')).toBeVisible({ timeout: 10000 });
+    await uiPage.fill('input[name="fullName"]', 'E2E Tester');
+    await uiPage.fill('input[name="phoneNumber"]', '0901234567');
+    await uiPage.fill('input[name="address"]', '123 Test Street');
+    await uiPage.fill('input[name="city"]', 'Hà Nội');
+
+    await uiPage.getByRole('button', { name: 'Tiếp tục đến thanh toán' }).click();
+    await uiPage.waitForTimeout(400);
+
+    const codRadio = uiPage.locator('label:has-text("COD") input[type="radio"]');
+    await codRadio.check();
+    await expect(codRadio).toBeChecked();
+
+    await uiPage.getByRole('button', { name: 'Xác nhận và thanh toán' }).click();
+
+    await expect(uiPage).toHaveURL(/\/purchase-success/, { timeout: 20000 });
+    await expect(uiPage.getByRole('heading', { name: 'Cảm ơn bạn đã đặt hàng!' })).toBeVisible({ timeout: 20000 });
+  } finally {
+    await uiContext.close();
+  }
 });

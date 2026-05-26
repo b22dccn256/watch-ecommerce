@@ -10,40 +10,65 @@ import assert from 'node:assert/strict';
 // ═══════════════════════════════════════════════════════════════
 
 const parseBudgetRange = (message) => {
-    const normalized = (message || '').toLowerCase().replace(/,/g, '.').replace(/\s+/g, ' ');
+    const normalized = (message || "").toLowerCase().replace(/,/g, ".").replace(/\s+/g, " ");
     const currencyMatch = normalized.match(/(\d+(?:\.\d+)?)\s*(triệu|tr|trieu|trệu|m)/);
 
     if (!currencyMatch) return null;
 
     const amount = Number(currencyMatch[1]);
-    if (!Number.isFinite(amount)) return null;
+    if (!Number.isFinite(amount) || amount <= 0) return null;
 
-    const valueInVnd = amount * 1_000_000;
-    const hasBelowIntent = normalized.includes('dưới') || normalized.includes('tối đa') || normalized.includes('không quá') || normalized.includes('under') || normalized.includes('less than') || normalized.includes('<=') || normalized.includes('≤');
-    const hasApproxIntent = normalized.includes('khoảng') || normalized.includes('tầm') || normalized.includes('around') || normalized.includes('about') || normalized.includes('~');
+    const valueInVnd = Math.round(amount * 1_000_000);
+    
+    // Support "từ 5 đến 15 triệu"
+    const rangeMatch = normalized.match(/(?:từ|from)\s*(\d+(?:\.\d+)?)\s*(triệu|tr|trieu|trệu|m)?\s*(?:đến|tới|to|-)\s*(\d+(?:\.\d+)?)\s*(triệu|tr|trieu|trệu|m)/);
+    if (rangeMatch) {
+        const minUnit = 1_000_000;
+        const maxUnit = 1_000_000;
+        return {
+            minPrice: Math.round(Number(rangeMatch[1]) * minUnit),
+            maxPrice: Math.round(Number(rangeMatch[3]) * maxUnit),
+            label: `từ ${rangeMatch[1]} đến ${rangeMatch[3]} triệu`,
+        };
+    }
+
+    const hasBelowIntent = normalized.includes("dưới") || normalized.includes("tối đa") || normalized.includes("không quá") || normalized.includes("under") || normalized.includes("less than") || normalized.includes("<=") || normalized.includes("≤") || normalized.includes("thôi") || normalized.includes("chỉ");
+    const hasAboveIntent = normalized.includes("trên") || normalized.includes("tối thiểu") || normalized.includes("trở lên") || normalized.includes("over") || normalized.includes("more than") || normalized.includes(">=") || normalized.includes("≥") || (normalized.includes("từ") && !normalized.includes("đến") && !normalized.includes("tới") && !normalized.includes("-"));
+    const hasApproxIntent = normalized.includes("khoảng") || normalized.includes("tầm") || normalized.includes("around") || normalized.includes("about") || normalized.includes("~");
 
     if (hasBelowIntent) {
         return { maxPrice: valueInVnd, label: `dưới ${currencyMatch[1]} triệu` };
     }
 
-    const rangeMatch = normalized.match(/(?:từ|from)\s*(\d+(?:\.\d+)?)\s*(triệu|tr|trieu|trệu|m)\s*(?:đến|tới|to|-)\s*(\d+(?:\.\d+)?)\s*(triệu|tr|trieu|trệu|m)/);
-    if (rangeMatch) {
-        return {
-            minPrice: Number(rangeMatch[1]) * 1_000_000,
-            maxPrice: Number(rangeMatch[3]) * 1_000_000,
-            label: `từ ${rangeMatch[1]} đến ${rangeMatch[3]} triệu`,
-        };
+    if (hasAboveIntent) {
+        return { minPrice: valueInVnd, label: `trên ${currencyMatch[1]} triệu` };
     }
 
     if (hasApproxIntent) {
         return {
-            minPrice: valueInVnd * 0.85,
-            maxPrice: valueInVnd * 1.15,
+            minPrice: Math.round(valueInVnd * 0.85),
+            maxPrice: Math.round(valueInVnd * 1.15),
             label: `khoảng ${currencyMatch[1]} triệu`,
         };
     }
 
-    return null;
+    // Default: treat as maximum limit (e.g. "đồng hồ 10 triệu", "có 10 triệu")
+    return { maxPrice: valueInVnd, label: `dưới ${currencyMatch[1]} triệu` };
+};
+
+const parseRequestedCount = (message) => {
+    const normalized = (message || "").toLowerCase();
+    const match = normalized.match(/(\d+)\s*(?:sản phẩm|sp|mẫu|chiếc|cái|món|item|đơn|cái)/) 
+                  || normalized.match(/(?:hiện|show|lấy|gợi ý|top|chọn)\s*(\d+)/)
+                  || normalized.match(/(\d+)\s*(?:mẫu|cái)/);
+
+    if (match) {
+        const count = parseInt(match[1], 10);
+        if (!isNaN(count) && count >= 1) {
+            return Math.min(count, 5); // maximum 5
+        }
+    }
+    return 3; // default is 3
 };
 
 // ─── BUDGET: "dưới X triệu" ──────────────────────────────────
@@ -75,10 +100,11 @@ test('budget: từ X đến Y triệu (có đơn vị sau mỗi số)', () => {
     assert.equal(r1.minPrice, 5_000_000);
     assert.equal(r1.maxPrice, 15_000_000);
 
-    // Dạng "từ 5 đến 15 triệu" không parse được vì thiếu đơn vị sau số đầu
-    // Đây là hạn chế đã biết của regex hiện tại
+    // Dạng "từ 5 đến 15 triệu" đã parse được thành công ở phiên bản mới
     const r2 = parseBudgetRange('từ 5 đến 15 triệu');
-    assert.equal(r2, null, 'Dạng này không parse được - cần đơn vị sau mỗi số');
+    assert.ok(r2);
+    assert.equal(r2.minPrice, 5_000_000);
+    assert.equal(r2.maxPrice, 15_000_000);
 
     const r3 = parseBudgetRange('từ 3tr tới 8tr');
     assert.equal(r3.minPrice, 3_000_000);
@@ -152,10 +178,9 @@ test('budget: no budget detected', () => {
 
 // ─── BUDGET: Edge cases ───────────────────────────────────────
 test('budget: edge cases - số 0', () => {
-    // "dưới 0 triệu" hiện tại parse được (maxPrice=0). Nên fix sau.
+    // "dưới 0 triệu" đã được sửa thành công và trả về null
     const r = parseBudgetRange('dưới 0 triệu');
-    assert.ok(r);
-    assert.equal(r.maxPrice, 0);
+    assert.equal(r, null);
 });
 
 test('budget: text before and after budget', () => {
@@ -493,11 +518,10 @@ test('scenario: khách hỏi đồng hồ tầm trung', () => {
 });
 
 test('scenario: khách hỏi đồng hồ cao cấp', () => {
+    // "từ 100 triệu" hiện tại đã được nâng cấp để parse thành công phân khúc giá tối thiểu (minPrice)
     const budget = parseBudgetRange('đồng hồ từ 100 triệu');
-    // "từ X" without "đến Y" → doesn't match range pattern
-    // Falls through to approx? No, "từ" alone doesn't trigger approx
-    // So parseBudgetRange returns null for "từ 100 triệu" without "đến"
-    assert.equal(budget, null);
+    assert.ok(budget);
+    assert.equal(budget.minPrice, 100_000_000);
 });
 
 test('scenario: khách hỏi sai chính tả', () => {
@@ -530,10 +554,32 @@ test('scenario: khách hỏi nhiều câu cùng lúc', () => {
     assert.ok(fb.includes('bảo hành') || fb.includes('năm') || fb.includes('Catalog'));
 });
 
-test('scenario: khách nói chuyện bình thường', () => {
-    assert.equal(parseBudgetRange('xin chào shop'), null);
-    assert.equal(parseBudgetRange('cảm ơn shop'), null);
-    assert.equal(parseBudgetRange('tạm biệt'), null);
+test('chatbot: parseRequestedCount constraints', () => {
+    assert.equal(parseRequestedCount('cho tôi 2 sản phẩm'), 2);
+    assert.equal(parseRequestedCount('lấy 3 mẫu nhé'), 3);
+    assert.equal(parseRequestedCount('hiện 5 chiếc xem nào'), 5);
+    assert.equal(parseRequestedCount('top 4 đồng hồ'), 4);
+    
+    // Default count is 3
+    assert.equal(parseRequestedCount('đồng hồ dưới 10 triệu'), 3);
+    
+    // Capped at maximum 5
+    assert.equal(parseRequestedCount('hiện 10 chiếc xem nào'), 5);
+    assert.equal(parseRequestedCount('gợi ý 6 mẫu'), 5);
+});
+
+test('chatbot: parseBudgetRange defaults to max limit', () => {
+    // "đồng hồ 10 triệu cho nữ" has no explicit range -> defaults to maxPrice=10M
+    const r1 = parseBudgetRange('đồng hồ 10 triệu cho nữ');
+    assert.ok(r1);
+    assert.equal(r1.maxPrice, 10_000_000);
+    assert.equal(r1.minPrice, undefined);
+
+    // "tôi có 10 triệu thôi" has no explicit range -> defaults to maxPrice=10M
+    const r2 = parseBudgetRange('tôi có 10 triệu thôi');
+    assert.ok(r2);
+    assert.equal(r2.maxPrice, 10_000_000);
+    assert.equal(r2.minPrice, undefined);
 });
 
 console.log('\n✅ All AI Chatbot tests passed! (Budget parsing, matching, formatting, fallback, scenarios)\n');

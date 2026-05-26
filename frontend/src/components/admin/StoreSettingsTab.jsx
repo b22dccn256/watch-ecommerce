@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
 	Save, Layout, Type, Grid, MessageSquareText, Eye, EyeOff,
 	ChevronUp, ChevronDown, Layers, GripVertical, Sliders, Palette,
@@ -20,12 +20,72 @@ const THEME_PRESETS = [
 	{ key: "emerald", label: "Emerald Prestige (Quyền quý)", desc: "Sắc xanh lục bảo ngọc bảo sang trọng kết hợp xám đen", accent: "bg-[#0b1b17] text-emerald-400 border-emerald-900" },
 ];
 
+// A helper component to prevent lag on text input by buffering values locally and only calling onChange on blur
+const BufferedInput = ({ value, onChange, className, placeholder, ...props }) => {
+	const [localValue, setLocalValue] = useState(value || "");
+
+	useEffect(() => {
+		setLocalValue(value || "");
+	}, [value]);
+
+	const handleBlur = () => {
+		if (localValue !== (value || "")) {
+			onChange(localValue);
+		}
+	};
+
+	const handleKeyDown = (e) => {
+		if (e.key === "Enter") {
+			handleBlur();
+		}
+	};
+
+	return (
+		<input
+			{...props}
+			value={localValue}
+			onChange={(e) => setLocalValue(e.target.value)}
+			onBlur={handleBlur}
+			onKeyDown={handleKeyDown}
+			className={className}
+			placeholder={placeholder}
+		/>
+	);
+};
+
+const BufferedTextarea = ({ value, onChange, className, placeholder, rows, ...props }) => {
+	const [localValue, setLocalValue] = useState(value || "");
+
+	useEffect(() => {
+		setLocalValue(value || "");
+	}, [value]);
+
+	const handleBlur = () => {
+		if (localValue !== (value || "")) {
+			onChange(localValue);
+		}
+	};
+
+	return (
+		<textarea
+			{...props}
+			value={localValue}
+			onChange={(e) => setLocalValue(e.target.value)}
+			onBlur={handleBlur}
+			className={className}
+			placeholder={placeholder}
+			rows={rows}
+		/>
+	);
+};
+
 const StoreSettingsTab = () => {
 	const { config, fetchConfig, updateConfig, loading } = useStorefrontStore();
 	const [formData, setFormData] = useState(null);
 	const [sectionLayout, setSectionLayout] = useState([]);
 	const [activeSubTab, setActiveSubTab] = useState("sections"); // sections, theme, slides, marketing, popup, footer, layout
 	const [uploadingIndex, setUploadingIndex] = useState(null);
+	const [collapsedSlides, setCollapsedSlides] = useState({}); // { [index]: true } means collapsed
 
 	useEffect(() => { fetchConfig(); }, [fetchConfig]);
 
@@ -151,12 +211,36 @@ const StoreSettingsTab = () => {
 	};
 
 	// Slides dynamic list manipulation
-	const handleSlideChange = (index, field, value) => {
+	const handleSlideChange = useCallback((index, field, value) => {
 		setFormData(prev => {
 			const slides = [...(prev.heroSlides || [])];
 			slides[index] = { ...slides[index], [field]: value };
 			return { ...prev, heroSlides: slides };
 		});
+	}, []);
+
+	// Reorder slide: move slide at `fromIndex` to position `toPosition` (1-based)
+	const reorderSlide = (fromIndex, toPosition) => {
+		const slides = formData.heroSlides || [];
+		const toIndex = Math.max(0, Math.min(slides.length - 1, toPosition - 1));
+		if (toIndex === fromIndex) return;
+		const arr = [...slides];
+		const [moved] = arr.splice(fromIndex, 1);
+		arr.splice(toIndex, 0, moved);
+		// Update collapsed state to follow the moved slide
+		setCollapsedSlides(prev => {
+			const next = {};
+			arr.forEach((_, i) => {
+				if (!prev[i]) next[i] = false;
+				else next[i] = true;
+			});
+			return next;
+		});
+		setFormData(prev => ({ ...prev, heroSlides: arr }));
+	};
+
+	const toggleSlideCollapse = (index) => {
+		setCollapsedSlides(prev => ({ ...prev, [index]: !prev[index] }));
 	};
 
 	const handleImageUpload = (indexOrKey, field, file) => {
@@ -1216,169 +1300,197 @@ const StoreSettingsTab = () => {
 
 					{/* 3. HERO SLIDES MANAGER */}
 					{activeSubTab === "slides" && (
-						<div className="space-y-6 animate-fade-in">
+						<div className="space-y-5 animate-fade-in">
 							<div className="flex items-center justify-between border-b border-gray-100 dark:border-white/5 pb-3">
 								<div>
 									<h3 className="text-base font-bold flex items-center gap-2 text-primary">
 										<ImageIcon className="w-4 h-4 text-luxury-gold" /> Trình Quản Lý Carousel Slides đầu trang
 									</h3>
-									<p className="text-xs text-gray-400 mt-1">Cấu hình nhiều banner quảng cáo dạng Slide trượt cực kỳ sang trọng ở trang chủ.</p>
+									<p className="text-xs text-gray-400 mt-1">
+										Cấu hình nhiều banner quảng cáo dạng Slide trượt ở trang chủ.
+										<span className="ml-2 text-luxury-gold/70">Nhập số thứ tự để sắp xếp lại vị trí tức thì.</span>
+									</p>
 								</div>
 								<button
 									type="button"
 									onClick={addSlide}
-									className="bg-luxury-gold/10 hover:bg-luxury-gold/20 text-luxury-gold border border-luxury-gold/30 font-bold text-xs px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition"
+									className="bg-luxury-gold/10 hover:bg-luxury-gold/20 text-luxury-gold border border-luxury-gold/30 font-bold text-xs px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition flex-shrink-0"
 								>
 									<Plus className="w-3.5 h-3.5" /> Thêm Slide
 								</button>
 							</div>
 
-							<div className="space-y-4">
-								{(formData.heroSlides || []).map((slide, index) => (
-									<div key={index} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-black/10 dark:bg-black/30 p-4 space-y-4 relative">
-										
-										{/* Slide header & order controls */}
-										<div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-2">
-											<div className="flex items-center gap-4">
-												<span className="text-xs font-bold text-luxury-gold">Slide #{index + 1}</span>
-												<label className="flex items-center gap-1.5 cursor-pointer select-none">
-													<input
-														type="checkbox"
-														checked={slide.active !== false}
-														onChange={(e) => handleSlideChange(index, "active", e.target.checked)}
-														className="sr-only peer"
-													/>
-													<div className="relative w-8 h-4 bg-gray-300 dark:bg-gray-700 rounded-full peer peer-focus:ring-1 peer-focus:ring-luxury-gold peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-luxury-gold"></div>
-													<span className="text-[10px] font-semibold text-gray-400">
-														{slide.active !== false ? "Đang bật" : "Đang tắt"}
-													</span>
-												</label>
-											</div>
-											<div className="flex items-center gap-1">
-												<button
-													type="button"
-													onClick={() => moveSlide(index, -1)}
-													disabled={index === 0}
-													className="p-1 rounded hover:bg-white/10 disabled:opacity-20 text-gray-400 transition"
-													title="Lên trên"
-												>
-													<ChevronUp className="w-4 h-4" />
-												</button>
-												<button
-													type="button"
-													onClick={() => moveSlide(index, 1)}
-													disabled={index === formData.heroSlides.length - 1}
-													className="p-1 rounded hover:bg-white/10 disabled:opacity-20 text-gray-400 transition"
-													title="Xuống dưới"
-												>
-													<ChevronDown className="w-4 h-4" />
-												</button>
-												<button
-													type="button"
-													onClick={() => removeSlide(index)}
-													className="p-1 rounded hover:bg-red-500/10 text-red-400 ml-1.5 transition"
-													title="Xóa Slide này"
-												>
-													<Trash2 className="w-4 h-4" />
-												</button>
-											</div>
-										</div>
+							{/* Slide order overview pills */}
+							{(formData.heroSlides || []).length > 1 && (
+								<div className="flex flex-wrap gap-1.5 px-1">
+									{(formData.heroSlides || []).map((s, i) => (
+										<span
+											key={i}
+											onClick={() => setCollapsedSlides(prev => Object.fromEntries((formData.heroSlides || []).map((_, j) => [j, j !== i])))}
+											className={`cursor-pointer text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all ${
+												!collapsedSlides[i]
+													? 'bg-luxury-gold text-black border-luxury-gold'
+													: s.active !== false
+														? 'bg-luxury-gold/10 text-luxury-gold border-luxury-gold/30 hover:bg-luxury-gold/20'
+														: 'bg-gray-700/30 text-gray-500 border-gray-700 hover:bg-gray-700/50'
+											}`}
+											title={s.title || `Slide ${i + 1}`}
+										>
+											#{i + 1} {s.active === false ? '(tắt)' : ''}
+										</span>
+									))}
+									<span className="text-[10px] text-gray-500 self-center ml-1">— click để mở nhanh</span>
+								</div>
+							)}
 
-										{/* Inputs */}
-										<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-											<div className="space-y-3">
-												<div>
-													<label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Tiêu đề Slide (Title)</label>
-													<input
-														type="text"
-														value={slide.title || ""}
-														onChange={(e) => handleSlideChange(index, "title", e.target.value)}
-														className="w-full px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
-														placeholder="VD: Kiệt tác Thời gian"
-													/>
+							<div className="space-y-3">
+								{(formData.heroSlides || []).map((slide, index) => {
+									const isCollapsed = !!collapsedSlides[index];
+									return (
+										<div key={index} className={`rounded-xl border transition-all ${
+											isCollapsed
+												? 'border-gray-200 dark:border-gray-800 bg-black/5 dark:bg-black/20'
+												: 'border-luxury-gold/30 bg-black/10 dark:bg-black/30'
+										}`}>
+
+											{/* ── Slide accordion header ── */}
+											<div
+												className="flex items-center justify-between px-4 py-3 cursor-pointer select-none group"
+												onClick={() => toggleSlideCollapse(index)}
+											>
+												{/* Left: order input + title preview + status badge */}
+												<div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
+													{/* Numeric position input */}
+													<div className="flex items-center gap-1.5">
+														<span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Vị trí</span>
+														<input
+															type="number"
+															min={1}
+															max={(formData.heroSlides || []).length}
+															value={index + 1}
+															onChange={(e) => {
+																const val = parseInt(e.target.value, 10);
+																if (!isNaN(val)) reorderSlide(index, val);
+															}}
+															onClick={e => e.stopPropagation()}
+															className="w-12 px-1.5 py-1 rounded border border-luxury-gold/40 bg-luxury-gold/5 text-luxury-gold text-xs font-bold text-center outline-none focus:border-luxury-gold focus:ring-1 focus:ring-luxury-gold/30 transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+															title={`Nhập số thứ tự (1–${(formData.heroSlides || []).length}) để di chuyển slide này`}
+														/>
+													</div>
+													{/* Active toggle */}
+													<label className="flex items-center gap-1.5 cursor-pointer" onClick={e => e.stopPropagation()}>
+														<input
+															type="checkbox"
+															checked={slide.active !== false}
+															onChange={(e) => handleSlideChange(index, "active", e.target.checked)}
+															className="sr-only peer"
+														/>
+														<div className="relative w-8 h-4 bg-gray-300 dark:bg-gray-700 rounded-full peer peer-focus:ring-1 peer-focus:ring-luxury-gold peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-luxury-gold"></div>
+														<span className="text-[10px] font-semibold text-gray-400">{slide.active !== false ? 'Bật' : 'Tắt'}</span>
+													</label>
 												</div>
-												<div>
-													<label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Mô tả phụ (Subtitle)</label>
-													<textarea
-														value={slide.subtitle || ""}
-														onChange={(e) => handleSlideChange(index, "subtitle", e.target.value)}
-														className="w-full px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
-														placeholder="VD: Slogan tinh tế..."
-														rows={2}
-													/>
-												</div>
-												<div>
-													<label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Link liên kết nút bấm (URL)</label>
-													<input
-														type="text"
-														value={slide.link || ""}
-														onChange={(e) => handleSlideChange(index, "link", e.target.value)}
-														className="w-full px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
-														placeholder="VD: /catalog?brand=Rolex"
-													/>
+
+												{/* Right: title preview + expand/delete */}
+												<div className="flex items-center gap-2 min-w-0">
+													<span className="text-xs text-gray-400 truncate max-w-[120px] sm:max-w-[200px]">{slide.title || `(Chưa đặt tên)`}</span>
+													<button
+														type="button"
+														onClick={(e) => { e.stopPropagation(); removeSlide(index); }}
+														className="p-1 rounded hover:bg-red-500/10 text-red-400 transition flex-shrink-0"
+														title="Xóa Slide này"
+													>
+														<Trash2 className="w-3.5 h-3.5" />
+													</button>
+													<ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${isCollapsed ? '' : 'rotate-180'}`} />
 												</div>
 											</div>
 
-											<div className="space-y-3">
-												<div>
-													<label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Ảnh nền (Desktop Banner URL)</label>
-													<div className="flex gap-2">
-														<input
-															type="text"
-															value={slide.image || ""}
-															onChange={(e) => handleSlideChange(index, "image", e.target.value)}
-															className="flex-1 px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
-															placeholder="VD: https://images.unsplash.com..."
-														/>
-														<label className="flex items-center justify-center px-3 py-2 rounded border border-luxury-gold/30 bg-luxury-gold/5 text-luxury-gold hover:bg-luxury-gold/10 text-xs font-semibold cursor-pointer transition select-none flex-shrink-0 min-w-[90px]">
-															{uploadingIndex?.index === index && uploadingIndex?.field === "image" ? (
-																<span className="w-3.5 h-3.5 border-2 border-luxury-gold border-t-transparent rounded-full animate-spin"></span>
-															) : (
-																"Tải ảnh từ máy"
+											{/* ── Slide body (collapsible) ── */}
+											{!isCollapsed && (
+												<div className="px-4 pb-4 pt-1 border-t border-gray-200 dark:border-gray-800">
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+														<div className="space-y-3">
+															<div>
+																<label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Tiêu đề Slide (Title)</label>
+																<BufferedInput
+																	type="text"
+																	value={slide.title || ""}
+																	onChange={(val) => handleSlideChange(index, "title", val)}
+																	className="w-full px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
+																	placeholder="VD: Kiệt tác Thời gian"
+																/>
+															</div>
+															<div>
+																<label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Mô tả phụ (Subtitle)</label>
+																<BufferedTextarea
+																	value={slide.subtitle || ""}
+																	onChange={(val) => handleSlideChange(index, "subtitle", val)}
+																	className="w-full px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
+																	placeholder="VD: Slogan tinh tế..."
+																	rows={2}
+																/>
+															</div>
+															<div>
+																<label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Link liên kết nút bấm (URL)</label>
+																<BufferedInput
+																	type="text"
+																	value={slide.link || ""}
+																	onChange={(val) => handleSlideChange(index, "link", val)}
+																	className="w-full px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
+																	placeholder="VD: /catalog?brand=Rolex"
+																/>
+															</div>
+														</div>
+
+														<div className="space-y-3">
+															<div>
+																<label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Ảnh nền (Desktop Banner URL)</label>
+																<div className="flex gap-2">
+																	<BufferedInput
+																		type="text"
+																		value={slide.image || ""}
+																		onChange={(val) => handleSlideChange(index, "image", val)}
+																		className="flex-1 px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
+																		placeholder="VD: https://images.unsplash.com..."
+																	/>
+																	<label className="flex items-center justify-center px-3 py-2 rounded border border-luxury-gold/30 bg-luxury-gold/5 text-luxury-gold hover:bg-luxury-gold/10 text-xs font-semibold cursor-pointer transition select-none flex-shrink-0 min-w-[90px]">
+																		{uploadingIndex?.index === index && uploadingIndex?.field === "image" ? (
+																			<span className="w-3.5 h-3.5 border-2 border-luxury-gold border-t-transparent rounded-full animate-spin"></span>
+																		) : "Tải ảnh từ máy"}
+																		<input type="file" accept="image/*" onChange={(e) => handleImageUpload(index, "image", e.target.files[0])} className="hidden" />
+																	</label>
+																</div>
+															</div>
+															<div>
+																<label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Ảnh nền riêng cho Mobile (Tùy chọn)</label>
+																<div className="flex gap-2">
+																	<BufferedInput
+																		type="text"
+																		value={slide.mobileImage || ""}
+																		onChange={(val) => handleSlideChange(index, "mobileImage", val)}
+																		className="flex-1 px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
+																		placeholder="Để trống nếu muốn co dãn ảnh desktop tự động"
+																	/>
+																	<label className="flex items-center justify-center px-3 py-2 rounded border border-luxury-gold/30 bg-luxury-gold/5 text-luxury-gold hover:bg-luxury-gold/10 text-xs font-semibold cursor-pointer transition select-none flex-shrink-0 min-w-[90px]">
+																		{uploadingIndex?.index === index && uploadingIndex?.field === "mobileImage" ? (
+																			<span className="w-3.5 h-3.5 border-2 border-luxury-gold border-t-transparent rounded-full animate-spin"></span>
+																		) : "Tải ảnh từ máy"}
+																		<input type="file" accept="image/*" onChange={(e) => handleImageUpload(index, "mobileImage", e.target.files[0])} className="hidden" />
+																	</label>
+																</div>
+															</div>
+															{slide.image && (
+																<div className="border border-gray-200 dark:border-gray-800 rounded overflow-hidden h-24 bg-black/20">
+																	<img src={slide.image} alt="Preview" className="h-full w-full object-cover" onError={(e) => { e.target.src="https://placehold.co/600x200?text=Invalid+Image+URL"; }} />
+																</div>
 															)}
-															<input
-																type="file"
-																accept="image/*"
-																onChange={(e) => handleImageUpload(index, "image", e.target.files[0])}
-																className="hidden"
-															/>
-														</label>
+														</div>
 													</div>
 												</div>
-												<div>
-													<label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Ảnh nền riêng cho Mobile URL (Tùy chọn)</label>
-													<div className="flex gap-2">
-														<input
-															type="text"
-															value={slide.mobileImage || ""}
-															onChange={(e) => handleSlideChange(index, "mobileImage", e.target.value)}
-															className="flex-1 px-3 py-2 rounded border border-gray-200 dark:border-gray-800 bg-transparent text-xs outline-none focus:border-luxury-gold transition"
-															placeholder="Để trống nếu muốn co dãn ảnh desktop tự động"
-														/>
-														<label className="flex items-center justify-center px-3 py-2 rounded border border-luxury-gold/30 bg-luxury-gold/5 text-luxury-gold hover:bg-luxury-gold/10 text-xs font-semibold cursor-pointer transition select-none flex-shrink-0 min-w-[90px]">
-															{uploadingIndex?.index === index && uploadingIndex?.field === "mobileImage" ? (
-																<span className="w-3.5 h-3.5 border-2 border-luxury-gold border-t-transparent rounded-full animate-spin"></span>
-															) : (
-																"Tải ảnh từ máy"
-															)}
-															<input
-																type="file"
-																accept="image/*"
-																onChange={(e) => handleImageUpload(index, "mobileImage", e.target.files[0])}
-																className="hidden"
-															/>
-														</label>
-													</div>
-												</div>
-												{slide.image && (
-													<div className="border border-gray-200 dark:border-gray-800 rounded overflow-hidden h-24 bg-black/20 flex items-center justify-center">
-														<img src={slide.image} alt="Preview" className="h-full w-full object-cover" onError={(e) => { e.target.src="https://placehold.co/600x200?text=Invalid+Image+URL"; }} />
-													</div>
-												)}
-											</div>
+											)}
 										</div>
-									</div>
-								))}
+									);
+								})}
 							</div>
 						</div>
 					)}

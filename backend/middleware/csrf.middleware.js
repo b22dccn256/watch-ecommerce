@@ -6,6 +6,7 @@ const PUBLIC_PATH_PREFIXES = [
 	"/api/auth/signup",
 	"/api/auth/login",
 	"/api/auth/verify-email",
+	"/api/auth/debug/verification-link",
 	"/api/auth/resend-verification",
 	"/api/auth/forgot-password",
 	"/api/auth/reset-password",

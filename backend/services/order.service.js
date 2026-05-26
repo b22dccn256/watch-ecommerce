@@ -184,7 +184,7 @@ class OrderService {
     }
 
     // Extracted from controller: Create COD order
-    static async createNonStripeOrder(req, res, paymentMethod) {
+    static async createNonStripeOrder(req, res, paymentMethod, attempt = 1) {
         const session = await mongoose.startSession();
         session.startTransaction();
 
@@ -313,11 +313,18 @@ class OrderService {
                 message,
                 orderId: newOrder._id,
                 orderCode,
+                url: paymentMethod === "cod"
+                    ? `${process.env.CLIENT_URL}/purchase-success?order_id=${newOrder._id}&tracking_token=${trackingToken}`
+                    : undefined,
+                isCod: paymentMethod === "cod",
                 ...(paymentMethod === "vnpay" && { totalAmount })
             });
         } catch (error) {
             await session.abortTransaction();
             session.endSession();
+            if (/Write conflict/i.test(error.message) && attempt < 3) {
+                return this.createNonStripeOrder(req, res, paymentMethod, attempt + 1);
+            }
             console.error(`Error in create${paymentMethod.toUpperCase()}Order:`, error.message);
             return res.status(400).json({ message: error.message });
         }

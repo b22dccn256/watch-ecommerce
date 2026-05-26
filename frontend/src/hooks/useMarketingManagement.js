@@ -200,6 +200,30 @@ export const useMarketingManagement = () => {
     }
   };
 
+  const handleMoveBannerToPosition = async (id, toPosition) => {
+    const prev = banners;
+    const currentIndex = banners.findIndex((b) => b._id === id);
+    if (currentIndex === -1) return;
+    const toIndex = Math.max(0, Math.min(banners.length - 1, toPosition - 1));
+    if (currentIndex === toIndex) return;
+
+    const reordered = [...banners];
+    const [movedBanner] = reordered.splice(currentIndex, 1);
+    reordered.splice(toIndex, 0, movedBanner);
+
+    // Optimistic UI update
+    setBanners(reordered);
+
+    try {
+      const orderedIds = reordered.map((b) => b._id);
+      await axios.patch('/banners/reorder', { orderedIds });
+    } catch {
+      toast.error('Lỗi khi sắp xếp lại banner');
+      // Revert on error
+      setBanners(prev);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '—';
     const d = new Date(dateString);
@@ -231,6 +255,7 @@ export const useMarketingManagement = () => {
     handleDeleteBanner,
     handleToggleBannerStatus,
     handleReorderBanner,
+    handleMoveBannerToPosition,
     toggleCampaignStatus,
     deleteCampaign,
     formatDate,
