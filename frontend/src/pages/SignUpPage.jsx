@@ -3,9 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { UserPlus, Mail, Lock, User, Phone, ArrowRight, Loader, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { useUserStore } from "../stores/useUserStore";
-
-const EDITORIAL_IMAGE =
-  "https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=1600&auto=format&fit=crop";
+import AuthLeftPanel from "../components/AuthLeftPanel";
 
 // Field component tái sử dụng
 const Field = ({ id, label, type = "text", value, onChange, onBlur, error, touched, placeholder, icon: Icon, suffix }) => (
@@ -98,48 +96,10 @@ const SignUpPage = () => {
     <div className="flex min-h-screen">
 
       {/* ── Left — Editorial Panel ── */}
-      <div
-        className="relative hidden lg:flex lg:w-[46%] flex-col justify-between overflow-hidden p-14"
-        style={{ background: "#0d0c0a" }}
-      >
-        <img
-          src={EDITORIAL_IMAGE}
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover opacity-[0.2] mix-blend-luminosity"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/65" />
-
-        {/* Brand */}
-        <div className="relative flex items-center gap-3">
-          <div className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-gold)]/40 bg-[color:var(--color-gold)]/14">
-            <span className="text-[10px] font-bold tracking-[0.08em] text-[color:var(--color-gold)]">LW</span>
-          </div>
-          <div>
-            <p className="text-sm font-bold tracking-[0.3em] text-white">LUXURY</p>
-            <p className="text-[9px] uppercase tracking-[0.36em] text-white/35">Watch Gallery</p>
-          </div>
-        </div>
-
-        {/* Quote */}
-        <div className="relative space-y-5">
-          <div className="h-px w-12 bg-[color:var(--color-gold)]/55" />
-          <blockquote className="font-serif text-[1.9rem] font-medium leading-[1.26] text-white/92">
-            &quot;Mỗi chiếc đồng hồ là<br />một tuyên ngôn về bạn —<br />
-            trước khi bạn nói một lời.&quot;
-          </blockquote>
-          <p className="text-[10px] uppercase tracking-[0.22em] text-white/35">
-            Luxury Watch Gallery · 2026
-          </p>
-        </div>
-
-        <p className="relative text-[10px] uppercase tracking-[0.2em] text-white/20">
-          © 2026 · Hanoi · Vietnam
-        </p>
-      </div>
+      <AuthLeftPanel />
 
       {/* ── Right — Form Panel ── */}
-      <div className="flex flex-1 items-start justify-center overflow-y-auto bg-[color:var(--color-bg)] px-6 py-16 sm:px-10">
+      <div className="flex flex-1 items-start justify-center overflow-y-auto bg-[color:var(--color-bg)] px-6 py-16 sm:px-10 w-full lg:w-1/2">
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}

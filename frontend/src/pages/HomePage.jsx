@@ -13,7 +13,6 @@ import FlashSaleSection from "../components/FlashSaleSection";
 import BestSellersSection from "../components/BestSellerSection";
 import FeaturedProducts from "../components/FeaturedProducts";
 import CampaignBannerSection from "../components/CampaignBannerSection";
-import ChatBot from "../components/ChatBot";
 import { SkeletonProductCard } from "../components/SkeletonLoaders";
 
 const TRUST_CARDS = [

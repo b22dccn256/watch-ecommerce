@@ -12,24 +12,24 @@ const getProductBrandName = (brand) => {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// AI Provider Selection: Gemini > Groq > Fallback Bot
+// AI Provider Selection: Groq > Gemini > Fallback Bot
 // ═══════════════════════════════════════════════════════════════
 
 const getAIClient = () => {
-    // Priority 1: Google Gemini
-    if (process.env.GEMINI_API_KEY) {
-        return {
-            provider: "gemini",
-            client: new GoogleGenerativeAI(process.env.GEMINI_API_KEY),
-            model: "gemini-2.0-flash",
-        };
-    }
-    // Priority 2: Groq (fast, cheap)
+    // Priority 1: Groq (fast, cheap)
     if (process.env.GROQ_API_KEY) {
         return {
             provider: "groq",
             client: new Groq({ apiKey: process.env.GROQ_API_KEY }),
             model: "llama-3.3-70b-versatile",
+        };
+    }
+    // Priority 2: Google Gemini
+    if (process.env.GEMINI_API_KEY) {
+        return {
+            provider: "gemini",
+            client: new GoogleGenerativeAI(process.env.GEMINI_API_KEY),
+            model: "gemini-2.0-flash",
         };
     }
     return null;
@@ -64,7 +64,13 @@ const callAI = async (systemPrompt, userMessage, jsonMode = false) => {
             return result.response.text().trim();
         }
     } catch (err) {
-        console.error(`[AI ${ai.provider}] Error:`, err.message);
+        const isGeminiQuotaError =
+            ai.provider === "gemini" &&
+            /429|quota|rate limit|too many requests/i.test(err?.message || "");
+
+        if (!isGeminiQuotaError) {
+            console.error(`[AI ${ai.provider}] Error:`, err.message);
+        }
     }
     return null;
 };
@@ -159,7 +165,7 @@ const buildProductContext = async () => {
 
         const products = await CampaignService.applyCampaignToProducts(rawProducts);
 
-        const typeLabel = { mechanical: "Cơ", quartz: "Quartz", automatic: "Tự động", digital: "Điện tử", smartwatch: "Smartwatch" };
+        const typeLabel = { mechanical: "Cơ lên cót tay", quartz: "Máy pin", automatic: "Cơ tự động", solar: "Năng lượng ánh sáng" };
 
         const lines = products.map((p) => {
             let priceStr = p.price ? p.price.toLocaleString("vi-VN") + "đ" : "Liên hệ";

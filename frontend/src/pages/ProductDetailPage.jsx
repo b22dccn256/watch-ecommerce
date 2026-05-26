@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeftRight, Heart, Share2, ShoppingBag, MessageCircle, MapPin, Gift, CreditCard, ShieldCheck, ShoppingCart, Info, Phone, CheckCircle2, Truck } from "lucide-react";
+import { ArrowLeftRight, Heart, MessageCircle, MapPin, Gift, CreditCard, ShieldCheck, ShoppingCart, Info, Phone, CheckCircle2, Truck } from "lucide-react";
 import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
 import toast from "react-hot-toast";
@@ -11,11 +11,11 @@ import { useWishlistStore } from "../stores/useWishlistStore";
 import { useCompareStore } from "../stores/useCompareStore";
 import { useUserStore } from "../stores/useUserStore";
 import axios from "../lib/axios";
-import ProductCard from "../components/ProductCard";
 import { SkeletonProductDetail } from "../components/SkeletonLoaders";
 import ReviewsList from "../components/ReviewsList";
 import NotFoundPage from "./NotFoundPage";
 import { buildProductPath } from "../utils/productUrl";
+import { MOVEMENT_LABELS } from "../constants/watchFilters";
 
 const ProductDetailPage = () => {
   const { slugToken, slug, token } = useParams();
@@ -28,7 +28,6 @@ const ProductDetailPage = () => {
   const user = useUserStore((state) => state.user);
 
   const [activeImage, setActiveImage] = useState(0);
-  const [quantity, setQuantity] = useState(1);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
@@ -126,7 +125,6 @@ const ProductDetailPage = () => {
     if (!currentProduct) return;
 
     setActiveImage(0);
-    setQuantity(1);
     setSelectedColor(currentProduct.colors?.[0] || null);
     setSelectedSize(currentProduct.sizes?.[0] || null);
 
@@ -171,14 +169,7 @@ const ProductDetailPage = () => {
 
   const category = currentProduct.categoryId?.name || currentProduct.category || "Đồng hồ";
   const brandName = currentProduct.brand?.name || currentProduct.brand || "Không rõ";
-  const machineTypeLabel = {
-    mechanical: "Cơ lên cót",
-    quartz: "Bộ máy pin",
-    automatic: "Cơ tự động",
-    solar: "Năng lượng ánh sáng",
-    digital: "Điện tử",
-    smartwatch: "Đồng hồ thông minh",
-  }[currentProduct.type] || currentProduct.type || null;
+  const machineTypeLabel = MOVEMENT_LABELS[currentProduct.type] || currentProduct.type || null;
   const specItems = [
     { label: "Thương hiệu", value: brandName },
     { label: "Bộ máy", value: machineTypeLabel },
@@ -194,7 +185,7 @@ const ProductDetailPage = () => {
     if (activeStock <= 0) return;
     const payload = {
       ...currentProduct,
-      quantity: 1, // Fix 1
+      quantity: 1,
       selectedColor,
       selectedSize,
       wristSize: selectedWristSize,

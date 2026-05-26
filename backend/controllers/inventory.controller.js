@@ -4,9 +4,9 @@ import InventoryLog from "../models/inventoryLog.model.js";
 // Lấy danh sách sản phẩm cảnh báo sắp hết hàng (stock < lowStockThreshold)
 export const getLowStockProducts = async (req, res) => {
     try {
-        // Mongo query where stock <= lowStockThreshold
+        // Mongo query where stock <= 5
         const products = await Product.find({ 
-            $expr: { $lte: ["$stock", "$lowStockThreshold"] },
+            $expr: { $lte: ["$stock", 5] },
             isActive: true
         }).select("name image stock lowStockThreshold price brand _id");
 

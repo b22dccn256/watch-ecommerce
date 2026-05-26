@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import process from "node:process";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -22,7 +23,8 @@ export default defineConfig({
 					'vendor-react': ['react', 'react-dom', 'react-router-dom'],
 					
 					// Vendor libraries - UI & Animation
-					'vendor-ui': ['framer-motion', 'lucide-react', 'zustand', 'axios'],
+					// Note: exclude `zustand` from this chunk to avoid circular chunk references with our `stores` chunk.
+					'vendor-ui': ['framer-motion', 'lucide-react'],
 					
 					// Stores - separate chunk since imported everywhere
 					'stores': [

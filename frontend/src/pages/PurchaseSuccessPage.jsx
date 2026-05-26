@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle, MapPin, Package, CreditCard, Wallet, QrCode, Copy } from "lucide-react";
+import { ArrowRight, CheckCircle, MapPin, Package, CreditCard, Wallet, Copy } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useEffect, useState, Fragment } from "react";
 import { Link } from "react-router-dom";
@@ -105,6 +105,7 @@ const PurchaseSuccessPage = () => {
 					setError("Order ID not found from payment session.");
 				}
 			} catch (error) {
+				void error;
 				setIsProcessing(false);
 				setError("Payment verification failed. Please contact support.");
 			}

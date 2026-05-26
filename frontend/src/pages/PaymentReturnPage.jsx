@@ -23,11 +23,10 @@ const PaymentReturnPage = ({ method }) => {
                 // define a harmless global to avoid ReferenceError in third-party scripts
                 // VNPay sandbox scripts sometimes call/update `timer` without declaring it.
                 // Setting null prevents Uncaught ReferenceError while being inert.
-                // eslint-disable-next-line no-undef
                 window.timer = window.timer || null;
             }
-        } catch (e) {
-            // ignore
+        } catch (error) {
+            void error;
         }
 
         const processReturn = async () => {
@@ -136,7 +135,8 @@ const PaymentReturnPage = ({ method }) => {
                                 if (v.status === 'success') { clearSelectedCart(); setStatus('success'); setMessage('Giao dịch thành công!'); }
                                 else if (v.status === 'pending') { setStatus('pending'); setMessage('Thanh toán vẫn đang đối soát.'); }
                                 else { setStatus('failed'); setMessage(v.message || 'Giao dịch không thành công'); }
-                            } catch (err) {
+                            } catch (error) {
+                                void error;
                                 setStatus('failed'); setMessage('Lỗi kiểm tra trạng thái.');
                             }
                         }} className="btn-base btn-primary">Kiểm tra trạng thái</button>

@@ -1,5 +1,3 @@
-import axios from "../../../lib/axios";
-import { toast } from "react-hot-toast";
 import { Eye } from "lucide-react";
 
 const EmailInboxView = ({ messages, onMarkRead }) => (

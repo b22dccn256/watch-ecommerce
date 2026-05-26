@@ -1,16 +1,14 @@
 import { motion, AnimatePresence } from "framer-motion";
 import {
-	Mail, Send, MousePointer2, Plus,
-	Eye, Inbox, Users, BarChart3,
+	Mail, Send, Plus,
+	Inbox, Users, BarChart3,
 	FileCode, Settings,
 } from "lucide-react";
-import { toast } from "react-hot-toast";
 import { useEmailTabData } from "../../hooks/useEmailTabData";
 
 import EmailDashboardView from "./email/EmailDashboardView";
 import EmailInboxView from "./email/EmailInboxView";
 import EmailSubscribersView from "./email/EmailSubscribersView";
-import EmailCampaignsView from "./email/EmailCampaignsView";
 import EmailTemplatesView from "./email/EmailTemplatesView";
 import EmailAutomationView from "./email/EmailAutomationView";
 
@@ -18,7 +16,6 @@ const TABS = [
 	{ id: "dashboard", label: "Trang chủ", icon: BarChart3 },
 	{ id: "inbox", label: "Hộp thư đến", icon: Inbox },
 	{ id: "subscribers", label: "Người đăng ký", icon: Users },
-	{ id: "campaigns", label: "Chiến dịch", icon: Send },
 	{ id: "templates", label: "Mẫu Email", icon: FileCode },
 	{ id: "automation", label: "Tự động hóa", icon: Settings },
 ];
@@ -32,7 +29,9 @@ const EmailTab = () => {
 		automations,
 		handleDeleteSubscriber,
 		handleMarkMessageRead,
-		handleToggleAutomation,
+		handleCreateTemplate,
+		handleUpdateTemplate,
+		handleDeleteTemplate,
 	} = useEmailTabData();
 
 	const renderTabContent = () => {
@@ -40,9 +39,8 @@ const EmailTab = () => {
 			case "dashboard": return <EmailDashboardView stats={data.stats} chartData={data.chartData} />;
 			case "inbox": return <EmailInboxView messages={data.messages} loading={loading} onMarkRead={handleMarkMessageRead} />;
 			case "subscribers": return <EmailSubscribersView subscribers={data.subscribers} loading={loading} onDelete={handleDeleteSubscriber} />;
-			case "campaigns": return <EmailCampaignsView campaigns={data.campaigns} loading={loading} />;
-			case "templates": return <EmailTemplatesView templates={data.templates} loading={loading} />;
-			case "automation": return <EmailAutomationView automations={automations} onToggle={handleToggleAutomation} />;
+			case "templates": return <EmailTemplatesView templates={data.templates} loading={loading} onUpdateTemplate={handleUpdateTemplate} onCreateTemplate={handleCreateTemplate} onDeleteTemplate={handleDeleteTemplate} />;
+			case "automation": return <EmailAutomationView templates={data.templates} onUpdateTemplate={handleUpdateTemplate} />;
 			default: return null;
 		}
 	};
@@ -52,14 +50,8 @@ const EmailTab = () => {
 			{/* Top Header */}
 			<div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
 				<h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-					Quản lý Email & Marketing
+					Quản lý Email
 				</h2>
-				<button
-					onClick={() => setActiveTab("campaigns")}
-					className="flex items-center gap-2 px-6 py-2.5 bg-[#1e40af] text-white rounded text-sm font-semibold hover:bg-blue-800 transition-colors shadow-sm"
-				>
-					TẠO CHIẾN DỊCH MỚI
-				</button>
 			</div>
 
 			{/* Sub-tabs Navigation */}

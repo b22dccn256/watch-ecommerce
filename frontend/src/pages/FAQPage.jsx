@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, HelpCircle, Search, Mail, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
-import axios from "../lib/axios";
 import PageShell from "../components/PageShell";
 
 const FAQ_ITEMS = [

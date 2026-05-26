@@ -78,7 +78,7 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 			}));
 			toast.success("Product created successfully");
 		} catch (error) {
-			toast.error(error.response.data.error);
+			toast.error(error.response?.data?.error || error.response?.data?.message || "Lỗi khi tạo sản phẩm");
 			set({ loading: false });
 		}
 	},
@@ -163,7 +163,7 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 			set({ products: response.data.products, loading: false });
 		} catch (error) {
 			set({ error: "Failed to fetch products", loading: false });
-			toast.error(error.response.data.error || "Failed to fetch products");
+			toast.error(error.response?.data?.error || "Failed to fetch products");
 		}
 	},
 	deleteProduct: async (productId) => {
@@ -176,7 +176,7 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 			}));
 		} catch (error) {
 			set({ loading: false });
-			toast.error(error.response.data.error || "Failed to delete product");
+			toast.error(error.response?.data?.error || "Failed to delete product");
 		}
 	},
 	toggleFeaturedProduct: async (productId) => {
@@ -192,7 +192,7 @@ export const useProductStore = createWithEqualityFn((set, get) => ({
 			}));
 		} catch (error) {
 			set({ loading: false });
-			toast.error(error.response.data.error || "Failed to update product");
+			toast.error(error.response?.data?.error || "Failed to update product");
 		}
 	},
 	fetchFeaturedProducts: async (force = false) => {

@@ -217,6 +217,8 @@ app.use("/api/mail", mailRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/questions", questionRoutes);
 app.use("/api/settings", storeConfigRoutes);
+// Backwards-compat: some tests and older callers expect /api/store-config
+app.use("/api/store-config", storeConfigRoutes);
 app.use("/api/admin/ipns", adminIpnRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/", sitemapRoutes);

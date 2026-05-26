@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { createPortal } from "react-dom";
 import { X, Printer, CheckCircle, Clock, Truck, Package, XCircle, RotateCcw, AlertCircle } from "lucide-react";
 import ConfirmModal from "./ConfirmModal";
@@ -28,7 +28,7 @@ const PAYMENT_STATUS_STYLES = {
 };
 
 export default function OrderDetailModal({ order: initialOrder, onClose, onSaved }) {
-  const { order, setOrder, nextOptions, statusChanging, confirmConfig, setConfirmConfig, handleChangeStatus, STATUS_LABELS } = useOrderStatus(initialOrder);
+  const { order, nextOptions, statusChanging, confirmConfig, setConfirmConfig, handleChangeStatus, STATUS_LABELS } = useOrderStatus(initialOrder);
   const { form, handleChange, saveDetails: performSave, saving } = useOrderForm(initialOrder);
 
   const currentStepIndex = useMemo(() => {

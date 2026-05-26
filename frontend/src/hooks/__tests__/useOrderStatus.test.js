@@ -1,5 +1,5 @@
-import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { renderHook } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import useOrderStatus from '../useOrderStatus';
 
 // Mock axios

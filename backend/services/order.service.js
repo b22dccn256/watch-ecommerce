@@ -29,6 +29,31 @@ export const canTransitionOrderStatus = (fromStatus, toStatus) => {
 };
 
 class OrderService {
+    // Cập nhật chi tiêu, số đơn hàng và phân khúc của người dùng
+    static async updateUserStatsAndSegment(userId, amountDelta, countDelta, pointsDelta = 0, earnedPointsDelta = 0) {
+        if (!userId) return;
+        const user = await User.findById(userId);
+        if (!user) return;
+
+        if (amountDelta !== 0) user.totalSpend = Math.max(0, (user.totalSpend || 0) + amountDelta);
+        if (countDelta !== 0) user.orderCount = Math.max(0, (user.orderCount || 0) + countDelta);
+        if (pointsDelta !== 0) user.rewardPoints = Math.max(0, (user.rewardPoints || 0) + pointsDelta);
+        if (earnedPointsDelta !== 0) user.totalPointsEarned = Math.max(0, (user.totalPointsEarned || 0) + earnedPointsDelta);
+
+        // Tự động cập nhật phân khúc (segment)
+        if (user.totalSpend >= 10000000) {
+            user.segment = "VIP";
+        } else if (user.totalSpend >= 3000000 || user.orderCount >= 3) {
+            user.segment = "Potential";
+        } else if (user.totalSpend > 0) {
+            user.segment = "Regular";
+        } else {
+            user.segment = "NEW";
+        }
+
+        await user.save();
+    }
+
     // Kiểm tra và trừ tồn kho (Có hỗ trợ Transaction Session)
     static async deductStock(products, session = null, orderId = null, userId = null, note = "Thanh toán đơn hàng") {
         for (const item of products) {
@@ -335,12 +360,8 @@ class OrderService {
                 await this.restoreStock(order.products, null, order._id, "Trả hàng: " + (order.returnReason || "Không rõ lý do"));
                 if (order.loyaltyPointsGranted > 0 && !order.loyaltyPointsReversedAt) {
                     order.loyaltyPointsReversedAt = new Date();
-                    const user = await User.findById(order.user);
-                    if (user) {
-                        user.rewardPoints = Math.max(0, (user.rewardPoints || 0) - order.loyaltyPointsGranted);
-                        await user.save();
-                    }
-                    order.internalNotes = (order.internalNotes || "") + `\n[SYSTEM] Đã trừ ${order.loyaltyPointsGranted.toLocaleString()} điểm thưởng do đơn bị trả.`;
+                    await this.updateUserStatsAndSegment(order.user, -order.totalAmount, -1, -order.loyaltyPointsGranted, 0);
+                    order.internalNotes = (order.internalNotes || "") + `\n[SYSTEM] Đã trừ ${order.loyaltyPointsGranted.toLocaleString()} điểm thưởng, hoàn chi tiêu và số đơn hàng do đơn bị trả.`;
                 }
             } catch (restoreError) {
                 console.error("Error restoring stock for returned order:", restoreError.message);
@@ -355,21 +376,15 @@ class OrderService {
             }
             if (order.user) {
                 const pointsToAdd = Math.max(1, Math.floor(order.totalAmount / 100));
-                await User.findByIdAndUpdate(order.user, {
-                    $inc: { rewardPoints: pointsToAdd, totalPointsEarned: pointsToAdd }
-                });
+                await this.updateUserStatsAndSegment(order.user, order.totalAmount, 1, pointsToAdd, pointsToAdd);
                 order.loyaltyPointsGranted = pointsToAdd;
                 order.loyaltyPointsReversedAt = null;
-                order.internalNotes = (order.internalNotes || "") + `\n[SYSTEM] Cộng ${pointsToAdd.toLocaleString()} điểm thưởng cho khách.`;
+                order.internalNotes = (order.internalNotes || "") + `\n[SYSTEM] Cộng ${pointsToAdd.toLocaleString()} điểm thưởng, cập nhật chi tiêu và số đơn hàng thành công cho khách.`;
             }
         } else if (status === "refunded" && order.user && order.loyaltyPointsGranted > 0 && !order.loyaltyPointsReversedAt) {
             order.loyaltyPointsReversedAt = new Date();
-            const user = await User.findById(order.user);
-            if (user) {
-                user.rewardPoints = Math.max(0, (user.rewardPoints || 0) - order.loyaltyPointsGranted);
-                await user.save();
-            }
-            order.internalNotes = (order.internalNotes || "") + `\n[SYSTEM] Trừ ${order.loyaltyPointsGranted.toLocaleString()} điểm thưởng do đơn ${status}.`;
+            await this.updateUserStatsAndSegment(order.user, -order.totalAmount, -1, -order.loyaltyPointsGranted, 0);
+            order.internalNotes = (order.internalNotes || "") + `\n[SYSTEM] Trừ ${order.loyaltyPointsGranted.toLocaleString()} điểm thưởng, hoàn chi tiêu và số đơn hàng do đơn ${status}.`;
         }
 
         await order.save();

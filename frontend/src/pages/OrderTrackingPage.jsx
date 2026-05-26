@@ -3,11 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
     AlertCircle,
-    CheckCircle2,
     Clock,
     Mail,
     MapPin,
-    Package,
     Phone,
     Printer,
     Search,

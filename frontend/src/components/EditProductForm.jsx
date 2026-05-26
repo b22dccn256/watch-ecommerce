@@ -1,15 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { Save, Loader, ImagePlus, Tag, DollarSign, X, Plus } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
+import { MOVEMENT_FILTERS } from "../constants/watchFilters";
 
-const machineTypes = [
-	{ value: "mechanical", label: "Cơ lên cót" },
-	{ value: "quartz", label: "Bộ máy pin" },
-	{ value: "automatic", label: "Cơ tự động" },
-	{ value: "solar", label: "Năng lượng ánh sáng" },
-	{ value: "digital", label: "Điện tử" },
-	{ value: "smartwatch", label: "Đồng hồ thông minh" },
-];
+const machineTypes = MOVEMENT_FILTERS;
 
 const inputCls = "w-full bg-gray-50 dark:bg-luxury-dark border border-gray-200 dark:border-luxury-border rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-luxury-gold focus:ring-1 focus:ring-luxury-gold/40 transition";
 const labelCls = "block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5";

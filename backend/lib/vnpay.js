@@ -1,21 +1,29 @@
 import crypto from "crypto";
 import moment from "moment";
-import qs from "qs";
 
-const buildSortedQuery = (params) => {
-	const sortedParams = Object.keys(params)
+const buildSortedSearchParams = (params) => {
+	const searchParams = new URLSearchParams();
+	Object.keys(params)
 		.sort()
-		.reduce((result, key) => {
-			result[key] = params[key];
-			return result;
-		}, {});
+		.forEach((key) => {
+			const value = params[key];
+			if (value !== undefined && value !== null && value !== "") {
+				searchParams.append(key, String(value));
+			}
+		});
+	return searchParams;
+};
 
-	return qs.stringify(sortedParams, { encode: false });
+const normalizeIpAddress = (value) => {
+	const raw = String(value || "").split(",")[0].trim().replace(/^::ffff:/, "");
+	if (!raw) return "127.0.0.1";
+	if (raw === "::1") return "127.0.0.1";
+	return raw;
 };
 
 export const createVNPayUrl = ({ amount, orderId, ipAddr }) => {
 	const tmnCode = process.env.VNP_TMN_CODE;
-	const secretKey = process.env.VNP_HASH_SECRET;
+	const secretKey = process.env.VNP_HASH_SECRET || process.env.VNP_SECRET;
 	const vnpUrl = process.env.VNP_URL || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
 	const returnUrl = process.env.VNP_RETURN_URL || "http://localhost:5173/payment/vnpay-return";
 
@@ -45,17 +53,21 @@ export const createVNPayUrl = ({ amount, orderId, ipAddr }) => {
 			return result;
 		}, {});
 
-	const signData = buildSortedQuery(vnpParams);
+	const signData = buildSortedSearchParams(vnpParams).toString();
+	if (process.env.NODE_ENV === "development") {
+		console.debug("[vnpay] signData", signData);
+	}
 	const secureHash = crypto
 		.createHmac("sha512", secretKey)
 		.update(Buffer.from(signData, "utf-8"))
 		.digest("hex");
 
-	return `${vnpUrl}?${buildSortedQuery({ ...vnpParams, vnp_SecureHash: secureHash })}`;
+	const finalSearchParams = buildSortedSearchParams({ ...vnpParams, vnp_SecureHash: secureHash });
+	return `${vnpUrl}?${finalSearchParams.toString()}`;
 };
 
 export const verifyVNPaySignature = (query) => {
-	const secretKey = process.env.VNP_HASH_SECRET || "";
+	const secretKey = process.env.VNP_HASH_SECRET || process.env.VNP_SECRET || "";
 	if (!secretKey) return false;
 
 	const secureHash = query.vnp_SecureHash || query.vnp_SecureHash?.toLowerCase();
@@ -64,8 +76,16 @@ export const verifyVNPaySignature = (query) => {
 	const clone = { ...query };
 	delete clone.vnp_SecureHash;
 	delete clone.vnp_SecureHashType;
+	Object.keys(clone).forEach((key) => {
+		if (clone[key] === undefined || clone[key] === null || clone[key] === "") {
+			delete clone[key];
+		}
+	});
 
-	const signData = buildSortedQuery(clone);
+	const signData = buildSortedSearchParams(clone).toString();
+	if (process.env.NODE_ENV === "development") {
+		console.debug("[vnpay] verify signData", signData);
+	}
 	const signed = crypto
 		.createHmac("sha512", secretKey)
 		.update(Buffer.from(signData, "utf-8"))
@@ -73,3 +93,5 @@ export const verifyVNPaySignature = (query) => {
 
 	return signed.toLowerCase() === secureHash.toLowerCase();
 };
+
+export { normalizeIpAddress };

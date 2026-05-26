@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 
 export const useCheckoutForm = (user) => {
   const [step, setStep] = useState(1);
@@ -46,7 +46,7 @@ export const useCheckoutForm = (user) => {
     return [];
   }, [user]);
 
-  const applyAddress = (address) => {
+  const applyAddress = useCallback((address) => {
     if (!address) return;
     setFormData((prev) => ({
       ...prev,
@@ -56,7 +56,7 @@ export const useCheckoutForm = (user) => {
       address: address.address || prev.address || "",
       city: address.city || prev.city || "",
     }));
-  };
+  }, [user]);
 
   useEffect(() => {
     const savedData = localStorage.getItem("checkoutFormData");
@@ -87,7 +87,7 @@ export const useCheckoutForm = (user) => {
         phoneNumber: user.phone || "",
       }));
     }
-  }, [user, savedAddresses]);
+  }, [user, savedAddresses, applyAddress]);
 
   useEffect(() => {
     localStorage.setItem("checkoutFormData", JSON.stringify({ formData, selectedAddressId }));

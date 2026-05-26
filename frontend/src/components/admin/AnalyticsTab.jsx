@@ -1,5 +1,4 @@
 import { useRef, useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import {
   Users, Package, ShoppingCart, DollarSign,
   TrendingUp, ArrowUpRight, ArrowDownRight, Download, Trophy, AlertTriangle, Clock, ArrowRight

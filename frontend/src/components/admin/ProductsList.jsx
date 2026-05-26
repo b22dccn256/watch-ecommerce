@@ -33,16 +33,12 @@ const ProductsList = () => {
 	const { search, setSearch, debouncedSearch, currentPage, setCurrentPage, sortBy, setSortBy } = useProductsSearch();
 	
 	// Get products from hook
-	const { products, loading, totalPages, totalCount, fetchProducts, deleteProduct, bulkDelete, toggleFeatured, bulkToggleFeatured } = useProductsList();
-	
-	// For bulk select, we need to initialize it with current products
+	const { products, loading, totalPages, totalCount, fetchProducts, deleteProduct, bulkDelete, toggleFeatured } = useProductsList();
 	const { selectedIds, toggleSelect, toggleSelectAll, allPageSelected, selectedCount, clearSelection } = useProductsBulkSelect(products);
-	
-	// Modal management
-	const { 
-		openCreateModal, isCreateOpen, 
+	const {
+		openCreateModal,
 		openEditModal, closeEditModal, isEditOpen, getEditingProduct,
-		openDeleteConfirm, isDeleteConfirmOpen, getProductToDelete
+		openDeleteConfirm, getProductToDelete
 	} = useProductsModal();
 
 	// Local state for import/export operations only
@@ -50,7 +46,6 @@ const ProductsList = () => {
 	const [previewFile, setPreviewFile] = useState(null);
 	const [importConfirming, setImportConfirming] = useState(false);
 	const [bulkDeleting, setBulkDeleting] = useState(false);
-	const [priceAdjustCount, setPriceAdjustCount] = useState(0);
 
 	// Store functions
 	const { fetchAllProducts } = useProductStore();
@@ -100,7 +95,6 @@ const ProductsList = () => {
 	// Bulk price adjust
 	const handleBulkPriceAdjust = () => {
 		if (!selectedCount) return;
-		setPriceAdjustCount(selectedCount);
 		useModalStore.getState().openModal('priceAdjust');
 	};
 

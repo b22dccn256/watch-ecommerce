@@ -1,10 +1,23 @@
 import Brand from "../models/brand.model.js";
+import Product from "../models/product.model.js";
 
 // Lấy danh sách tất cả các brand đang hoạt động
 export const getAllBrands = async (req, res) => {
     try {
         console.time('[timing] getAllBrands');
-        const brands = await Brand.find({ isActive: true }).sort("name");
+        const includeEmpty = req.query.includeEmpty === "true";
+        let query = { isActive: true };
+
+        if (!includeEmpty) {
+            const brandIdsWithProducts = await Product.distinct("brand", {
+                deletedAt: null,
+                isActive: true,
+                brand: { $ne: null },
+            });
+            query = { ...query, _id: { $in: brandIdsWithProducts } };
+        }
+
+        const brands = await Brand.find(query).sort("name");
         console.timeEnd('[timing] getAllBrands');
         res.json(brands);
     } catch (error) {

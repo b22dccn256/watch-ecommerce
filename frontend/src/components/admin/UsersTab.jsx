@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Users, Trash2 } from 'lucide-react';
-import axios from '../../lib/axios';
-import { toast } from 'react-hot-toast';
+import { Users, Trash2, Download, UserPlus } from 'lucide-react';
 import { useUserStore } from '../../stores/useUserStore';
-import { useErrorHandler } from '../../hooks/useErrorHandler';
 
 // Custom hooks
 import useUsersData from '../../hooks/useUsersData';
@@ -25,7 +21,6 @@ import LogDetailModal from '../users/LogDetailModal';
 
 const UsersTab = () => {
 	const { user: currentUser } = useUserStore();
-	const { handleError } = useErrorHandler();
 
 	// ============ NEW: Use custom hooks for cleaner state management ============
 	const {
@@ -49,13 +44,10 @@ const UsersTab = () => {
 
 	const {
 		selectedUser,
-		setSelectedUser,
 		userDetailTab,
 		setUserDetailTab,
 		userOrders,
-		setUserOrders,
 		userOrdersLoading,
-		setUserOrdersLoading,
 		showLogDetail,
 		setShowLogDetail,
 		confirmConfig,
@@ -197,7 +189,11 @@ const UsersTab = () => {
 			case 'VIP':
 				return 'text-luxury-gold border-luxury-gold/30 bg-luxury-gold/10';
 			case 'Potential':
-				return 'text-luxury-gold border-luxury-gold/20 bg-luxury-gold/5';
+				return 'text-blue-400 border-blue-400/30 bg-blue-400/10';
+			case 'Regular':
+				return 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10';
+			case 'At Risk':
+				return 'text-red-400 border-red-400/30 bg-red-400/10';
 			default:
 				return 'text-gray-500 border-gray-200 bg-gray-50 dark:bg-luxury-darker dark:border-luxury-border';
 		}
@@ -214,61 +210,45 @@ const UsersTab = () => {
 				config={
 					showLoyaltyModal && selectedUser
 						? {
-								title: `Điều chỉnh điểm cho ${selectedUser.name}`,
-								message: 'Nhập số điểm tăng/giảm (ví dụ -10 để trừ 10 điểm)',
-								label: 'Số điểm (âm để trừ)',
-								confirmLabel: 'Áp dụng',
-								onConfirm: handleConfirmLoyalty,
-						  }
+							title: `Điều chỉnh điểm cho ${selectedUser.name}`,
+							message: 'Nhập số điểm tăng/giảm (ví dụ -10 để trừ 10 điểm)',
+							label: 'Số điểm (âm để trừ)',
+							confirmLabel: 'Áp dụng',
+							onConfirm: handleConfirmLoyalty,
+						}
 						: null
 				}
 				onClose={() => setShowLoyaltyModal(false)}
 			/>
 
 			<div className="space-y-6">
-				{/* Header */}
-				<div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-					<div className="space-y-2">
-						<h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-							Quản Lý Người Dùng
-						</h1>
-						<p className="text-gray-500 dark:text-luxury-text-muted text-sm">
-							Tổng cộng {pagination.totalUsers || 0} tài khoản |{' '}
-							{users.filter((u) => u.role === 'admin').length} Quản trị viên
-						</p>
-					</div>
-					<UsersToolbar
-						search={search}
-						onSearchChange={(e) => setSearch(e.target.value)}
-						roleFilter={roleFilter}
-						onRoleFilterChange={(e) => setRoleFilter(e.target.value)}
-					/>
-				</div>
-
 				{/* Stats Grid */}
 				<UsersStats users={users} totalUsers={pagination.totalUsers} />
 
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 					{/* User Directory */}
-					<div className="lg:col-span-2">
-						<div className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border rounded-2xl overflow-hidden shadow-xl dark:shadow-none">
-							<div className="px-6 py-4 border-b border-gray-100 dark:border-luxury-border/50 flex items-center justify-between">
-								<h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-									<Users className="w-4 h-4 text-luxury-gold" /> Danh sách người dùng
-								</h2>
-								{selectedUserIds.length > 0 ? (
+					<div className="lg:col-span-2 space-y-4">
+						<UsersToolbar
+							search={search}
+							onSearchChange={(e) => setSearch(e.target.value)}
+							roleFilter={roleFilter}
+							onRoleFilterChange={(e) => setRoleFilter(e.target.value)}
+						/>
+
+						<div className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border rounded-2xl overflow-hidden shadow-sm dark:shadow-none">
+							{selectedUserIds.length > 0 && (
+								<div className="px-6 py-4 border-b border-gray-100 dark:border-luxury-border/50 flex items-center justify-between bg-red-50/50">
+									<h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+										<Users className="w-4 h-4 text-luxury-gold" /> Đã chọn {selectedUserIds.length} người dùng
+									</h2>
 									<button
 										onClick={handleBulkDeleteClick}
 										className="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 text-xs font-bold transition duration-200 flex items-center gap-1.5"
 									>
 										<Trash2 className="w-3.5 h-3.5" /> Xóa {selectedUserIds.length} mục đã chọn
 									</button>
-								) : (
-									<span className="text-[10px] text-gray-500 dark:text-luxury-text-muted">
-										TRANG {pagination.currentPage} / {pagination.totalPages}
-									</span>
-								)}
-							</div>
+								</div>
+							)}
 
 							<UsersTable
 								users={users}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
@@ -7,7 +7,7 @@ const InputModal = ({ config, onClose }) => {
 
   if (!config) return null;
 
-  const { title = "Nhập giá trị", message = "Vui lòng nhập giá trị", label = "Giá trị", confirmLabel = "Xác nhận", variant = "info", onConfirm, loading = false } = config;
+  const { title = "Nhập giá trị", message = "Vui lòng nhập giá trị", label = "Giá trị", confirmLabel = "Xác nhận", onConfirm, loading = false } = config;
 
   const handleConfirm = async () => {
     if (onConfirm) await onConfirm(value);

@@ -48,7 +48,7 @@ export const useAnalyticsData = () => {
             totalSales: ps,
             totalRevenue: pr,
             aov: ps > 0 ? Math.round(pr / ps) : 0,
-            totalOrdersPlaced: d.totalOrdersPlaced || 0,
+            totalOrdersPlaced: ps, // Synchronized with totalSales (ps)
             conversionRate: d.conversionRate || 0,
             pendingRevenue: d.pendingRevenue || 0,
             pendingCount: d.pendingCount || 0,

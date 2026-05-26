@@ -2,6 +2,18 @@ import { Plus, Image as ImageIcon, Trash2, Power, ChevronUp, ChevronDown } from 
 import { confirmToast } from "../../lib/confirmToast";
 import { useMarketingManagement } from "../../hooks/useMarketingManagement";
 
+const campaignGroups = [
+    { value: "Entire Catalog", label: "Toàn bộ danh mục" },
+    { value: "Đồng hồ nam", label: "Đồng hồ nam" },
+    { value: "Đồng hồ nữ", label: "Đồng hồ nữ" },
+    { value: "Đồng hồ unisex", label: "Đồng hồ unisex" },
+    { value: "Smartwatch", label: "Smartwatch" },
+    { value: "automatic", label: "Cơ tự động" },
+    { value: "mechanical", label: "Cơ lên cót tay" },
+    { value: "quartz", label: "Máy pin" },
+    { value: "solar", label: "Năng lượng ánh sáng" },
+];
+
 const MarketingTab = () => {
     const {
         campaigns,
@@ -48,8 +60,8 @@ const MarketingTab = () => {
                         <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
                             <ImageIcon className="w-5 h-5 text-[color:var(--color-gold)]" /> Quản lý Banner Chiến Dịch & Khuyến Mãi (Giữa trang chủ)
                         </h3>
-                        <p className="text-[11px] text-gray-400 mt-1 max-w-2xl">
-                            * Lưu ý: Banner tại đây hiển thị tại phần Chiến dịch Khuyến mãi giữa trang chủ. Để thay đổi các Slide trượt kích thước lớn ở đầu trang chủ, vui lòng sử dụng tab <span className="font-semibold text-luxury-gold">"Slide Hero (Đầu trang chủ)"</span> trong phần <span className="font-semibold text-luxury-gold">Quản lý giao diện</span>.
+                            <p className="text-[11px] text-gray-400 mt-1 max-w-2xl">
+                                * Lưu ý: Banner tại đây hiển thị tại phần Chiến dịch Khuyến mãi giữa trang chủ. Để thay đổi các Slide trượt kích thước lớn ở đầu trang chủ, vui lòng sử dụng tab <span className="font-semibold text-luxury-gold">&quot;Slide Hero (Đầu trang chủ)&quot;</span> trong phần <span className="font-semibold text-luxury-gold">Quản lý giao diện</span>.
                         </p>
                     </div>
                     <button
@@ -160,16 +172,9 @@ const MarketingTab = () => {
                             onChange={(e) => setFormData({ ...formData, group: e.target.value })}
                             className="w-full bg-[color:var(--color-surface-2)] border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-primary outline-none focus:border-[color:var(--color-gold)] transition"
                         >
-                            <option value="Entire Catalog">Toàn bộ danh mục</option>
-                            <option value="Đồng hồ Nam">Đồng hồ Nam</option>
-                            <option value="Đồng hồ Nữ">Đồng hồ Nữ</option>
-                            <option value="Đồng hồ Unisex">Đồng hồ Unisex</option>
-                            <option value="Cơ Tự Động (Automatic)">Cơ tự động (Automatic)</option>
-                            <option value="Cơ Lên Cót Tay (Hand-wound)">Cơ lên cót tay (Hand-wound)</option>
-                            <option value="Bộ Máy Pin (Quartz)">Bộ máy pin (Quartz)</option>
-                            <option value="Năng Lượng Ánh Sáng (Solar)">Năng lượng ánh sáng (Solar)</option>
-                            <option value="Đồng Hồ Điện Tử (Digital)">Điện tử (Digital)</option>
-                            <option value="Đồng Hồ Thông Minh (Smartwatch)">Đồng hồ thông minh (Smartwatch)</option>
+                            {campaignGroups.map((group) => (
+                                <option key={group.value} value={group.value}>{group.label}</option>
+                            ))}
                         </select>
                     </div>
 

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { generateSlugToken, slugifyProductName } from "../lib/product-slug.js";
+import ProductAudit from "./productAudit.model.js";
 
 const ensureUniqueSlug = async (model, baseSlug, currentId) => {
 	let candidate = baseSlug || "product";
@@ -171,14 +172,12 @@ const productSchema = new mongoose.Schema(
 		slug: {
 			type: String,
 			required: false,
-			index: true,
 			unique: true,
 			sparse: true,
 		},
 		slugToken: {
 			type: String,
 			required: false,
-			index: true,
 			unique: true,
 			sparse: true,
 			immutable: true,
@@ -186,7 +185,6 @@ const productSchema = new mongoose.Schema(
 		oldSlugs: {
 			type: [String],
 			default: [],
-			index: true,
 		},
 		specs: {
 			movement: {
@@ -225,8 +223,6 @@ const productSchema = new mongoose.Schema(
 );
 
 // ── Compound indexes for common admin query patterns ──
-productSchema.index({ slug: 1 }, { unique: true, sparse: true });
-productSchema.index({ slugToken: 1 }, { unique: true, sparse: true });
 productSchema.index({ oldSlugs: 1 });
 productSchema.index({ deletedAt: 1, createdAt: -1 });  // default admin sort
 productSchema.index({ deletedAt: 1, brand: 1 });        // brand filter
@@ -284,8 +280,6 @@ productSchema.pre("save", async function () {
 	});
 
 	try {
-		// Import dynamically to avoid circular dependencies if any
-		const ProductAudit = mongoose.model("ProductAudit");
 		await ProductAudit.create({
 			productId: this._id,
 			userId: userId,

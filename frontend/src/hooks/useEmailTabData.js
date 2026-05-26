@@ -114,6 +114,58 @@ export const useEmailTabData = () => {
     }
   };
 
+  const handleUpdateAutomation = (automationId, updatedData) => {
+    setAutomations((prev) =>
+      prev.map((a) => (a.id === automationId ? { ...a, ...updatedData } : a))
+    );
+    toast.success('Đã lưu cấu hình tự động hóa');
+  };
+
+  const handleCreateTemplate = async (templateData) => {
+    try {
+      const res = await axios.post('/mail/templates', templateData);
+      setData((prev) => ({
+        ...prev,
+        templates: [...prev.templates, res.data],
+      }));
+      toast.success('Đã tạo mẫu email mới');
+      return true;
+    } catch {
+      toast.error('Không thể tạo mẫu email');
+      return false;
+    }
+  };
+
+  const handleUpdateTemplate = async (id, updatedData) => {
+    try {
+      const res = await axios.put(`/mail/templates/${id}`, updatedData);
+      setData((prev) => ({
+        ...prev,
+        templates: prev.templates.map((t) => (t._id === id ? res.data : t)),
+      }));
+      toast.success('Đã cập nhật mẫu email');
+      return true;
+    } catch {
+      toast.error('Không thể cập nhật mẫu email');
+      return false;
+    }
+  };
+
+  const handleDeleteTemplate = (id) => {
+    confirmToast(`Xóa mẫu email này? Hành động này không thể hoàn tác.`, async () => {
+      try {
+        await axios.delete(`/mail/templates/${id}`);
+        setData((prev) => ({
+          ...prev,
+          templates: prev.templates.filter((t) => t._id !== id),
+        }));
+        toast.success('Đã xóa mẫu email');
+      } catch {
+        toast.error('Không thể xóa mẫu email');
+      }
+    });
+  };
+
   return {
     activeTab,
     setActiveTab,
@@ -124,6 +176,10 @@ export const useEmailTabData = () => {
     handleDeleteSubscriber,
     handleMarkMessageRead,
     handleToggleAutomation,
+    handleUpdateAutomation,
+    handleCreateTemplate,
+    handleUpdateTemplate,
+    handleDeleteTemplate,
   };
 };
 

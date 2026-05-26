@@ -64,12 +64,12 @@ const AITab = () => {
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 				{/* AI Order Confirmation */}
-				<motion.div 
+				<motion.div
 					whileHover={{ y: -5 }}
 					className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border rounded-3xl p-8 space-y-6 relative overflow-hidden group shadow-xl dark:shadow-none"
 				>
 					<div className="absolute top-0 right-0 w-32 h-32 bg-luxury-gold/5 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-luxury-gold/10 transition-colors" />
-					
+
 					<div className="flex items-start justify-between">
 						<div className="p-3 bg-luxury-gold/10 rounded-2xl">
 							<Zap className="w-6 h-6 text-luxury-gold" />
@@ -79,7 +79,7 @@ const AITab = () => {
 					<div className="space-y-2">
 						<h3 className="text-xl font-bold text-gray-900 dark:text-white uppercase tracking-wider">Xác Nhận Đơn Thông Minh</h3>
 						<p className="text-sm text-gray-500 dark:text-luxury-text-muted leading-relaxed">
-							AI phân tích dữ liệu khách hàng, lịch sử mua hàng và thông tin vận chuyển để tự động <strong>chuyển trạng thái đơn COD từ "Chờ xác nhận" → "Đã xác nhận"</strong> (không phải hoàn thành đơn). Các đơn nghi ngờ spam sẽ bị hủy tự động.
+							AI phân tích dữ liệu khách hàng, lịch sử mua hàng và thông tin vận chuyển để tự động <strong>chuyển trạng thái đơn COD từ &quot;Chờ xác nhận&quot; → &quot;Đã xác nhận&quot;</strong> (không phải hoàn thành đơn). Các đơn nghi ngờ spam sẽ bị hủy tự động.
 						</p>
 					</div>
 
@@ -92,7 +92,7 @@ const AITab = () => {
 						</li>
 					</ul>
 
-					<button 
+					<button
 						onClick={handleConfirmOrders}
 						disabled={isRunningOrders}
 						className="w-full py-4 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-luxury-border text-gray-700 dark:text-white hover:bg-luxury-gold dark:hover:bg-luxury-gold hover:text-luxury-dark rounded-xl font-bold transition duration-300 flex items-center justify-center gap-2 disabled:opacity-50 shadow-md dark:shadow-none"
@@ -103,7 +103,7 @@ const AITab = () => {
 				</motion.div>
 
 				{/* AI Spam Cleanup */}
-				<motion.div 
+				<motion.div
 					whileHover={{ y: -5 }}
 					className="bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border rounded-3xl p-8 space-y-6 relative overflow-hidden group shadow-xl dark:shadow-none"
 				>
@@ -131,7 +131,7 @@ const AITab = () => {
 						</li>
 					</ul>
 
-					<button 
+					<button
 						onClick={handleCleanupUsers}
 						disabled={isRunningUsers}
 						className="w-full py-4 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-luxury-border text-gray-700 dark:text-white hover:bg-red-500 dark:hover:bg-red-500 hover:text-white rounded-xl font-bold transition duration-300 flex items-center justify-center gap-2 disabled:opacity-50 shadow-md dark:shadow-none"
@@ -153,10 +153,10 @@ const AITab = () => {
 						<div key={i} className="flex gap-4 border-l border-slate-800 dark:border-luxury-border pl-4">
 							<span className="text-slate-600 dark:text-luxury-text-muted whitespace-nowrap">[{log.time}]</span>
 							<span className={
-								log.type === "success" ? "text-emerald-400" : 
-								log.type === "error" ? "text-red-400" : 
-								log.type === "process" ? "text-luxury-gold animate-pulse" : 
-								"text-white"
+								log.type === "success" ? "text-emerald-400" :
+									log.type === "error" ? "text-red-400" :
+										log.type === "process" ? "text-luxury-gold animate-pulse" :
+											"text-white"
 							}>
 								{log.msg}
 							</span>

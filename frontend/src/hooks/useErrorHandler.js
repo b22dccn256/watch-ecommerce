@@ -12,7 +12,6 @@ import {
   getErrorMessage,
   isAuthError,
   isValidationError,
-  isNetworkError,
   logError,
 } from '../lib/errorHandler';
 

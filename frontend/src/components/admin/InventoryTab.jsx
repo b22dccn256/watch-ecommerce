@@ -40,9 +40,10 @@ const InventoryTab = () => {
     const [brandSort, setBrandSort]     = useState(null);   // null | "asc" | "desc"
 
     const getStockStatus = (p) => {
-        const threshold = p.lowStockThreshold || 5;
-        if (p.stock <= 0) return { label: "Out of Stock", key: "low", cls: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" };
-        if (p.stock <= threshold) return { label: "Low Stock", key: "low", cls: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" };
+        const threshold = 5; // Global threshold
+        const currentStock = Number(p.stock);
+        if (currentStock <= 0) return { label: "Out of Stock", key: "low", cls: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" };
+        if (currentStock <= threshold) return { label: "Low Stock", key: "low", cls: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" };
         return { label: "In Stock", key: "in", cls: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" };
     };
 
@@ -58,16 +59,29 @@ const InventoryTab = () => {
 
     const getBrandName = (p) => (p.brand?.name || (typeof p.brand === "string" ? p.brand : "") || "").toLowerCase();
 
-    const displayedProducts = useMemo(() => {
-        let list = stockFilter === "all"
-            ? [...paginatedProducts]
-            : paginatedProducts.filter(p => getStockStatus(p).key === stockFilter);
-        if (stockSort === "asc")  list.sort((a, b) => a.stock - b.stock);
-        if (stockSort === "desc") list.sort((a, b) => b.stock - a.stock);
+    const finalProducts = useMemo(() => {
+        let list = [...filteredProducts];
+        
+        if (stockFilter !== "all") {
+            list = list.filter(p => getStockStatus(p).key === stockFilter);
+        }
+        
+        if (stockSort === "asc")  list.sort((a, b) => Number(a.stock) - Number(b.stock));
+        if (stockSort === "desc") list.sort((a, b) => Number(b.stock) - Number(a.stock));
         if (brandSort === "asc")  list.sort((a, b) => getBrandName(a).localeCompare(getBrandName(b)));
         if (brandSort === "desc") list.sort((a, b) => getBrandName(b).localeCompare(getBrandName(a)));
+        
         return list;
-    }, [paginatedProducts, stockFilter, stockSort, brandSort]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [filteredProducts, stockFilter, stockSort, brandSort]);
+
+    const PAGE_SIZE = 8;
+    const computedTotalPages = Math.ceil(finalProducts.length / PAGE_SIZE) || 1;
+    const validCurrentPage = Math.min(currentPage, computedTotalPages);
+
+    const displayedProducts = useMemo(() => {
+        const start = (validCurrentPage - 1) * PAGE_SIZE;
+        return finalProducts.slice(start, start + PAGE_SIZE);
+    }, [finalProducts, validCurrentPage]);
 
     return (
         <div className="space-y-6">
@@ -261,35 +275,35 @@ const InventoryTab = () => {
                 </div>
 
                 {/* Pagination */}
-                {totalPages > 1 && (
+                {computedTotalPages > 1 && (
                     <div className="px-5 py-3.5 bg-gray-50 dark:bg-luxury-darker/40 flex items-center justify-between border-t border-gray-100 dark:border-luxury-border">
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Trang {currentPage} / {totalPages} • {filteredProducts.length} sản phẩm
+                            Trang {validCurrentPage} / {computedTotalPages} • {finalProducts.length} sản phẩm
                         </p>
                         <div className="flex items-center gap-1.5">
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                disabled={currentPage === 1}
+                                disabled={validCurrentPage === 1}
                                 className="p-1.5 rounded-lg border border-gray-200 dark:border-luxury-border text-gray-500 dark:text-gray-400 hover:bg-gray-100 disabled:opacity-40 transition"
                             >
                                 <ChevronLeft className="w-4 h-4" />
                             </button>
-                            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                                let page = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
-                                if (page > totalPages) return null;
+                            {Array.from({ length: Math.min(computedTotalPages, 5) }, (_, i) => {
+                                let page = validCurrentPage <= 3 ? i + 1 : validCurrentPage - 2 + i;
+                                if (page > computedTotalPages) return null;
                                 return (
                                     <button
                                         key={page}
                                         onClick={() => setCurrentPage(page)}
-                                        className={`w-8 h-8 rounded-lg text-sm font-bold transition ${currentPage === page ? "bg-luxury-gold text-black shadow-sm" : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-luxury-dark"}`}
+                                        className={`w-8 h-8 rounded-lg text-sm font-bold transition ${validCurrentPage === page ? "bg-luxury-gold text-black shadow-sm" : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-luxury-dark"}`}
                                     >
                                         {page}
                                     </button>
                                 );
                             })}
                             <button
-                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                disabled={currentPage === totalPages}
+                                onClick={() => setCurrentPage(p => Math.min(computedTotalPages, p + 1))}
+                                disabled={validCurrentPage === computedTotalPages}
                                 className="p-1.5 rounded-lg border border-gray-200 dark:border-luxury-border text-gray-500 dark:text-gray-400 hover:bg-gray-100 disabled:opacity-40 transition"
                             >
                                 <ChevronRight className="w-4 h-4" />

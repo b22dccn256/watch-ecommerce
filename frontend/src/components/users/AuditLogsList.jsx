@@ -1,4 +1,4 @@
-import { Key, ShieldAlert, UserCog, Clock } from "lucide-react";
+import { Key, ShieldAlert, UserCog, Clock, History } from "lucide-react";
 
 const AuditLogsList = ({
 	auditLogs,
@@ -8,8 +8,10 @@ const AuditLogsList = ({
 	onShowLogDetail
 }) => {
 	return (
-		<div className='space-y-6'>
-			<h2 className='text-xl font-bold text-gray-800 dark:text-white'>Nhật ký hệ thống</h2>
+		<div className='space-y-4'>
+			<h2 className='h-[42px] text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2'>
+				<History className="w-5 h-5 text-gray-400" /> Nhật ký hệ thống
+			</h2>
 			<div className='space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar'>
 				{logsLoading ? (
 					<div className="flex flex-col items-center justify-center py-20">
@@ -18,29 +20,39 @@ const AuditLogsList = ({
 					</div>
 				) : auditLogs.length === 0 ? (
 					<p className="text-center text-[10px] text-gray-400 py-10 uppercase tracking-widest">Chưa có nhật ký</p>
-				) : auditLogs.map(log => (
-					<div 
-						key={log._id} 
-						onClick={() => onShowLogDetail(log)}
-						className='bg-white dark:bg-luxury-dark border border-gray-100 dark:border-luxury-border p-4 rounded-2xl flex items-start gap-4 shadow-md dark:shadow-none cursor-pointer hover:border-luxury-gold/50 transition-all group'
-					>
-						<div className={`p-2 rounded-xl bg-gray-50 dark:bg-luxury-darker border border-gray-100 dark:border-luxury-border ${log.action.includes("DENIED") ? "text-red-400" : log.action.includes("LOGIN") ? "text-emerald-400" : "text-luxury-gold"}`}>
-							{log.action.includes("LOGIN") ? <Key className='w-4 h-4' /> : log.action.includes("DENIED") ? <ShieldAlert className='w-4 h-4' /> : <UserCog className='w-4 h-4' />}
-						</div>
-						<div className='flex-1 space-y-1'>
-							<div className="flex items-center justify-between">
-								<p className='text-xs font-bold text-gray-900 dark:text-white group-hover:text-luxury-gold transition-colors'>{log.action}</p>
-								<span className="text-[8px] px-1.5 py-0.5 bg-gray-100 dark:bg-white/5 rounded text-gray-400 uppercase tracking-tighter">
-									{log.userId?.role || "GUEST"}
-								</span>
+				) : auditLogs.map(log => {
+					const isDanger = log.action.includes("DELETE") || log.action.includes("DENIED") || log.action.includes("SUSPEND");
+					const isSuccess = log.action.includes("CREATE") || log.action.includes("LOGIN") || log.action.includes("SUCCESS");
+					
+					return (
+						<div 
+							key={log._id} 
+							onClick={() => onShowLogDetail(log)}
+							className={`bg-white dark:bg-luxury-dark border-y border-r border-l-4 ${isDanger ? 'border-l-red-500' : isSuccess ? 'border-l-emerald-500' : 'border-l-blue-400'} border-y-gray-100 border-r-gray-100 dark:border-y-luxury-border dark:border-r-luxury-border p-4 rounded-r-xl rounded-l-sm shadow-sm dark:shadow-none cursor-pointer hover:shadow-md transition-all`}
+						>
+							<div className='flex flex-col gap-2.5'>
+								<div className="flex items-center">
+									<span className={`text-[9px] font-bold px-2 py-1 bg-gray-100 dark:bg-white/5 rounded uppercase tracking-wider ${isDanger ? 'text-red-500' : isSuccess ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400'}`}>
+										{log.action}
+									</span>
+								</div>
+								<p className='text-sm font-medium text-gray-900 dark:text-white line-clamp-2 leading-relaxed'>
+									{log.details || `Đã thực hiện ${log.action}`}
+								</p>
+								<div className="flex items-center gap-2 mt-1">
+									<div className="w-5 h-5 rounded-full bg-[#b68a3c] flex items-center justify-center overflow-hidden">
+										{log.userId?.avatar ? (
+											<img src={log.userId.avatar} alt={log.userId.name} className="w-full h-full object-cover" />
+										) : (
+											<span className="text-[8px] font-bold text-white">{log.userId?.name?.substring(0,2).toUpperCase() || "AD"}</span>
+										)}
+									</div>
+									<span className='text-sm font-medium text-gray-600 dark:text-luxury-text-muted'>{log.userId?.name || "Hệ thống"}</span>
+								</div>
 							</div>
-							<p className='text-[10px] text-gray-500 dark:text-luxury-text-muted truncate'>{log.userId?.name || "Khách ẩn danh"}</p>
-							<p className='text-[9px] font-bold text-gray-400 dark:text-luxury-text-muted flex items-center gap-1 uppercase'>
-								<Clock className='w-3 h-3' /> {new Date(log.createdAt).toLocaleString("vi-VN")}
-							</p>
 						</div>
-					</div>
-				))}
+					);
+				})}
 			</div>
 			
 			{/* Audit Pagination */}

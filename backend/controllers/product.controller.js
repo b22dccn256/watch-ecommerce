@@ -507,10 +507,18 @@ export const previewImportProducts = async (req, res) => {
 
 export const importProducts = async (req, res) => {
   const session = await mongoose.startSession();
-  session.startTransaction();
+  let transactionActive = false;
+  try {
+    session.startTransaction();
+    transactionActive = true;
+  } catch (err) {
+    console.log("ℹ️ Transactions not supported on this MongoDB setup. Importing without transaction safety.");
+  }
+
   try {
     if (!req.file) {
-      await session.abortTransaction(); session.endSession();
+      if (transactionActive) await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ message: 'Không có file được gửi lên' });
     }
 
@@ -520,7 +528,8 @@ export const importProducts = async (req, res) => {
     // Fail-fast validation: check for missing names
     const invalidRows = data.filter(row => !row.name && !row['Tên sản phẩm']);
     if (invalidRows.length > 0) {
-      await session.abortTransaction(); session.endSession();
+      if (transactionActive) await session.abortTransaction();
+      session.endSession();
       try { fs.unlinkSync(req.file.path); } catch (_) {}
       return res.status(400).json({
         message: `${invalidRows.length} dòng thiếu tên sản phẩm. Không có dữ liệu nào được lưu.`,
@@ -533,25 +542,37 @@ export const importProducts = async (req, res) => {
 
     for (const [index, row] of data.entries()) {
       try {
-        await processImportRow(row, session, req.user._id);
+        await processImportRow(row, transactionActive ? session : null, req.user._id);
         successCount++;
       } catch (err) {
         errors.push(`Row ${index + 2}: ${err.message}`);
-        await session.abortTransaction(); session.endSession();
-        try { fs.unlinkSync(req.file.path); } catch (_) {}
-        return res.status(422).json({
-          message: `Lỗi tại dòng ${index + 2}. Đã rollback toàn bộ, không có sản phẩm nào được lưu.`,
-          errors,
-        });
+        if (transactionActive) {
+          await session.abortTransaction();
+          session.endSession();
+          try { fs.unlinkSync(req.file.path); } catch (_) {}
+          return res.status(422).json({
+            message: `Lỗi tại dòng ${index + 2}. Đã rollback toàn bộ, không có sản phẩm nào được lưu.`,
+            errors,
+          });
+        } else {
+          session.endSession();
+          try { fs.unlinkSync(req.file.path); } catch (_) {}
+          return res.status(422).json({
+            message: `Lỗi tại dòng ${index + 2}. Đã dừng import. Lưu ý: Một số dòng trước đó có thể đã được import do không có transaction.`,
+            errors,
+          });
+        }
       }
     }
 
-    await session.commitTransaction(); session.endSession();
+    if (transactionActive) await session.commitTransaction();
+    session.endSession();
     try { fs.unlinkSync(req.file.path); } catch (_) {}
 
     res.json({ message: 'Import thành công!', success: successCount, failed: 0, errors });
   } catch (error) {
-    await session.abortTransaction(); session.endSession();
+    if (transactionActive) await session.abortTransaction();
+    session.endSession();
     try { fs.unlinkSync(req.file?.path); } catch (_) {}
     res.status(500).json({ message: 'Server error during import', error: error.message });
   }

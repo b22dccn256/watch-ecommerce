@@ -1,12 +1,14 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { createVNPayUrl, verifyVNPaySignature } from '../lib/vnpay.js';
+import { createVNPayUrl, normalizeIpAddress, verifyVNPaySignature } from '../lib/vnpay.js';
 import crypto from 'crypto';
 
 export const createVNPayPayment = (order, req) => {
     try {
-		const ipAddr = req?.headers?.['x-forwarded-for'] || req?.socket?.remoteAddress || req?.connection?.remoteAddress || '127.0.0.1';
+		const ipAddr = normalizeIpAddress(
+			req?.headers?.['x-forwarded-for'] || req?.socket?.remoteAddress || req?.connection?.remoteAddress || '127.0.0.1'
+		);
 		return createVNPayUrl({
 			amount: order.totalAmount,
 			orderId: order.orderCode,

@@ -77,7 +77,7 @@ const VerifyEmailPage = () => {
 				setMessage(errMsg);
 				toast.error(errMsg);
 			});
-	}, [location.search, params.token]);
+	}, [location.search, params.token, pendingEmail]);
 
 	// ── Redirect countdown on success ──
 	useEffect(() => {

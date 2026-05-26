@@ -13,6 +13,30 @@ const buildRangeMatch = (startDate, endDate) => {
 	};
 };
 
+const getVietnamDateParts = (date = new Date()) => {
+	const formatter = new Intl.DateTimeFormat("en-US", {
+		timeZone: "Asia/Ho_Chi_Minh",
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+		second: "2-digit",
+		hour12: false
+	});
+	const parts = formatter.formatToParts(date);
+	const map = {};
+	parts.forEach(p => { map[p.type] = p.value; });
+	return {
+		year: parseInt(map.year),
+		month: parseInt(map.month),
+		day: parseInt(map.day),
+		hour: parseInt(map.hour),
+		minute: parseInt(map.minute),
+		second: parseInt(map.second)
+	};
+};
+
 export const getAnalyticsData = async ({ startDate, endDate } = {}) => {
 	const rangeMatch = buildRangeMatch(startDate, endDate);
 	const paidRangeMatch = { ...rangeMatch, paymentStatus: "paid" };
@@ -62,7 +86,7 @@ export const getAnalyticsData = async ({ startDate, endDate } = {}) => {
 		{ $limit: 10 }
 	]);
 
-	// ── Watch-specific: Máy Cơ (Automatic) vs Máy Pin (Quartz) ──────────────────
+	// Watch-specific movement analytics.
 	const watchTypeStats = await Order.aggregate([
 		{ $match: paidRangeMatch },
 		{ $unwind: "$products" },
@@ -190,9 +214,12 @@ export const getAnalyticsData = async ({ startDate, endDate } = {}) => {
 	// AOV = Average Order Value
 	const aov = totalOrdersPlaced > 0 ? Math.round((salesData[0]?.totalRevenue || 0) / totalOrdersPlaced) : 0;
 
+	const conversionRate = totalUsers > 0 ? (totalOrdersPlaced / totalUsers) * 100 : 0;
+
 	// Hourly Sales (for today, timezone VN)
-	const todayStart = new Date();
-	todayStart.setHours(0, 0, 0, 0);
+	const vnNow = new Date();
+	const vnParts = getVietnamDateParts(vnNow);
+	const todayStart = new Date(`${vnParts.year}-${String(vnParts.month).padStart(2, '0')}-${String(vnParts.day).padStart(2, '0')}T00:00:00+07:00`);
 	const hourlySales = await Order.aggregate([
 		{
 			$match: {
@@ -226,6 +253,7 @@ export const getAnalyticsData = async ({ startDate, endDate } = {}) => {
 		totalRevenue,
 		aov,
 		totalOrdersPlaced,
+		conversionRate,
 		hourlySalesData,
 		// Doanh thu dự kiến & tỷ lệ hủy
 		pendingRevenue,
@@ -243,12 +271,10 @@ export const getAnalyticsData = async ({ startDate, endDate } = {}) => {
 		})),
 		// Watch-specific analytics
 		watchTypeStats: watchTypeStats.map(s => ({
-			name: s._id === "automatic" ? "Máy Cơ Tự Động" :
-				s._id === "mechanical" ? "Máy Cơ Tay" :
-				s._id === "quartz" ? "Máy Pin (Quartz)" :
-				s._id === "solar" ? "Năng Lượng Mặt Trời" :
-				s._id === "digital" ? "Điện Tử" :
-				s._id === "smartwatch" ? "Đồng Hồ Thông Minh" :
+			name: s._id === "automatic" ? "Cơ tự động" :
+				s._id === "mechanical" ? "Cơ lên cót tay" :
+				s._id === "quartz" ? "Máy pin" :
+				s._id === "solar" ? "Năng lượng ánh sáng" :
 				s._id || "Khác",
 			value: s.count,
 			revenue: s.revenue,
@@ -302,10 +328,15 @@ export const getDailySalesData = async (startDate, endDate) => {
 
 function getDatesInRange(startDate, endDate) {
 	const dates = [];
-	let currentDate = new Date(startDate);
-	while (currentDate <= endDate) {
-		dates.push(currentDate.toISOString().split("T")[0]);
-		currentDate.setDate(currentDate.getDate() + 1);
+	const startStr = startDate.toLocaleDateString("sv-SE", { timeZone: "Asia/Ho_Chi_Minh" });
+	const endStr = endDate.toLocaleDateString("sv-SE", { timeZone: "Asia/Ho_Chi_Minh" });
+	
+	const tempUTC = new Date(startStr + "T00:00:00Z");
+	const endUTC = new Date(endStr + "T00:00:00Z");
+	
+	while (tempUTC <= endUTC) {
+		dates.push(tempUTC.toISOString().split("T")[0]);
+		tempUTC.setUTCDate(tempUTC.getUTCDate() + 1);
 	}
 	return dates;
 }
@@ -318,10 +349,15 @@ function formatDateLabel(dateStr) {
 export const getAnalytics = async (req, res) => {
 	try {
 		const days = parseInt(req.query.days) || 7;
-		const endDate = new Date();
-		const startDate = new Date();
-		startDate.setDate(endDate.getDate() - days + 1);
-		startDate.setHours(0, 0, 0, 0);
+		const vnNow = new Date();
+		const vnParts = getVietnamDateParts(vnNow);
+		const endDate = vnNow;
+
+		const localStart = new Date(Date.UTC(vnParts.year, vnParts.month - 1, vnParts.day));
+		localStart.setUTCDate(localStart.getUTCDate() - days + 1);
+
+		const startDateStr = `${localStart.getUTCFullYear()}-${String(localStart.getUTCMonth() + 1).padStart(2, '0')}-${String(localStart.getUTCDate()).padStart(2, '0')}T00:00:00+07:00`;
+		const startDate = new Date(startDateStr);
 
 		const analyticsData = await getAnalyticsData({ startDate, endDate });
 		const dailySales = await getDailySalesData(startDate, endDate);
@@ -329,11 +365,13 @@ export const getAnalytics = async (req, res) => {
 		let prevDailySales = [];
 		if (req.query.includePrev === "true") {
 			const prevEndDate = new Date(startDate);
-			prevEndDate.setDate(prevEndDate.getDate() - 1);
-			prevEndDate.setHours(23, 59, 59, 999);
-			const prevStartDate = new Date(prevEndDate);
-			prevStartDate.setDate(prevStartDate.getDate() - days + 1);
-			prevStartDate.setHours(0, 0, 0, 0);
+			prevEndDate.setSeconds(prevEndDate.getSeconds() - 1);
+			
+			const localPrevStart = new Date(localStart);
+			localPrevStart.setUTCDate(localPrevStart.getUTCDate() - days);
+			const prevStartDateStr = `${localPrevStart.getUTCFullYear()}-${String(localPrevStart.getUTCMonth() + 1).padStart(2, '0')}-${String(localPrevStart.getUTCDate()).padStart(2, '0')}T00:00:00+07:00`;
+			const prevStartDate = new Date(prevStartDateStr);
+			
 			prevDailySales = await getDailySalesData(prevStartDate, prevEndDate);
 		}
 
@@ -386,10 +424,15 @@ export const sendTestEmail = async (req, res) => {
 export const getProfitLoss = async (req, res) => {
 	try {
 		const days = parseInt(req.query.days) || 30;
-		const endDate = new Date();
-		const startDate = new Date();
-		startDate.setDate(endDate.getDate() - days + 1);
-		startDate.setHours(0, 0, 0, 0);
+		const vnNow = new Date();
+		const vnParts = getVietnamDateParts(vnNow);
+		const endDate = vnNow;
+
+		const localStart = new Date(Date.UTC(vnParts.year, vnParts.month - 1, vnParts.day));
+		localStart.setUTCDate(localStart.getUTCDate() - days + 1);
+
+		const startDateStr = `${localStart.getUTCFullYear()}-${String(localStart.getUTCMonth() + 1).padStart(2, '0')}-${String(localStart.getUTCDate()).padStart(2, '0')}T00:00:00+07:00`;
+		const startDate = new Date(startDateStr);
 
 		// Aggregate: unwind products, lookup costPrice from Product collection
 		const plData = await Order.aggregate([
