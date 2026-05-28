@@ -13,6 +13,7 @@ import { useUserStore } from "../stores/useUserStore";
 import axios from "../lib/axios";
 import { SkeletonProductDetail } from "../components/SkeletonLoaders";
 import ReviewsList from "../components/ReviewsList";
+import RecentlyViewed from "../components/RecentlyViewed";
 import NotFoundPage from "./NotFoundPage";
 import { buildProductPath } from "../utils/productUrl";
 import { MOVEMENT_LABELS } from "../constants/watchFilters";
@@ -132,6 +133,16 @@ const ProductDetailPage = () => {
       || currentProduct.wristSizeOptions?.[0]?.size 
       || null;
     setSelectedWristSize(firstAvailableWristSize);
+
+    // Save to recently viewed
+    try {
+      const raw = localStorage.getItem("recentlyViewed");
+      let list = raw ? JSON.parse(raw) : [];
+      list = [currentProduct._id, ...list.filter(id => id !== currentProduct._id)];
+      localStorage.setItem("recentlyViewed", JSON.stringify(list.slice(0, 12)));
+    } catch (e) {
+      console.error("Error saving to recently viewed:", e);
+    }
 
     const categoryParam = currentProduct.categoryId?._id || currentProduct.category || "";
     axios
@@ -600,6 +611,9 @@ const ProductDetailPage = () => {
             </div>
           </div>
         )}
+
+        {/* Recently Viewed */}
+        <RecentlyViewed max={6} className="mt-8 bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100" />
       </div>
     </div>
   );

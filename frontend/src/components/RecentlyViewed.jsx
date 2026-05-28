@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "../lib/axios";
 import ProductCard from "./ProductCard";
 
-const RecentlyViewed = ({ max = 6 }) => {
+const RecentlyViewed = ({ max = 6, className = "py-8" }) => {
   const [items, setItems] = useState([]);
 
   useEffect(() => {
@@ -21,7 +21,7 @@ const RecentlyViewed = ({ max = 6 }) => {
   if (!items.length) return null;
 
   return (
-    <section className="py-8">
+    <section className={className}>
       <div className="mb-6 flex items-end justify-between">
         <div>
           <p className="hero-kicker text-[color:var(--color-gold)]">Bạn đã xem</p>

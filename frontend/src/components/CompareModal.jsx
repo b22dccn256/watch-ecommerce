@@ -47,12 +47,23 @@ const CompareModal = ({ isOpen, onClose }) => {
 							</h2>
 							<div className="flex items-center gap-4">
 								{compareItems.length > 0 && (
-									<button
-										onClick={clearCompare}
-										className="text-sm font-medium text-secondary hover:bg-black/5 dark:hover:bg-white/10 px-3 py-1.5 rounded-lg transition"
-									>
-										Xóa tất cả
-									</button>
+									<div className="flex items-center gap-2">
+										<button
+											onClick={() => {
+												onClose();
+												navigate("/compare");
+											}}
+											className="text-sm font-bold text-[color:var(--color-gold)] hover:bg-black/5 dark:hover:bg-white/10 px-3 py-1.5 rounded-lg transition"
+										>
+											Xem chi tiết bảng
+										</button>
+										<button
+											onClick={clearCompare}
+											className="text-sm font-medium text-secondary hover:bg-black/5 dark:hover:bg-white/10 px-3 py-1.5 rounded-lg transition"
+										>
+											Xóa tất cả
+										</button>
+									</div>
 								)}
 								<button
 									onClick={onClose}

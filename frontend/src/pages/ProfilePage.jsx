@@ -81,6 +81,7 @@ const ProfilePage = () => {
   const [addressBook, setAddressBook] = useState([]);
   const [defaultAddressId, setDefaultAddressId] = useState("");
   const [addressDraft, setAddressDraft] = useState(createAddressDraft());
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const [showPassword, setShowPassword] = useState({ old: false, next: false, confirm: false });
 
@@ -143,28 +144,29 @@ const ProfilePage = () => {
     event.preventDefault();
     if (!validateProfile()) return;
 
-    const cleanedAddressBook = addressBook
-      .map((item) => ({
-        ...item,
-        label: item.label?.trim(),
-        fullName: item.fullName?.trim(),
-        phone: item.phone?.trim(),
-        address: item.address?.trim(),
-        city: item.city?.trim(),
-        isDefault: item.id === defaultAddressId,
-      }))
-      .filter((item) => item.label && item.address && item.city)
-      .slice(0, 5);
-
     await updateProfile({
-      ...profileData,
+      name: profileData.name.trim(),
+      phone: profileData.phone.trim(),
       address: profileData.address.trim(),
-      addressBook: cleanedAddressBook,
-      defaultAddressId,
+      gender: profileData.gender,
+      birthday: profileData.birthday,
     });
   };
 
-  const handleSaveAddressDraft = () => {
+  const resetAddressDraft = () => {
+    setAddressDraft({
+      id: `addr-${Date.now()}`,
+      label: "",
+      fullName: "",
+      phone: "",
+      address: "",
+      city: "",
+      isDefault: false,
+    });
+    setIsEditingAddress(false);
+  };
+
+  const handleSaveAddressDraft = async () => {
     if (!addressDraft.label.trim() || !addressDraft.address.trim() || !addressDraft.city.trim()) {
       setProfileErrors((prev) => ({
         ...prev,
@@ -187,9 +189,14 @@ const ProfilePage = () => {
     })();
 
     const defaultItem = nextBook.find((item) => item.isDefault) || nextBook[0];
-    setAddressBook(nextBook);
-    setDefaultAddressId(defaultItem?.id || "");
-    setAddressDraft(createAddressDraft(defaultItem || nextAddress));
+    
+    // Save directly to backend
+    await updateProfile({
+      addressBook: nextBook,
+      defaultAddressId: defaultItem?.id || "",
+    });
+
+    resetAddressDraft();
     setProfileErrors((prev) => {
       const next = { ...prev };
       delete next.addressDraft;
@@ -199,16 +206,37 @@ const ProfilePage = () => {
 
   const handleEditAddress = (address) => {
     setAddressDraft(createAddressDraft(address));
+    setIsEditingAddress(true);
   };
 
-  const handleDeleteAddress = (id) => {
+  const handleDeleteAddress = async (id) => {
     const nextBook = addressBook.filter((item) => item.id !== id);
     const nextDefault = defaultAddressId === id ? nextBook[0]?.id || "" : defaultAddressId;
-    setAddressBook(nextBook);
-    setDefaultAddressId(nextDefault);
-    if (addressDraft.id === id) {
-      setAddressDraft(createAddressDraft(nextBook[0] || {}));
+    
+    if (nextBook.length > 0 && !nextBook.some(item => item.isDefault)) {
+      nextBook[0].isDefault = true;
     }
+    const defaultItem = nextBook.find((item) => item.isDefault);
+
+    await updateProfile({
+      addressBook: nextBook,
+      defaultAddressId: defaultItem?.id || nextDefault || "",
+    });
+
+    if (addressDraft.id === id) {
+      resetAddressDraft();
+    }
+  };
+
+  const handleSetDefaultAddress = async (id) => {
+    const nextBook = addressBook.map((item) => ({
+      ...item,
+      isDefault: item.id === id,
+    }));
+    await updateProfile({
+      addressBook: nextBook,
+      defaultAddressId: id,
+    });
   };
 
   const handlePasswordSubmit = async (event) => {
@@ -450,6 +478,11 @@ const ProfilePage = () => {
                         <Plus className="h-4 w-4" />
                         Lưu địa chỉ
                       </button>
+                      {isEditingAddress && (
+                        <button type="button" onClick={resetAddressDraft} className="rounded-full border border-black/10 px-4 py-2 text-sm font-medium text-secondary hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                          Hủy sửa (Thêm mới)
+                        </button>
+                      )}
                     </div>
 
                     <div className="grid gap-3">
@@ -465,9 +498,11 @@ const ProfilePage = () => {
                               <p className="text-sm text-secondary">{address.address}{address.city ? `, ${address.city}` : ""}</p>
                             </div>
                             <div className="flex items-center gap-2">
-                              <button type="button" onClick={() => { setDefaultAddressId(address.id); setAddressBook((prev) => prev.map((item) => ({ ...item, isDefault: item.id === address.id }))); }} className="rounded-full border border-black/10 px-3 py-1.5 text-xs font-semibold text-secondary hover:border-[color:var(--color-gold)]/40 hover:text-[color:var(--color-gold)]">
-                                Đặt mặc định
-                              </button>
+                              {address.id !== defaultAddressId && (
+                                <button type="button" onClick={() => handleSetDefaultAddress(address.id)} className="rounded-full border border-black/10 px-3 py-1.5 text-xs font-semibold text-secondary hover:border-[color:var(--color-gold)]/40 hover:text-[color:var(--color-gold)]">
+                                  Đặt mặc định
+                                </button>
+                              )}
                               <button type="button" onClick={() => handleEditAddress(address)} className="rounded-full border border-black/10 px-3 py-1.5 text-xs font-semibold text-secondary hover:border-[color:var(--color-gold)]/40 hover:text-[color:var(--color-gold)]">
                                 Sửa
                               </button>

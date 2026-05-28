@@ -219,6 +219,13 @@ export const login = async (email, password) => {
 		name: user.name,
 		email: user.email,
 		role: user.role,
+		phone: user.phone || "",
+		address: user.address || "",
+		addressBook: user.addressBook || [],
+		defaultAddressId: user.defaultAddressId || "",
+		gender: user.gender || "other",
+		birthday: user.birthday || null,
+		rewardPoints: user.rewardPoints || 0,
 		emailVerified: user.emailVerified,
 		accessToken,
 		refreshToken,
@@ -451,11 +458,12 @@ export const updateProfile = async (userId, updates) => {
 
 		if (normalizedAddressBook.length === 0 && (updateData.address || "").trim()) {
 			normalizedAddressBook.push({
+				id: `addr-${Date.now()}`,
 				label: "Mặc định",
 				fullName: (updates.name || "").trim(),
 				phone: (updates.phone || "").trim(),
 				address: String(updateData.address).trim(),
-				city: String(updates.city || "").trim() || "",
+				city: String(updates.city || "").trim() || "Hà Nội",
 				isDefault: true,
 			});
 		}

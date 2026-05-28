@@ -200,9 +200,14 @@ const HomePage = () => {
                 và cảm giác đeo trong từng ngữ cảnh đời sống.
               </p>
             </div>
-            <Link to="/catalog" className="btn-base btn-outline mt-6 h-10 w-fit px-6 text-sm">
-              Khám phá bộ sưu tập
-            </Link>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link to="/catalog" className="btn-base btn-outline h-10 px-6 text-sm flex items-center justify-center">
+                Khám phá bộ sưu tập
+              </Link>
+              <Link to="/about" className="btn-base h-10 px-6 text-sm bg-[color:var(--color-gold)] text-black hover:opacity-90 transition flex items-center justify-center font-semibold rounded-lg">
+                Đọc câu chuyện di sản
+              </Link>
+            </div>
           </motion.div>
 
           {/* Image side */}

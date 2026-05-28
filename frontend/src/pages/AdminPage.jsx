@@ -337,7 +337,7 @@ const AdminPage = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
               <input
                 type="text"
-                placeholder="Tìm sản phẩm, đơn hàng..."
+                placeholder="🔍 Tìm nhanh sản phẩm, đơn hàng toàn cục..."
                 value={searchQuery}
                 onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
                 onFocus={() => setSearchOpen(true)}

@@ -46,7 +46,20 @@ export const verifyOTP = async (req, res) => {
 		const { accessToken, refreshToken } = AuthService.generateTokens(user._id);
 		await AuthService.storeRefreshToken(user._id, refreshToken);
 		AuthService.setCookies(res, accessToken, refreshToken);
-		return res.json({ _id: user._id, name: user.name, email: user.email, role: user.role });
+		return res.json({
+			_id: user._id,
+			name: user.name,
+			email: user.email,
+			role: user.role,
+			phone: user.phone || "",
+			address: user.address || "",
+			addressBook: user.addressBook || [],
+			defaultAddressId: user.defaultAddressId || "",
+			gender: user.gender || "other",
+			birthday: user.birthday || null,
+			rewardPoints: user.rewardPoints || 0,
+			emailVerified: user.emailVerified,
+		});
 	} catch (error) {
 		const statusCode = error.statusCode || 400;
 		return res.status(statusCode).json({ message: error.message });

@@ -7,7 +7,12 @@ import { useErrorHandler } from './useErrorHandler';
 const mapReview = (r) => ({
   _id: r._id,
   user: { name: r.user?.name || r.user?.email || 'Khách' },
-  product: { name: r.product?.name || 'Sản phẩm', _id: r.product?._id },
+  product: { 
+    name: r.product?.name || 'Sản phẩm', 
+    _id: r.product?._id,
+    slug: r.product?.slug,
+    slugToken: r.product?.slugToken 
+  },
   rating: r.rating,
   comment: r.comment,
   images: r.images || [],
@@ -18,7 +23,12 @@ const mapReview = (r) => ({
 const mapQuestion = (q) => ({
   _id: q._id,
   user: { name: q.user?.name || 'Khách' },
-  product: { name: q.product?.name || 'Sản phẩm', _id: q.product?._id },
+  product: { 
+    name: q.product?.name || 'Sản phẩm', 
+    _id: q.product?._id,
+    slug: q.product?.slug,
+    slugToken: q.product?.slugToken 
+  },
   question: q.question,
   answer: q.answer,
   isAnswered: Boolean(q.isAnswered || q.answer),

@@ -96,7 +96,7 @@ export const listAllReviews = async (req, res) => {
 		const totalReviews = await Review.countDocuments(filter);
 		const reviews = await Review.find(filter)
 			.populate("user", "name email")
-			.populate("product", "name image")
+			.populate("product", "name image slug slugToken")
 			.sort({ createdAt: -1 })
 			.skip((page - 1) * limit)
 			.limit(limit);
@@ -115,7 +115,7 @@ export const updateReviewStatus = async (req, res) => {
 		}
 		const review = await Review.findByIdAndUpdate(req.params.id, { status }, { new: true })
 			.populate("user", "name email")
-			.populate("product", "name image");
+			.populate("product", "name image slug slugToken");
 		if (!review) return res.status(404).json({ message: "Review not found" });
 		res.json(review);
 	} catch (error) {

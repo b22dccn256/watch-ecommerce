@@ -136,16 +136,11 @@ const LoginPage = () => {
                   <div className="flex-1 h-px bg-gray-200 dark:bg-white/10" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-3">
                   <a href="/api/auth/oauth/google"
-                    className="flex items-center justify-center gap-2 h-11 rounded-xl border border-gray-200 dark:border-white/10 hover:border-[color:var(--color-gold)]/50 hover:bg-[color:var(--color-gold)]/5 transition-colors text-sm text-secondary">
+                    className="flex items-center justify-center gap-3 h-12 w-full rounded-xl border border-gray-200 dark:border-white/10 hover:border-[color:var(--color-gold)]/50 hover:bg-[color:var(--color-gold)]/5 transition text-sm font-semibold text-secondary shadow-sm">
                     <svg className="w-4 h-4" viewBox="0 0 24 24"><path fill="#EA4335" d="M12.545,10.239v3.821h5.445c-0.231,1.139-1.317,3.33-5.445,3.33c-3.284,0-5.962-2.73-5.962-6.101s2.678-6.101,5.962-6.101c1.86,0,3.109,0.796,3.818,1.472l2.997-2.909c-1.782-1.636-4.085-2.617-6.816-2.617c-5.467,0-9.897,4.48-9.897,10.038s4.43,10.038,9.897,10.038c5.719,0,9.507-4.02,9.507-9.673c0-0.742-0.088-1.393-0.211-1.999H12.545z"/></svg>
-                    Google
-                  </a>
-                  <a href="/api/auth/oauth/facebook"
-                    className="flex items-center justify-center gap-2 h-11 rounded-xl border border-gray-200 dark:border-white/10 hover:border-[color:var(--color-gold)]/50 hover:bg-[color:var(--color-gold)]/5 transition-colors text-sm text-secondary">
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                    Facebook
+                    Tiếp tục với Google
                   </a>
                 </div>
 

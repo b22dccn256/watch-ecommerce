@@ -52,7 +52,7 @@ export const listAllQuestions = async (req, res) => {
 		const limit = parseInt(req.query.limit) || 10;
 		const questions = await Question.find(filter)
 			.populate("user", "name email")
-			.populate("product", "name image")
+			.populate("product", "name image slug slugToken")
 			.sort({ createdAt: -1 })
 			.limit(limit);
 		
@@ -76,7 +76,7 @@ export const answerQuestion = async (req, res) => {
 			{ new: true }
 		)
 			.populate("user", "name email")
-			.populate("product", "name image");
+			.populate("product", "name image slug slugToken");
 		if (!question) return res.status(404).json({ message: "Question not found" });
 		res.json(question);
 	} catch (error) {

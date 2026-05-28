@@ -30,6 +30,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import BrandsPage from "./pages/BrandsPage";
 import FAQPage from "./pages/FAQPage";
+import ComparePage from "./pages/ComparePage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 import Navbar from "./components/Navbar";
@@ -87,8 +88,19 @@ function App() {
 			}
 		};
 
+		const handleVisibilityChange = () => {
+			if (document.visibilityState === "visible") {
+				checkAuth();
+			}
+		};
+
 		window.addEventListener("pageshow", handlePageShow);
-		return () => window.removeEventListener("pageshow", handlePageShow);
+		document.addEventListener("visibilitychange", handleVisibilityChange);
+
+		return () => {
+			window.removeEventListener("pageshow", handlePageShow);
+			document.removeEventListener("visibilitychange", handleVisibilityChange);
+		};
 	}, [checkAuth]);
 
 	// Fetch CSRF token on app startup
@@ -291,6 +303,7 @@ function App() {
 							<Route path="/catalog" element={<CatalogPage />} />
 							<Route path='/category/:category' element={<CatalogPage />} />
 							<Route path="/about" element={<AboutPage />} />
+							<Route path="/compare" element={<ComparePage />} />
 							<Route path='/cart' element={privateRoute(<CartPage />)} />
 							<Route path='/checkout' element={privateRoute(<CheckoutPage />)} />
 							<Route path='/profile' element={privateRoute(<AccountPages />)} />

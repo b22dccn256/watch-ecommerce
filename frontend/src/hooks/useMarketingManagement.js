@@ -169,6 +169,18 @@ export const useMarketingManagement = () => {
     });
   };
 
+  const handleUpdateBanner = async (id, updates) => {
+    try {
+      const res = await axios.patch(`/banners/${id}`, updates);
+      setBanners((prev) => prev.map((b) => (b._id === id ? res.data : b)));
+      toast.success('Đã cập nhật banner thành công!');
+      return true;
+    } catch {
+      toast.error('Lỗi khi cập nhật banner');
+      return false;
+    }
+  };
+
   const handleToggleBannerStatus = async (id) => {
     try {
       const res = await axios.patch(`/banners/${id}/toggle`);
@@ -261,6 +273,7 @@ export const useMarketingManagement = () => {
     formatDate,
     previewProduct,
     activeCampaigns,
+    handleUpdateBanner,
   };
 };
 

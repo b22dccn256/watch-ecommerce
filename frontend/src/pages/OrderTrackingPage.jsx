@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -12,6 +12,8 @@ import {
     Truck,
     User,
 } from "lucide-react";
+import { toast } from "react-hot-toast";
+import axios from "../lib/axios";
 import { useOrderStore } from "../stores/useOrderStore";
 import { useUserStore } from "../stores/useUserStore";
 import { SkeletonPageShell } from "../components/SkeletonLoaders";
@@ -53,20 +55,65 @@ const OrderTrackingPage = () => {
         }
     }, [trackingToken, fetchOrderTracking]);
 
+    const handleContinueVNPay = async () => {
+        try {
+            const toastId = toast.loading("Đang tạo liên kết thanh toán...");
+            const res = await axios.post("/payments/recreate-vnpay-url", { orderId: currentOrder._id });
+            if (res.data?.paymentUrl) {
+                toast.success("Đang chuyển hướng...", { id: toastId });
+				window.location.href = res.data.paymentUrl;
+            } else {
+                toast.error("Không tạo được link thanh toán", { id: toastId });
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Đã xảy ra lỗi");
+        }
+    };
+
+    const handleChangeToCOD = async () => {
+        try {
+            const toastId = toast.loading("Đang chuyển đổi sang COD...");
+            await axios.post("/payments/change-payment-method", { orderId: currentOrder._id, method: "cod" });
+            toast.success("Đã đổi sang thanh toán COD thành công!", { id: toastId });
+            if (trackingToken) {
+                fetchOrderTracking(trackingToken);
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Đã xảy ra lỗi");
+        }
+    };
+
     if (loading) return <SkeletonPageShell rows={6} />;
 
     if (error) {
         return (
-            <div className="min-h-screen pt-24 px-4 pb-16">
-                <div className="mx-auto max-w-xl rounded-2xl border border-black/15 dark:border-white/15 bg-black/5 dark:bg-white/5 p-8 text-center">
-                    <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--color-gold)]/15">
-                        <AlertCircle className="h-6 w-6 text-[color:var(--color-gold)]" />
+            <div className="min-h-screen pt-24 px-4 pb-16 flex items-center justify-center">
+                <div className="mx-auto max-w-xl w-full space-y-6">
+                    <div className="rounded-2xl border border-black/15 dark:border-white/15 bg-surface p-8 text-center">
+                        <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--color-gold)]/15">
+                            <AlertCircle className="h-6 w-6 text-[color:var(--color-gold)]" />
+                        </div>
+                        <h1 className="hero-title text-3xl text-primary">Không tìm thấy đơn hàng</h1>
+                        <p className="mt-3 text-sm text-secondary">{error}</p>
+                        <button onClick={() => navigate("/")} className="btn-base btn-primary mt-6 h-11 px-6">
+                            Quay lại trang chủ
+                        </button>
                     </div>
-                    <h1 className="hero-title text-3xl text-primary">Không tìm thấy đơn hàng</h1>
-                    <p className="mt-3 text-sm text-secondary">{error}</p>
-                    <button onClick={() => navigate("/")} className="btn-base btn-primary mt-6 h-11 px-6">
-                        Về trang chủ
-                    </button>
+
+                    <div className="rounded-[1.3rem] border border-black/10 dark:border-white/10 bg-surface p-5 text-center">
+                        <p className="text-sm text-secondary mb-3">Tra cứu đơn hàng khác</p>
+                        <form
+                            onSubmit={(event) => {
+                                event.preventDefault();
+                                const token = event.target.token.value;
+                                if (token) navigate(`/order-tracking/${token.trim()}`);
+                            }}
+                            className="mx-auto flex max-w-xl flex-col gap-2 sm:flex-row"
+                        >
+                            <input name="token" type="text" placeholder="Nhập mã đơn hàng hoặc mã theo dõi" className="input-base h-11" required />
+                            <button type="submit" className="btn-base btn-primary h-11 px-6">Tìm kiếm</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         );
@@ -85,14 +132,14 @@ const OrderTrackingPage = () => {
                     </div>
                     <h1 className="hero-title text-4xl text-primary">Theo dõi đơn hàng</h1>
                     <p className="mt-3 text-sm text-secondary">
-                        Nhập mã theo dõi để xem trạng thái đơn hàng theo thời gian thực.
+                        Nhập mã đơn hàng hoặc mã theo dõi để xem trạng thái đơn hàng theo thời gian thực.
                     </p>
 
                     <form
                         onSubmit={(event) => {
                             event.preventDefault();
                             const token = event.target.token.value;
-                            if (token) navigate(`/order-tracking/${token}`);
+                            if (token) navigate(`/order-tracking/${token.trim()}`);
                         }}
                         className="mt-6 space-y-3"
                     >
@@ -100,14 +147,14 @@ const OrderTrackingPage = () => {
                             name="token"
                             type="text"
                             required
-                            placeholder="Dán mã theo dõi vào đây"
+                            placeholder="Dán mã đơn hàng hoặc mã theo dõi vào đây"
                             className="input-base h-11 text-center"
                         />
                         <button type="submit" className="btn-base btn-primary h-11 w-full">
                             Tra cứu ngay
                         </button>
                         <p className="text-xs text-muted pt-2">
-                            Mã theo dõi được gửi qua email xác nhận đơn hàng hoặc tại mục hồ sơ của bạn.
+                            Mã đơn hàng/theo dõi được hiển thị sau khi mua hàng và gửi qua email của bạn.
                         </p>
                     </form>
                 </motion.div>
@@ -156,6 +203,33 @@ const OrderTrackingPage = () => {
                         })}
                     </div>
                 </div>
+
+                {currentOrder.paymentMethod === 'vnpay' && currentOrder.paymentStatus !== 'paid' && (
+                    <div className='bg-amber-500/10 border border-amber-500/25 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4 animate-enter shadow-sm'>
+                        <div className="text-left">
+                            <h4 className="font-bold text-amber-500 text-sm uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                                <Clock size={16} /> Thanh toán chưa hoàn tất
+                            </h4>
+                            <p className="text-xs text-secondary leading-relaxed">
+                                Giao dịch VNPay của bạn chưa được thanh toán thành công. Vui lòng hoàn tất thanh toán hoặc chuyển sang thanh toán khi nhận hàng (COD) để đơn hàng được xử lý ngay.
+                            </p>
+                        </div>
+                        <div className="flex gap-2 w-full md:w-auto shrink-0 justify-end">
+                            <button
+                                onClick={handleChangeToCOD}
+                                className="flex-1 md:flex-none px-4 py-2 rounded-lg border border-amber-500/30 text-amber-500 text-xs font-bold hover:bg-amber-500 hover:text-white transition"
+                            >
+                                Đổi sang COD
+                            </button>
+                            <button
+                                onClick={handleContinueVNPay}
+                                className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-amber-500 text-white text-xs font-bold hover:bg-amber-600 transition"
+                            >
+                                Tiếp tục thanh toán
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 <div className="grid gap-8 lg:grid-cols-3">
                     <section className="lg:col-span-2 space-y-4">

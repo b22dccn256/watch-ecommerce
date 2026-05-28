@@ -10,6 +10,7 @@ import ProductService, {
   processImportRow,
   buildImportPreview,
   buildExportXLSX,
+  getVietnameseRegex,
 } from '../services/product.service.js';
 import mongoose from 'mongoose';
 import fs from 'fs';
@@ -57,13 +58,14 @@ export const getSuggestions = async (req, res) => {
     const { redis } = await import('../lib/redis.js');
     const Brand = (await import('../models/brand.model.js')).default;
 
-    const brandDocs = await Brand.find({ name: { $regex: q, $options: 'i' } });
+    const nameRegex = getVietnameseRegex(q);
+    const brandDocs = await Brand.find({ name: nameRegex });
     const brandIds  = brandDocs.map(b => b._id);
 
     const suggestions = await Product.find({
       deletedAt: null,
       $or: [
-        { name: { $regex: q, $options: 'i' } },
+        { name: nameRegex },
         { brand: { $in: brandIds } },
         { type: { $regex: q, $options: 'i' } },
       ],

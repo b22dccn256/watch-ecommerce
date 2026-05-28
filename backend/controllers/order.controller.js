@@ -300,7 +300,13 @@ export const createCODOrder = (req, res) => OrderService.createNonStripeOrder(re
 export const getOrderTracking = async (req, res) => {
     try {
         const { trackingToken } = req.params;
-        const order = await Order.findOne({ trackingToken })
+        const normalizedToken = String(trackingToken || "").trim();
+        const order = await Order.findOne({
+            $or: [
+                { trackingToken: normalizedToken },
+                { orderCode: normalizedToken.toUpperCase() }
+            ]
+        })
             .select("trackingToken orderCode status paymentMethod paymentStatus totalAmount estimatedDelivery carrier carrierTrackingNumber trackingEvents shippingDetails products createdAt")
             .populate("products.product", "name image price");
 

@@ -143,6 +143,14 @@ const apiLimiter = rateLimit({
 
 app.use("/api", apiLimiter);
 
+// Prevent caching on dynamic API routes (avoids BFcache / browser history session leaks)
+app.use("/api", (req, res, next) => {
+	res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+	res.setHeader("Pragma", "no-cache");
+	res.setHeader("Expires", "0");
+	next();
+});
+
 // ── Body Parsing ──────────────────────────────────────────────────────────────
 // Stripe webhook cần raw body — phải đặt TRƯỚC express.json()
 app.use("/api/payments/webhook", express.raw({ type: "application/json" }));

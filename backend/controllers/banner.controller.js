@@ -97,3 +97,21 @@ export const reorderBanners = async (req, res) => {
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
 };
+
+export const updateBanner = async (req, res) => {
+	try {
+		const { title, link } = req.body;
+		const banner = await Banner.findById(req.params.id);
+		if (!banner) {
+			return res.status(404).json({ message: "Không tìm thấy banner" });
+		}
+
+		if (title !== undefined) banner.title = title;
+		if (link !== undefined) banner.link = link;
+
+		await banner.save();
+		res.json(banner);
+	} catch (error) {
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};

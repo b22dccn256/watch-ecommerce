@@ -452,5 +452,80 @@ export const vnpayIpn = async (req, res) => {
 	}
 };
 
+export const recreateVNPayUrl = async (req, res) => {
+	try {
+		const { orderId } = req.body;
+		if (!orderId) {
+			return res.status(400).json({ message: "Thiếu mã đơn hàng (orderId)" });
+		}
+
+		const order = await Order.findById(orderId);
+		if (!order) {
+			return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+		}
+
+		if (order.paymentStatus === "paid") {
+			return res.status(400).json({ message: "Đơn hàng này đã được thanh toán" });
+		}
+
+		// Recreate VNPay payment URL
+		const paymentUrl = createVNPayPayment(order, req);
+		res.status(200).json({ paymentUrl });
+	} catch (error) {
+		console.error("Error recreating VNPay URL:", error);
+		res.status(500).json({ message: "Lỗi hệ thống khi tạo lại liên kết thanh toán", error: error.message });
+	}
+};
+
+export const changePaymentMethod = async (req, res) => {
+	try {
+		const { orderId, method } = req.body;
+		if (!orderId || !method) {
+			return res.status(400).json({ message: "Thiếu mã đơn hàng hoặc phương thức thanh toán mới" });
+		}
+
+		const order = await Order.findById(orderId);
+		if (!order) {
+			return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+		}
+
+		if (order.paymentStatus === "paid") {
+			return res.status(400).json({ message: "Không thể thay đổi phương thức thanh toán của đơn hàng đã trả tiền" });
+		}
+
+		if (method.toLowerCase() === "cod") {
+			order.paymentMethod = "cod";
+			order.status = "confirmed";
+			await order.save();
+
+			// Gửi email xác nhận COD ngay lập tức
+			const emailTarget = req.user?.email || order.shippingDetails?.email;
+			if (emailTarget) {
+				try {
+					await emailQueue.add("order-confirmation", {
+						email: emailTarget,
+						subject: `Xác nhận đơn hàng #${order.orderCode} - Luxury Watch (COD)`,
+						order: {
+							orderCode: order.orderCode,
+							totalAmount: order.totalAmount,
+							shippingDetails: order.shippingDetails,
+							paymentMethod: "Thanh toán khi nhận hàng (COD)"
+						}
+					});
+				} catch (emailErr) {
+					console.error("Error sending COD email change confirmation:", emailErr);
+				}
+			}
+
+			return res.status(200).json(order);
+		} else {
+			return res.status(400).json({ message: "Phương thức thanh toán mới không hợp lệ" });
+		}
+	} catch (error) {
+		console.error("Error changing payment method:", error);
+		res.status(500).json({ message: "Lỗi hệ thống khi thay đổi phương thức thanh toán", error: error.message });
+	}
+};
+
 
 

@@ -1,6 +1,6 @@
 import express from "express";
 import { protectRoute, adminRoute, managementRoute } from "../middleware/auth.middleware.js";
-import { getBanners, createBanner, deleteBanner, toggleBannerStatus, reorderBanners } from "../controllers/banner.controller.js";
+import { getBanners, createBanner, deleteBanner, toggleBannerStatus, reorderBanners, updateBanner } from "../controllers/banner.controller.js";
 
 const router = express.Router();
 
@@ -9,5 +9,6 @@ router.post("/", protectRoute, managementRoute, createBanner);
 router.patch("/reorder", protectRoute, managementRoute, reorderBanners);
 router.delete("/:id", protectRoute, adminRoute, deleteBanner);
 router.patch("/:id/toggle", protectRoute, managementRoute, toggleBannerStatus);
+router.patch("/:id", protectRoute, managementRoute, updateBanner);
 
 export default router;

@@ -1,4 +1,5 @@
-import { Plus, Image as ImageIcon, Trash2, Power, ChevronUp, ChevronDown } from "lucide-react";
+import { useState } from "react";
+import { Plus, Image as ImageIcon, Trash2, Power, ChevronUp, ChevronDown, Pencil, Check, X } from "lucide-react";
 import { confirmToast } from "../../lib/confirmToast";
 import { useMarketingManagement } from "../../hooks/useMarketingManagement";
 
@@ -34,7 +35,12 @@ const MarketingTab = () => {
         formatDate,
         previewProduct,
         activeCampaigns,
+        handleUpdateBanner,
     } = useMarketingManagement();
+
+    const [editingBannerId, setEditingBannerId] = useState(null);
+    const [editTitle, setEditTitle] = useState("");
+    const [editLink, setEditLink] = useState("");
 
     return (
         <div className="space-y-6">
@@ -89,75 +95,135 @@ const MarketingTab = () => {
                         <div className="col-span-full py-12 text-center text-muted">Đang tải danh sách banner...</div>
                     ) : banners.map((banner, index) => (
                         <div key={banner._id} className="relative group h-48 rounded-2xl overflow-hidden border border-black/8 dark:border-white/8 bg-surface">
-                            {banner.imageUrl ? (
-                                <img src={banner.imageUrl} alt={banner.title} className="w-full h-full object-cover" />
+                            {editingBannerId === banner._id ? (
+                                <div className="absolute inset-0 bg-luxury-dark/95 p-4 flex flex-col justify-between z-10 border border-luxury-gold/30 rounded-2xl">
+                                    <h4 className="text-xs font-semibold text-luxury-gold uppercase tracking-wider">Cập nhật Banner</h4>
+                                    <div className="space-y-2 my-auto">
+                                        <div>
+                                            <label className="text-[9px] text-gray-400 uppercase tracking-widest font-semibold block mb-1">Tiêu đề</label>
+                                            <input
+                                                type="text"
+                                                value={editTitle}
+                                                onChange={(e) => setEditTitle(e.target.value)}
+                                                className="w-full bg-black/40 border border-luxury-gold/30 rounded-lg px-2.5 py-1 text-xs text-white outline-none focus:border-luxury-gold transition"
+                                                placeholder="Nhập tiêu đề banner"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[9px] text-gray-400 uppercase tracking-widest font-semibold block mb-1">Đường dẫn liên kết (Link)</label>
+                                            <input
+                                                type="text"
+                                                value={editLink}
+                                                onChange={(e) => setEditLink(e.target.value)}
+                                                className="w-full bg-black/40 border border-luxury-gold/30 rounded-lg px-2.5 py-1 text-xs text-white outline-none focus:border-luxury-gold transition"
+                                                placeholder="VD: /category/dong-ho-nam"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2 justify-end">
+                                        <button
+                                            onClick={() => setEditingBannerId(null)}
+                                            className="flex items-center gap-1 px-2.5 py-1 rounded bg-gray-700 text-white text-xs font-semibold hover:bg-gray-600 transition"
+                                        >
+                                            <X className="w-3.5 h-3.5" /> Hủy
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                const success = await handleUpdateBanner(banner._id, { title: editTitle, link: editLink });
+                                                if (success) {
+                                                    setEditingBannerId(null);
+                                                }
+                                            }}
+                                            className="flex items-center gap-1 px-2.5 py-1 rounded bg-luxury-gold text-luxury-dark text-xs font-bold hover:bg-luxury-gold-light transition"
+                                        >
+                                            <Check className="w-3.5 h-3.5" /> Lưu
+                                        </button>
+                                    </div>
+                                </div>
                             ) : (
-                                <div className="w-full h-full bg-luxury-darker flex items-center justify-center">
-                                    <ImageIcon className="w-12 h-12 text-luxury-border" />
-                                </div>
+                                <>
+                                    {banner.imageUrl ? (
+                                        <img src={banner.imageUrl} alt={banner.title} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full bg-luxury-darker flex items-center justify-center">
+                                            <ImageIcon className="w-12 h-12 text-luxury-border" />
+                                        </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                                    <div className="absolute top-3 left-3 flex items-center gap-2">
+                                        <div className="flex items-center gap-1 bg-black/60 text-white px-1.5 py-0.5 rounded" onClick={e => e.stopPropagation()}>
+                                            <span className="text-[9px] font-bold text-gray-300">Vị trí</span>
+                                            <input
+                                                type="number"
+                                                min={1}
+                                                max={banners.length}
+                                                value={index + 1}
+                                                onChange={(e) => {
+                                                    const val = parseInt(e.target.value, 10);
+                                                    if (!isNaN(val) && val >= 1 && val <= banners.length) {
+                                                        handleMoveBannerToPosition(banner._id, val);
+                                                    }
+                                                }}
+                                                className="w-8 h-4 px-0.5 rounded border border-luxury-gold/40 bg-luxury-gold/10 text-luxury-gold text-[10px] font-bold text-center outline-none focus:border-luxury-gold focus:ring-1 focus:ring-luxury-gold/30 transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                                title={`Nhập số thứ tự (1–${banners.length}) để di chuyển banner này`}
+                                            />
+                                        </div>
+                                        <span className={`px-2 py-1 rounded-md text-[10px] font-bold tracking-widest ${banner.status === "ACTIVE" ? "bg-emerald-500" : "bg-gray-500"} text-white`}>
+                                            {banner.status}
+                                        </span>
+                                    </div>
+                                    <div className="absolute top-3 right-3 flex flex-col gap-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                        <button
+                                            onClick={() => handleReorderBanner(banner._id, -1)}
+                                            disabled={index === 0}
+                                            className="p-1 bg-black/50 rounded text-white/80 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                                            title="Di chuyển lên"
+                                        >
+                                            <ChevronUp className="w-3 h-3" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleReorderBanner(banner._id, 1)}
+                                            disabled={index === banners.length - 1}
+                                            className="p-1 bg-black/50 rounded text-white/80 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                                            title="Di chuyển xuống"
+                                        >
+                                            <ChevronDown className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                    <div className="absolute bottom-3 left-3 right-3">
+                                        <h3 className="text-white font-bold text-sm truncate">{banner.title}</h3>
+                                        <p className="text-gray-300 dark:text-luxury-text-muted text-[10px]">{formatDate(banner.uploadedAt)}</p>
+                                    </div>
+                                    {/* Hover actions */}
+                                    <div className="absolute inset-0 bg-black/40 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                                        <button
+                                            onClick={() => handleToggleBannerStatus(banner._id)}
+                                            className="p-2 bg-luxury-dark rounded-lg text-luxury-gold hover:bg-luxury-gold hover:text-luxury-dark transition"
+                                            title={banner.status === "ACTIVE" ? "Tắt" : "Bật"}
+                                        >
+                                            <Power className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setEditingBannerId(banner._id);
+                                                setEditTitle(banner.title || "");
+                                                setEditLink(banner.link || "");
+                                            }}
+                                            className="p-2 bg-luxury-dark rounded-lg text-blue-400 hover:bg-blue-500 hover:text-white transition"
+                                            title="Chỉnh sửa tiêu đề & link"
+                                        >
+                                            <Pencil className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteBanner(banner._id)}
+                                            className="p-2 bg-luxury-dark rounded-lg text-red-400 hover:bg-red-500 hover:text-white transition"
+                                            title="Xóa banner"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </>
                             )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-                            <div className="absolute top-3 left-3 flex items-center gap-2">
-                                <div className="flex items-center gap-1 bg-black/60 text-white px-1.5 py-0.5 rounded" onClick={e => e.stopPropagation()}>
-                                    <span className="text-[9px] font-bold text-gray-300">Vị trí</span>
-                                    <input
-                                        type="number"
-                                        min={1}
-                                        max={banners.length}
-                                        value={index + 1}
-                                        onChange={(e) => {
-                                            const val = parseInt(e.target.value, 10);
-                                            if (!isNaN(val) && val >= 1 && val <= banners.length) {
-                                                handleMoveBannerToPosition(banner._id, val);
-                                            }
-                                        }}
-                                        className="w-8 h-4 px-0.5 rounded border border-luxury-gold/40 bg-luxury-gold/10 text-luxury-gold text-[10px] font-bold text-center outline-none focus:border-luxury-gold focus:ring-1 focus:ring-luxury-gold/30 transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                                        title={`Nhập số thứ tự (1–${banners.length}) để di chuyển banner này`}
-                                    />
-                                </div>
-                                <span className={`px-2 py-1 rounded-md text-[10px] font-bold tracking-widest ${banner.status === "ACTIVE" ? "bg-emerald-500" : "bg-gray-500"} text-white`}>
-                                    {banner.status}
-                                </span>
-                            </div>
-                            <div className="absolute top-3 right-3 flex flex-col gap-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                                <button
-                                    onClick={() => handleReorderBanner(banner._id, -1)}
-                                    disabled={index === 0}
-                                    className="p-1 bg-black/50 rounded text-white/80 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-                                    title="Di chuyển lên"
-                                >
-                                    <ChevronUp className="w-3 h-3" />
-                                </button>
-                                <button
-                                    onClick={() => handleReorderBanner(banner._id, 1)}
-                                    disabled={index === banners.length - 1}
-                                    className="p-1 bg-black/50 rounded text-white/80 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-                                    title="Di chuyển xuống"
-                                >
-                                    <ChevronDown className="w-3 h-3" />
-                                </button>
-                            </div>
-                            <div className="absolute bottom-3 left-3 right-3">
-                                <h3 className="text-white font-bold text-sm truncate">{banner.title}</h3>
-                                <p className="text-gray-300 dark:text-luxury-text-muted text-[10px]">{formatDate(banner.uploadedAt)}</p>
-                            </div>
-                            {/* Hover actions */}
-                            <div className="absolute inset-0 bg-black/40 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                                <button
-                                    onClick={() => handleToggleBannerStatus(banner._id)}
-                                    className="p-2 bg-luxury-dark rounded-lg text-luxury-gold hover:bg-luxury-gold hover:text-luxury-dark transition"
-                                    title={banner.status === "ACTIVE" ? "Tắt" : "Bật"}
-                                >
-                                    <Power className="w-4 h-4" />
-                                </button>
-                                <button
-                                    onClick={() => handleDeleteBanner(banner._id)}
-                                    className="p-2 bg-luxury-dark rounded-lg text-red-400 hover:bg-red-500 hover:text-white transition"
-                                    title="Xóa banner"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                            </div>
                         </div>
                     ))}
                 </div>

@@ -1,7 +1,9 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 import { MessageSquare, Star, ShieldCheck, EyeOff, Trash2, Check, X, User, ExternalLink, CornerDownRight, MessageCircle } from "lucide-react";
 import { renderStars } from "../../lib/renderStars";
 import { useReviewsManagement } from "../../hooks/useReviewsManagement";
+import { buildProductPath } from "../../utils/productUrl";
 
 const ReviewsTab = () => {
 	const {
@@ -120,9 +122,18 @@ const ReviewsTab = () => {
 												</div>
 											</td>
 											<td className="px-5 py-4 whitespace-nowrap">
-												<span className="text-sm text-luxury-gold hover:underline flex items-center gap-1 cursor-pointer">
-													{r.product.name.substring(0, 18)}… <ExternalLink className="w-3 h-3" />
-												</span>
+												{r.product ? (
+													<Link
+														to={buildProductPath(r.product) || "#"}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="text-sm text-luxury-gold hover:underline inline-flex items-center gap-1 cursor-pointer"
+													>
+														{r.product.name.substring(0, 18)}… <ExternalLink className="w-3 h-3" />
+													</Link>
+												) : (
+													<span className="text-sm text-muted">Sản phẩm đã bị xóa</span>
+												)}
 											</td>
 											<td className="px-5 py-4 whitespace-nowrap">
 												<div className="flex">{renderStars(r.rating)}</div>
@@ -189,9 +200,18 @@ const ReviewsTab = () => {
 											{!q.isAnswered && <span className="px-2 py-0.5 bg-luxury-gold/10 text-luxury-gold text-[10px] font-semibold uppercase rounded-full">Cần trả lời</span>}
 										</div>
 										<p className="text-sm text-secondary">{q.question}</p>
-										<p className="text-xs text-luxury-gold hover:underline mt-2 flex items-center gap-1 cursor-pointer">
-											Sản phẩm: {q.product.name} <ExternalLink className="w-3 h-3" />
-										</p>
+										{q.product ? (
+											<Link
+												to={buildProductPath(q.product) || "#"}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="text-xs text-luxury-gold hover:underline mt-2 inline-flex items-center gap-1 cursor-pointer w-fit"
+											>
+												Sản phẩm: {q.product.name} <ExternalLink className="w-3 h-3" />
+											</Link>
+										) : (
+											<p className="text-xs text-muted mt-2">Sản phẩm đã bị xóa</p>
+										)}
 									</div>
 									<button
 										onClick={() => { setSelectedQuestion(q); setReplyContent(q.answer || ""); }}
