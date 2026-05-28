@@ -28,6 +28,7 @@ const MarketingTab = () => {
         handleDeleteBanner,
         handleToggleBannerStatus,
         handleReorderBanner,
+        handleMoveBannerToPosition,
         toggleCampaignStatus,
         deleteCampaign,
         formatDate,
@@ -97,9 +98,23 @@ const MarketingTab = () => {
                             )}
                             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
                             <div className="absolute top-3 left-3 flex items-center gap-2">
-                                <span className="bg-black/60 text-white px-2 py-0.5 rounded text-[10px] font-bold">
-                                    #{index + 1}
-                                </span>
+                                <div className="flex items-center gap-1 bg-black/60 text-white px-1.5 py-0.5 rounded" onClick={e => e.stopPropagation()}>
+                                    <span className="text-[9px] font-bold text-gray-300">Vị trí</span>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        max={banners.length}
+                                        value={index + 1}
+                                        onChange={(e) => {
+                                            const val = parseInt(e.target.value, 10);
+                                            if (!isNaN(val) && val >= 1 && val <= banners.length) {
+                                                handleMoveBannerToPosition(banner._id, val);
+                                            }
+                                        }}
+                                        className="w-8 h-4 px-0.5 rounded border border-luxury-gold/40 bg-luxury-gold/10 text-luxury-gold text-[10px] font-bold text-center outline-none focus:border-luxury-gold focus:ring-1 focus:ring-luxury-gold/30 transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                        title={`Nhập số thứ tự (1–${banners.length}) để di chuyển banner này`}
+                                    />
+                                </div>
                                 <span className={`px-2 py-1 rounded-md text-[10px] font-bold tracking-widest ${banner.status === "ACTIVE" ? "bg-emerald-500" : "bg-gray-500"} text-white`}>
                                     {banner.status}
                                 </span>

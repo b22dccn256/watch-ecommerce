@@ -111,7 +111,7 @@ app.use(
 // Auth rate limiter - Bypass for resend-verification in dev
 const authLimiter = rateLimit({
 	windowMs: 15 * 60 * 1000, // 15 phút
-	max: 30,
+	max: process.env.NODE_ENV === "production" ? 30 : 10000,
 	standardHeaders: true,
 	legacyHeaders: false,
 	message: { message: "Quá nhiều yêu cầu từ IP này, vui lòng thử lại sau 15 phút." },

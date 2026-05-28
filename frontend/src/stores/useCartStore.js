@@ -8,6 +8,7 @@ const couponFetchState = { promise: null, lastFetched: 0 };
 export const useCartStore = createWithEqualityFn((set, get) => ({
 	cart: [],
 	selectedItems: JSON.parse(localStorage.getItem("watch_selected_items") || "[]"), // stores unique cartItemIds
+	isCartLoaded: false,
 	coupon: null,
 	total: 0,
 	subtotal: 0,
@@ -114,7 +115,7 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 			// Guest Flow
 			const localCart = JSON.parse(localStorage.getItem("watch_cart") || "[]");
 			const normalizedCart = get().normalizeCartItems(localCart);
-			set({ cart: normalizedCart });
+			set({ cart: normalizedCart, isCartLoaded: true });
 			if (normalizedCart.length !== localCart.length) {
 				localStorage.setItem("watch_cart", JSON.stringify(normalizedCart));
 			}
@@ -124,10 +125,10 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 
 		try {
 			const res = await axios.get("/cart");
-			set({ cart: get().normalizeCartItems(res.data) });
+			set({ cart: get().normalizeCartItems(res.data), isCartLoaded: true });
 			get().calculateTotals();
 		} catch (error) {
-			set({ cart: [] });
+			set({ cart: [], isCartLoaded: true });
 			// 401 = not authenticated — expected during login flow, not a user-facing error
 			if (error.response?.status !== 401) {
 				toast.error(error.response?.data?.message || "An error occurred fetching cart");
@@ -436,6 +437,7 @@ export const useCartStore = createWithEqualityFn((set, get) => ({
 		set({
 			cart: [],
 			selectedItems: [],
+			isCartLoaded: false,
 			coupon: null,
 			total: 0,
 			subtotal: 0,

@@ -19,6 +19,7 @@ const STRIPE_MAX_AMOUNT = 99999999;
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const paymentDoneRef = useRef(false);
+  const isSubmittingOrder = useRef(false);
 
   const {
     cart,
@@ -29,6 +30,7 @@ const CheckoutPage = () => {
     isCouponApplied,
     clearSelectedCart,
     selectedItems,
+    isCartLoaded,
   } = useCartStore();
   const user = useUserStore((state) => state.user);
 
@@ -67,10 +69,10 @@ const CheckoutPage = () => {
   }, [isStripeBlocked, selectedPayment]);
 
   useEffect(() => {
-    if (checkoutItems.length === 0 && !paymentDoneRef.current) {
+    if (isCartLoaded && checkoutItems.length === 0 && !paymentDoneRef.current && !isSubmittingOrder.current) {
       navigate("/cart");
     }
-  }, [checkoutItems.length, navigate]);
+  }, [checkoutItems.length, isCartLoaded, navigate]);
 
   const handlePaymentSubmit = async () => {
     if (!validateForm()) return;
@@ -81,6 +83,9 @@ const CheckoutPage = () => {
       return;
     }
 
+    // Đánh dấu đang trong quá trình submit — ngăn useEffect redirect về /cart
+    // khi giỏ hàng bị xóa giữa lúc API thành công và window.location.href navigate
+    isSubmittingOrder.current = true;
     setIsProcessing(true);
 
     try {
@@ -95,6 +100,7 @@ const CheckoutPage = () => {
 
       if (!res.data.url) {
         toast.error("Không nhận được đường dẫn thanh toán từ máy chủ.");
+        isSubmittingOrder.current = false;
         return;
       }
 
@@ -104,8 +110,11 @@ const CheckoutPage = () => {
         toast.success("Đặt hàng COD thành công");
       }
 
+      // Navigate sau khi flag đã chắc chắn được đặt
       window.location.href = res.data.url;
     } catch (error) {
+      // Thất bại — mở lại cờ để useEffect guard hoạt động bình thường
+      isSubmittingOrder.current = false;
       toast.error(error.response?.data?.message || "Không thể xử lý thanh toán");
     } finally {
       setIsProcessing(false);

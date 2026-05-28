@@ -80,6 +80,15 @@ function App() {
 
 	useEffect(() => {
 		checkAuth();
+
+		const handlePageShow = (event) => {
+			if (event.persisted) {
+				checkAuth();
+			}
+		};
+
+		window.addEventListener("pageshow", handlePageShow);
+		return () => window.removeEventListener("pageshow", handlePageShow);
 	}, [checkAuth]);
 
 	// Fetch CSRF token on app startup

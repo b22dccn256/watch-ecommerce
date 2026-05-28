@@ -68,6 +68,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
                     // Link to existing account
                     user.googleId = profile.id;
                     if (!user.profilePicture) user.profilePicture = profile.photos[0]?.value;
+                    user.emailVerified = true;
                     await user.save();
                 } else {
                     // Create new user
@@ -77,8 +78,14 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
                         password: generateRandomPassword(), // Dummy password since google user won't use it
                         googleId: profile.id,
                         profilePicture: profile.photos[0]?.value,
-                        role: "customer"
+                        role: "customer",
+                        emailVerified: true
                     });
+                }
+            } else {
+                if (!user.emailVerified) {
+                    user.emailVerified = true;
+                    await user.save();
                 }
             }
             return done(null, user);
@@ -104,6 +111,7 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
                 if (user) {
                     user.facebookId = profile.id;
                     if (!user.profilePicture) user.profilePicture = profile.photos[0]?.value;
+                    user.emailVerified = true;
                     await user.save();
                 } else {
                     user = await User.create({
@@ -112,8 +120,14 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
                         password: generateRandomPassword(),
                         facebookId: profile.id,
                         profilePicture: profile.photos[0]?.value,
-                        role: "customer"
+                        role: "customer",
+                        emailVerified: true
                     });
+                }
+            } else {
+                if (!user.emailVerified) {
+                    user.emailVerified = true;
+                    await user.save();
                 }
             }
             return done(null, user);
@@ -142,6 +156,7 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
                 if (user) {
                     user.githubId = profile.id;
                     if (!user.profilePicture) user.profilePicture = profile.photos[0]?.value;
+                    user.emailVerified = true;
                     await user.save();
                 } else {
                     user = await User.create({
@@ -150,8 +165,14 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
                         password: generateRandomPassword(),
                         githubId: profile.id,
                         profilePicture: profile.photos[0]?.value,
-                        role: "customer"
+                        role: "customer",
+                        emailVerified: true
                     });
+                }
+            } else {
+                if (!user.emailVerified) {
+                    user.emailVerified = true;
+                    await user.save();
                 }
             }
             return done(null, user);

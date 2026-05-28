@@ -404,13 +404,14 @@ const ChatBot = () => {
                 return;
             }
 
-            // Search intent or fallback: call AI backend which has full product catalog context
+             // Search intent or fallback: call AI backend which has full product catalog context
             try {
                 const res = await axios.post("/ai/chat", { message: msgText });
                 const botMsg = {
                     id: Date.now() + 1,
                     role: "bot",
                     content: res.data.response,
+                    products: res.data.products || [],
                     actions: [buildAction("Mở Catalog", "/catalog", "Xem toàn bộ sản phẩm")],
                 };
                 setMessages((prev) => [...prev, botMsg]);

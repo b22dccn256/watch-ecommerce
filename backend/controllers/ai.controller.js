@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import Groq from "groq-sdk";
 import Product from "../models/product.model.js";
+import Brand from "../models/brand.model.js";
 import CampaignService from "../services/campaign.service.js";
 
 const formatVnd = (value) => new Intl.NumberFormat("vi-VN").format(Math.round(value));
@@ -82,21 +83,15 @@ const parseBudgetRange = (message) => {
     if (!currencyMatch) return null;
 
     const amount = Number(currencyMatch[1]);
-    if (!Number.isFinite(amount) || amount <= 0) return null; // Fix: reject zero/negative
+    if (!Number.isFinite(amount) || amount <= 0) return null;
 
-    const valueInVnd = Math.round(amount * 1_000_000); // Fix: avoid floating point issues
-    const hasBelowIntent = normalized.includes("dưới") || normalized.includes("tối đa") || normalized.includes("không quá") || normalized.includes("under") || normalized.includes("less than") || normalized.includes("<=") || normalized.includes("≤");
-    const hasApproxIntent = normalized.includes("khoảng") || normalized.includes("tầm") || normalized.includes("around") || normalized.includes("about") || normalized.includes("~");
-
-    if (hasBelowIntent) {
-        return { maxPrice: valueInVnd, label: `dưới ${currencyMatch[1]} triệu` };
-    }
-
-    // Fix: Support "từ 5 đến 15 triệu" (missing unit after first number)
+    const valueInVnd = Math.round(amount * 1_000_000);
+    
+    // Support "từ 5 đến 15 triệu"
     const rangeMatch = normalized.match(/(?:từ|from)\s*(\d+(?:\.\d+)?)\s*(triệu|tr|trieu|trệu|m)?\s*(?:đến|tới|to|-)\s*(\d+(?:\.\d+)?)\s*(triệu|tr|trieu|trệu|m)/);
     if (rangeMatch) {
-        const minUnit = rangeMatch[2] ? 1_000_000 : 1_000_000; // If unit missing after first number, still treat as triệu
-        const maxUnit = rangeMatch[4] ? 1_000_000 : 1_000_000;
+        const minUnit = 1_000_000;
+        const maxUnit = 1_000_000;
         return {
             minPrice: Math.round(Number(rangeMatch[1]) * minUnit),
             maxPrice: Math.round(Number(rangeMatch[3]) * maxUnit),
@@ -104,9 +99,19 @@ const parseBudgetRange = (message) => {
         };
     }
 
-    // Fix: Detect "từ X" without explicit range → use hasApproxIntent
-    const hasRangeIntent = normalized.includes("từ") && (normalized.includes("đến") || normalized.includes("tới") || normalized.includes("-") || normalized.includes(" to "));
-    if (hasApproxIntent || hasRangeIntent) {
+    const hasBelowIntent = normalized.includes("dưới") || normalized.includes("tối đa") || normalized.includes("không quá") || normalized.includes("under") || normalized.includes("less than") || normalized.includes("<=") || normalized.includes("≤") || normalized.includes("thôi") || normalized.includes("chỉ");
+    const hasAboveIntent = normalized.includes("trên") || normalized.includes("tối thiểu") || normalized.includes("trở lên") || normalized.includes("over") || normalized.includes("more than") || normalized.includes(">=") || normalized.includes("≥") || (normalized.includes("từ") && !normalized.includes("đến") && !normalized.includes("tới") && !normalized.includes("-"));
+    const hasApproxIntent = normalized.includes("khoảng") || normalized.includes("tầm") || normalized.includes("around") || normalized.includes("about") || normalized.includes("~");
+
+    if (hasBelowIntent) {
+        return { maxPrice: valueInVnd, label: `dưới ${currencyMatch[1]} triệu` };
+    }
+
+    if (hasAboveIntent) {
+        return { minPrice: valueInVnd, label: `trên ${currencyMatch[1]} triệu` };
+    }
+
+    if (hasApproxIntent) {
         return {
             minPrice: Math.round(valueInVnd * 0.85),
             maxPrice: Math.round(valueInVnd * 1.15),
@@ -114,12 +119,14 @@ const parseBudgetRange = (message) => {
         };
     }
 
-    return null;
+    // Default: treat as maximum limit (e.g. "đồng hồ 10 triệu", "có 10 triệu")
+    return { maxPrice: valueInVnd, label: `dưới ${currencyMatch[1]} triệu` };
 };
 
 const fetchBudgetMatches = async (budget) => {
     const rawProducts = await Product.find({ deletedAt: null, isActive: true })
         .select("name brand type price stock description customAttributes specs category")
+        .populate("brand", "name")
         .sort({ salesCount: -1 })
         .limit(100)
         .lean();
@@ -152,23 +159,126 @@ const formatBudgetResponse = (matches, budget) => {
     return `Mình tìm được ${matches.length} sản phẩm phù hợp ${budget.label}:\n${topMatches.join("\n")}\n\nBạn muốn mình lọc tiếp theo kiểu máy, thương hiệu hay màu dây không?`;
 };
 
-// --- Lấy danh sách sản phẩm từ DB để inject vào prompt ---
-const buildProductContext = async () => {
+const parseRequestedCount = (message) => {
+    const normalized = (message || "").toLowerCase();
+    const match = normalized.match(/(\d+)\s*(?:sản phẩm|sp|mẫu|chiếc|cái|món|item|đơn|cái)/) 
+                  || normalized.match(/(?:hiện|show|lấy|gợi ý|top|chọn)\s*(\d+)/)
+                  || normalized.match(/(\d+)\s*(?:mẫu|cái)/);
+
+    if (match) {
+        const count = parseInt(match[1], 10);
+        if (!isNaN(count) && count >= 1) {
+            return Math.min(count, 5); // maximum 5
+        }
+    }
+    return 3; // default is 3
+};
+
+const mapProductForChat = (product) => {
+    return {
+        id: product._id,
+        slug: product.slug,
+        slugToken: product.slugToken,
+        name: product.name,
+        brand: getProductBrandName(product.brand),
+        price: Number(product.price || 0),
+        stock: product.stock || 0,
+        averageRating: Number(product.averageRating || 0),
+        salesCount: Number(product.salesCount || 0),
+        image: product.image,
+    };
+};
+
+const fetchChatMatchingProducts = async (message, limit = 3) => {
     try {
-        const rawProducts = await Product.find({ deletedAt: null, isActive: true })
-            .select("name brand type price stock description customAttributes specs category")
+        const budget = parseBudgetRange(message);
+        const normalized = (message || "").toLowerCase().replace(/,/g, ".").replace(/\s+/g, " ");
+
+        // Build a query
+        const query = { deletedAt: null, isActive: true };
+
+        // Apply budget filters
+        if (budget) {
+            if (budget.minPrice != null || budget.maxPrice != null) {
+                query.price = {};
+                if (budget.minPrice != null) query.price.$gte = budget.minPrice;
+                if (budget.maxPrice != null) query.price.$lte = budget.maxPrice;
+            }
+        }
+
+        // Apply brand filters if brand is mentioned
+        const brands = ["rolex", "omega", "tudor", "seiko", "casio", "longines", "patek philippe", "hublot", "cartier", "tissot"];
+        const matchedBrand = brands.find(b => normalized.includes(b));
+        if (matchedBrand) {
+            const brandDoc = await Brand.findOne({ name: new RegExp(`^${matchedBrand}$`, "i") }).lean();
+            if (brandDoc) {
+                query.brand = brandDoc._id;
+            } else {
+                const brandDocPartial = await Brand.findOne({ name: new RegExp(matchedBrand, "i") }).lean();
+                if (brandDocPartial) {
+                    query.brand = brandDocPartial._id;
+                } else {
+                    query.brand = new RegExp(matchedBrand, "i");
+                }
+            }
+        }
+
+        // Apply gender / category filters
+        if (normalized.includes("nữ") || normalized.includes("female") || normalized.includes("lady") || normalized.includes("ladies")) {
+            query.$or = [
+                { category: /nữ/i },
+                { name: /nữ|lady|ladies|ltp/i },
+                { description: /nữ/i }
+            ];
+        } else if (normalized.includes("nam") || normalized.includes("male") || normalized.includes("men")) {
+            query.$or = [
+                { category: /nam/i },
+                { name: /nam|men/i },
+                { description: /nam/i }
+            ];
+        }
+
+        const rawProducts = await Product.find(query)
+            .select("name brand type price stock description customAttributes specs category image slug slugToken averageRating salesCount")
+            .populate("brand", "name")
             .sort({ salesCount: -1 })
-            .limit(60)
+            .limit(limit)
             .lean();
 
-        if (!rawProducts || rawProducts.length === 0) return "";
+        return await CampaignService.applyCampaignToProducts(rawProducts);
+    } catch (err) {
+        console.error("⚠️ Error fetching chat matching products:", err.message);
+        return [];
+    }
+};
 
-        const products = await CampaignService.applyCampaignToProducts(rawProducts);
+// --- Lấy danh sách sản phẩm từ DB hoặc pre-filtered để inject vào prompt ---
+const buildProductContext = async (preFilteredProducts = null) => {
+    try {
+        let products = preFilteredProducts;
+        if (!products) {
+            const rawProducts = await Product.find({ deletedAt: null, isActive: true })
+                .select("name brand type price stock description customAttributes specs category")
+                .populate("brand", "name")
+                .sort({ salesCount: -1 })
+                .limit(60)
+                .lean();
+
+            if (!rawProducts || rawProducts.length === 0) return "";
+            products = await CampaignService.applyCampaignToProducts(rawProducts);
+        }
+
+        if (!products || products.length === 0) {
+            return "\n\n📦 Hiện tại cửa hàng chưa có sản phẩm nào phù hợp với tầm giá/yêu cầu này.";
+        }
 
         const typeLabel = { mechanical: "Cơ lên cót tay", quartz: "Máy pin", automatic: "Cơ tự động", solar: "Năng lượng ánh sáng" };
 
         const lines = products.map((p) => {
             let priceStr = p.price ? p.price.toLocaleString("vi-VN") + "đ" : "Liên hệ";
+            let rawPrice = p.price || 0;
+            let millionPrice = p.price ? (p.price / 1_000_000).toFixed(2).replace(/\.00$/, "") + " triệu" : "";
+
             if (p.originalPrice && p.price < p.originalPrice) {
                  priceStr = `ĐANG SALE [${p.activeCampaignName || 'Flash Sale'}]: ${p.price.toLocaleString("vi-VN")}đ (Gốc: ${p.originalPrice.toLocaleString("vi-VN")}đ)`;
             }
@@ -185,10 +295,10 @@ const buildProductContext = async () => {
                 p.customAttributes.forEach(a => extras.push(`${a.name}: ${a.value}`));
             }
 
-            return `- [${p.brand}] ${p.name} | Loại: ${typeStr} | Giá: ${priceStr} | ${stockStr}${extras.length ? " | " + extras.join(", ") : ""}`;
+            return `- [${getProductBrandName(p.brand)}] ${p.name} | Loại: ${typeStr} | Giá: ${priceStr} (${millionPrice} - ${rawPrice}đ) | ${stockStr}${extras.length ? " | " + extras.join(", ") : ""}`;
         });
 
-        return `\n\n📦 DANH SÁCH SẢN PHẨM HIỆN CÓ TẠI CỬA HÀNG (${products.length} sản phẩm):\n` + lines.join("\n");
+        return `\n\n📦 DANH SÁCH SẢN PHẨM HIỆN CÓ TẠI CỬA HÀNG KHỚP VỚI YÊU CẦU (${products.length} sản phẩm):\n` + lines.join("\n");
     } catch (err) {
         console.error("⚠️ Không thể tải danh sách sản phẩm cho AI:", err.message);
         return "";
@@ -197,23 +307,43 @@ const buildProductContext = async () => {
 
 // --- Prompt gốc của AI ---
 const BASE_SYSTEM_PROMPT = `
-Bạn là trợ lý ảo AI cao cấp của Luxury Watch, cửa hàng chuyên bán đồng hồ chính hãng.
+Bạn là trợ lý ảo thông minh, chuyên nghiệp và lịch sự của Luxury Watch - cửa hàng chuyên bán đồng hồ chính hãng cao cấp.
+Nhiệm vụ chính của bạn là tư vấn sản phẩm, hỗ trợ dịch vụ và chốt đơn hàng dựa trên danh sách dữ liệu được cung cấp dưới đây.
 
 THÔNG TIN CỬA HÀNG:
+- Phạm vi kinh doanh: Chỉ bán các sản phẩm đồng hồ đeo tay cao cấp chính hãng mới. TUYỆT ĐỐI không bán đồng hồ thông minh (smartwatch / Apple Watch), không bán đồng hồ treo tường, không bán các loại linh kiện/phụ kiện/dây đeo riêng lẻ và KHÔNG làm dịch vụ sửa chữa, bảo dưỡng hay thay kính đồng hồ.
 - Chính sách bảo hành: 5 năm toàn cầu cho tất cả sản phẩm chính hãng.
-- Giao hàng: Nội thành hỏa tốc 2–4h, toàn quốc tiêu chuẩn 1–2 ngày, miễn phí.
+- Giao hàng: Chỉ giao hàng hỏa tốc nội thành 2–4h, toàn quốc tiêu chuẩn 1–2 ngày, miễn phí (Chỉ trong phạm vi Việt Nam, TUYỆT ĐỐI không ship COD ra nước ngoài hay Nhật Bản).
 - Thanh toán: Thẻ quốc tế (Stripe), VNPay, COD.
 - Đổi trả: 1 đổi 1 trong 30 ngày nếu còn nguyên seal, chưa qua sử dụng.
 - Hotline: 1900 6789.
 
-HƯỚNG DẪN TRẢ LỜI:
-- CHÚ Ý CỰC KỲ QUAN TRỌNG VỀ GIÁ CẢ: 1 triệu = 1,000,000đ. Khi khách hỏi tìm sản phẩm theo một mức giá hoặc khoảng giá (VD: "dưới 10 triệu", "khoảng 5 triệu"), BẮT BUỘC bạn PHẢI so sánh bằng số học và CHỈ GỢI Ý các sản phẩm có giá thỏa mãn ngân sách đó. TUYỆT ĐỐI KHÔNG gợi ý sản phẩm vượt quá ngân sách hoặc giá trị mâu thuẫn. Nếu cửa hàng không có sản phẩm nào trong tầm giá đó, hãy thành thật xin lỗi và gợi ý mức giá gần nhất.
-- Khi khách hỏi sản phẩm, hãy gợi ý CỤ THỂ tên sản phẩm, thương hiệu, giá từ danh sách bên dưới.
-- Khi khách hỏi giá, hãy trả lời ĐÚNG giá sản phẩm có trong danh sách.
-- Khi khách hỏi tình trạng hàng, hãy dựa vào trạng thái "Còn hàng / Hết hàng" trong danh sách.
-- Nếu không tìm thấy sản phẩm phù hợp, hãy hướng khách dùng bộ lọc trên trang Catalog.
-- Tone: Chuyên nghiệp, lịch sự, sành điệu. Trả lời ngắn gọn (dưới 120 chữ), đi thẳng vào vấn đề.
-- KHÔNG bịa đặt sản phẩm không có trong danh sách.
+QUY TẮC ỨNG XỬ VÀ HƯỚNG DẪN TRẢ LỜI (CỰC KỲ QUAN TRỌNG):
+
+1. CÁCH SO SÁNH GIÁ: Mỗi sản phẩm trong danh sách dưới đây đều được hiển thị kèm theo giá trị triệu và số học thô không dấu chấm (ví dụ: "4.37 triệu - 4370000đ"). Khi khách hàng đưa ra một mức giá hoặc khoảng giá, bạn bắt buộc phải so sánh bằng toán học số thô này (ví dụ: so sánh 4370000đ với 10000000đ). Tuyệt đối không bao giờ gợi ý sản phẩm vượt quá ngân sách của khách. Không được nhầm lẫn giữa các con số tương tự nhau (ví dụ: 4.37 triệu và 43.7 triệu).
+
+2. QUY TẮC PHỦ ĐỊNH & TRÁNH NÓI BỪA (HALLUCINATION GATING):
+   - Nếu khách hàng hỏi về một sản phẩm, một mã sản phẩm hoặc thương hiệu KHÔNG có trong danh sách dữ liệu truyền vào, hãy lịch sự xác nhận là hệ thống cửa hàng hiện chưa có sản phẩm đó.
+   - Tuyệt đối KHÔNG bịa đặt thông tin, giá cả hoặc sản phẩm không có thật.
+
+3. TƯ DUY KINH DOANH & GỢI Ý THAY THẾ (ALTERNATIVE GATING):
+   - Thay vì chỉ từ chối thẳng thừng, hãy khéo léo gợi ý các sản phẩm khác ĐANG SẴN CÓ trong danh sách có cùng phân khúc giá, phong cách tương đương (nam/nữ, dây da/dây kim loại, automatic/pin) hoặc cùng tầm thương hiệu để thuyết phục khách hàng.
+   - Ví dụ: Khách hỏi Rolex giá 2 triệu (Rolex không có tầm giá đó), hãy lịch sự tư vấn các dòng Casio hoặc Seiko chính hãng cực đẹp tầm dưới 2 triệu đang sẵn có tại cửa hàng.
+
+4. GIỮ ĐÚNG PHẠM VI HỖ TRỢ (SCOPE GATING):
+   - Nếu khách hàng hỏi những câu hỏi ngoài lề không liên quan đến đồng hồ, mua hàng, bảo hành hay dịch vụ của shop (như thời tiết, nấu ăn, lập trình,...), hãy lịch sự nhắc nhở khéo léo rằng vai trò của bạn là trợ lý tư vấn đồng hồ của shop và kéo họ quay lại chủ đề đồng hồ.
+
+5. TONE GIỌNG & NGÔN NGỮ:
+   - Xưng hô "Dạ/Em", lịch sự, thân thiện, sành điệu, có tư duy bán hàng thực tế (Business Mindset).
+   - Trả lời ngắn gọn, trực diện, đi thẳng vào vấn đề và giữ độ dài dưới 150 chữ.
+
+6. QUY TẮC HIỂN THỊ SẢN PHẨM & TRÁNH TRÙNG LẶP (CỰC KỲ QUAN TRỌNG):
+   - Cửa hàng đã có giao diện tự động vẽ các Thẻ Sản Phẩm Tương Tác từ dữ liệu JSON gửi kèm.
+   - Do đó, trong câu trả lời văn bản của bạn, **TUYỆT ĐỐI KHÔNG** được liệt kê lại tên sản phẩm, thông số kỹ thuật hoặc giá tiền bằng chữ để tránh việc giao diện bị lặp dữ liệu hai lần.
+   - **Khi khách hàng yêu cầu tìm kiếm, gợi ý sản phẩm hoặc hỏi về tầm giá/thương hiệu**:
+     - Nếu có sản phẩm phù hợp trong danh sách dữ liệu: Chỉ nhả ra đúng 1 câu cực kỳ ngắn gọn, đi thẳng vào vấn đề, không chào hỏi rườm rà hay hỏi ngược lại khách hàng. Dạng: "Luxury Watch đang sẵn các mẫu nổi bật dưới đây để bạn tham khảo:".
+     - Nếu không có sản phẩm phù hợp: Trả lời ngắn gọn: "Hiện tại kho hàng chưa có mẫu đúng yêu cầu của bạn. Bạn muốn tìm tầm giá nào hoặc thương hiệu nào?".
+   - **Khi khách hàng hỏi các câu hỏi dịch vụ (bảo hành, giao hàng, đổi trả, thanh toán, liên hệ...)**: Trả lời trực diện, ngắn gọn thông tin chính xác theo chính sách của cửa hàng, không dông dài.
 `;
 
 export const chatWithAI = async (req, res) => {
@@ -224,30 +354,43 @@ export const chatWithAI = async (req, res) => {
             return res.status(400).json({ message: "Vui lòng cung cấp nội dung tin nhắn" });
         }
 
-        // ── Step 1: Try budget parsing (fast, no AI needed) ──
-        const budget = parseBudgetRange(message);
-        if (budget) {
-            const matches = await fetchBudgetMatches(budget);
-            return res.json({ response: formatBudgetResponse(matches, budget), provider: "built-in" });
-        }
+        // ── Step 1: Parse count limit & fetch matching products ──
+        const requestedLimit = parseRequestedCount(message);
+        const matchedProducts = await fetchChatMatchingProducts(message, requestedLimit);
 
         // ── Step 2: Try AI (Gemini > Groq) ──
         const ai = getAIClient();
         if (ai) {
             try {
-                const productContext = await buildProductContext();
+                // Feed the exactly matched products to the AI context so it aligns perfectly
+                const productContext = await buildProductContext(matchedProducts);
                 const fullSystemPrompt = BASE_SYSTEM_PROMPT + productContext;
 
                 const aiResponse = await callAI(fullSystemPrompt, `Khách hàng: ${message}\nTrợ lý:`);
                 if (aiResponse) {
-                    return res.json({ response: aiResponse, provider: ai.provider });
+                    return res.json({ 
+                        response: aiResponse, 
+                        products: matchedProducts.map(mapProductForChat),
+                        suggestedProducts: matchedProducts.map(mapProductForChat),
+                        provider: ai.provider 
+                    });
                 }
             } catch (aiErr) {
                 console.error(`[AI ${ai.provider}] Chat error:`, aiErr.message);
             }
         }
 
-        // ── Step 3: Fallback to keyword bot ──
+        // ── Step 3: Fallback ──
+        const budget = parseBudgetRange(message);
+        if (budget && matchedProducts.length > 0) {
+            return res.json({ 
+                response: formatBudgetResponse(matchedProducts, budget), 
+                products: matchedProducts.map(mapProductForChat),
+                suggestedProducts: matchedProducts.map(mapProductForChat),
+                provider: "built-in" 
+            });
+        }
+
         console.log("⚠️ No AI provider available. Using fallback bot.");
         return res.json({ response: getFallbackBotResponse(message), provider: "fallback" });
 

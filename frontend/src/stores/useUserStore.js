@@ -111,13 +111,18 @@ export const useUserStore = createWithEqualityFn((set, get) => ({
 		}
 	},
 
+	clearAuth: () => {
+		set({ user: null, checkingAuth: false });
+		localStorage.removeItem("pendingVerifyEmail");
+		useCartStore.getState().resetStore();
+		useWishlistStore.getState().resetStore();
+		useCompareStore.getState().resetStore();
+	},
+
 	logout: async () => {
 		try {
 			await axios.post("/auth/logout");
-			set({ user: null });
-			useCartStore.getState().resetStore();
-			useWishlistStore.getState().resetStore();
-			useCompareStore.getState().resetStore();
+			get().clearAuth();
 			toast.success("Logged out successfully");
 		} catch (error) {
 			toast.error(error.response?.data?.message || "An error occurred during logout");
@@ -134,7 +139,7 @@ export const useUserStore = createWithEqualityFn((set, get) => ({
 			if (error.response?.status !== 401) {
 				console.error("checkAuth error:", error.message);
 			}
-			set({ checkingAuth: false, user: null });
+			get().clearAuth();
 		}
 	},
 

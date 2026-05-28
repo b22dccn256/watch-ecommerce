@@ -24,7 +24,7 @@ const validatePasswordStrength = (password) => {
 
 const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-const validatePhone = (phone) => /^0[35789]\d{8}$/.test(phone);
+const validatePhone = (phone) => /^(0|\+84)(3[2-9]|5[25689]|7[06-9]|8[0-9]|9[0-9])\d{7}$/.test(phone);
 
 const validateName = (name) => {
 	if (!name) return false;
@@ -157,7 +157,18 @@ export const signup = async ({ email, password, name, phone, confirmPassword }) 
 	});
 
 	const verifyToken = user.generateEmailVerificationToken();
-	await user.save();
+	try {
+		await user.save();
+	} catch (saveError) {
+		// Map duplicate key errors (E11000) to a friendly HTTP 409
+		if (saveError && (saveError.code === 11000 || (saveError.name === 'MongoServerError' && saveError.code === 11000))) {
+			const dupField = saveError.keyPattern ? Object.keys(saveError.keyPattern)[0] : 'email';
+			const err = new Error(dupField === 'email' ? 'Email đã được sử dụng' : `${dupField} đã tồn tại`);
+			err.statusCode = 409;
+			throw err;
+		}
+		throw saveError;
+	}
 
 	const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${verifyToken}`;
 
@@ -493,13 +504,73 @@ export const updateProfile = async (userId, updates) => {
 		throw error;
 	}
 
+	// Prevent updating email through this endpoint directly; handle via a dedicated flow
+	const newEmail = updates.email ? String(updates.email).toLowerCase().trim() : null;
 	delete updateData.email;
 
-	const user = await User.findByIdAndUpdate(userId, updateData, { new: true, runValidators: true });
+	// If the user is changing their email, set the new email but mark unverified and trigger verification
+	let user = await User.findById(userId);
 	if (!user) {
 		const error = new Error("User không tìm thấy");
 		error.statusCode = 404;
 		throw error;
+	}
+
+	// Apply updates to user doc for fields that require transformation/validation
+	Object.assign(user, updateData);
+
+	if (newEmail && newEmail !== user.email) {
+		if (!validateEmail(newEmail)) {
+			const error = new Error("Email không hợp lệ");
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const existing = await User.findOne({ email: newEmail });
+		if (existing) {
+			const error = new Error("Email đã được sử dụng");
+			error.statusCode = 409;
+			throw error;
+		}
+
+		// Update email but mark as unverified and generate token
+		user.email = newEmail;
+		user.emailVerified = false;
+		const verifyToken = user.generateEmailVerificationToken();
+
+		// Save user first to persist token fields
+		try {
+			await user.save();
+		} catch (saveError) {
+			if (saveError && (saveError.code === 11000 || (saveError.name === 'MongoServerError' && saveError.code === 11000))) {
+				const dupField = saveError.keyPattern ? Object.keys(saveError.keyPattern)[0] : 'email';
+				const err = new Error(dupField === 'email' ? 'Email đã được sử dụng' : `${dupField} đã tồn tại`);
+				err.statusCode = 409;
+				throw err;
+			}
+			throw saveError;
+		}
+
+		const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${verifyToken}`;
+		await emailQueue.add("verify-email", {
+			userName: user.name,
+			email: user.email,
+			verifyUrl,
+		});
+
+		if (process.env.NODE_ENV !== "production") {
+			console.log("------ VERIFY EMAIL LINK (DEV - EMAIL CHANGE) ------");
+			console.log(verifyUrl);
+			console.log("-------------------------------------");
+		}
+	} else {
+		// No email change: save updates normally
+		user = await User.findByIdAndUpdate(userId, updateData, { new: true, runValidators: true });
+		if (!user) {
+			const error = new Error("User không tìm thấy");
+			error.statusCode = 404;
+			throw error;
+		}
 	}
 
 	return user;
