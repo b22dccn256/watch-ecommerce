@@ -88,6 +88,12 @@ app.use(
 );
 app.use(forceHttps);
 
+// ── Phục vụ file Static (Frontend) TRƯỚC khi check CORS ───────────────────
+const frontendDistPath = path.join(__dirname, "../frontend/dist");
+if (fs.existsSync(frontendDistPath)) {
+	app.use(express.static(frontendDistPath));
+}
+
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const corsOrigins = [
 	process.env.CLIENT_URL,
@@ -99,7 +105,12 @@ const corsOrigins = [
 app.use(
 	cors({
 		origin(origin, callback) {
+			// Luôn cho phép nếu không có origin (cùng domain) hoặc origin có trong danh sách
 			if (!origin || corsOrigins.includes(origin)) {
+				return callback(null, true);
+			}
+			// Mở rộng: Cho phép tất cả các domain có chứa 'onrender.com' để tránh lỗi khi deploy
+			if (origin.includes('onrender.com')) {
 				return callback(null, true);
 			}
 			return callback(new Error("Not allowed by CORS"));
@@ -224,10 +235,7 @@ app.use("/api/admin/ipns", adminIpnRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/", sitemapRoutes);
 
-const frontendDistPath = path.join(__dirname, "../frontend/dist");
 if (fs.existsSync(frontendDistPath)) {
-	app.use(express.static(frontendDistPath));
-
 	app.get(/.*/, (req, res) => {
 		res.sendFile(path.join(frontendDistPath, "index.html"));
 	});
