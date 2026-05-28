@@ -223,11 +223,12 @@ app.use("/api/admin/ipns", adminIpnRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/", sitemapRoutes);
 
-if (process.env.NODE_ENV === "production") {
-	app.use(express.static(path.join(__dirname, "../frontend/dist")));
+const frontendDistPath = path.join(__dirname, "../frontend/dist");
+if (fs.existsSync(frontendDistPath)) {
+	app.use(express.static(frontendDistPath));
 
 	app.get(/.*/, (req, res) => {
-		res.sendFile(path.resolve(__dirname, "../frontend", "dist", "index.html"));
+		res.sendFile(path.join(frontendDistPath, "index.html"));
 	});
 }
 
