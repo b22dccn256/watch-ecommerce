@@ -79,6 +79,21 @@ export const sendContactEmail = async ({ name, email, phone, subject, message })
 };
 
 export const sendEmail = async (to, subject, html) => {
+    if (to) {
+        const lowerEmail = to.toLowerCase();
+        const testDomains = ["testmail.com", "testmail.co", "test.com", "test.co", "example.com", "example.org", "example.net"];
+        const domain = lowerEmail.split("@")[1] || "";
+        const localPart = lowerEmail.split("@")[0] || "";
+        
+        const isTestDomain = testDomains.some(d => domain === d || domain.endsWith("." + d));
+        const isTestLocal = localPart.includes("e2e") || localPart.includes("testuser") || localPart.startsWith("test") || localPart.includes("dummy");
+        
+        if (isTestDomain || isTestLocal) {
+            console.log(`🤖 [Mail Bypass] Phát hiện tài khoản/email Test E2E (${to}) - Bỏ qua gửi email thật để tránh Spam.`);
+            return;
+        }
+    }
+
     try {
         const transport = await getTransporter();
         if (!transport) throw new Error("No mail transporter available");
