@@ -79,6 +79,7 @@ const PORT = process.env.PORT || 5000;
 // ── Security Headers ──────────────────────────────────────────────────────────
 app.use(
 	helmet({
+		contentSecurityPolicy: false,
 		hsts:
 			process.env.NODE_ENV === "production"
 				? { maxAge: 31536000, includeSubDomains: true, preload: true }
