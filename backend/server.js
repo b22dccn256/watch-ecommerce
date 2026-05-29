@@ -100,6 +100,8 @@ const corsOrigins = [
 	"http://localhost:5173",
 	"http://localhost:5174",
 	"http://127.0.0.1:5173",
+	"https://timematrix.io.vn",
+	"https://www.timematrix.io.vn"
 ].filter(Boolean);
 
 app.use(
