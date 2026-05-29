@@ -40,7 +40,7 @@ const InventoryTab = () => {
     const [brandSort, setBrandSort]     = useState(null);   // null | "asc" | "desc"
 
     const getStockStatus = (p) => {
-        const threshold = 5; // Global threshold
+        const threshold = p.lowStockThreshold !== undefined && p.lowStockThreshold !== null ? p.lowStockThreshold : 5;
         const currentStock = Number(p.stock);
         if (currentStock <= 0) return { label: "Out of Stock", key: "low", cls: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" };
         if (currentStock <= threshold) return { label: "Low Stock", key: "low", cls: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" };
@@ -110,7 +110,7 @@ const InventoryTab = () => {
                     <div>
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Sản Phẩm Sắp Hết</p>
                         <p className="text-3xl font-bold text-red-500 leading-tight">{lowStockProducts.length}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">Mức báo động: <span className="text-red-400 font-semibold">5</span></p>
+                        <p className="text-xs text-gray-400 mt-0.5">Mức báo động: <span className="text-red-400 font-semibold">Theo SP</span></p>
                     </div>
                 </div>
 

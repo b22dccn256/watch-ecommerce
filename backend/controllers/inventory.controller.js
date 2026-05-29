@@ -6,7 +6,7 @@ export const getLowStockProducts = async (req, res) => {
     try {
         // Mongo query where stock <= 5
         const products = await Product.find({ 
-            $expr: { $lte: ["$stock", 5] },
+            $expr: { $lte: ["$stock", { $ifNull: ['$lowStockThreshold', 5] }] },
             isActive: true
         }).select("name image stock lowStockThreshold price brand _id");
 

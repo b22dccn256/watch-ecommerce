@@ -143,7 +143,7 @@ const AdminPage = () => {
     }
   };
 
-  const SidebarNav = () => (
+  const renderSidebarNav = () => (
     <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto admin-scroll overflow-x-hidden">
       {accessibleTabs.map(tab => {
         if (tab.subItems) {
@@ -260,7 +260,7 @@ const AdminPage = () => {
           </button>
         </div>
 
-        <SidebarNav />
+        {renderSidebarNav()}
 
         {/* Toggle Collapse Button */}
         <div className={`border-t border-gray-100 dark:border-luxury-border p-3 flex ${isSidebarCollapsed ? 'justify-center' : 'justify-end'}`}>
@@ -297,7 +297,7 @@ const AdminPage = () => {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <SidebarNav />
+              {renderSidebarNav()}
             </motion.aside>
           </>
         )}
@@ -337,7 +337,7 @@ const AdminPage = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
               <input
                 type="text"
-                placeholder="🔍 Tìm nhanh sản phẩm, đơn hàng toàn cục..."
+                placeholder="Tìm nhanh sản phẩm, đơn hàng ..."
                 value={searchQuery}
                 onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
                 onFocus={() => setSearchOpen(true)}
@@ -408,7 +408,7 @@ const AdminPage = () => {
                   </div>
                   <div className="max-h-80 overflow-y-auto divide-y divide-gray-50 dark:divide-luxury-border/30 admin-scroll">
                     {notifications.length === 0 ? (
-                      <p className="text-center text-sm text-gray-400 py-8">Không có thông báo mới 🎉</p>
+                      <p className="text-center text-sm text-gray-400 py-8">Không có thông báo mới </p>
                     ) : notifications.map(n => (
                       <button key={n.id} onClick={() => { handleTabChange(n.tab); setNotifOpen(false); setNotifCount(0); }}
                         className="w-full flex items-start gap-4 px-5 py-4 hover:bg-gray-50 dark:hover:bg-white/5 transition text-left">

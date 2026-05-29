@@ -205,10 +205,10 @@ export const getInbox = async (req, res) => {
 		const page = Math.max(parseInt(req.query.page) || 1, 1);
 		const limit = Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 100);
 		const search = (req.query.search || "").trim();
-		const isRead = req.query.isRead !== undefined ? req.query.isRead === "true" : undefined;
+		const status = req.query.status;
 
 		const filter = {};
-		if (isRead !== undefined) filter.isRead = isRead;
+		if (status !== undefined) filter.status = status;
 		if (search) {
 			filter.$or = [
 				{ name: { $regex: search, $options: "i" } },
@@ -390,7 +390,7 @@ export const scheduleCampaign = async (req, res) => {
 // 5. Inbox (Contact Messages) - Additional
 export const markContactRead = async (req, res) => {
 	try {
-		await Contact.findByIdAndUpdate(req.params.id, { isRead: true });
+		await Contact.findByIdAndUpdate(req.params.id, { status: "read" });
 		res.json({ message: "Contact marked as read" });
 	} catch (error) {
 		res.status(500).json({ message: error.message });

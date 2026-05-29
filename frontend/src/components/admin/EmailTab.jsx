@@ -11,10 +11,12 @@ import EmailInboxView from "./email/EmailInboxView";
 import EmailSubscribersView from "./email/EmailSubscribersView";
 import EmailTemplatesView from "./email/EmailTemplatesView";
 import EmailAutomationView from "./email/EmailAutomationView";
+import EmailCampaignsView from "./email/EmailCampaignsView";
 
 const TABS = [
 	{ id: "dashboard", label: "Trang chủ", icon: BarChart3 },
 	{ id: "inbox", label: "Hộp thư đến", icon: Inbox },
+	{ id: "campaigns", label: "Chiến dịch", icon: Send },
 	{ id: "subscribers", label: "Người đăng ký", icon: Users },
 	{ id: "templates", label: "Mẫu Email", icon: FileCode },
 	{ id: "automation", label: "Tự động hóa", icon: Settings },
@@ -32,12 +34,15 @@ const EmailTab = () => {
 		handleCreateTemplate,
 		handleUpdateTemplate,
 		handleDeleteTemplate,
+		handleCreateCampaign,
+		handleSendCampaign,
 	} = useEmailTabData();
 
 	const renderTabContent = () => {
 		switch (activeTab) {
 			case "dashboard": return <EmailDashboardView stats={data.stats} chartData={data.chartData} />;
 			case "inbox": return <EmailInboxView messages={data.messages} loading={loading} onMarkRead={handleMarkMessageRead} />;
+			case "campaigns": return <EmailCampaignsView campaigns={data.campaigns} templates={data.templates} onCreateCampaign={handleCreateCampaign} onSendCampaign={handleSendCampaign} loading={loading} />;
 			case "subscribers": return <EmailSubscribersView subscribers={data.subscribers} loading={loading} onDelete={handleDeleteSubscriber} />;
 			case "templates": return <EmailTemplatesView templates={data.templates} loading={loading} onUpdateTemplate={handleUpdateTemplate} onCreateTemplate={handleCreateTemplate} onDeleteTemplate={handleDeleteTemplate} />;
 			case "automation": return <EmailAutomationView templates={data.templates} onUpdateTemplate={handleUpdateTemplate} />;
@@ -47,13 +52,6 @@ const EmailTab = () => {
 
 	return (
 		<div className="space-y-8 min-h-[600px]">
-			{/* Top Header */}
-			<div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-				<h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-					Quản lý Email
-				</h2>
-			</div>
-
 			{/* Sub-tabs Navigation */}
 			<div className="flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-800">
 				{TABS.map((tab) => (

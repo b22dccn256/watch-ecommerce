@@ -47,29 +47,36 @@ export function useDashboardAlerts() {
       });
 
       const notifs = [];
+      const readNotifs = JSON.parse(localStorage.getItem('admin_read_notifs') || '[]');
+
       if (ordersRes.status === 'fulfilled') {
-        (ordersRes.value.data?.orders || []).slice(0, 5).forEach(o =>
-          notifs.push({
-            id: o._id,
-            type: 'order',
-            title: 'Đơn hàng mới chờ xử lý',
-            desc: '#' + (o.orderCode || o._id?.slice(0, 8).toUpperCase()) + ' — ' + (o.shippingDetails?.fullName || ''),
-            time: o.createdAt,
-            tab: 'orders',
-          })
-        );
+        (ordersRes.value.data?.orders || []).slice(0, 5).forEach(o => {
+          if (!readNotifs.includes(o._id)) {
+            notifs.push({
+              id: o._id,
+              type: 'order',
+              title: 'Đơn hàng mới chờ xử lý',
+              desc: '#' + (o.orderCode || o._id?.slice(0, 8).toUpperCase()) + ' — ' + (o.shippingDetails?.fullName || ''),
+              time: o.createdAt,
+              tab: 'orders',
+            });
+          }
+        });
       }
       if (inventoryRes.status === 'fulfilled') {
-        (inventoryRes.value.data?.products || []).slice(0, 3).forEach(p =>
-          notifs.push({
-            id: 'inv_' + p._id,
-            type: 'inventory',
-            title: 'Hàng sắp hết kho',
-            desc: (p.name || 'Sản phẩm') + ' — còn ' + p.stock + ' cái',
-            time: new Date().toISOString(),
-            tab: 'inventory',
-          })
-        );
+        (inventoryRes.value.data?.products || []).slice(0, 3).forEach(p => {
+          const invId = 'inv_' + p._id;
+          if (!readNotifs.includes(invId)) {
+            notifs.push({
+              id: invId,
+              type: 'inventory',
+              title: 'Hàng sắp hết kho',
+              desc: (p.name || 'Sản phẩm') + ' — còn ' + p.stock + ' cái',
+              time: new Date().toISOString(),
+              tab: 'inventory',
+            });
+          }
+        });
       }
 
       setNotifications(notifs);
@@ -93,10 +100,15 @@ export function useDashboardAlerts() {
   }, [fetchDashboardAlerts, user]);
 
   const markAllRead = useCallback(() => {
+    const currentIds = notifications.map(n => n.id);
+    const readNotifs = JSON.parse(localStorage.getItem('admin_read_notifs') || '[]');
+    const updatedReadNotifs = [...new Set([...readNotifs, ...currentIds])].slice(-100);
+    localStorage.setItem('admin_read_notifs', JSON.stringify(updatedReadNotifs));
+
     setNotifications([]);
     setNotifCount(0);
     setNotifOpen(false);
-  }, []);
+  }, [notifications]);
 
   return {
     tasks,

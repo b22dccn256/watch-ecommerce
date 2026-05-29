@@ -166,6 +166,36 @@ export const useEmailTabData = () => {
     });
   };
 
+  const handleCreateCampaign = async (campaignData) => {
+    try {
+      const res = await axios.post('/mail/campaigns', campaignData);
+      setData((prev) => ({
+        ...prev,
+        campaigns: [res.data, ...prev.campaigns],
+      }));
+      toast.success('Đã tạo chiến dịch');
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Lỗi khi tạo chiến dịch');
+      return false;
+    }
+  };
+
+  const handleSendCampaign = async (id) => {
+    try {
+      await axios.post(`/mail/campaigns/${id}/send`);
+      toast.success('Chiến dịch đang được gửi');
+      setData((prev) => ({
+        ...prev,
+        campaigns: prev.campaigns.map(c => c._id === id ? { ...c, status: 'sending' } : c)
+      }));
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Lỗi khi gửi chiến dịch');
+      return false;
+    }
+  };
+
   return {
     activeTab,
     setActiveTab,
@@ -180,6 +210,8 @@ export const useEmailTabData = () => {
     handleCreateTemplate,
     handleUpdateTemplate,
     handleDeleteTemplate,
+    handleCreateCampaign,
+    handleSendCampaign,
   };
 };
 

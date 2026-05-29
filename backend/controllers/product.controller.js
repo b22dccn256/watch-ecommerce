@@ -194,7 +194,7 @@ export const getInventoryAlerts = async (req, res) => {
     if (customThreshold !== null) {
       matchQuery.stock = { $lte: customThreshold };
     } else {
-      matchQuery.$expr = { $lte: ['$stock', '$lowStockThreshold'] };
+      matchQuery.$expr = { $lte: ['$stock', { $ifNull: ['$lowStockThreshold', 5] }] };
     }
 
     const [total, products] = await Promise.all([

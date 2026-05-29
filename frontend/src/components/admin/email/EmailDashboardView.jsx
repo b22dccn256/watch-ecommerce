@@ -47,7 +47,7 @@ const EmailDashboardView = ({ stats, chartData }) => {
 				<StatCard 
 					label="Tỷ lệ mở" 
 					value={`${stats?.openRate || 0}%`} 
-					changeText="Tăng 12% so với tuần trước" 
+					changeText="Hiệu suất trung bình" 
 					isPositive={true}
 					colorTheme={{
 						border: "border-cyan-300 dark:border-cyan-700",
@@ -59,8 +59,8 @@ const EmailDashboardView = ({ stats, chartData }) => {
 				<StatCard 
 					label="Số chiến dịch" 
 					value={stats?.totalCampaigns || 0} 
-					changeText="Giảm 2 chiến dịch" 
-					isPositive={false}
+					changeText="Tổng trên hệ thống" 
+					isPositive={true}
 					colorTheme={{
 						border: "border-orange-300 dark:border-orange-700",
 						bar: "bg-orange-400",
@@ -71,7 +71,7 @@ const EmailDashboardView = ({ stats, chartData }) => {
 				<StatCard 
 					label="Tổng gửi" 
 					value={stats?.sentEmails?.toLocaleString() || 0} 
-					changeText="Tăng 5,000 email" 
+					changeText="Email đã gửi đi" 
 					isPositive={true}
 					colorTheme={{
 						border: "border-purple-300 dark:border-purple-700",

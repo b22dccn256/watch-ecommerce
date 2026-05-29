@@ -101,16 +101,18 @@ const DeltaBadge = ({ delta }) => {
 };
 
 
-const CardShell = ({ title, icon: Icon, children, action }) => (
-  <div className="rounded-xl border border-black/6 bg-surface p-6">
-    <div className="flex items-center justify-between mb-5">
+const CardShell = ({ title, icon: Icon, children, action, className = "" }) => (
+  <div className={`rounded-xl border border-black/6 bg-surface p-6 flex flex-col h-full ${className}`}>
+    <div className="flex items-center justify-between mb-5 flex-shrink-0">
       <h3 className="text-base font-semibold text-primary flex items-center gap-2">
         {Icon && <Icon className="w-5 h-5 text-[color:var(--color-gold)]" />}
         {title}
       </h3>
       {action}
     </div>
-    {children}
+    <div className="flex-1 flex flex-col min-h-0">
+      {children}
+    </div>
   </div>
 );
 
@@ -162,15 +164,6 @@ const AnalyticsTab = () => {
   };
 
   const noTransactions = (data.totalRevenue === 0 || !data.totalRevenue) && (data.totalSales === 0 || !data.totalSales);
-
-  const chartRef = useRef(null);
-  const [chartReady, setChartReady] = useState(false);
-
-  useEffect(() => {
-    const obs = new ResizeObserver(entries => setChartReady((entries[0]?.contentRect?.width || 0) > 0));
-    if (chartRef.current) obs.observe(chartRef.current);
-    return () => obs.disconnect();
-  }, []);
 
   return (
     <div className="space-y-3">
@@ -276,8 +269,7 @@ const AnalyticsTab = () => {
         {isLoading ? <ChartSkeleton /> : !hasChart ? (
           <EmptyChart message={`Chưa có đơn hàng đã thanh toán trong ${days} ngày qua`} />
         ) : (
-          <div ref={chartRef} style={{ width: "100%", height: 380 }}>
-            {chartReady && (
+          <div style={{ width: "100%", height: 380, minWidth: 0 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={dailySalesData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
@@ -290,7 +282,6 @@ const AnalyticsTab = () => {
                   <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#c9a96e" strokeWidth={2} dot={false} activeDot={{ r: 4 }} name="Doanh thu (₫)" />
                 </LineChart>
               </ResponsiveContainer>
-            )}
           </div>
         )}
       </CardShell>
@@ -383,7 +374,9 @@ const AnalyticsTab = () => {
           {isLoading ? (
             <div className="space-y-4">{Array(5).fill(0).map((_, i) => <SkeletonBlock key={i} h="h-12" />)}</div>
           ) : bottomProducts.length === 0 ? (
-            <p className="text-sm text-muted py-6 text-center">Không có cảnh báo 🎉</p>
+            <div className="flex-1 flex items-center justify-center min-h-[150px]">
+              <p className="text-sm text-muted">Không có cảnh báo 🎉</p>
+            </div>
           ) : bottomProducts.map(p => (
             <div key={p._id} className="flex items-center gap-4 py-3 border-b border-black/5 dark:border-white/5 last:border-0">
               <span className={`text-xs font-bold px-2 py-1 rounded text-center w-12 flex-shrink-0 ${
