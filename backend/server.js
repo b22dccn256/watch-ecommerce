@@ -50,11 +50,13 @@ import questionRoutes from "./routes/question.route.js";
 import storeConfigRoutes from "./routes/storeConfig.route.js";
 import adminIpnRoutes from "./routes/admin.ipn.route.js";
 import sitemapRoutes from "./routes/sitemap.route.js";
+import { getAllUsers } from "./controllers/auth.controller.js";
 import { sanitizeInput } from "./middleware/sanitize.middleware.js";
 import { csrfProtection, issueCsrfToken } from "./middleware/csrf.middleware.js";
 import { responseSanitizationMiddleware } from "./middleware/response-sanitization.middleware.js";
 import { forceHttps } from "./middleware/https.middleware.js";
 import { attachSafeRequestLog } from "./middleware/log-redaction.middleware.js";
+import { protectRoute, managementRoute } from "./middleware/auth.middleware.js";
 import { sanitizeErrorResponse } from "./lib/sanitize-response.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.middleware.js";
 import "./services/mailWorker.js";
@@ -198,6 +200,7 @@ app.get("/api/auth/google/callback", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.get("/api/users", protectRoute, managementRoute, getAllUsers);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/coupons", couponRoutes);

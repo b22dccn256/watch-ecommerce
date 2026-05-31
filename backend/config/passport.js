@@ -26,6 +26,19 @@ const generateRandomPassword = () => {
     return Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
 };
 
+const resolveGoogleCallbackUrl = () => {
+    const fallback = "http://localhost:5000/api/auth/oauth/google/callback";
+    const configured = process.env.GOOGLE_CALLBACK_URL?.trim();
+
+    if (!configured) return fallback;
+
+    if (configured.includes("/api/auth/google/callback")) {
+        return configured.replace("/api/auth/google/callback", "/api/auth/oauth/google/callback");
+    }
+
+    return configured;
+};
+
 const buildOAuthDisplayName = (profile, fallbackEmail = "") => {
     const candidates = [
         profile?.displayName,
@@ -56,7 +69,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     passport.use(new GoogleStrategy({
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.GOOGLE_CALLBACK_URL || "/api/auth/oauth/google/callback"
+        callbackURL: resolveGoogleCallbackUrl()
     }, async (accessToken, refreshToken, profile, done) => {
         try {
             let user = await User.findOne({ googleId: profile.id });

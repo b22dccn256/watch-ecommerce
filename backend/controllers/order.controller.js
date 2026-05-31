@@ -328,8 +328,9 @@ export const getOrderTracking = async (req, res) => {
 
 export const lookupOrder = async (req, res) => {
     try {
-        const { orderNumber, email } = req.body;
-        const normalizedOrderNumber = typeof orderNumber === "string" ? orderNumber.trim().toUpperCase() : "";
+        const { orderNumber, orderCode, email } = req.body;
+        const rawOrderNumber = typeof orderNumber === "string" ? orderNumber : orderCode;
+        const normalizedOrderNumber = typeof rawOrderNumber === "string" ? rawOrderNumber.trim().toUpperCase() : "";
         const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
 
         if (!normalizedOrderNumber || !normalizedEmail) {
