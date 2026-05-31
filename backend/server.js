@@ -202,23 +202,33 @@ app.get("/api/auth/google/callback", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.get("/api/users", protectRoute, managementRoute, getAllUsers);
 app.use("/api/products", productRoutes);
+// Backwards-compat: singular routes
+app.use("/api/product", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/coupons", couponRoutes);
+app.use("/api/coupon", couponRoutes);
 app.use("/api/campaigns", campaignRoutes);
+app.use("/api/campaign", campaignRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/order", orderRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/category", categoryRoutes);
 app.use("/api/brands", brandRoutes);
+app.use("/api/brand", brandRoutes);
 app.use("/api/banners", bannerRoutes);
+app.use("/api/banner", bannerRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/mail", mailRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/review", reviewRoutes);
 app.use("/api/questions", questionRoutes);
+app.use("/api/question", questionRoutes);
 app.use("/api/settings", storeConfigRoutes);
 // Backwards-compat: some tests and older callers expect /api/store-config
 app.use("/api/store-config", storeConfigRoutes);
