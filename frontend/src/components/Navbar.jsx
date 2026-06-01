@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from "react";
+import axios from "../lib/axios";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -77,6 +78,10 @@ const Navbar = () => {
   }, [config]);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  const suggestionsRef = useRef(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMiniCartOpen, setIsMiniCartOpen] = useState(false);
@@ -93,11 +98,36 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", clickOutside);
   }, []);
 
-  const executeSearch = () => {
-    if (!searchTerm.trim()) return;
-    navigate(`/catalog?q=${encodeURIComponent(searchTerm.trim())}`);
+  const executeSearch = (term = searchTerm) => {
+    if (!term.trim()) return;
+    navigate(`/catalog?q=${encodeURIComponent(term.trim())}`);
+    setShowSuggestions(false);
     setIsMobileOpen(false);
   };
+
+  // Debounced suggestions
+  useEffect(() => {
+    if (!searchTerm || searchTerm.trim().length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      setActiveSuggestion(-1);
+      return;
+    }
+
+    const id = setTimeout(async () => {
+      try {
+        const res = await axios.get(`/products/suggestions?q=${encodeURIComponent(searchTerm.trim())}`);
+        setSuggestions(res.data || []);
+        setShowSuggestions(true);
+        setActiveSuggestion(-1);
+      } catch (err) {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(id);
+  }, [searchTerm]);
 
   const userName = user?.name?.split(" ")[0] || "Khách";
 
@@ -162,7 +192,27 @@ const Navbar = () => {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && executeSearch()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  if (showSuggestions && activeSuggestion >= 0 && suggestions[activeSuggestion]) {
+                    const p = suggestions[activeSuggestion];
+                    const path = p.slug ? `/product/${p.slug}--${p.slugToken || p._id}` : `/product/${p._id}`;
+                    navigate(path);
+                    setShowSuggestions(false);
+                  } else {
+                    executeSearch();
+                  }
+                } else if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  setActiveSuggestion((s) => Math.min(s + 1, suggestions.length - 1));
+                  setShowSuggestions(true);
+                } else if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  setActiveSuggestion((s) => Math.max(s - 1, 0));
+                } else if (e.key === "Escape") {
+                  setShowSuggestions(false);
+                }
+              }}
               placeholder="Tìm đồng hồ"
               className="input-base h-9 rounded-full pl-9 pr-10"
             />
@@ -170,6 +220,28 @@ const Navbar = () => {
             <button type="button" onClick={executeSearch} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted transition hover:text-[color:var(--color-gold)]">
               <Search className="h-4 w-4" />
             </button>
+            {showSuggestions && suggestions.length > 0 && (
+              <div ref={suggestionsRef} className="absolute z-50 mt-2 w-full rounded-xl bg-white shadow-lg dark:bg-[color:var(--color-surface)]">
+                {suggestions.map((p, idx) => (
+                  <button
+                    key={p._id}
+                    onClick={() => {
+                      const path = p.slug ? `/product/${p.slug}--${p.slugToken || p._id}` : `/product/${p._id}`;
+                      navigate(path);
+                      setShowSuggestions(false);
+                    }}
+                    onMouseEnter={() => setActiveSuggestion(idx)}
+                    className={`flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-[color:var(--color-surface-2)] ${activeSuggestion === idx ? 'bg-gray-50 dark:bg-[color:var(--color-surface-2)]' : ''}`}
+                  >
+                    <img src={p.image || '/placeholder.png'} alt={p.name} className="h-9 w-9 rounded-md object-cover" />
+                    <div className="flex-1">
+                      <div className="text-sm font-medium">{p.name}</div>
+                      <div className="text-xs text-muted">{p.brand?.name || ''} • {p.price ? p.price.toLocaleString() + '₫' : ''}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

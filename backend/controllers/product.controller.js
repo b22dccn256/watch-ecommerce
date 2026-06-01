@@ -67,7 +67,7 @@ export const getSuggestions = async (req, res) => {
         { brand: { $in: brandIds } },
         { type: { $regex: q, $options: 'i' } },
       ],
-    }).populate('brand', 'name').select('name image price brand').limit(5);
+    }).populate('brand', 'name').select('name image price brand slug slugToken').limit(5);
 
     res.json(suggestions);
   } catch (error) {
