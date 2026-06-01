@@ -9,7 +9,7 @@ const ports = [5173, 5000];
 function killPid(pid) {
   try {
     if (os.platform().startsWith('win')) {
-      execSync(`taskkill /PID ${pid} /F`, { stdio: 'ignore' });
+      execSync(`taskkill /PID ${pid} /F /T`, { stdio: 'ignore' });
     } else {
       process.kill(pid, 'SIGKILL');
     }

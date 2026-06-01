@@ -27,16 +27,7 @@ const generateRandomPassword = () => {
 };
 
 const resolveGoogleCallbackUrl = () => {
-    const fallback = "http://localhost:5000/api/auth/oauth/google/callback";
-    const configured = process.env.GOOGLE_CALLBACK_URL?.trim();
-
-    if (!configured) return fallback;
-
-    if (configured.includes("/api/auth/google/callback")) {
-        return configured.replace("/api/auth/google/callback", "/api/auth/oauth/google/callback");
-    }
-
-    return configured;
+    return process.env.GOOGLE_CALLBACK_URL?.trim() || "http://localhost:5000/api/auth/oauth/google/callback";
 };
 
 const buildOAuthDisplayName = (profile, fallbackEmail = "") => {
@@ -66,6 +57,7 @@ const buildOAuthDisplayName = (profile, fallbackEmail = "") => {
 // Google Strategy
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     console.log("Passport Google strategy enabled");
+    console.log(`Google OAuth callback URL: ${resolveGoogleCallbackUrl()}`);
     passport.use(new GoogleStrategy({
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
