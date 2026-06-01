@@ -23,6 +23,7 @@ import { useWishlistStore } from "../stores/useWishlistStore";
 import { useThemeStore } from "../stores/useThemeStore";
 import { useCompareStore } from "../stores/useCompareStore";
 import { useStorefrontStore } from "../stores/useStorefrontStore";
+import { useProductStore } from "../stores/useProductStore";
 import MiniCart from "./MiniCart";
 
 const iconButtonClass =
@@ -59,6 +60,10 @@ const Navbar = () => {
     shallow
   );
   const { config } = useStorefrontStore();
+  const { suggestions, getSuggestions, setSearchTerm: setGlobalSearchTerm } = useProductStore(
+    (state) => ({ suggestions: state.suggestions, getSuggestions: state.getSuggestions, setSearchTerm: state.setSearchTerm }),
+    shallow
+  );
 
   const menuItems = useMemo(() => {
     if (config?.navigationItems && config.navigationItems.length > 0) {
@@ -81,11 +86,21 @@ const Navbar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMiniCartOpen, setIsMiniCartOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const searchRef = useRef(null);
+  const mobileSearchRef = useRef(null);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isMobileSearchFocused, setIsMobileSearchFocused] = useState(false);
 
   useEffect(() => {
     const clickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsProfileOpen(false);
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setIsSearchFocused(false);
+      }
+      if (mobileSearchRef.current && !mobileSearchRef.current.contains(event.target)) {
+        setIsMobileSearchFocused(false);
       }
     };
 
@@ -93,10 +108,23 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", clickOutside);
   }, []);
 
-  const executeSearch = () => {
-    if (!searchTerm.trim()) return;
-    navigate(`/catalog?q=${encodeURIComponent(searchTerm.trim())}`);
+  useEffect(() => {
+    const id = setTimeout(() => {
+      if (searchTerm && searchTerm.trim().length >= 2) {
+        getSuggestions(searchTerm.trim());
+      }
+    }, 250);
+    return () => clearTimeout(id);
+  }, [searchTerm, getSuggestions]);
+
+  const executeSearch = (term = searchTerm) => {
+    const targetTerm = typeof term === "string" ? term : searchTerm;
+    if (!targetTerm.trim()) return;
+    setGlobalSearchTerm(targetTerm);
+    navigate(`/catalog?q=${encodeURIComponent(targetTerm.trim())}`);
     setIsMobileOpen(false);
+    setIsSearchFocused(false);
+    setIsMobileSearchFocused(false);
   };
 
   const userName = user?.name?.split(" ")[0] || "Khách";
@@ -157,19 +185,50 @@ const Navbar = () => {
         </nav>
 
         <div className="hidden lg:flex lg:items-center lg:gap-2 lg:min-w-[18rem] lg:max-w-[21rem] lg:w-full">
-          <div className="relative flex-1">
+          <div className="relative flex-1" ref={searchRef}>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && executeSearch()}
+              onFocus={() => setIsSearchFocused(true)}
               placeholder="Tìm đồng hồ"
               className="input-base h-9 rounded-full pl-9 pr-10"
             />
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-            <button type="button" onClick={executeSearch} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted transition hover:text-[color:var(--color-gold)]">
+            <button type="button" onClick={() => executeSearch()} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted transition hover:text-[color:var(--color-gold)]">
               <Search className="h-4 w-4" />
             </button>
+            <AnimatePresence>
+              {isSearchFocused && searchTerm.trim().length >= 2 && suggestions.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 6 }}
+                  transition={{ duration: 0.16 }}
+                  className="absolute top-full left-0 right-0 mt-2 bg-[color:var(--color-surface)] border border-black/10 dark:border-white/10 rounded-xl overflow-hidden shadow-2xl z-[100]"
+                >
+                  {suggestions.slice(0, 5).map((item) => (
+                    <div
+                      key={item._id}
+                      onClick={() => executeSearch(item.name)}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-[color:var(--color-surface-2)] cursor-pointer border-b border-black/5 dark:border-white/5 last:border-none"
+                    >
+                      <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded bg-white" />
+                      <div className="flex-1 overflow-hidden">
+                        <div className="font-semibold text-sm text-primary truncate">{item.name}</div>
+                        <div className="text-[10px] text-muted truncate uppercase tracking-widest">
+                          {typeof item.brand === 'object' ? item.brand?.name : item.brand}
+                        </div>
+                      </div>
+                      <div className="text-[color:var(--color-gold)] font-bold text-xs">
+                        {item.price.toLocaleString("vi-VN")}đ
+                      </div>
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
@@ -289,19 +348,50 @@ const Navbar = () => {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden border-t border-black/5 bg-[color:var(--color-surface)] px-4 pb-5 pt-4 lg:hidden dark:border-white/10"
           >
-            <div className="relative mb-4">
+            <div className="relative mb-4" ref={mobileSearchRef}>
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && executeSearch()}
+                onFocus={() => setIsMobileSearchFocused(true)}
                 placeholder="Tìm kiếm"
                 className="input-base h-10 rounded-full pl-9 pr-10"
               />
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-              <button type="button" onClick={executeSearch} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted">
+              <button type="button" onClick={() => executeSearch()} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted">
                 <Search className="h-4 w-4" />
               </button>
+              <AnimatePresence>
+                {isMobileSearchFocused && searchTerm.trim().length >= 2 && suggestions.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    transition={{ duration: 0.16 }}
+                    className="absolute top-full left-0 right-0 mt-2 bg-[color:var(--color-surface)] border border-black/10 dark:border-white/10 rounded-xl overflow-hidden shadow-2xl z-[100]"
+                  >
+                    {suggestions.slice(0, 5).map((item) => (
+                      <div
+                        key={item._id}
+                        onClick={() => executeSearch(item.name)}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-[color:var(--color-surface-2)] cursor-pointer border-b border-black/5 dark:border-white/5 last:border-none"
+                      >
+                        <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded bg-white" />
+                        <div className="flex-1 overflow-hidden">
+                          <div className="font-semibold text-sm text-primary truncate">{item.name}</div>
+                          <div className="text-[10px] text-muted truncate uppercase tracking-widest">
+                            {typeof item.brand === 'object' ? item.brand?.name : item.brand}
+                          </div>
+                        </div>
+                        <div className="text-[color:var(--color-gold)] font-bold text-xs">
+                          {item.price.toLocaleString("vi-VN")}đ
+                        </div>
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <nav className="space-y-1">
