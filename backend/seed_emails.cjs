@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
-const mongourl = 'mongodb://honghai:honghai123@ac-tjl0mqw-shard-00-00.4gjtocf.mongodb.net:27017,ac-tjl0mqw-shard-00-01.4gjtocf.mongodb.net:27017,ac-tjl0mqw-shard-00-02.4gjtocf.mongodb.net:27017/watchstore_db?ssl=true&replicaSet=atlas-109xk8-shard-0&authSource=admin';
-
+const mongourl = process.env.MONGO_URI || process.env.MONGOURL;
 mongoose.connect(mongourl).then(async () => {
   try {
     const db = mongoose.connection.db;
@@ -9,7 +8,7 @@ mongoose.connect(mongourl).then(async () => {
     // Seed some MailCampaigns
     const camp1Id = new mongoose.Types.ObjectId();
     const camp2Id = new mongoose.Types.ObjectId();
-    
+
     await db.collection('mailcampaigns').insertMany([
       {
         _id: camp1Id,
@@ -38,7 +37,7 @@ mongoose.connect(mongourl).then(async () => {
       const isOpened = Math.random() > 0.4;
       const isClicked = isOpened && Math.random() > 0.5;
       const createdAt = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
-      
+
       const log = {
         _id: new mongoose.Types.ObjectId(),
         campaignId: Math.random() > 0.5 ? camp1Id : camp2Id,
@@ -47,7 +46,7 @@ mongoose.connect(mongourl).then(async () => {
         createdAt: createdAt,
         updatedAt: createdAt
       };
-      
+
       if (isOpened) {
         log.openedAt = [new Date(createdAt.getTime() + 3600000)];
       }
@@ -56,7 +55,7 @@ mongoose.connect(mongourl).then(async () => {
       }
       logs.push(log);
     }
-    
+
     await db.collection('emaillogs').insertMany(logs);
 
     // Seed some Contacts (Inbox)
@@ -76,7 +75,7 @@ mongoose.connect(mongourl).then(async () => {
     await db.collection('contacts').insertMany(contacts);
 
     console.log('Seeded data successfully.');
-  } catch(e) {
+  } catch (e) {
     console.error(e);
   }
   process.exit(0);
