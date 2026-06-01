@@ -36,10 +36,11 @@ const ContactPage = () => {
 			title="Liên hệ chúng tôi" 
 			description="Kết nối với đội ngũ chuyên gia của Luxury Watch Store để được tư vấn và hỗ trợ tận tâm nhất."
 			activeId="contact"
+			noProse={true}
 		>
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+			<div className="grid grid-cols-1 xl:grid-cols-2 gap-12 xl:gap-16">
 				{/* Contact Form */}
-				<div className="space-y-8 rounded-[2rem] border border-black/5 dark:border-white/5 bg-white/85 dark:bg-white/5 p-6 md:p-8 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.35)]">
+				<div className="space-y-8">
 					<div className="space-y-4">
 						<p className="hero-kicker text-xs font-semibold text-luxury-gold">Concierge</p>
 						<h2 className="hero-title text-2xl font-bold text-gray-900 dark:text-white">Gửi lời nhắn cho chúng tôi</h2>
@@ -126,7 +127,7 @@ const ContactPage = () => {
 				</div>
 
 				{/* Contact Information */}
-				<div className="space-y-12 lg:pl-10">
+				<div className="space-y-12 xl:pl-10">
 					<div className="space-y-8">
 						<p className="hero-kicker text-xs font-semibold text-luxury-gold">Direct access</p>
 						<h2 className="hero-title text-2xl font-bold text-gray-900 dark:text-white">Thông tin liên lạc</h2>

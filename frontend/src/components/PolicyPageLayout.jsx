@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ChevronRight, Truck, ShieldCheck, Ruler, Mail, Lock, FileText, Search } from "lucide-react";
 import { useEffect } from "react";
 
-const PolicyPageLayout = ({ children, title, description, activeId }) => {
+const PolicyPageLayout = ({ children, title, description, activeId, noProse }) => {
 	const location = useLocation();
 
 	useEffect(() => {
@@ -25,7 +25,7 @@ const PolicyPageLayout = ({ children, title, description, activeId }) => {
 
 			<div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
 				{/* Breadcrumbs */}
-				<nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-luxury-text-muted mb-8">
+				<nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-luxury-text-muted mb-8 pt-8">
 					<NavLink to="/" className="hover:text-luxury-gold transition">Trang chủ</NavLink>
 					<ChevronRight className="w-4 h-4" />
 					<span className="text-luxury-gold font-medium">{title}</span>
@@ -91,7 +91,7 @@ const PolicyPageLayout = ({ children, title, description, activeId }) => {
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.5 }}
 						>
-							<div className="prose prose-luxury dark:prose-invert max-w-none">
+							<div className={noProse ? "" : "prose prose-luxury dark:prose-invert max-w-none"}>
 								{children}
 							</div>
 						</motion.div>
