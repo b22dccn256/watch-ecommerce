@@ -1,8 +1,7 @@
+require("dotenv").config({ path: __dirname + "/../backend/.env" });
 const mongoose = require("mongoose");
 mongoose
-  .connect(
-    "mongodb://honghai:honghai123@ac-tjl0mqw-shard-00-00.4gjtocf.mongodb.net:27017,ac-tjl0mqw-shard-00-01.4gjtocf.mongodb.net:27017,ac-tjl0mqw-shard-00-02.4gjtocf.mongodb.net:27017/watchstore_db?ssl=true&replicaSet=atlas-109xk8-shard-0&authSource=admin"
-  )
+  .connect(process.env.MONGO_URI)
   .then(async () => {
     const db = mongoose.connection.db;
     const r = await db.collection("orders").updateOne(
