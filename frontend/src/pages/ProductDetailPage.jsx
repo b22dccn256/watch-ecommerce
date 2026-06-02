@@ -117,7 +117,7 @@ const ProductDetailPage = () => {
   useEffect(() => {
     if (!currentProduct || !routeSlug || !routeToken) return;
     const canonicalPath = buildProductPath(currentProduct);
-    if (canonicalPath && (currentProduct.slug !== routeSlug || currentProduct.slugToken !== routeToken)) {
+    if (canonicalPath && currentProduct.slugToken === routeToken && currentProduct.slug !== routeSlug) {
       navigate(canonicalPath, { replace: true });
     }
   }, [currentProduct, navigate, routeSlug, routeToken]);

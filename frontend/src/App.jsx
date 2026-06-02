@@ -81,26 +81,6 @@ function App() {
 
 	useEffect(() => {
 		checkAuth();
-
-		const handlePageShow = (event) => {
-			if (event.persisted) {
-				checkAuth();
-			}
-		};
-
-		const handleVisibilityChange = () => {
-			if (document.visibilityState === "visible") {
-				checkAuth();
-			}
-		};
-
-		window.addEventListener("pageshow", handlePageShow);
-		document.addEventListener("visibilitychange", handleVisibilityChange);
-
-		return () => {
-			window.removeEventListener("pageshow", handlePageShow);
-			document.removeEventListener("visibilitychange", handleVisibilityChange);
-		};
 	}, [checkAuth]);
 
 	// Fetch CSRF token on app startup

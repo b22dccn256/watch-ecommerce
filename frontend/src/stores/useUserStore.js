@@ -130,7 +130,11 @@ export const useUserStore = createWithEqualityFn((set, get) => ({
 	},
 
 	checkAuth: async () => {
-		set({ checkingAuth: true });
+		// Chỉ hiện loading spinner ở lần tải trang đầu tiên (khi checkingAuth đang là true)
+		// Tránh set checkingAuth thành true ở các lần check chạy ngầm (khi chuyển tab) để không làm unmount ứng dụng và mất dữ liệu form
+		if (get().checkingAuth) {
+			set({ checkingAuth: true });
+		}
 		try {
 			const response = await axios.get("/auth/profile", { skipRefresh: true });
 			set({ user: response.data, checkingAuth: false });
@@ -139,7 +143,11 @@ export const useUserStore = createWithEqualityFn((set, get) => ({
 			if (error.response?.status !== 401) {
 				console.error("checkAuth error:", error.message);
 			}
-			get().clearAuth();
+			if (get().user) {
+				get().clearAuth();
+			} else {
+				set({ checkingAuth: false });
+			}
 		}
 	},
 
