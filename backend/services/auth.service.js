@@ -173,11 +173,44 @@ export const signup = async ({ email, password, name, phone, confirmPassword }) 
 	const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${verifyToken}`;
 
 	// Always send verification email (Ethereal in dev, real in production)
-	await emailQueue.add("verify-email", {
-		userName: user.name,
-		email: user.email,
-		verifyUrl,
-	});
+	try {
+		await emailQueue.add("verify-email", {
+			userName: user.name,
+			email: user.email,
+			verifyUrl,
+		});
+	} catch (queueError) {
+		console.error("Failed to queue verification email in signup:", queueError.message);
+		try {
+			console.info("Attempting fallback direct email send in signup...");
+			const payload = {
+				userName: user.name,
+				email: user.email,
+				verifyUrl,
+			};
+			const finalHtml = `
+				<div style="font-family: Arial, sans-serif; color: #1f2937; max-width: 1000px; margin: auto; padding: 40px 16px; background: #f7f5ef; border-radius: 18px;">
+					<div style="max-width: 680px; margin: auto; background: #fff; border-radius: 16px; border: 1px solid #e3e3e3; padding: 28px;">
+						<h2 style="font-size: 24px; color: #b7925a; margin-bottom: 16px; text-align: center;">Xác minh tài khoản Luxury Watch</h2>
+						<p style="font-size: 16px; color: #374151; line-height: 1.6;">Chào <strong>${payload.userName || "Khách Hàng"}</strong>,</p>
+						<p style="font-size: 16px; color: #374151; line-height: 1.6;">Cảm ơn bạn đã đăng ký tài khoản tại Luxury Watch. Nhấn nút bên dưới để xác minh email và hoàn tất kích hoạt tài khoản.</p>
+						<div style="text-align: center; margin: 24px 0;">
+							<a href="${payload.verifyUrl}" target="_blank" rel="noreferrer" style="background: #b7925a; color: #fff; text-decoration: none; font-weight: 700; padding: 12px 26px; border-radius: 8px; font-size: 16px; display: inline-block;">Xác minh tài khoản</a>
+						</div>
+						<p style="font-size: 14px; color: #6b7280; line-height: 1.5;">Nếu nút không hoạt động, sao chép và dán liên kết dưới đây vào trình duyệt:</p>
+						<p style="font-size: 13px; color: #9ca3af; word-break: break-all;">${payload.verifyUrl}</p>
+						<p style="font-size: 14px; color: #6b7280; line-height: 1.5;">Liên kết này có hiệu lực trong 15 phút và chỉ sử dụng một lần.</p>
+						<p style="font-size: 14px; color: #6b7280; margin-top: 18px;">Trân trọng,<br/><strong>Đội ngũ Luxury Watch</strong></p>
+					</div>
+					<div style="text-align:center; font-size:12px; color:#9ca3af; margin-top:12px;">Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.</div>
+				</div>
+			`;
+			await sendEmail(user.email, "Xác minh tài khoản Luxury Watch", finalHtml);
+			console.info("Fallback direct verification email sent successfully!");
+		} catch (directError) {
+			console.error("Fallback direct verification email also failed:", directError.message);
+		}
+	}
 
 	if (process.env.NODE_ENV !== "production") {
 		console.log("------ VERIFY EMAIL LINK (DEV) ------");
@@ -321,11 +354,44 @@ export const resendVerificationEmail = async (email) => {
 	const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${verifyToken}`;
 
 	// Always send verification email (Ethereal in dev, real in production)
-	await emailQueue.add("verify-email", {
-		userName: user.name,
-		email: user.email,
-		verifyUrl,
-	});
+	try {
+		await emailQueue.add("verify-email", {
+			userName: user.name,
+			email: user.email,
+			verifyUrl,
+		});
+	} catch (queueError) {
+		console.error("Failed to queue verification email in resend:", queueError.message);
+		try {
+			console.info("Attempting fallback direct email send in resend...");
+			const payload = {
+				userName: user.name,
+				email: user.email,
+				verifyUrl,
+			};
+			const finalHtml = `
+				<div style="font-family: Arial, sans-serif; color: #1f2937; max-width: 1000px; margin: auto; padding: 40px 16px; background: #f7f5ef; border-radius: 18px;">
+					<div style="max-width: 680px; margin: auto; background: #fff; border-radius: 16px; border: 1px solid #e3e3e3; padding: 28px;">
+						<h2 style="font-size: 24px; color: #b7925a; margin-bottom: 16px; text-align: center;">Xác minh tài khoản Luxury Watch</h2>
+						<p style="font-size: 16px; color: #374151; line-height: 1.6;">Chào <strong>${payload.userName || "Khách Hàng"}</strong>,</p>
+						<p style="font-size: 16px; color: #374151; line-height: 1.6;">Cảm ơn bạn đã đăng ký tài khoản tại Luxury Watch. Nhấn nút bên dưới để xác minh email và hoàn tất kích hoạt tài khoản.</p>
+						<div style="text-align: center; margin: 24px 0;">
+							<a href="${payload.verifyUrl}" target="_blank" rel="noreferrer" style="background: #b7925a; color: #fff; text-decoration: none; font-weight: 700; padding: 12px 26px; border-radius: 8px; font-size: 16px; display: inline-block;">Xác minh tài khoản</a>
+						</div>
+						<p style="font-size: 14px; color: #6b7280; line-height: 1.5;">Nếu nút không hoạt động, sao chép và dán liên kết dưới đây vào trình duyệt:</p>
+						<p style="font-size: 13px; color: #9ca3af; word-break: break-all;">${payload.verifyUrl}</p>
+						<p style="font-size: 14px; color: #6b7280; line-height: 1.5;">Liên kết này có hiệu lực trong 15 phút và chỉ sử dụng một lần.</p>
+						<p style="font-size: 14px; color: #6b7280; margin-top: 18px;">Trân trọng,<br/><strong>Đội ngũ Luxury Watch</strong></p>
+					</div>
+					<div style="text-align:center; font-size:12px; color:#9ca3af; margin-top:12px;">Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.</div>
+				</div>
+			`;
+			await sendEmail(user.email, "Xác minh tài khoản Luxury Watch", finalHtml);
+			console.info("Fallback direct resend verification email sent successfully!");
+		} catch (directError) {
+			console.error("Fallback direct resend email also failed:", directError.message);
+		}
+	}
 
 	if (process.env.NODE_ENV !== "production") {
 		console.log("------ VERIFY EMAIL LINK (DEV - RESEND) ------");
@@ -356,11 +422,38 @@ export const forgotPassword = async (email) => {
 		console.log(resetUrl);
 		console.log("---------------------------------------");
 	} else {
-		await emailQueue.add("reset-password", {
-			userName: user.name,
-			email: user.email,
-			resetUrl,
-		});
+		try {
+			await emailQueue.add("reset-password", {
+				userName: user.name,
+				email: user.email,
+				resetUrl,
+			});
+		} catch (queueError) {
+			console.error("Failed to queue reset password email:", queueError.message);
+			try {
+				console.info("Attempting fallback direct reset password email send...");
+				const finalHtml = `
+					<div style="font-family: Arial, sans-serif; color: #1f2937; max-width: 1000px; margin: auto; padding: 40px 16px; background: #f7f5ef; border-radius: 18px;">
+						<div style="max-width: 680px; margin: auto; background: #fff; border-radius: 16px; border: 1px solid #e3e3e3; padding: 28px;">
+							<h2 style="font-size: 24px; color: #b7925a; margin-bottom: 16px; text-align: center;">Đặt lại mật khẩu Luxury Watch</h2>
+							<p style="font-size: 16px; color: #374151; line-height: 1.6;">Chào <strong>${user.name || "Khách Hàng"}</strong>,</p>
+							<p style="font-size: 16px; color: #374151; line-height: 1.6;">Bạn nhận được email này vì bạn (hoặc ai đó) đã yêu cầu đặt lại mật khẩu cho tài khoản của mình. Nhấn nút bên dưới để tiến hành đặt lại mật khẩu:</p>
+							<div style="text-align: center; margin: 24px 0;">
+								<a href="${resetUrl}" target="_blank" rel="noreferrer" style="background: #b7925a; color: #fff; text-decoration: none; font-weight: 700; padding: 12px 26px; border-radius: 8px; font-size: 16px; display: inline-block;">Đặt lại mật khẩu</a>
+							</div>
+							<p style="font-size: 14px; color: #6b7280; line-height: 1.5;">Nếu nút không hoạt động, sao chép và dán liên kết dưới đây vào trình duyệt:</p>
+							<p style="font-size: 13px; color: #9ca3af; word-break: break-all;">${resetUrl}</p>
+							<p style="font-size: 14px; color: #6b7280; line-height: 1.5;">Yêu cầu này có hiệu lực trong 1 giờ. Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
+							<p style="font-size: 14px; color: #6b7280; margin-top: 18px;">Trân trọng,<br/><strong>Đội ngũ Luxury Watch</strong></p>
+						</div>
+					</div>
+				`;
+				await sendEmail(user.email, "Đặt lại mật khẩu Luxury Watch", finalHtml);
+				console.info("Fallback direct reset password email sent successfully!");
+			} catch (directError) {
+				console.error("Fallback direct reset password email also failed:", directError.message);
+			}
+		}
 	}
 
 	return { message: "Nếu email tồn tại trong hệ thống, bạn sẽ nhận được email đặt lại mật khẩu" };

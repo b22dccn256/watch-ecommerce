@@ -117,7 +117,9 @@ if (process.env.NODE_ENV !== 'test' && !isNodeTestRunner && !shouldDisableQueue)
 	try {
 		const redisConnection = new IORedis(process.env.UPSTASH_REDIS_URL || process.env.REDIS_URL || "redis://localhost:6379", {
 			maxRetriesPerRequest: null,
-			tls: process.env.UPSTASH_REDIS_URL ? { rejectUnauthorized: false } : undefined
+			tls: process.env.UPSTASH_REDIS_URL ? { rejectUnauthorized: false } : undefined,
+			connectTimeout: 5000,
+			enableOfflineQueue: false,
 		});
 		redisConnection.on("error", (err) => {
 			console.error("[Mail] IORedis connection error on controller Queue:", err.message);
@@ -480,18 +482,52 @@ export const subscribeNewsletter = async (req, res) => {
 		}
 
 		// Queue Welcome Email
-		await emailQueue.add("welcome-email", {
-			email,
-			fullName: "Khách hàng thân mến",
-			subject: "Chào mừng bạn đến với Luxury Watch Store!",
-			shopUrl: process.env.CLIENT_URL || "http://localhost:5173",
-			// Use token-based unsubscribe link instead of raw email in URL
-			unsubscribeLink: `${process.env.BACKEND_URL || "http://localhost:5000"}/api/mail/unsubscribe/by-token/${
-				existing?.unsubscribeToken ||
-				(await NewsletterSubscription.findOne({ email }))?.unsubscribeToken ||
-				""
-			}`
-		});
+		try {
+			await emailQueue.add("welcome-email", {
+				email,
+				fullName: "Khách hàng thân mến",
+				subject: "Chào mừng bạn đến với Luxury Watch Store!",
+				shopUrl: process.env.CLIENT_URL || "http://localhost:5173",
+				// Use token-based unsubscribe link instead of raw email in URL
+				unsubscribeLink: `${process.env.BACKEND_URL || "http://localhost:5000"}/api/mail/unsubscribe/by-token/${
+					existing?.unsubscribeToken ||
+					(await NewsletterSubscription.findOne({ email }))?.unsubscribeToken ||
+					""
+				}`
+			});
+		} catch (queueError) {
+			console.error("Failed to queue welcome email:", queueError.message);
+			try {
+				console.info("Attempting fallback direct welcome email send...");
+				const unsubLink = `${process.env.BACKEND_URL || "http://localhost:5000"}/api/mail/unsubscribe/by-token/${
+					existing?.unsubscribeToken ||
+					(await NewsletterSubscription.findOne({ email }))?.unsubscribeToken ||
+					""
+				}`;
+				const finalHtml = `
+					<div style="font-family: Arial, sans-serif; color: #1f2937; max-width: 1000px; margin: auto; padding: 40px 16px; background: #f7f5ef; border-radius: 18px;">
+						<div style="max-width: 680px; margin: auto; background: #fff; border-radius: 16px; border: 1px solid #e3e3e3; padding: 28px;">
+							<h2 style="font-size: 24px; color: #b7925a; margin-bottom: 16px; text-align: center;">Chào mừng bạn đến với Luxury Watch Store!</h2>
+							<p style="font-size: 16px; color: #374151; line-height: 1.6;">Chào <strong>Khách hàng thân mến</strong>,</p>
+							<p style="font-size: 16px; color: #374151; line-height: 1.6;">Cảm ơn bạn đã đăng ký nhận bản tin từ Luxury Watch Store. Chúng tôi sẽ cập nhật cho bạn những bộ sưu tập đồng hồ sang trọng và các ưu đãi đặc quyền mới nhất.</p>
+							<p style="font-size: 16px; color: #374151; line-height: 1.6;">Khám phá ngay tại cửa hàng của chúng tôi:</p>
+							<div style="text-align: center; margin: 24px 0;">
+								<a href="${process.env.CLIENT_URL || "http://localhost:5173"}" target="_blank" rel="noreferrer" style="background: #b7925a; color: #fff; text-decoration: none; font-weight: 700; padding: 12px 26px; border-radius: 8px; font-size: 16px; display: inline-block;">Ghé thăm cửa hàng</a>
+							</div>
+							<p style="font-size: 14px; color: #6b7280; margin-top: 18px;">Trân trọng,<br/><strong>Đội ngũ Luxury Watch</strong></p>
+						</div>
+						<div style="margin-top: 50px; text-align: center; font-size: 12px; color: #999;">
+							Bạn nhận được email này vì đã đăng ký tại Luxury Watch Store. 
+							<a href="${unsubLink}" style="color: #b7925a;">Hủy đăng ký</a>
+						</div>
+					</div>
+				`;
+				await sendEmail(email, "Chào mừng bạn đến với Luxury Watch Store!", finalHtml);
+				console.info("Fallback direct welcome email sent successfully!");
+			} catch (directError) {
+				console.error("Fallback direct welcome email also failed:", directError.message);
+			}
+		}
 
 		res.json({ message: "Đăng ký thành công! Vui lòng kiểm tra email chào mừng." });
 	} catch (error) {

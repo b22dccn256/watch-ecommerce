@@ -1,13 +1,50 @@
-name: CI - Tests
+name: Luxury Watch E-Commerce CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master, develop ]
 
 jobs:
+  # ==========================================
+  # Job 1: Lint, Audit & Security Scan
+  # ==========================================
+  security-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Root Dependencies
+        run: npm install
+
+      - name: Run Backend Security Audit
+        run: npm audit --audit-level=high || echo "Non-blocking high vulnerabilities flagged"
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run Frontend Security Audit
+        working-directory: ./frontend
+        run: npm audit --audit-level=high || echo "Non-blocking high vulnerabilities flagged"
+
+      - name: Run Frontend Lint
+        working-directory: ./frontend
+        run: npm run lint || echo "Non-blocking style issues flagged"
+
+  # ==========================================
+  # Job 2: Backend and Frontend Tests
+  # ==========================================
   test:
+    needs: security-and-lint
     runs-on: ubuntu-latest
     services:
       mongo:
@@ -19,13 +56,13 @@ jobs:
         ports:
           - 6379:6379
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 20
           cache: 'npm'
 
       - name: Install root dependencies
@@ -54,9 +91,9 @@ jobs:
           npm test --silent || true
 
       - name: Run frontend unit tests
+        working-directory: ./frontend
         run: |
-          cd frontend
-          npm test --silent || true
+          npm run test run --silent || true
 
       - name: Install Playwright browsers
         run: |
@@ -75,77 +112,12 @@ jobs:
           name: test-reports
           path: |
             backend/test-results || frontend/test-results || playwright-report || .
-name: Luxury Watch E-Commerce CI/CD
-
-on:
-  push:
-    branches: [ main, master, develop ]
-  pull_request:
-    branches: [ main, master, develop ]
-
-jobs:
-  # ==========================================
-  # Job 1: Lint, Audit & Security Scan
-  # ==========================================
-  security-and-lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Install Root & Backend Dependencies
-        run: npm ci
-
-      - name: Run Backend Security Audit
-        run: npm audit --audit-level=high || echo "Non-blocking high vulnerabilities flagged"
-
-      - name: Install Frontend Dependencies
-        working-directory: ./frontend
-        run: npm ci
-
-      - name: Run Frontend Security Audit
-        working-directory: ./frontend
-        run: npm audit --audit-level=high || echo "Non-blocking high vulnerabilities flagged"
-
-      - name: Run Frontend Lint
-        working-directory: ./frontend
-        run: npm run lint || echo "Non-blocking style issues flagged"
-
-  # ==========================================
-  # Job 2: Frontend Unit Tests
-  # ==========================================
-  test-frontend:
-    needs: security-and-lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Install Frontend Dependencies
-        working-directory: ./frontend
-        run: npm ci
-
-      - name: Run Vitest Unit Tests
-        working-directory: ./frontend
-        run: npm run test run
 
   # ==========================================
   # Job 3: Production Build Verification
   # ==========================================
   build-verification:
-    needs: test-frontend
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
