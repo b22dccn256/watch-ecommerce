@@ -30,7 +30,7 @@ jobs:
 
       - name: Install Frontend Dependencies
         working-directory: ./frontend
-        run: npm ci
+        run: npm install
 
       - name: Run Frontend Security Audit
         working-directory: ./frontend
@@ -131,7 +131,7 @@ jobs:
 
       - name: Install Frontend Dependencies
         working-directory: ./frontend
-        run: npm ci
+        run: npm install
 
       - name: Build Frontend static assets
         working-directory: ./frontend
