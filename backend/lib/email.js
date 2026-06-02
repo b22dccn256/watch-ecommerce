@@ -10,33 +10,38 @@ const getTransporter = async () => {
     if (forceEthereal === "1" || forceEthereal === "true") {
         console.log("ℹ️  USE_ETHEREAL set — forcing Ethereal transport for emails");
     } else {
-        // 1. Try Gmail if credentials provided
+        // 1. Try Gmail if credentials provided (using port 465 secure SSL which works reliably on cloud VPS)
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
         try {
             const gmailTransporter = nodemailer.createTransport({
-                service: "gmail",
+                host: "smtp.gmail.com",
+                port: 465,
+                secure: true, // true for port 465, false for port 587
                 auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
                 tls: { rejectUnauthorized: false }
             });
             
-            // Fast verify
+            // Fast verify (with 5 seconds timeout to allow slow remote server SSL handshakes)
             await Promise.race([
                 gmailTransporter.verify(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout verifying Gmail")), 3000))
+                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout verifying Gmail SMTPS (5000ms exceeded)")), 5000))
             ]);
             
             transporter = gmailTransporter;
-            console.log("✅ Using Gmail for OTP emails");
+            console.log("✅ Using Gmail SMTPS (Port 465) for sending emails");
             return transporter;
         } catch (error) {
-            console.error("❌ Gmail Auth Failed:", error.message);
+            console.error("❌ Gmail SMTPS Auth/Connection Failed:", error.message);
             console.log("🔄 Falling back to Ethereal Email...");
         }
     }
     }
-    // 2. Fallback to Ethereal
+    // 2. Fallback to Ethereal with a 4-second timeout
     try {
-        const testAccount = await nodemailer.createTestAccount();
+        const testAccount = await Promise.race([
+            nodemailer.createTestAccount(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout creating Ethereal account (4000ms exceeded)")), 4000))
+        ]);
         console.log("--------------------------------------------------");
         console.log("ℹ️  Using Ethereal Email for development");
         console.log(`User: ${testAccount.user}`);
@@ -51,7 +56,19 @@ const getTransporter = async () => {
             tls: { rejectUnauthorized: false }
         });
     } catch (err) {
-        console.error("❌ Failed to create Ethereal account:", err.message);
+        console.error("❌ Failed to create Ethereal account or timed out:", err.message);
+        console.log("🔄 Falling back to Dummy Console Mailer...");
+        transporter = {
+            sendMail: async (options) => {
+                console.log("\n==================================================");
+                console.log(`ℹ️ [Dummy Mailer] To: ${options.to}`);
+                console.log(`Subject: ${options.subject}`);
+                console.log("----------------------- HTML ---------------------");
+                console.log(options.html);
+                console.log("==================================================\n");
+                return { messageId: "dummy-message-id" };
+            }
+        };
     }
     
     return transporter;
