@@ -14,8 +14,7 @@ const PaymentReturnPage = ({ method }) => {
     const processedRef = useRef(false);
 
     useEffect(() => {
-        if (processedRef.current) return;
-        processedRef.current = true;
+        const controller = new AbortController();
 
         // Guard against external VNPay sandbox script referencing an undeclared `timer` variable
         try {
@@ -38,9 +37,13 @@ const PaymentReturnPage = ({ method }) => {
                 let verification = null;
 
                 while (attempt < maxAttempts) {
+                    if (controller.signal.aborted) return;
+
                     const res = await axios.post("/payments/verify-return", {
                         method,
                         query,
+                    }, {
+                        signal: controller.signal
                     });
                     verification = res.data;
 
@@ -49,8 +52,14 @@ const PaymentReturnPage = ({ method }) => {
                     }
 
                     attempt += 1;
-                    await new Promise((resolve) => setTimeout(resolve, 3000));
+                    if (controller.signal.aborted) return;
+                    await new Promise((resolve) => {
+                        const timeoutId = setTimeout(resolve, 3000);
+                        controller.signal.addEventListener("abort", () => clearTimeout(timeoutId));
+                    });
                 }
+
+                if (controller.signal.aborted) return;
 
                 if (!verification) {
                     setStatus("pending");
@@ -70,6 +79,9 @@ const PaymentReturnPage = ({ method }) => {
                     setMessage(verification.message || "Giao dịch không thành công. Vui lòng thử lại.");
                 }
             } catch (error) {
+                if (axios.isCancel(error)) {
+                    return;
+                }
                 console.error("Error processing return:", error);
                 setStatus("failed");
                 const msg = error?.response?.data?.message || "Lỗi xử lý kết quả thanh toán.";
@@ -78,6 +90,10 @@ const PaymentReturnPage = ({ method }) => {
         };
 
         processReturn();
+
+        return () => {
+            controller.abort();
+        };
     }, [method, searchParams, clearSelectedCart]);
 
     if (status === "loading") {

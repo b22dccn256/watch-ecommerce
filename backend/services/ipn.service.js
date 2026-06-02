@@ -121,6 +121,11 @@ export async function processIPN({ provider, transactionId, orderCode, isSuccess
     return { alreadyProcessed: false, success: false, order };
   } catch (error) {
     await session.abortTransaction();
+    if (error.code === 11000) {
+      console.info("[processIPN] Duplicate IPN transaction detected (concurrent write). Treating as already processed.");
+      const order = await Order.findOne({ orderCode });
+      return { alreadyProcessed: true, success: order?.paymentStatus === 'paid', order };
+    }
     throw error;
   } finally {
     session.endSession();

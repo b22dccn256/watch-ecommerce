@@ -293,13 +293,17 @@ export const verifyPaymentReturn = async (req, res) => {
 
 		const isSuccess = query.vnp_ResponseCode === "00";
 		if (isSuccess) {
-			await processIPN({
-				provider: "vnpay",
-				transactionId: query.vnp_TransactionNo || query.vnp_TxnRef,
-				orderCode,
-				isSuccess: true,
-				payload: query,
-			});
+			try {
+				await processIPN({
+					provider: "vnpay",
+					transactionId: query.vnp_TransactionNo || query.vnp_TxnRef,
+					orderCode,
+					isSuccess: true,
+					payload: query,
+				});
+			} catch (ipnError) {
+				console.warn("Non-critical IPN processing error in verifyPaymentReturn:", ipnError.message);
+			}
 			const refreshedOrder = await Order.findOne({ orderCode }).select("orderCode paymentStatus status trackingToken");
 			if (refreshedOrder?.paymentStatus === "paid") {
 				return res.json({
