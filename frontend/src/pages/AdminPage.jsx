@@ -62,7 +62,6 @@ const tabs = [
     icon: ShoppingBasket,
     roles: ["admin", "staff"],
   },
-  { id: "chat", label: "Live Chat", icon: MessageSquare, roles: ["admin", "staff"] },
   { id: "catalog", label: "Danh mục", icon: Layers, roles: ["admin", "staff"] },
   {
     id: "products",
@@ -84,6 +83,7 @@ const tabs = [
     icon: LayoutTemplate,
     roles: ["admin"],
   },
+  { id: "chat", label: "Live Chat", icon: MessageSquare, roles: ["admin", "staff"] },
   {
     id: "marketing_group",
     label: "Marketing",
