@@ -1,60 +1,103 @@
-# Watch Ecommerce Project
+# Watch E-Commerce Platform 🛒
 
-## Overview
-This project is an e-commerce platform for watches, including backend, frontend, scripts, and UI design assets.
+An advanced e-commerce platform built with the MERN stack (MongoDB, Express, React, Node.js), featuring a robust backend with Redis caching, BullMQ message queues, secure authentication (JWT & OAuth), and modern payment integrations (Stripe, VNPay).
 
-## Folder Structure
-- **backend/**: Node.js server, controllers, models, routes, services, scripts, and database files.
-- **frontend/**: React app with Tailwind CSS, Vite, and various components/pages.
-- **scripts/**: Migration and utility scripts.
-- **UI-Design/**: Design assets for Admin and User interfaces.
-- **uploads/**: Storage for uploaded files.
+## 📂 Project Structure
 
-## Backend
-- Built with Node.js and Express.
-- Organized by controllers, models, routes, services, and middleware.
-- Database: Flat files in `db/`.
-- Scripts for data migration and fixes.
+- **`backend/`**: Node.js & Express API server. Handles business logic, database interactions, background jobs, and third-party integrations.
+- **`frontend/`**: React application built with Vite and Tailwind CSS.
+- **`scripts/`**: Utility scripts for database seeding, migrations, and development tasks.
+- **`UI-Design/`**: UI/UX design assets and mockups.
+- **`uploads/`**: Local storage directory for user uploads (if not using Cloudinary).
 
-## Frontend
-- Built with React, Vite, and Tailwind CSS.
-- Components for product display, cart, analytics, chatbot, etc.
-- Pages and stores for state management.
+## 🚀 Getting Started (Local Development)
 
-## Scripts
-- Utility scripts for migration and data fixes.
+There are two primary ways to run this project locally: **Using Docker** or **Manual Setup (Recommended for coding)**.
 
-## UI Design
-- Contains design assets for Admin and User interfaces.
+### Prerequisites
+Before you begin, ensure you have the following installed:
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- [Git](https://git-scm.com/)
+- *Optional but recommended:* [Docker Desktop](https://www.docker.com/products/docker-desktop) (for easy database setup)
+- *If not using Docker:* MongoDB and Redis installed and running locally.
 
-## Getting Started
-### Backend
-1. Navigate to `backend/`.
-2. Install dependencies:
+---
+
+### Option 1: Manual Setup (For Active Development)
+
+Use this method if you want to actively modify the code and see real-time updates (Hot Reloading).
+
+#### 1. Setup Databases
+Ensure you have **MongoDB** (running on `localhost:27017`) and **Redis** (running on `localhost:6379`) active on your machine. *(Mẹo: Bạn có thể dùng Docker chỉ để chạy Mongo và Redis cho tiện).*
+
+#### 2. Install Dependencies
+Run the following command from the root directory to install dependencies for both frontend and backend concurrently:
+```bash
+npm run install:all
+```
+
+#### 3. Configure Environment Variables
+Navigate to the `backend/` folder and duplicate `.env.example` to `.env`:
+```bash
+cp backend/.env.example backend/.env
+# On Windows, you can just manually copy and paste the file and rename it to .env
+```
+Fill in the necessary credentials in `backend/.env`:
+- `MONGO_URI`: Your MongoDB connection string (e.g., `mongodb://localhost:27017/watchstore_db`).
+- `UPSTASH_REDIS_URL` or `REDIS_URL`: Your Redis connection string (e.g., `redis://localhost:6379`).
+- `ACCESS_TOKEN_SECRET` & `REFRESH_TOKEN_SECRET`: Random secure strings.
+- Keys for **Cloudinary** (Image Uploads), **Stripe/VNPay** (Payments), and **SMTP/Email** settings.
+
+#### 4. Run the Development Servers
+From the root directory, start both the React frontend and Node backend concurrently:
+```bash
+npm run dev
+```
+- Frontend will run on: `http://localhost:5173`
+- Backend will run on: `http://localhost:5000`
+
+---
+
+### Option 2: Run via Docker (Easiest Method to Demo)
+This method spins up the entire stack (MongoDB, Redis, Backend, and Frontend) inside isolated Docker containers.
+
+1. **Configure Environment Variables:**
+   - Copy the `.env.example` file in the backend to `.env` and fill in API keys like Cloudinary and Stripe. 
+   - *Note: Docker will automatically inject the correct Database and Redis URIs for you.*
+
+2. **Start the containers:**
+   From the root folder, run:
    ```bash
-   npm install
+   npm run docker:up
+   # Alternatively: docker-compose up --build -d
    ```
-3. Start server:
+
+3. **Access the application:**
+   - Frontend: `http://localhost:80`
+   - Backend API: `http://localhost:5000`
+
+4. **Stop the containers:**
    ```bash
-   node server.js
+   npm run docker:down
    ```
 
-### Frontend
-1. Navigate to `frontend/`.
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start development server:
-   ```bash
-   npm run dev
-   ```
+---
 
-## License
-MIT License
+## 🛠️ Useful Scripts (Run from root folder)
 
-## Authors
-- TMDT-team
+- `npm run dev`: Starts both client and server in development mode.
+- `npm run install:all`: Installs root, frontend, and backend `node_modules`.
+- `npm run seed:admin`: Creates a default admin account.
+- `npm run seed:real`: Populates the database with sample products.
+- `npm run docker:logs`: View logs of running Docker containers.
 
-## Contact
-For support, contact the TMDT-team.
+## 🔑 Technologies Used
+- **Frontend:** React.js, Vite, Tailwind CSS.
+- **Backend:** Node.js, Express.js, MongoDB (Mongoose).
+- **Caching & Queues:** Redis, BullMQ.
+- **Security:** Passport.js (OAuth), JWT, Bcrypt, Helmet, Rate Limit.
+- **Payments:** Stripe, VNPay.
+- **DevOps:** Docker, Docker Compose.
+
+## 📄 License
+This project is licensed under the MIT License.
