@@ -27,6 +27,8 @@ import fs from "fs";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
+import http from "http";
+import { initSocket } from "./socket.js";
 
 import authRoutes from "./routes/auth.route.js";
 import oauthRoutes from "./routes/oauth.route.js";
@@ -47,6 +49,7 @@ import contactRoutes from "./routes/contact.route.js";
 import mailRoutes from "./routes/mail.route.js";
 import reviewRoutes from "./routes/review.route.js";
 import questionRoutes from "./routes/question.route.js";
+import chatRoutes from "./routes/chat.route.js";
 import storeConfigRoutes from "./routes/storeConfig.route.js";
 import adminIpnRoutes from "./routes/admin.ipn.route.js";
 import sitemapRoutes from "./routes/sitemap.route.js";
@@ -77,6 +80,9 @@ import { connectDB } from "./lib/db.js";
 import "./models/productAudit.model.js";
 
 const app = express();
+const httpServer = http.createServer(app);
+initSocket(httpServer);
+
 app.set("trust proxy", 1);
 const PORT = process.env.PORT || 5000;
 
@@ -253,6 +259,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/mail", mailRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/questions", questionRoutes);
+app.use("/api/chat", chatRoutes);
 app.use("/api/settings", storeConfigRoutes);
 // Backwards-compat: some tests and older callers expect /api/store-config
 app.use("/api/store-config", storeConfigRoutes);
@@ -285,7 +292,7 @@ app.use((err, req, res, next) => {
   return errorHandler(err, req, res, next);
 });
 
-const server = app.listen(PORT, () => {
+const server = httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   connectDB();
 });

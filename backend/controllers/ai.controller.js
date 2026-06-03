@@ -17,7 +17,7 @@ const getProductBrandName = (brand) => {
 // AI Provider Selection: Groq > Gemini > Fallback Bot
 // ═══════════════════════════════════════════════════════════════
 
-const getAIClient = () => {
+export const getAIClient = () => {
   // Priority 1: Groq (fast, cheap)
   if (process.env.GROQ_API_KEY) {
     return {
@@ -37,7 +37,7 @@ const getAIClient = () => {
   return null;
 };
 
-const callAI = async (systemPrompt, userMessage, jsonMode = false) => {
+export const callAI = async (systemPrompt, userMessage, jsonMode = false) => {
   const ai = getAIClient();
   if (!ai) return null;
 

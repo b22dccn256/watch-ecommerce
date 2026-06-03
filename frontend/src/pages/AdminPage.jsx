@@ -46,6 +46,7 @@ import StoreSettingsTab from "../components/admin/StoreSettingsTab";
 import CouponsTab from "../components/admin/CouponsTab";
 import ReviewsTab from "../components/admin/ReviewsTab";
 import CatalogTab from "../components/admin/CatalogTab";
+import ChatManagementTab from "../components/admin/ChatManagementTab";
 import { useUserStore } from "../stores/useUserStore";
 
 const tabs = [
@@ -61,6 +62,7 @@ const tabs = [
     icon: ShoppingBasket,
     roles: ["admin", "staff"],
   },
+  { id: "chat", label: "Live Chat", icon: MessageSquare, roles: ["admin", "staff"] },
   { id: "catalog", label: "Danh mục", icon: Layers, roles: ["admin", "staff"] },
   {
     id: "products",
@@ -216,6 +218,8 @@ const AdminPage = () => {
         return <MarketingTab />;
       case "email":
         return <EmailTab />;
+      case "chat":
+        return <ChatManagementTab />;
       case "reviews":
         return <ReviewsTab />;
       case "coupons":

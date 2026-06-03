@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Bot, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
 import axios from "../lib/axios";
 import { buildProductPath } from "../utils/productUrl";
+import { useUserStore } from "../stores/useUserStore";
 
 const QUICK_QUESTIONS = [
   "Rolex Submariner giá bao nhiêu?",
@@ -528,6 +530,7 @@ const formatWristProducts = (products) => {
 
 const ChatBot = () => {
   const navigate = useNavigate();
+  const { user } = useUserStore();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -539,13 +542,72 @@ const ChatBot = () => {
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [sessionToken, setSessionToken] = useState("");
+  const [chatStatus, setChatStatus] = useState("bot");
   const messagesEndRef = useRef(null);
+  const socketRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isOpen]);
+
+  useEffect(() => {
+    let token = localStorage.getItem("chat_session_token");
+    if (!token) {
+      token = "sess_" + Math.random().toString(36).substring(2, 15);
+      localStorage.setItem("chat_session_token", token);
+    }
+    setSessionToken(token);
+
+    const socketUrl = import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
+    socketRef.current = io(socketUrl, { withCredentials: true });
+
+    socketRef.current.on("connect", () => {
+      socketRef.current.emit("join_room", { sessionToken: token, userId: user?._id });
+    });
+
+    socketRef.current.on("chat_history", (history) => {
+      if (history && history.length > 0) {
+        setMessages(history.map(m => ({
+          id: m._id || Date.now() + Math.random(),
+          role: m.sender,
+          content: m.content,
+          products: m.products || [],
+          actions: m.actions || []
+        })));
+        
+        const hasAdmin = history.some(m => m.sender === "admin");
+        if (hasAdmin) setChatStatus("active");
+      }
+    });
+
+    socketRef.current.on("receive_message", (msg) => {
+      if (msg.sender === "admin") {
+        setChatStatus("active");
+        setMessages(prev => {
+          if (prev.find(p => p.id === msg._id)) return prev;
+          return [...prev, {
+            id: msg._id || Date.now(),
+            role: msg.sender,
+            content: msg.content,
+            products: msg.products || [],
+            actions: msg.actions || []
+          }];
+        });
+        socketRef.current.emit("mark_read", { sessionToken: token, role: "user" });
+      }
+    });
+
+    socketRef.current.on("room_status_changed", (newStatus) => {
+      setChatStatus(newStatus);
+    });
+
+    return () => {
+      if (socketRef.current) socketRef.current.disconnect();
+    }
+  }, [user?._id]);
 
   const handleSend = async (text) => {
     const msgText = text || input;
@@ -554,6 +616,15 @@ const ChatBot = () => {
     const userMsg = { id: Date.now(), role: "user", content: msgText };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
+    
+    if (socketRef.current) {
+       socketRef.current.emit("send_message", { sessionToken, sender: "user", content: msgText });
+    }
+
+    if (chatStatus === "active" || chatStatus === "waiting") {
+      return; 
+    }
+
     setIsTyping(true);
 
     try {
@@ -579,6 +650,7 @@ const ChatBot = () => {
           actions: response.action ? [response.action] : [],
         };
         setMessages((prev) => [...prev, botMsg]);
+        if (socketRef.current) socketRef.current.emit("send_message", { sessionToken, sender: "bot", content: botMsg.content, actions: botMsg.actions });
         return;
       }
 
@@ -620,9 +692,10 @@ const ChatBot = () => {
           id: Date.now() + 1,
           role: "bot",
           content: summary.content,
-          products: summary.products,
+          products: res.data?.products || [],
         };
         setMessages((prev) => [...prev, botMsg]);
+        if (socketRef.current) socketRef.current.emit("send_message", { sessionToken, sender: "bot", content: botMsg.content, products: botMsg.products });
         return;
       }
 
@@ -676,6 +749,7 @@ const ChatBot = () => {
           ],
         };
         setMessages((prev) => [...prev, botMsg]);
+        if (socketRef.current) socketRef.current.emit("send_message", { sessionToken, sender: "bot", content: botMsg.content, products: botMsg.products, actions: botMsg.actions });
         return;
       }
 
@@ -722,10 +796,10 @@ const ChatBot = () => {
           actions: [buildAction("Mở Catalog", "/catalog", "Xem thêm sản phẩm")],
         };
         setMessages((prev) => [...prev, botMsg]);
+        if (socketRef.current) socketRef.current.emit("send_message", { sessionToken, sender: "bot", content: botMsg.content, products: botMsg.products, actions: botMsg.actions });
         return;
       }
 
-      // Search intent or fallback: call AI backend which has full product catalog context
       try {
         const res = await axios.post("/ai/chat", { message: msgText });
         const botMsg = {
@@ -738,24 +812,30 @@ const ChatBot = () => {
           ],
         };
         setMessages((prev) => [...prev, botMsg]);
-      } catch {
-        // AI backend failed — show fallback response
-        const response = INTENT_RESPONSE.fallback;
+        if (socketRef.current) socketRef.current.emit("send_message", { sessionToken, sender: "bot", content: botMsg.content, products: botMsg.products, actions: botMsg.actions });
+      } catch (err) {
         const botMsg = {
           id: Date.now() + 1,
           role: "bot",
-          content: response.content,
-          actions: response.action ? [response.action] : [],
+          content: "Dạ bạn đợi mình một chút để mình kiểm tra kỹ thông tin này cho bạn nhé!",
         };
         setMessages((prev) => [...prev, botMsg]);
+        if (socketRef.current) {
+          socketRef.current.emit("send_message", { sessionToken, sender: "bot", content: botMsg.content });
+          socketRef.current.emit("request_human", { sessionToken });
+        }
       }
     } catch {
       const errorMsg = {
         id: Date.now() + 1,
         role: "bot",
-        content: "Xin lỗi, hệ thống AI đang bảo trì. Vui lòng gọi 0911046801.",
+        content: "Dạ bạn đợi mình một chút để mình kiểm tra kỹ thông tin này cho bạn nhé!",
       };
       setMessages((prev) => [...prev, errorMsg]);
+      if (socketRef.current) {
+        socketRef.current.emit("send_message", { sessionToken, sender: "bot", content: errorMsg.content });
+        socketRef.current.emit("request_human", { sessionToken });
+      }
     } finally {
       setIsTyping(false);
     }
