@@ -546,6 +546,7 @@ const ChatBot = () => {
   const [chatStatus, setChatStatus] = useState("bot");
   const messagesEndRef = useRef(null);
   const socketRef = useRef(null);
+  const lastProcessedMsgId = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -577,9 +578,6 @@ const ChatBot = () => {
           products: m.products || [],
           actions: m.actions || []
         })));
-        
-        const hasAdmin = history.some(m => m.sender === "admin");
-        if (hasAdmin) setChatStatus("active");
       }
     });
 
@@ -609,22 +607,7 @@ const ChatBot = () => {
     }
   }, [user?._id]);
 
-  const handleSend = async (text) => {
-    const msgText = text || input;
-    if (!msgText.trim()) return;
-
-    const userMsg = { id: Date.now(), role: "user", content: msgText };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput("");
-    
-    if (socketRef.current) {
-       socketRef.current.emit("send_message", { sessionToken, sender: "user", content: msgText });
-    }
-
-    if (chatStatus === "active" || chatStatus === "waiting") {
-      return; 
-    }
-
+  const processAIResponse = async (msgText) => {
     setIsTyping(true);
 
     try {
@@ -841,6 +824,30 @@ const ChatBot = () => {
     }
   };
 
+  useEffect(() => {
+    if (chatStatus !== "bot" || !messages.length) return;
+
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg.role === "user" && lastProcessedMsgId.current !== lastMsg.id) {
+      lastProcessedMsgId.current = lastMsg.id;
+      processAIResponse(lastMsg.content);
+    }
+  }, [chatStatus, messages]);
+
+  const handleSend = async (text) => {
+    const msgText = text || input;
+    if (!msgText.trim()) return;
+
+    const userMsg = { id: Date.now(), role: "user", content: msgText };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+
+    if (socketRef.current) {
+      socketRef.current.emit("send_message", { sessionToken, sender: "user", content: msgText });
+    }
+  };
+
+
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
       <AnimatePresence>
@@ -850,7 +857,7 @@ const ChatBot = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="w-[340px] bg-[#1a1a0e] border border-[#3a3a1a] rounded-3xl overflow-hidden shadow-2xl shadow-black/50"
+            className="w-[520px] bg-[#1a1a0e] border border-[#3a3a1a] rounded-3xl overflow-hidden shadow-2xl shadow-black/50"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-yellow-500 to-yellow-400 px-5 py-4 flex items-center justify-between">
@@ -879,7 +886,7 @@ const ChatBot = () => {
             </div>
 
             {/* Messages */}
-            <div className="h-72 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-yellow-900">
+            <div className="h-[520px] overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-yellow-900">
               {messages.map((msg) => (
                 <div
                   key={msg.id}
@@ -891,11 +898,10 @@ const ChatBot = () => {
                     </div>
                   )}
                   <div
-                    className={`max-w-[80%] text-sm px-4 py-3 rounded-2xl leading-relaxed whitespace-pre-line ${
-                      msg.role === "user"
-                        ? "bg-yellow-400 text-black font-medium rounded-br-none"
-                        : "bg-[#2a2a1a] border border-[#3a3a1a] text-gray-200 rounded-bl-none"
-                    }`}
+                    className={`max-w-[80%] text-sm px-4 py-3 rounded-2xl leading-relaxed whitespace-pre-line ${msg.role === "user"
+                      ? "bg-yellow-400 text-black font-medium rounded-br-none"
+                      : "bg-[#2a2a1a] border border-[#3a3a1a] text-gray-200 rounded-bl-none"
+                      }`}
                   >
                     {msg.content}
                     {msg.actions?.length > 0 && (

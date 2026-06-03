@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "../../lib/axios";
 import { io } from "socket.io-client";
-import { Send, Bot, User, ShieldCheck, Sparkles } from "lucide-react";
+import { Send, Bot, User, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 
@@ -126,6 +126,22 @@ const ChatManagementTab = () => {
     }
   };
 
+  const handleDeleteRoom = async (sessionToken, e) => {
+    e.stopPropagation();
+    if (!window.confirm("Bạn có chắc chắn muốn xóa cuộc trò chuyện của khách vãng lai này?")) return;
+    try {
+      await axios.delete(`/chat/rooms/${sessionToken}`);
+      setRooms(prev => prev.filter(r => r.sessionToken !== sessionToken));
+      if (selectedRoom?.sessionToken === sessionToken) {
+        setSelectedRoom(null);
+      }
+      toast.success("Đã xóa phòng chat");
+    } catch (err) {
+      console.error("Lỗi khi xóa phòng chat:", err);
+      toast.error("Không thể xóa phòng chat");
+    }
+  };
+
   return (
     <div className="flex h-[calc(100vh-140px)] border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden bg-surface shadow-sm">
       {/* Sidebar: Danh sách chat */}
@@ -169,11 +185,22 @@ const ChatManagementTab = () => {
                       <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold">Đang chat</span>
                     )}
                   </div>
-                  {room.unreadCountAdmin > 0 && (
-                    <div className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold">
-                      {room.unreadCountAdmin}
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {room.unreadCountAdmin > 0 && (
+                      <div className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold">
+                        {room.unreadCountAdmin}
+                      </div>
+                    )}
+                    {!room.user && (
+                      <button 
+                        onClick={(e) => handleDeleteRoom(room.sessionToken, e)}
+                        className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                        title="Xóa cuộc trò chuyện"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="text-xs text-secondary truncate max-w-full">
                   {room.lastMessage || "Chưa có tin nhắn"}
@@ -268,7 +295,7 @@ const ChatManagementTab = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleAiSuggest}
-                  disabled={isSuggesting || !selectedRoom.user}
+                  disabled={isSuggesting || !selectedRoom.user || selectedRoom.status === "bot"}
                   className="flex items-center justify-center p-3 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20 transition flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                   title="AI Gợi ý trả lời"
                 >
@@ -284,15 +311,15 @@ const ChatManagementTab = () => {
                         handleSendMessage();
                       }
                     }}
-                    disabled={!selectedRoom.user}
-                    placeholder={!selectedRoom.user ? "Khách cần đăng nhập để chat với nhân viên..." : "Nhập tin nhắn hỗ trợ..."}
+                    disabled={!selectedRoom.user || selectedRoom.status === "bot"}
+                    placeholder={!selectedRoom.user ? "Khách cần đăng nhập để chat với nhân viên..." : selectedRoom.status === "bot" ? "Tắt Ủy quyền AI để có thể nhắn tin..." : "Nhập tin nhắn hỗ trợ..."}
                     className="w-full bg-surface border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-primary focus:outline-none focus:border-[color:var(--color-gold)] resize-none disabled:bg-black/5 disabled:dark:bg-white/5 disabled:cursor-not-allowed"
                     rows={1}
                   />
                 </div>
                 <button
                   onClick={handleSendMessage}
-                  disabled={!input.trim() || !selectedRoom.user}
+                  disabled={!input.trim() || !selectedRoom.user || selectedRoom.status === "bot"}
                   className="p-3 rounded-xl bg-[color:var(--color-gold)] text-black hover:brightness-110 transition disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                 >
                   <Send className="w-5 h-5" />

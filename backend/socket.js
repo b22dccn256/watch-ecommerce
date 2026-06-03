@@ -39,6 +39,7 @@ export const initSocket = (server) => {
       // Send previous messages
       const messages = await ChatMessage.find({ roomId: room._id }).sort({ createdAt: 1 });
       socket.emit("chat_history", messages);
+      socket.emit("room_status_changed", room.status);
     });
 
     // Admin joins the admin room to listen to all chats

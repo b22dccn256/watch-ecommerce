@@ -48,3 +48,26 @@ export const aiSuggest = async (req, res) => {
     res.status(500).json({ message: "Lỗi AI" });
   }
 };
+
+export const deleteRoom = async (req, res) => {
+  try {
+    const { sessionToken } = req.params;
+    const room = await ChatRoom.findOne({ sessionToken });
+    
+    if (!room) {
+      return res.status(404).json({ message: "Không tìm thấy phòng chat" });
+    }
+    
+    if (room.user) {
+      return res.status(403).json({ message: "Không thể xóa cuộc trò chuyện của khách hàng đã đăng nhập" });
+    }
+    
+    await ChatMessage.deleteMany({ roomId: room._id });
+    await ChatRoom.deleteOne({ _id: room._id });
+    
+    res.json({ message: "Đã xóa phòng chat thành công" });
+  } catch (error) {
+    console.error("Error in deleteRoom:", error);
+    res.status(500).json({ message: "Lỗi Server" });
+  }
+};
