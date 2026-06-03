@@ -76,7 +76,7 @@ const CampaignBannerSection = () => {
             {/* Content overlay at bottom */}
             <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
               <h3 className="text-white font-semibold text-sm sm:text-base truncate">
-                {banner.title}
+                {banner.title?.startsWith("Upload-") ? "Chương trình Ưu đãi" : banner.title}
               </h3>
               {banner.link && (
                 <Link

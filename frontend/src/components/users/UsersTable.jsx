@@ -35,19 +35,19 @@ const UsersTable = ({
                 disabled={loading || activeUsers.length === 0}
               />
             </th>
-            <th className="px-6 py-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">
+            <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">
               Người dùng
             </th>
-            <th className="px-6 py-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">
+            <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">
               Nhóm
             </th>
-            <th className="px-6 py-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">
+            <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">
               Chi tiêu
             </th>
-            <th className="px-6 py-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">
+            <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest">
               Đơn hàng
             </th>
-            <th className="px-6 py-4 text-[10px] font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest text-right">
+            <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-luxury-text-muted uppercase tracking-widest text-right">
               Hành động
             </th>
           </tr>
@@ -72,7 +72,7 @@ const UsersTable = ({
               <td colSpan="6">
                 <div className="flex flex-col items-center py-12 gap-2">
                   <Users className="w-10 h-10 text-gray-200 dark:text-gray-700" />
-                  <p className="text-sm text-gray-400">
+                  <p className="text-base text-gray-400">
                     Không tìm thấy người dùng nào
                   </p>
                 </div>
@@ -103,12 +103,12 @@ const UsersTable = ({
                         className="w-10 h-10 rounded-full object-cover shadow-sm"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-luxury-border flex items-center justify-center text-sm font-bold text-gray-600 dark:text-white uppercase shadow-sm">
+                      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-luxury-border flex items-center justify-center text-base font-bold text-gray-600 dark:text-white uppercase shadow-sm">
                         {user.name.substring(0, 2)}
                       </div>
                     )}
                     <div>
-                      <div className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                      <div className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
                         {user.name}
                         {user.role !== "customer" && (
                           <Shield
@@ -116,7 +116,7 @@ const UsersTable = ({
                           />
                         )}
                       </div>
-                      <div className="text-[10px] text-gray-500 dark:text-luxury-text-muted">
+                      <div className="text-xs text-gray-500 dark:text-luxury-text-muted">
                         {user.email}
                       </div>
                     </div>
@@ -124,7 +124,7 @@ const UsersTable = ({
                 </td>
                 <td className="px-6 py-4">
                   <span
-                    className={`px-2 py-0.5 rounded text-[9px] font-bold border transition-all ${getSegmentBadge(user.segment)}`}
+                    className={`px-2 py-0.5 rounded text-xs font-bold border transition-all ${getSegmentBadge(user.segment)}`}
                   >
                     {user.segment === "VIP"
                       ? "KHÁCH VIP"
@@ -137,10 +137,10 @@ const UsersTable = ({
                             : "KHÁCH MỚI"}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-xs font-bold text-gray-900 dark:text-white">
+                <td className="px-6 py-4 text-sm font-bold text-gray-900 dark:text-white">
                   {(user.totalSpend || 0).toLocaleString("vi-VN")} ₫
                 </td>
-                <td className="px-6 py-4 text-xs text-gray-500 dark:text-luxury-text-muted">
+                <td className="px-6 py-4 text-sm text-gray-500 dark:text-luxury-text-muted">
                   {user.orderCount || 0} đơn thành công
                 </td>
                 <td className="px-6 py-4 text-right">

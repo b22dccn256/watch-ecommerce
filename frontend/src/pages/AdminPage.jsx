@@ -370,12 +370,13 @@ const AdminPage = () => {
 
   return (
     <div
-      className="min-h-screen flex bg-gray-50 dark:bg-luxury-dark font-sans"
-      style={{ "--font-display": "var(--font-sans)" }}
+      className="flex bg-gray-50 dark:bg-luxury-dark font-sans"
+      style={{ "--font-display": "var(--font-sans)", zoom: "80%", minHeight: "125vh" }}
     >
       {/* ── Desktop Sidebar — Dense ──────────── */}
       <aside
-        className={`hidden md:flex flex-col flex-shrink-0 bg-white dark:bg-luxury-darker border-r border-gray-100 dark:border-luxury-border h-screen sticky top-0 left-0 transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-[4.5rem]" : "w-[240px]"}`}
+        className={`hidden md:flex flex-col flex-shrink-0 bg-white dark:bg-luxury-darker border-r border-gray-100 dark:border-luxury-border sticky top-0 left-0 transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-[4.5rem]" : "w-[240px]"}`}
+        style={{ height: "125vh" }}
       >
         <div className="h-[72px] border-b border-gray-100 dark:border-luxury-border px-4 flex items-center justify-between">
           <a
