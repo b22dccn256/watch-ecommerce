@@ -1,119 +1,122 @@
-# Watch E-Commerce Platform 🛒
+# Nền tảng Thương mại Điện tử Bán Đồng Hồ 🛒
 
-An advanced e-commerce platform built with the MERN stack (MongoDB, Express, React, Node.js), featuring a robust backend with Redis caching, BullMQ message queues, secure authentication (JWT & OAuth), and modern payment integrations (Stripe, VNPay).
+Một nền tảng thương mại điện tử hiện đại được xây dựng với MERN stack (MongoDB, Express, React, Node.js), tích hợp backend mạnh mẽ với Redis caching, hàng đợi BullMQ, xác thực bảo mật (JWT & OAuth) và các cổng thanh toán hiện đại (Stripe, VNPay).
 
-## 📂 Project Structure
+## 📂 Cấu trúc Dự án
 
-- **`backend/`**: Node.js & Express API server. Handles business logic, database interactions, background jobs, and third-party integrations.
-- **`frontend/`**: React application built with Vite and Tailwind CSS.
-- **`scripts/`**: Utility scripts for database seeding, migrations, and development tasks.
-- **`UI-Design/`**: UI/UX design assets and mockups.
-- **`uploads/`**: Local storage directory for user uploads (if not using Cloudinary).
+- **`backend/`**: Node.js & Express API server. Xử lý logic nghiệp vụ, giao tiếp cơ sở dữ liệu, các tác vụ chạy ngầm và tích hợp với bên thứ ba.
+- **`frontend/`**: Ứng dụng React được xây dựng với Vite và Tailwind CSS.
+- **`scripts/`**: Các đoạn mã tiện ích dùng để tạo dữ liệu mẫu, di chuyển dữ liệu (migrations) và hỗ trợ môi trường phát triển.
+- **`UI-Design/`**: Các tệp thiết kế UI/UX và mockup.
+- **`uploads/`**: Thư mục lưu trữ file người dùng tải lên (nếu không sử dụng Cloudinary).
 
-## 🚀 Getting Started (Local Development)
+## 🚀 Hướng dẫn Cài đặt (Môi trường Local)
 
-There are two primary ways to run this project locally: **Using Docker** or **Manual Setup (Recommended for coding)**.
+Có 2 cách chính để chạy dự án này trên máy của bạn: **Dùng Docker** hoặc **Cài đặt Thủ công (Khuyên dùng khi code)**.
 
-### Prerequisites
+### Yêu cầu hệ thống
 
-Before you begin, ensure you have the following installed:
+Trước khi bắt đầu, hãy đảm bảo bạn đã cài đặt các phần mềm sau:
 
-- [Node.js](https://nodejs.org/) (v18 or higher)
+- [Node.js](https://nodejs.org/) (phiên bản v18 trở lên)
 - [Git](https://git-scm.com/)
-- _Optional but recommended:_ [Docker Desktop](https://www.docker.com/products/docker-desktop) (for easy database setup)
-- _If not using Docker:_ MongoDB and Redis installed and running locally.
+- _Tùy chọn nhưng khuyên dùng:_ [Docker Desktop](https://www.docker.com/products/docker-desktop) (để setup database nhanh chóng)
+- _Nếu không dùng Docker:_ Bạn cần cài đặt MongoDB và Redis và khởi chạy sẵn trên máy.
 
 ---
 
-### Option 1: Manual Setup (For Active Development)
+### Cách 1: Cài đặt Thủ công (Dành cho việc lập trình)
 
-Use this method if you want to actively modify the code and see real-time updates (Hot Reloading).
+Sử dụng cách này nếu bạn muốn chủ động chỉnh sửa code và xem cập nhật theo thời gian thực (Hot Reloading).
 
-#### 1. Setup Databases
+#### 1. Khởi chạy Databases
 
-Ensure you have **MongoDB** (running on `localhost:27017`) and **Redis** (running on `localhost:6379`) active on your machine. _(Mẹo: Bạn có thể dùng Docker chỉ để chạy Mongo và Redis cho tiện)._
+Hãy đảm bảo **MongoDB** (chạy ở cổng `localhost:27017`) và **Redis** (chạy ở cổng `localhost:6379`) đang hoạt động trên máy bạn. _(Mẹo: Bạn có thể dùng Docker chỉ để chạy Mongo và Redis cho tiện)._
 
-#### 2. Install Dependencies
+#### 2. Cài đặt các gói thư viện (Dependencies)
 
-Run the following command from the root directory to install dependencies for both frontend and backend concurrently:
+Chạy lệnh sau từ thư mục gốc của dự án để cài đặt tất cả thư viện cho cả frontend và backend cùng lúc:
 
 ```bash
 npm run install:all
 ```
 
-#### 3. Configure Environment Variables
+#### 3. Cấu hình Biến môi trường
 
-Navigate to the `backend/` folder and duplicate `.env.example` to `.env`:
+Vào thư mục `backend/` và tạo bản sao của file `.env.example`, đổi tên thành `.env`:
 
 ```bash
 cp backend/.env.example backend/.env
-# On Windows, you can just manually copy and paste the file and rename it to .env
+# Trên Windows, bạn có thể copy và paste file thủ công rồi đổi tên thành .env
 ```
 
-Fill in the necessary credentials in `backend/.env`:
+Điền các thông tin cần thiết vào file `backend/.env`:
 
-- `MONGO_URI`: Your MongoDB connection string (e.g., `mongodb://localhost:27017/watchstore_db`).
-- `UPSTASH_REDIS_URL` or `REDIS_URL`: Your Redis connection string (e.g., `redis://localhost:6379`).
-- `ACCESS_TOKEN_SECRET` & `REFRESH_TOKEN_SECRET`: Random secure strings.
-- Keys for **Cloudinary** (Image Uploads), **Stripe/VNPay** (Payments), and **SMTP/Email** settings.
+- `MONGO_URI`: Đường dẫn kết nối MongoDB của bạn (VD: `mongodb://localhost:27017/watchstore_db`).
+- `UPSTASH_REDIS_URL` hoặc `REDIS_URL`: Đường dẫn kết nối Redis của bạn (VD: `redis://localhost:6379`).
+- `ACCESS_TOKEN_SECRET` & `REFRESH_TOKEN_SECRET`: Chuỗi ký tự bảo mật ngẫu nhiên.
+- Các API Keys cho **Cloudinary** (Upload ảnh), **Stripe/VNPay** (Thanh toán), và **SMTP/Email** (Cấu hình gửi mail).
 
-#### 4. Run the Development Servers
+#### 4. Khởi chạy Server Development
 
-From the root directory, start both the React frontend and Node backend concurrently:
+Từ thư mục gốc, khởi động cả React frontend và Node backend cùng lúc:
 
 ```bash
 npm run dev
 ```
 
-- Frontend will run on: `http://localhost:5173`
-- Backend will run on: `http://localhost:5000`
+- Frontend sẽ chạy tại: `http://localhost:5173`
+- Backend sẽ chạy tại: `http://localhost:5000`
 
 ---
 
-### Option 2: Run via Docker (Easiest Method to Demo)
+### Cách 2: Chạy bằng Docker (Cách nhanh nhất để Demo)
 
-This method spins up the entire stack (MongoDB, Redis, Backend, and Frontend) inside isolated Docker containers.
+Cách này sẽ tự động khởi tạo toàn bộ hệ thống (MongoDB, Redis, Backend, và Frontend) bên trong các container Docker độc lập.
 
-1. **Configure Environment Variables:**
-   - Copy the `.env.example` file in the backend to `.env` and fill in API keys like Cloudinary and Stripe.
-   - _Note: Docker will automatically inject the correct Database and Redis URIs for you._
+1. **Cấu hình Biến môi trường:**
 
-2. **Start the containers:**
-   From the root folder, run:
+   - Copy file `.env.example` trong thư mục backend thành `.env` và điền các API keys như Cloudinary và Stripe.
+   - _Lưu ý: Docker sẽ tự động chèn các đường dẫn kết nối Database và Redis đúng chuẩn cho bạn._
+
+2. **Khởi chạy các containers:**
+   Từ thư mục gốc, chạy lệnh:
 
    ```bash
    npm run docker:up
-   # Alternatively: docker-compose up --build -d
+   # Hoặc: docker-compose up --build -d
    ```
 
-3. **Access the application:**
+3. **Truy cập ứng dụng:**
+
    - Frontend: `http://localhost:80`
    - Backend API: `http://localhost:5000`
 
-4. **Stop the containers:**
+4. **Dừng các containers:**
+
    ```bash
    npm run docker:down
    ```
 
 ---
 
-## 🛠️ Useful Scripts (Run from root folder)
+## 🛠️ Các Lệnh Tiện ích (Chạy từ thư mục gốc)
 
-- `npm run dev`: Starts both client and server in development mode.
-- `npm run install:all`: Installs root, frontend, and backend `node_modules`.
-- `npm run seed:admin`: Creates a default admin account.
-- `npm run seed:real`: Populates the database with sample products.
-- `npm run docker:logs`: View logs of running Docker containers.
+- `npm run dev`: Chạy cả client và server ở chế độ phát triển.
+- `npm run install:all`: Cài đặt `node_modules` cho toàn bộ dự án (root, frontend, backend).
+- `npm run seed:admin`: Tạo tài khoản admin mặc định.
+- `npm run seed:real`: Thêm dữ liệu sản phẩm mẫu vào database.
+- `npm run docker:logs`: Xem log của các Docker containers đang chạy.
 
-## 🔑 Technologies Used
+## 🔑 Công nghệ Sử dụng
 
 - **Frontend:** React.js, Vite, Tailwind CSS.
 - **Backend:** Node.js, Express.js, MongoDB (Mongoose).
-- **Caching & Queues:** Redis, BullMQ.
-- **Security:** Passport.js (OAuth), JWT, Bcrypt, Helmet, Rate Limit.
-- **Payments:** Stripe, VNPay.
+- **Caching & Hàng đợi:** Redis, BullMQ.
+- **Bảo mật:** Passport.js (OAuth), JWT, Bcrypt, Helmet, Rate Limit.
+- **Thanh toán:** Stripe, VNPay.
 - **DevOps:** Docker, Docker Compose.
 
-## 📄 License
+## 📄 Giấy phép
 
-This project is licensed under the MIT License.
+Dự án này được cấp phép theo MIT License.
