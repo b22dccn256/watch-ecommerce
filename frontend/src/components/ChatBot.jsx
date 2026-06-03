@@ -562,7 +562,7 @@ const ChatBot = () => {
     }
     setSessionToken(token);
 
-    const socketUrl = import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
+    const socketUrl = import.meta.env.VITE_SERVER_URL || "https://api.timematrix.io.vn";
     socketRef.current = io(socketUrl, { withCredentials: true });
 
     socketRef.current.on("connect", () => {

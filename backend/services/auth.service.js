@@ -197,7 +197,7 @@ export const signup = async ({
     throw saveError;
   }
 
-  const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${verifyToken}`;
+  const verifyUrl = `${process.env.CLIENT_URL || "https://timematrix.io.vn"}/verify-email?token=${verifyToken}`;
 
   // Always send verification email (Ethereal in dev, real in production)
   try {
@@ -407,7 +407,7 @@ export const resendVerificationEmail = async (email) => {
   const verifyToken = user.generateEmailVerificationToken();
   await user.save();
 
-  const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${verifyToken}`;
+  const verifyUrl = `${process.env.CLIENT_URL || "https://timematrix.io.vn"}/verify-email?token=${verifyToken}`;
 
   // Always send verification email (Ethereal in dev, real in production)
   try {
@@ -485,7 +485,7 @@ export const forgotPassword = async (email) => {
   const resetToken = user.generatePasswordResetToken();
   await user.save();
 
-  const resetUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/reset-password?token=${resetToken}`;
+  const resetUrl = `${process.env.CLIENT_URL || "https://timematrix.io.vn"}/reset-password?token=${resetToken}`;
 
   if (process.env.NODE_ENV !== "production") {
     console.log("------ PASSWORD RESET LINK (DEV) ------");
@@ -780,7 +780,7 @@ export const updateProfile = async (userId, updates) => {
       throw saveError;
     }
 
-    const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${verifyToken}`;
+    const verifyUrl = `${process.env.CLIENT_URL || "https://timematrix.io.vn"}/verify-email?token=${verifyToken}`;
     await emailQueue.add("verify-email", {
       userName: user.name,
       email: user.email,
