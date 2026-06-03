@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import useProductsList from './useProductsList';
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { renderHook, act } from "@testing-library/react";
+import useProductsList from "./useProductsList";
 
-vi.mock('../stores/useProductStore', () => {
+vi.mock("../stores/useProductStore", () => {
   const state = {
     products: [],
     totalPages: 1,
@@ -14,14 +14,14 @@ vi.mock('../stores/useProductStore', () => {
     toggleFeaturedProduct: vi.fn().mockResolvedValue(undefined),
   };
   const useProductStore = (selector) => {
-    if (typeof selector === 'function') return selector(state);
+    if (typeof selector === "function") return selector(state);
     return state;
   };
   useProductStore.getState = () => state;
   return { useProductStore };
 });
 
-describe('useProductsList Hook', () => {
+describe("useProductsList Hook", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -30,8 +30,8 @@ describe('useProductsList Hook', () => {
     vi.restoreAllMocks();
   });
 
-  describe('initialization', () => {
-    it('should initialize with empty state', () => {
+  describe("initialization", () => {
+    it("should initialize with empty state", () => {
       const { result } = renderHook(() => useProductsList());
 
       expect(result.current.products).toEqual([]);
@@ -39,20 +39,22 @@ describe('useProductsList Hook', () => {
     });
   });
 
-  describe('fetchProducts', () => {
-    it('should call store fetch with params', async () => {
-      const { useProductStore } = await import('../stores/useProductStore');
+  describe("fetchProducts", () => {
+    it("should call store fetch with params", async () => {
+      const { useProductStore } = await import("../stores/useProductStore");
       const { result } = renderHook(() => useProductsList());
 
       await act(async () => {
-        await result.current.fetchProducts({ page: 2, search: 'watch' });
+        await result.current.fetchProducts({ page: 2, search: "watch" });
       });
 
-      expect(useProductStore.getState().fetchProductsAdminPaginated).toHaveBeenCalledWith({
+      expect(
+        useProductStore.getState().fetchProductsAdminPaginated,
+      ).toHaveBeenCalledWith({
         page: 2,
         limit: 20,
-        search: 'watch',
-        sort: 'name_asc',
+        search: "watch",
+        sort: "name_asc",
       });
     });
   });

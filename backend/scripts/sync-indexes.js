@@ -1,20 +1,20 @@
-import dotenv from 'dotenv';
-import mongoose from 'mongoose';
-import Product from '../models/product.model.js';
-import Campaign from '../models/campaign.model.js';
-import Brand from '../models/brand.model.js';
+import dotenv from "dotenv";
+import mongoose from "mongoose";
+import Product from "../models/product.model.js";
+import Campaign from "../models/campaign.model.js";
+import Brand from "../models/brand.model.js";
 
 dotenv.config();
 
 async function sync() {
   await mongoose.connect(process.env.MONGO_URI);
-  console.log('🔗 Connected, syncing indexes...\n');
+  console.log("🔗 Connected, syncing indexes...\n");
 
   // Sync all model indexes
   const models = [
-    { name: 'Product', model: Product },
-    { name: 'Campaign', model: Campaign },
-    { name: 'Brand', model: Brand },
+    { name: "Product", model: Product },
+    { name: "Campaign", model: Campaign },
+    { name: "Brand", model: Brand },
   ];
 
   for (const { name, model } of models) {
@@ -26,8 +26,11 @@ async function sync() {
     }
   }
 
-  console.log('\n🎉 Done!');
+  console.log("\n🎉 Done!");
   await mongoose.disconnect();
 }
 
-sync().catch(e => { console.error(e); process.exit(1); });
+sync().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

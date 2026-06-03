@@ -24,7 +24,9 @@ const CampaignBannerSection = () => {
       }
     };
     fetchBanners();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (loading || banners.length === 0) return null;

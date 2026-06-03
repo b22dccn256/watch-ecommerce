@@ -1,20 +1,27 @@
 // routes/order.route.js
 import express from "express";
-import { protectRoute, managementRoute, optionalRoute } from "../middleware/auth.middleware.js";
 import {
-    getAllOrders,
-    exportOrders,
-    updateOrderStatus,
-    updateOrderDetails,
-    getOrderById,
-    getMyOrders,
-    cancelOrder,
-    createCODOrder,
-    getOrderTracking,
-    lookupOrder
+  protectRoute,
+  managementRoute,
+  optionalRoute,
+} from "../middleware/auth.middleware.js";
+import {
+  getAllOrders,
+  exportOrders,
+  updateOrderStatus,
+  updateOrderDetails,
+  getOrderById,
+  getMyOrders,
+  cancelOrder,
+  createCODOrder,
+  getOrderTracking,
+  lookupOrder,
 } from "../controllers/order.controller.js"; // Import controller
 import { requestReturnOrder } from "../controllers/order.controller.js";
-import { validateBody, orderSchemas } from "../middleware/validation.middleware.js";
+import {
+  validateBody,
+  orderSchemas,
+} from "../middleware/validation.middleware.js";
 
 const router = express.Router();
 
@@ -37,7 +44,6 @@ router.patch("/:id/details", protectRoute, managementRoute, updateOrderDetails);
 // Route cho user: Xem đơn hàng của mình (phải đặt TRƯỚC /:id)
 router.get("/my-orders", protectRoute, getMyOrders);
 
-
 // User yêu cầu trả hàng (sau khi đã giao)
 router.patch("/:id/request-return", protectRoute, requestReturnOrder);
 
@@ -48,6 +54,11 @@ router.patch("/:id/cancel", protectRoute, cancelOrder);
 router.get("/:id", protectRoute, getOrderById);
 
 // COD route with validation
-router.post("/cod", optionalRoute, validateBody(orderSchemas.nonStripeOrder), createCODOrder);
+router.post(
+  "/cod",
+  optionalRoute,
+  validateBody(orderSchemas.nonStripeOrder),
+  createCODOrder,
+);
 
 export default router;

@@ -1,20 +1,20 @@
 /**
  * useProductsSearch Hook
- * 
+ *
  * Handles search, sort, pagination, and URL parameter synchronization for ProductsList.
  * Replaces mixed state management scattered throughout the component.
  */
 
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 
 export const useProductsSearch = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Read from URL on mount
-  const urlPage = parseInt(searchParams.get('page')) || 1;
-  const urlSearch = searchParams.get('search') || '';
-  const urlSort = searchParams.get('sort') || 'name_asc';
+  const urlPage = parseInt(searchParams.get("page")) || 1;
+  const urlSearch = searchParams.get("search") || "";
+  const urlSort = searchParams.get("sort") || "name_asc";
 
   const [search, setSearch] = useState(urlSearch);
   const [debouncedSearch, setDebouncedSearch] = useState(urlSearch);
@@ -34,21 +34,21 @@ export const useProductsSearch = () => {
     const params = new URLSearchParams(searchParams);
 
     if (currentPage > 1) {
-      params.set('page', currentPage);
+      params.set("page", currentPage);
     } else {
-      params.delete('page');
+      params.delete("page");
     }
 
     if (debouncedSearch) {
-      params.set('search', debouncedSearch);
+      params.set("search", debouncedSearch);
     } else {
-      params.delete('search');
+      params.delete("search");
     }
 
-    if (sortBy !== 'name_asc') {
-      params.set('sort', sortBy);
+    if (sortBy !== "name_asc") {
+      params.set("sort", sortBy);
     } else {
-      params.delete('sort');
+      params.delete("sort");
     }
 
     const currentString = searchParams.toString();
@@ -59,10 +59,10 @@ export const useProductsSearch = () => {
   }, [currentPage, debouncedSearch, sortBy, searchParams, setSearchParams]);
 
   const resetSearch = () => {
-    setSearch('');
-    setDebouncedSearch('');
+    setSearch("");
+    setDebouncedSearch("");
     setCurrentPage(1);
-    setSortBy('name_asc');
+    setSortBy("name_asc");
   };
 
   const goToPage = (page) => {

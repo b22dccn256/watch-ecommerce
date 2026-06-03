@@ -1,7 +1,7 @@
 /**
  * PHASE 5B: Complete Data Cleanup & Index Repair
  * - Drop problematic indexes
- * - Remove duplicate session IDs  
+ * - Remove duplicate session IDs
  * - Clean up all collection data before re-indexing
  */
 import mongoose from "mongoose";
@@ -41,18 +41,18 @@ const cleanup = async () => {
     console.log("\n[2/4] Cleaning duplicate stripeSessionId...");
     const pipeline = [
       {
-        $match: { stripeSessionId: { $ne: null, $exists: true } }
+        $match: { stripeSessionId: { $ne: null, $exists: true } },
       },
       {
         $group: {
           _id: "$stripeSessionId",
           ids: { $push: "$_id" },
-          count: { $sum: 1 }
-        }
+          count: { $sum: 1 },
+        },
       },
       {
-        $match: { count: { $gt: 1 } }
-      }
+        $match: { count: { $gt: 1 } },
+      },
     ];
 
     const duplicates = await ordersCol.aggregate(pipeline).toArray();
@@ -64,29 +64,35 @@ const cleanup = async () => {
       const toDelete = dup.ids.slice(1);
       await ordersCol.deleteMany({ _id: { $in: toDelete } });
       cleaned += toDelete.length;
-      console.log(`  - Cleaned ${toDelete.length} duplicates for session ${dup._id}`);
+      console.log(
+        `  - Cleaned ${toDelete.length} duplicates for session ${dup._id}`,
+      );
     }
     console.log(`✓ Total cleaned: ${cleaned}`);
 
-    // Ensure transactionId uniqueness for stripe/vnpay  
+    // Ensure transactionId uniqueness for stripe/vnpay
     console.log("\n[3/4] Cleaning duplicate transactionId...");
-    const dupTransactions = await ordersCol.aggregate([
-      {
-        $match: { transactionId: { $ne: null, $exists: true } }
-      },
-      {
-        $group: {
-          _id: "$transactionId",
-          ids: { $push: "$_id" },
-          count: { $sum: 1 }
-        }
-      },
-      {
-        $match: { count: { $gt: 1 } }
-      }
-    ]).toArray();
+    const dupTransactions = await ordersCol
+      .aggregate([
+        {
+          $match: { transactionId: { $ne: null, $exists: true } },
+        },
+        {
+          $group: {
+            _id: "$transactionId",
+            ids: { $push: "$_id" },
+            count: { $sum: 1 },
+          },
+        },
+        {
+          $match: { count: { $gt: 1 } },
+        },
+      ])
+      .toArray();
 
-    console.log(`Found ${dupTransactions.length} duplicate transactionId values`);
+    console.log(
+      `Found ${dupTransactions.length} duplicate transactionId values`,
+    );
     let txCleaned = 0;
     for (const dup of dupTransactions) {
       const toDelete = dup.ids.slice(1);
@@ -98,15 +104,21 @@ const cleanup = async () => {
     // Verify
     console.log("\n[4/4] Final verification...");
     const totalOrders = await ordersCol.countDocuments();
-    const orderCodes = await ordersCol.countDocuments({ orderCode: { $exists: true } });
-    const stripeSessions = await ordersCol.countDocuments({ stripeSessionId: { $exists: true } });
+    const orderCodes = await ordersCol.countDocuments({
+      orderCode: { $exists: true },
+    });
+    const stripeSessions = await ordersCol.countDocuments({
+      stripeSessionId: { $exists: true },
+    });
 
     console.log(`  - Total orders: ${totalOrders}`);
     console.log(`  - Orders with code: ${orderCodes}`);
     console.log(`  - Orders with stripeSessionId: ${stripeSessions}`);
 
     console.log("\n✅ CLEANUP COMPLETE\n");
-    console.log("Next: Run 'node backend/scripts/phase5-migration.js' to create indexes\n");
+    console.log(
+      "Next: Run 'node backend/scripts/phase5-migration.js' to create indexes\n",
+    );
 
     await mongoose.disconnect();
   } catch (error) {

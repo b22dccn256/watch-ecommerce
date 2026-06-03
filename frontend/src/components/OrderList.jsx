@@ -1,53 +1,62 @@
-import { Search, Download, Eye, ChevronLeft, ChevronRight, Package } from 'lucide-react';
-import useOrdersList from '../hooks/useOrdersList';
+import {
+  Search,
+  Download,
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+  Package,
+} from "lucide-react";
+import useOrdersList from "../hooks/useOrdersList";
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'Tất cả' },
-  { value: 'pending', label: 'Chờ xử lý' },
-  { value: 'awaiting_verification', label: 'Chờ xác minh TT' },
-  { value: 'confirmed', label: 'Đã xác nhận' },
-  { value: 'processing', label: 'Đang xử lý' },
-  { value: 'shipped', label: 'Đang giao' },
-  { value: 'delivered', label: 'Đã giao' },
-  { value: 'cancelled', label: 'Đã hủy' },
-  { value: 'return_requested', label: 'Yêu cầu trả' },
-  { value: 'returned', label: 'Đã trả' },
+  { value: "", label: "Tất cả" },
+  { value: "pending", label: "Chờ xử lý" },
+  { value: "awaiting_verification", label: "Chờ xác minh TT" },
+  { value: "confirmed", label: "Đã xác nhận" },
+  { value: "processing", label: "Đang xử lý" },
+  { value: "shipped", label: "Đang giao" },
+  { value: "delivered", label: "Đã giao" },
+  { value: "cancelled", label: "Đã hủy" },
+  { value: "return_requested", label: "Yêu cầu trả" },
+  { value: "returned", label: "Đã trả" },
 ];
 
 const STATUS_STYLES = {
-  pending: 'bg-yellow-500/12 text-yellow-600 dark:text-yellow-400',
-  awaiting_verification: 'bg-blue-500/12 text-blue-600 dark:text-blue-400',
-  confirmed: 'bg-sky-500/12 text-sky-600 dark:text-sky-400',
-  processing: 'bg-indigo-500/12 text-indigo-600 dark:text-indigo-400',
-  shipped: 'bg-violet-500/12 text-violet-600 dark:text-violet-400',
-  delivered: 'bg-green-500/12 text-green-600 dark:text-green-400',
-  cancelled: 'bg-red-500/12 text-red-600 dark:text-red-400',
-  return_requested: 'bg-orange-500/12 text-orange-600 dark:text-orange-400',
-  returned: 'bg-gray-500/12 text-secondary',
+  pending: "bg-yellow-500/12 text-yellow-600 dark:text-yellow-400",
+  awaiting_verification: "bg-blue-500/12 text-blue-600 dark:text-blue-400",
+  confirmed: "bg-sky-500/12 text-sky-600 dark:text-sky-400",
+  processing: "bg-indigo-500/12 text-indigo-600 dark:text-indigo-400",
+  shipped: "bg-violet-500/12 text-violet-600 dark:text-violet-400",
+  delivered: "bg-green-500/12 text-green-600 dark:text-green-400",
+  cancelled: "bg-red-500/12 text-red-600 dark:text-red-400",
+  return_requested: "bg-orange-500/12 text-orange-600 dark:text-orange-400",
+  returned: "bg-gray-500/12 text-secondary",
 };
 
 const STATUS_LABELS = {
-  pending: 'Chờ xử lý',
-  awaiting_verification: 'Chờ xác minh',
-  confirmed: 'Đã xác nhận',
-  processing: 'Đang xử lý',
-  shipped: 'Đang giao',
-  delivered: 'Đã giao',
-  cancelled: 'Đã hủy',
-  return_requested: 'Yêu cầu trả',
-  returned: 'Đã trả',
+  pending: "Chờ xử lý",
+  awaiting_verification: "Chờ xác minh",
+  confirmed: "Đã xác nhận",
+  processing: "Đang xử lý",
+  shipped: "Đang giao",
+  delivered: "Đã giao",
+  cancelled: "Đã hủy",
+  return_requested: "Yêu cầu trả",
+  returned: "Đã trả",
 };
 
 const PAYMENT_LABELS = {
-  cod: 'COD',
-  stripe: 'Thẻ / Stripe',
-  vnpay: 'VNPay',
-  paypal: 'PayPal',
+  cod: "COD",
+  stripe: "Thẻ / Stripe",
+  vnpay: "VNPay",
+  paypal: "PayPal",
 };
 
 function StatusBadge({ status }) {
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${STATUS_STYLES[status] || 'bg-surface text-secondary'}`}>
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${STATUS_STYLES[status] || "bg-surface text-secondary"}`}
+    >
       {STATUS_LABELS[status] || status}
     </span>
   );
@@ -79,12 +88,28 @@ export default function OrderList({ onOpenOrder }) {
             Quản lý đơn hàng
           </h2>
           <p className="mt-1 text-sm text-secondary">
-            Tổng <span className="font-semibold text-primary">{totalOrders.toLocaleString()}</span> đơn
+            Tổng{" "}
+            <span className="font-semibold text-primary">
+              {totalOrders.toLocaleString()}
+            </span>{" "}
+            đơn
             {stats.pendingCount > 0 && (
-              <> · <span className="font-semibold text-yellow-600">{stats.pendingCount} chờ xử lý</span></>
+              <>
+                {" "}
+                ·{" "}
+                <span className="font-semibold text-yellow-600">
+                  {stats.pendingCount} chờ xử lý
+                </span>
+              </>
             )}
             {stats.returnedCount > 0 && (
-              <> · <span className="font-semibold text-orange-600">{stats.returnedCount} yêu cầu trả</span></>
+              <>
+                {" "}
+                ·{" "}
+                <span className="font-semibold text-orange-600">
+                  {stats.returnedCount} yêu cầu trả
+                </span>
+              </>
             )}
           </p>
         </div>
@@ -116,7 +141,9 @@ export default function OrderList({ onOpenOrder }) {
           className="rounded-xl border border-black/10 bg-surface px-3 py-2.5 text-sm text-primary outline-none transition focus:border-[color:var(--color-gold)] dark:border-white/10 sm:w-48"
         >
           {STATUS_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
           ))}
         </select>
       </div>
@@ -127,12 +154,24 @@ export default function OrderList({ onOpenOrder }) {
           <table className="w-full min-w-[700px] text-sm">
             <thead>
               <tr className="border-b border-black/8 bg-[color:var(--color-surface-2)] dark:border-white/8">
-                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">Mã đơn</th>
-                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">Khách hàng</th>
-                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-muted">Tổng tiền</th>
-                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">Thanh toán</th>
-                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">Trạng thái</th>
-                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">Ngày đặt</th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">
+                  Mã đơn
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">
+                  Khách hàng
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-muted">
+                  Tổng tiền
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">
+                  Thanh toán
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">
+                  Trạng thái
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted">
+                  Ngày đặt
+                </th>
                 <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-muted w-14"></th>
               </tr>
             </thead>
@@ -151,7 +190,9 @@ export default function OrderList({ onOpenOrder }) {
                 <tr>
                   <td colSpan={7} className="px-4 py-16 text-center">
                     <Package className="mx-auto mb-3 h-10 w-10 text-muted opacity-40" />
-                    <p className="text-sm text-muted">Không tìm thấy đơn hàng</p>
+                    <p className="text-sm text-muted">
+                      Không tìm thấy đơn hàng
+                    </p>
                   </td>
                 </tr>
               ) : (
@@ -162,23 +203,29 @@ export default function OrderList({ onOpenOrder }) {
                   >
                     <td className="px-4 py-3.5">
                       <span className="text-sm font-bold text-primary">
-                        {o.orderCode || (o._id || '').slice(0, 8).toUpperCase()}
+                        {o.orderCode || (o._id || "").slice(0, 8).toUpperCase()}
                       </span>
                     </td>
                     <td className="px-4 py-3.5">
                       <p className="text-sm font-semibold text-primary">
-                        {o.shippingDetails?.fullName || o.user?.name || 'Khách vãng lai'}
+                        {o.shippingDetails?.fullName ||
+                          o.user?.name ||
+                          "Khách vãng lai"}
                       </p>
-                      <p className="text-xs text-muted mt-0.5">{o.shippingDetails?.phoneNumber || o.user?.email || ''}</p>
+                      <p className="text-xs text-muted mt-0.5">
+                        {o.shippingDetails?.phoneNumber || o.user?.email || ""}
+                      </p>
                     </td>
                     <td className="px-4 py-3.5 text-right">
                       <span className="text-sm font-bold text-primary">
-                        {o.totalAmount?.toLocaleString('vi-VN')} ₫
+                        {o.totalAmount?.toLocaleString("vi-VN")} ₫
                       </span>
                     </td>
                     <td className="px-4 py-3.5">
                       <span className="text-sm text-secondary font-medium">
-                        {PAYMENT_LABELS[o.paymentMethod] || o.paymentMethod || '—'}
+                        {PAYMENT_LABELS[o.paymentMethod] ||
+                          o.paymentMethod ||
+                          "—"}
                       </span>
                     </td>
                     <td className="px-4 py-3.5">
@@ -186,7 +233,9 @@ export default function OrderList({ onOpenOrder }) {
                     </td>
                     <td className="px-4 py-3.5">
                       <span className="text-sm text-muted">
-                        {o.createdAt ? new Date(o.createdAt).toLocaleDateString('vi-VN') : '—'}
+                        {o.createdAt
+                          ? new Date(o.createdAt).toLocaleDateString("vi-VN")
+                          : "—"}
                       </span>
                     </td>
                     <td className="px-4 py-3.5 text-right">
@@ -230,10 +279,11 @@ export default function OrderList({ onOpenOrder }) {
                   key={p}
                   type="button"
                   onClick={() => setPage(p)}
-                  className={`flex h-8 w-8 items-center justify-center rounded-lg border text-xs font-medium transition ${p === page
-                    ? 'border-[color:var(--color-gold)] bg-[color:var(--color-gold)]/12 text-[color:var(--color-gold)]'
-                    : 'border-black/10 text-secondary hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)] dark:border-white/10'
-                    }`}
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg border text-xs font-medium transition ${
+                    p === page
+                      ? "border-[color:var(--color-gold)] bg-[color:var(--color-gold)]/12 text-[color:var(--color-gold)]"
+                      : "border-black/10 text-secondary hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)] dark:border-white/10"
+                  }`}
                 >
                   {p}
                 </button>

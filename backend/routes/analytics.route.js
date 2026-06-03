@@ -1,6 +1,14 @@
 import express from "express";
-import { adminRoute, protectRoute, managementRoute } from "../middleware/auth.middleware.js";
-import { getAnalytics, sendTestEmail, getProfitLoss } from "../controllers/analytics.controller.js";
+import {
+  adminRoute,
+  protectRoute,
+  managementRoute,
+} from "../middleware/auth.middleware.js";
+import {
+  getAnalytics,
+  sendTestEmail,
+  getProfitLoss,
+} from "../controllers/analytics.controller.js";
 
 const router = express.Router();
 

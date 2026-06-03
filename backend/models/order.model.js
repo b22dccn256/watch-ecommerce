@@ -1,186 +1,193 @@
 import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema(
-	{
-		user: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "User",
-			required: false,
-		},
-		products: [
-			{
-				product: {
-					type: mongoose.Schema.Types.ObjectId,
-					ref: "Product",
-					required: true,
-				},
-				quantity: {
-					type: Number,
-					required: true,
-					min: 1,
-				},
-				price: {
-					type: Number,
-					required: true,
-					min: 0,
-				},
-				wristSize: {
-					type: String,
-					default: null,
-				},
-				selectedColor: {
-					type: String,
-					default: null,
-				},
-				selectedSize: {
-					type: String,
-					default: null,
-				},
-			},
-		],
-		totalAmount: {
-			type: Number,
-			required: true,
-			min: 0,
-		},
-		subtotal: {
-			type: Number,
-			default: 0,
-			min: 0,
-		},
-		discountAmount: {
-			type: Number,
-			default: 0,
-			min: 0,
-		},
-		shippingFee: {
-			type: Number,
-			default: 0,
-			min: 0,
-		},
-		couponCode: {
-			type: String,
-			default: "",
-		},
-		orderCode: {
-			type: String,
-			unique: true,
-		},
-		shippingDetails: {
-			fullName: { type: String, required: true },
-			phoneNumber: { type: String, required: true },
-			email: { type: String },
-			address: { type: String, required: true },
-			city: { type: String, required: true },
-			orderNotes: { type: String },
-		},
-		// Trạng thái đơn hàng tổng quát
-		status: {
-			type: String,
-			enum: [
-				"pending",
-				"awaiting_verification",
-				"confirmed",
-				"processing",
-				"shipped",
-				"delivered",
-				"return_requested",
-				"returned",
-				"cancelled",
-			],
-			default: "pending",
-		},
-		paymentStatus: {
-			type: String,
-			enum: ["pending", "paid", "failed", "refunded", "cancelled"],
-			default: "pending"
-		},
-		paymentMethod: {
-			type: String,
-			enum: ["cod", "stripe", "vnpay"],
-			default: "cod"
-		},
-		transactionId: {
-			type: String,
-			sparse: true,
-		},
-		paymentResponse: {
-			type: Object,
-		},
-		ipnVerified: {
-			type: Boolean,
-			default: false,
-		},
-		stripeSessionId: {
-			type: String,
-			unique: true,
-			sparse: true, // Cho phép nhiều document có stripeSessionId = null (COD, VNPay orders)
-		},
-		currency: {
-			type: String,
-			default: "VND",
-			enum: ["USD", "VND"],
-		},
-		// Thời điểm thanh toán thành công (đối soát, thống kê)
-		paidAt: {
-			type: Date,
-			default: null,
-		},
-		trackingToken: {
-			type: String,
-			unique: true,
-		},
-		estimatedDelivery: {
-			type: Date,
-		},
-		carrier: {
-			type: String,
-			default: "DHL Express",
-			enum: ["DHL Express", "GHTK", "Viettel Post", "J&T Express", "VNPost", "Other"],
-		},
-		internalNotes: {
-			type: String,
-			default: "",
-		},
-		returnReason: {
-			type: String,
-			default: "",
-		},
-		refundAmount: {
-			type: Number,
-			default: 0,
-			min: 0,
-		},
-		loyaltyPointsGranted: {
-			type: Number,
-			default: 0,
-			min: 0,
-		},
-		loyaltyPointsReversedAt: {
-			type: Date,
-			default: null,
-		},
-		carrierTrackingNumber: {
-			type: String,
-		},
-		trackingEvents: [
-			{
-				status: { type: String, required: true },
-				message: { type: String },
-				location: { type: String },
-				timestamp: { type: Date, default: Date.now },
-			},
-		],
-	},
-	{ timestamps: true }
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
+    },
+    products: [
+      {
+        product: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+          required: true,
+        },
+        quantity: {
+          type: Number,
+          required: true,
+          min: 1,
+        },
+        price: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+        wristSize: {
+          type: String,
+          default: null,
+        },
+        selectedColor: {
+          type: String,
+          default: null,
+        },
+        selectedSize: {
+          type: String,
+          default: null,
+        },
+      },
+    ],
+    totalAmount: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    subtotal: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    discountAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    shippingFee: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    couponCode: {
+      type: String,
+      default: "",
+    },
+    orderCode: {
+      type: String,
+      unique: true,
+    },
+    shippingDetails: {
+      fullName: { type: String, required: true },
+      phoneNumber: { type: String, required: true },
+      email: { type: String },
+      address: { type: String, required: true },
+      city: { type: String, required: true },
+      orderNotes: { type: String },
+    },
+    // Trạng thái đơn hàng tổng quát
+    status: {
+      type: String,
+      enum: [
+        "pending",
+        "awaiting_verification",
+        "confirmed",
+        "processing",
+        "shipped",
+        "delivered",
+        "return_requested",
+        "returned",
+        "cancelled",
+      ],
+      default: "pending",
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "failed", "refunded", "cancelled"],
+      default: "pending",
+    },
+    paymentMethod: {
+      type: String,
+      enum: ["cod", "stripe", "vnpay"],
+      default: "cod",
+    },
+    transactionId: {
+      type: String,
+      sparse: true,
+    },
+    paymentResponse: {
+      type: Object,
+    },
+    ipnVerified: {
+      type: Boolean,
+      default: false,
+    },
+    stripeSessionId: {
+      type: String,
+      unique: true,
+      sparse: true, // Cho phép nhiều document có stripeSessionId = null (COD, VNPay orders)
+    },
+    currency: {
+      type: String,
+      default: "VND",
+      enum: ["USD", "VND"],
+    },
+    // Thời điểm thanh toán thành công (đối soát, thống kê)
+    paidAt: {
+      type: Date,
+      default: null,
+    },
+    trackingToken: {
+      type: String,
+      unique: true,
+    },
+    estimatedDelivery: {
+      type: Date,
+    },
+    carrier: {
+      type: String,
+      default: "DHL Express",
+      enum: [
+        "DHL Express",
+        "GHTK",
+        "Viettel Post",
+        "J&T Express",
+        "VNPost",
+        "Other",
+      ],
+    },
+    internalNotes: {
+      type: String,
+      default: "",
+    },
+    returnReason: {
+      type: String,
+      default: "",
+    },
+    refundAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    loyaltyPointsGranted: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    loyaltyPointsReversedAt: {
+      type: Date,
+      default: null,
+    },
+    carrierTrackingNumber: {
+      type: String,
+    },
+    trackingEvents: [
+      {
+        status: { type: String, required: true },
+        message: { type: String },
+        location: { type: String },
+        timestamp: { type: Date, default: Date.now },
+      },
+    ],
+  },
+  { timestamps: true },
 );
 
 // Virtual field to dynamically populate Coupon based on couponCode
 orderSchema.virtual("coupon", {
-	ref: "Coupon",
-	localField: "couponCode",
-	foreignField: "code",
-	justOne: true,
+  ref: "Coupon",
+  localField: "couponCode",
+  foreignField: "code",
+  justOne: true,
 });
 
 orderSchema.set("toJSON", { virtuals: true });

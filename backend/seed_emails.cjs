@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const mongourl = process.env.MONGO_URI || process.env.MONGOURL;
 mongoose.connect(mongourl).then(async () => {
@@ -9,25 +9,25 @@ mongoose.connect(mongourl).then(async () => {
     const camp1Id = new mongoose.Types.ObjectId();
     const camp2Id = new mongoose.Types.ObjectId();
 
-    await db.collection('mailcampaigns').insertMany([
+    await db.collection("mailcampaigns").insertMany([
       {
         _id: camp1Id,
-        name: 'Chiến dịch khuyến mãi Hè 2026',
-        subject: 'Sale khủng mùa hè lên đến 50%',
-        status: 'sent',
-        targetAudience: 'all',
+        name: "Chiến dịch khuyến mãi Hè 2026",
+        subject: "Sale khủng mùa hè lên đến 50%",
+        status: "sent",
+        targetAudience: "all",
         createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
+        updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
       },
       {
         _id: camp2Id,
-        name: 'Giới thiệu BST Casio mới',
-        subject: 'Khám phá ngay các mẫu Casio mới nhất',
-        status: 'sent',
-        targetAudience: 'newsletter',
+        name: "Giới thiệu BST Casio mới",
+        subject: "Khám phá ngay các mẫu Casio mới nhất",
+        status: "sent",
+        targetAudience: "newsletter",
         createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-      }
+        updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      },
     ]);
 
     // Seed some EmailLogs (fake stats for the past 7 days)
@@ -42,21 +42,26 @@ mongoose.connect(mongourl).then(async () => {
         _id: new mongoose.Types.ObjectId(),
         campaignId: Math.random() > 0.5 ? camp1Id : camp2Id,
         email: `customer${i}@example.com`,
-        status: 'sent',
+        status: "sent",
         createdAt: createdAt,
-        updatedAt: createdAt
+        updatedAt: createdAt,
       };
 
       if (isOpened) {
         log.openedAt = [new Date(createdAt.getTime() + 3600000)];
       }
       if (isClicked) {
-        log.clickedLinks = [{ url: 'http://example.com', clickedAt: new Date(createdAt.getTime() + 7200000) }];
+        log.clickedLinks = [
+          {
+            url: "http://example.com",
+            clickedAt: new Date(createdAt.getTime() + 7200000),
+          },
+        ];
       }
       logs.push(log);
     }
 
-    await db.collection('emaillogs').insertMany(logs);
+    await db.collection("emaillogs").insertMany(logs);
 
     // Seed some Contacts (Inbox)
     const contacts = [];
@@ -68,13 +73,15 @@ mongoose.connect(mongourl).then(async () => {
         subject: `Hỏi về sản phẩm mẫu ${i}`,
         message: `Tôi muốn hỏi chi tiết về mẫu đồng hồ số ${i}. Xin cảm ơn!`,
         isRead: Math.random() > 0.5,
-        createdAt: new Date(Date.now() - Math.floor(Math.random() * 10) * 24 * 60 * 60 * 1000),
-        updatedAt: new Date()
+        createdAt: new Date(
+          Date.now() - Math.floor(Math.random() * 10) * 24 * 60 * 60 * 1000,
+        ),
+        updatedAt: new Date(),
       });
     }
-    await db.collection('contacts').insertMany(contacts);
+    await db.collection("contacts").insertMany(contacts);
 
-    console.log('Seeded data successfully.');
+    console.log("Seeded data successfully.");
   } catch (e) {
     console.error(e);
   }

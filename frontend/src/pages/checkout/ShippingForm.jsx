@@ -15,7 +15,9 @@ const ShippingForm = ({
   return (
     <div className="rounded-[1.4rem] border border-black/10 bg-surface p-5 shadow-sm dark:border-white/10 sm:p-6">
       <div className="mb-5 flex items-center gap-2 text-sm font-semibold text-secondary">
-        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--color-gold)]/40 text-[color:var(--color-gold)]">1</span>
+        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--color-gold)]/40 text-[color:var(--color-gold)]">
+          1
+        </span>
         Thông tin giao hàng
       </div>
 
@@ -23,8 +25,12 @@ const ShippingForm = ({
         <div className="mb-5 space-y-2 rounded-2xl border border-[color:var(--color-gold)]/20 bg-[color:var(--color-gold)]/5 p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-primary">Chọn địa chỉ giao hàng</p>
-              <p className="text-xs text-muted">Lấy từ hồ sơ tài khoản, mặc định chọn địa chỉ đã đánh dấu.</p>
+              <p className="text-sm font-semibold text-primary">
+                Chọn địa chỉ giao hàng
+              </p>
+              <p className="text-xs text-muted">
+                Lấy từ hồ sơ tài khoản, mặc định chọn địa chỉ đã đánh dấu.
+              </p>
             </div>
             <select
               value={selectedAddressId}
@@ -34,7 +40,9 @@ const ShippingForm = ({
                 if (value === "manual") {
                   return;
                 }
-                const selected = savedAddresses.find((item) => item.id === value);
+                const selected = savedAddresses.find(
+                  (item) => item.id === value,
+                );
                 if (selected) onSelectAddress(selected);
               }}
               className="input-base h-11 min-w-[220px] rounded-xl"

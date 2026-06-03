@@ -1,20 +1,20 @@
 /**
  * Error Store - Zustand
- * 
+ *
  * Centralized error state management for the entire application.
  * Handles showing/hiding errors, storing error history, and clearing errors.
  */
 
-import { create } from 'zustand';
-import { parseError } from '../lib/errorHandler';
+import { create } from "zustand";
+import { parseError } from "../lib/errorHandler";
 
 const useErrorStore = create((set, get) => ({
   // Current error being displayed
   currentError: null,
-  
+
   // Error history for debugging
   errorHistory: [],
-  
+
   // Maximum errors to keep in history
   maxHistorySize: 50,
 

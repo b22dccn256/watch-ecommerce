@@ -1,6 +1,6 @@
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import EmailTemplate from '../models/emailTemplate.model.js';
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import EmailTemplate from "../models/emailTemplate.model.js";
 
 dotenv.config();
 
@@ -36,29 +36,33 @@ const birthdayTemplate = `<!DOCTYPE html>
 </body>
 </html>`;
 
-mongoose.connect(process.env.MONGO_URI).then(async () => {
-    console.log('Connected to MongoDB');
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(async () => {
+    console.log("Connected to MongoDB");
 
     try {
-        await EmailTemplate.findOneAndUpdate(
-            { name: 'Chúc mừng sinh nhật' },
-            {
-                name: 'Chúc mừng sinh nhật',
-                subject: 'Chúc mừng sinh nhật {{fullName}}! Tặng bạn mã giảm giá 20%',
-                htmlContent: birthdayTemplate,
-                description: 'Mẫu email tự động gửi lời chúc vào ngày sinh nhật khách hàng.',
-                category: 'automation',
-                isActive: true
-            },
-            { upsert: true, returnDocument: 'after' }
-        );
+      await EmailTemplate.findOneAndUpdate(
+        { name: "Chúc mừng sinh nhật" },
+        {
+          name: "Chúc mừng sinh nhật",
+          subject: "Chúc mừng sinh nhật {{fullName}}! Tặng bạn mã giảm giá 20%",
+          htmlContent: birthdayTemplate,
+          description:
+            "Mẫu email tự động gửi lời chúc vào ngày sinh nhật khách hàng.",
+          category: "automation",
+          isActive: true,
+        },
+        { upsert: true, returnDocument: "after" },
+      );
 
-        console.log('Birthday template seeded successfully.');
+      console.log("Birthday template seeded successfully.");
     } catch (error) {
-        console.error('Error seeding templates:', error);
+      console.error("Error seeding templates:", error);
     } finally {
-        mongoose.disconnect();
+      mongoose.disconnect();
     }
-}).catch(err => {
-    console.error('MongoDB connection error:', err);
-});
+  })
+  .catch((err) => {
+    console.error("MongoDB connection error:", err);
+  });

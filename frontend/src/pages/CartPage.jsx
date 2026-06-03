@@ -1,6 +1,12 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle2, ShieldCheck, ShoppingBag, Truck } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  ShieldCheck,
+  ShoppingBag,
+  Truck,
+} from "lucide-react";
 
 import { useCartStore } from "../stores/useCartStore";
 import CartItem from "../components/CartItem";
@@ -27,9 +33,18 @@ const EmptyState = () => (
     </Link>
 
     <div className="mt-8 grid gap-3 text-xs text-muted sm:grid-cols-3">
-      <div className="rounded-xl bg-surface-soft p-3"><ShieldCheck className="mx-auto mb-1 h-4 w-4 text-[color:var(--color-gold)]" />Chính hãng</div>
-      <div className="rounded-xl bg-surface-soft p-3"><CheckCircle2 className="mx-auto mb-1 h-4 w-4 text-[color:var(--color-gold)]" />Đổi trả linh hoạt</div>
-      <div className="rounded-xl bg-surface-soft p-3"><Truck className="mx-auto mb-1 h-4 w-4 text-[color:var(--color-gold)]" />Giao hàng toàn quốc</div>
+      <div className="rounded-xl bg-surface-soft p-3">
+        <ShieldCheck className="mx-auto mb-1 h-4 w-4 text-[color:var(--color-gold)]" />
+        Chính hãng
+      </div>
+      <div className="rounded-xl bg-surface-soft p-3">
+        <CheckCircle2 className="mx-auto mb-1 h-4 w-4 text-[color:var(--color-gold)]" />
+        Đổi trả linh hoạt
+      </div>
+      <div className="rounded-xl bg-surface-soft p-3">
+        <Truck className="mx-auto mb-1 h-4 w-4 text-[color:var(--color-gold)]" />
+        Giao hàng toàn quốc
+      </div>
     </div>
   </motion.div>
 );
@@ -47,7 +62,10 @@ const ShippingProgress = ({ subtotal }) => {
           : `Mua thêm ${(threshold - subtotal).toLocaleString("vi-VN")} đ để nhận miễn phí vận chuyển.`}
       </p>
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-[color:var(--color-surface-2)]">
-        <div className="h-full bg-[color:var(--color-gold)] transition-all" style={{ width: `${progress}%` }} />
+        <div
+          className="h-full bg-[color:var(--color-gold)] transition-all"
+          style={{ width: `${progress}%` }}
+        />
       </div>
     </div>
   );
@@ -70,7 +88,9 @@ const CartPage = () => {
       <div className="mx-auto max-w-screen-2xl space-y-6 px-4 sm:px-6 lg:px-8">
         {cart.length > 0 && (
           <div className="space-y-2">
-            <p className="hero-kicker text-[color:var(--color-gold)]">Shopping bag</p>
+            <p className="hero-kicker text-[color:var(--color-gold)]">
+              Shopping bag
+            </p>
             <h1 className="hero-title text-3xl">Giỏ hàng của bạn</h1>
           </div>
         )}
@@ -89,7 +109,9 @@ const CartPage = () => {
                   onChange={handleSelectAll}
                   className="h-4 w-4 rounded border-black/20 text-[color:var(--color-gold)] focus:ring-[color:var(--color-gold)]/30"
                 />
-                <span className="font-semibold uppercase tracking-[0.14em]">Chọn tất cả ({cart.length})</span>
+                <span className="font-semibold uppercase tracking-[0.14em]">
+                  Chọn tất cả ({cart.length})
+                </span>
               </label>
 
               <div className="space-y-3">
@@ -105,8 +127,6 @@ const CartPage = () => {
                   </motion.div>
                 ))}
               </div>
-
-
             </section>
 
             <aside className="space-y-4 xl:sticky xl:top-24 xl:h-fit">

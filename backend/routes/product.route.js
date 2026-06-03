@@ -1,43 +1,79 @@
 import express from "express";
 import {
-	createProduct,
-	deleteProduct,
-	getAllProducts,
-	getFeaturedProducts,
-	getProductsByCategory,
-	getRecommendedProducts,
-	toggleFeaturedProduct,
-	importProducts,
-	previewImportProducts,
-	getSuggestions,
-	getProductById,
-	getProductBySlugToken,
-	updateProduct,
-	getInventoryAlerts,
-    exportProducts,
-	bulkUpdateProducts,
+  createProduct,
+  deleteProduct,
+  getAllProducts,
+  getFeaturedProducts,
+  getProductsByCategory,
+  getRecommendedProducts,
+  toggleFeaturedProduct,
+  importProducts,
+  previewImportProducts,
+  getSuggestions,
+  getProductById,
+  getProductBySlugToken,
+  updateProduct,
+  getInventoryAlerts,
+  exportProducts,
+  bulkUpdateProducts,
 } from "../controllers/product.controller.js";
-import { adminRoute, managementRoute, protectRoute } from "../middleware/auth.middleware.js";
-import { validateBody, productSchemas } from "../middleware/validation.middleware.js";
+import {
+  adminRoute,
+  managementRoute,
+  protectRoute,
+} from "../middleware/auth.middleware.js";
+import {
+  validateBody,
+  productSchemas,
+} from "../middleware/validation.middleware.js";
 
 import multer from "multer";
 const upload = multer({ dest: "uploads/" });
 
 const router = express.Router();
 
-router.post("/import/preview", protectRoute, managementRoute, upload.single("file"), previewImportProducts);
-router.post("/import", protectRoute, managementRoute, upload.single("file"), importProducts);
+router.post(
+  "/import/preview",
+  protectRoute,
+  managementRoute,
+  upload.single("file"),
+  previewImportProducts,
+);
+router.post(
+  "/import",
+  protectRoute,
+  managementRoute,
+  upload.single("file"),
+  importProducts,
+);
 router.get("/export", protectRoute, managementRoute, exportProducts);
 router.get("/", getAllProducts);
 router.get("/featured", getFeaturedProducts);
 router.get("/suggestions", getSuggestions);
-router.get("/inventory/alerts", protectRoute, managementRoute, getInventoryAlerts);
+router.get(
+  "/inventory/alerts",
+  protectRoute,
+  managementRoute,
+  getInventoryAlerts,
+);
 router.get("/category/:category", getProductsByCategory);
 router.get("/recommendations", getRecommendedProducts);
 router.get("/:slug--:token", getProductBySlugToken);
 router.get("/:id", getProductById);
-router.post("/", protectRoute, managementRoute, validateBody(productSchemas.create), createProduct);
-router.put("/:id", protectRoute, managementRoute, validateBody(productSchemas.update), updateProduct);
+router.post(
+  "/",
+  protectRoute,
+  managementRoute,
+  validateBody(productSchemas.create),
+  createProduct,
+);
+router.put(
+  "/:id",
+  protectRoute,
+  managementRoute,
+  validateBody(productSchemas.update),
+  updateProduct,
+);
 router.patch("/:id", protectRoute, managementRoute, toggleFeaturedProduct);
 router.delete("/:id", protectRoute, adminRoute, deleteProduct);
 // B1: Bulk operations

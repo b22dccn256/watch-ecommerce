@@ -11,7 +11,7 @@ import { useWishlistStore } from "../stores/useWishlistStore";
 const MobileCTA = () => {
   const location = useLocation();
   const cartCount = useCartStore((s) =>
-    s.cart.reduce((sum, item) => sum + item.quantity, 0)
+    s.cart.reduce((sum, item) => sum + item.quantity, 0),
   );
   const wishlistCount = useWishlistStore((s) => s.wishlist.length);
 

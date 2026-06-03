@@ -1,19 +1,19 @@
 /**
  * useErrorHandler Hook
- * 
+ *
  * Provides consistent error handling pattern for all components and async operations.
  */
 
-import { useCallback } from 'react';
-import toast from 'react-hot-toast';
-import useErrorStore from '../stores/useErrorStore';
+import { useCallback } from "react";
+import toast from "react-hot-toast";
+import useErrorStore from "../stores/useErrorStore";
 import {
   parseError,
   getErrorMessage,
   isAuthError,
   isValidationError,
   logError,
-} from '../lib/errorHandler';
+} from "../lib/errorHandler";
 
 /**
  * Custom hook for error handling
@@ -38,7 +38,7 @@ export const useErrorHandler = () => {
   const handleError = useCallback(
     (error, options = {}) => {
       const {
-        context = 'Unknown',
+        context = "Unknown",
         showToast = true,
         showConsole = true,
         store = true,
@@ -76,7 +76,7 @@ export const useErrorHandler = () => {
 
       return parsed;
     },
-    [setError]
+    [setError],
   );
 
   /**
@@ -92,14 +92,14 @@ export const useErrorHandler = () => {
           return await fn(...args);
         } catch (error) {
           handleError(error, {
-            context: fn.name || 'AsyncFunction',
+            context: fn.name || "AsyncFunction",
             ...options,
           });
           throw error;
         }
       };
     },
-    [handleError]
+    [handleError],
   );
 
   /**
@@ -109,7 +109,7 @@ export const useErrorHandler = () => {
    * @param {Object} options - Handling options
    */
   const handleCustomError = useCallback(
-    (error, fallbackMessage = 'Đã xảy ra lỗi', options = {}) => {
+    (error, fallbackMessage = "Đã xảy ra lỗi", options = {}) => {
       const message = getErrorMessage(error) || fallbackMessage;
       const { duration = 5000 } = options;
 
@@ -118,7 +118,7 @@ export const useErrorHandler = () => {
 
       return message;
     },
-    [setError]
+    [setError],
   );
 
   /**
@@ -138,11 +138,7 @@ export const useErrorHandler = () => {
    */
   const handleApiError = useCallback(
     (error, options = {}) => {
-      const {
-        context = 'API Call',
-        customMessages = {},
-        ...rest
-      } = options;
+      const { context = "API Call", customMessages = {}, ...rest } = options;
 
       const parsed = parseError(error);
       const customMessage = customMessages[parsed.code];
@@ -154,7 +150,7 @@ export const useErrorHandler = () => {
 
       return handleError(error, { context, ...rest });
     },
-    [handleError]
+    [handleError],
   );
 
   return {

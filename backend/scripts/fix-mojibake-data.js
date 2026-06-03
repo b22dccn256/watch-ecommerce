@@ -7,7 +7,8 @@ const APPLY = process.argv.includes("--apply");
 const VERBOSE = process.argv.includes("--verbose");
 
 const BAD_PATTERN = /(Ã.|Â.|Ä.|Å.|Æ.|á»|áº|â€|�)/g;
-const VIET_PATTERN = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/g;
+const VIET_PATTERN =
+  /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/g;
 
 function countMatches(str, regex) {
   const m = str.match(regex);
@@ -161,6 +162,8 @@ async function run() {
 
 run().catch(async (err) => {
   console.error("fix-mojibake-data failed:", err.message);
-  try { await mongoose.disconnect(); } catch {}
+  try {
+    await mongoose.disconnect();
+  } catch {}
   process.exit(1);
 });

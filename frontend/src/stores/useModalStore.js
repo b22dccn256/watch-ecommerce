@@ -1,26 +1,26 @@
 /**
  * Modal Store - Zustand
- * 
+ *
  * Centralized modal state management for the entire application.
  * Replace scattered modal boolean states with a single source of truth.
- * 
+ *
  * Usage:
  * const { openModal, closeModal, isOpen } = useModalStore();
- * 
+ *
  * // Open a modal
  * openModal('editProduct', { productId: 123 });
- * 
+ *
  * // Check if open
  * const isEditOpen = useModalStore(s => s.isOpen('editProduct'));
- * 
+ *
  * // Get modal data
  * const data = useModalStore(s => s.getModalData('editProduct'));
- * 
+ *
  * // Close modal
  * closeModal('editProduct');
  */
 
-import { create } from 'zustand';
+import { create } from "zustand";
 
 const useModalStore = create((set, get) => ({
   // Store for modal states: { modalName: { open, data } }
@@ -145,27 +145,27 @@ export default useModalStore;
 
 /**
  * Available Modal Names (for consistency)
- * 
+ *
  * Product Management:
  * - 'editProduct'
  * - 'deleteProductConfirm'
  * - 'importProducts'
  * - 'exportProducts'
- * 
+ *
  * User Management:
  * - 'editUser'
  * - 'deleteUserConfirm'
  * - 'viewUserDetails'
- * 
+ *
  * Order Management:
  * - 'editOrder'
  * - 'orderDetails'
  * - 'cancelOrderConfirm'
- * 
+ *
  * Checkout:
  * - 'confirmCheckout'
  * - 'paymentQR'
- * 
+ *
  * General:
  * - 'deleteConfirm'
  * - 'alertInfo'

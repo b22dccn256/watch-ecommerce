@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
-import toast from 'react-hot-toast';
-import { useCouponStore } from '../stores/useCouponStore';
+import { useEffect, useMemo, useState, useCallback } from "react";
+import toast from "react-hot-toast";
+import { useCouponStore } from "../stores/useCouponStore";
 
 export const useCouponsList = () => {
-  const { coupons, loading, fetchCoupons, deleteCoupon, toggleCoupon } = useCouponStore();
+  const { coupons, loading, fetchCoupons, deleteCoupon, toggleCoupon } =
+    useCouponStore();
   const [copiedId, setCopiedId] = useState(null);
 
   useEffect(() => {
@@ -40,12 +41,32 @@ export const useCouponsList = () => {
 
   const statCards = useMemo(
     () => [
-      { label: 'TỔNG MÃ GIẢM GIÁ', value: stats.total, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-      { label: 'ĐANG KÍCH HOẠT', value: stats.active, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-      { label: 'ĐÃ HẾT HẠN', value: stats.expired, color: 'text-red-500', bg: 'bg-red-500/10' },
-      { label: 'LƯỢT DÙNG HÔM NAY', value: stats.todayUses, color: 'text-luxury-gold', bg: 'bg-luxury-gold/10' },
+      {
+        label: "TỔNG MÃ GIẢM GIÁ",
+        value: stats.total,
+        color: "text-blue-500",
+        bg: "bg-blue-500/10",
+      },
+      {
+        label: "ĐANG KÍCH HOẠT",
+        value: stats.active,
+        color: "text-emerald-500",
+        bg: "bg-emerald-500/10",
+      },
+      {
+        label: "ĐÃ HẾT HẠN",
+        value: stats.expired,
+        color: "text-red-500",
+        bg: "bg-red-500/10",
+      },
+      {
+        label: "LƯỢT DÙNG HÔM NAY",
+        value: stats.todayUses,
+        color: "text-luxury-gold",
+        bg: "bg-luxury-gold/10",
+      },
     ],
-    [stats]
+    [stats],
   );
 
   return {

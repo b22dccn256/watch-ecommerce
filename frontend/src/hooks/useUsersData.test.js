@@ -1,14 +1,16 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
-import axios from '../lib/axios';
-import useUsersData from './useUsersData';
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { renderHook, act, waitFor } from "@testing-library/react";
+import axios from "../lib/axios";
+import useUsersData from "./useUsersData";
 
-describe('useUsersData Hook', () => {
+describe("useUsersData Hook", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     axios.get.mockResolvedValue({
       data: {
-        users: [{ _id: '1', name: 'Admin', email: 'a@test.com', role: 'admin' }],
+        users: [
+          { _id: "1", name: "Admin", email: "a@test.com", role: "admin" },
+        ],
         pagination: {
           currentPage: 1,
           totalPages: 1,
@@ -23,8 +25,8 @@ describe('useUsersData Hook', () => {
     vi.restoreAllMocks();
   });
 
-  describe('initialization', () => {
-    it('should initialize with default state', () => {
+  describe("initialization", () => {
+    it("should initialize with default state", () => {
       const { result } = renderHook(() => useUsersData());
 
       expect(result.current.loading).toBe(true);
@@ -32,11 +34,11 @@ describe('useUsersData Hook', () => {
       expect(result.current.pagination.currentPage).toBe(1);
     });
 
-    it('should fetch users when fetchUsers is called', async () => {
+    it("should fetch users when fetchUsers is called", async () => {
       const { result } = renderHook(() => useUsersData());
 
       await act(async () => {
-        await result.current.fetchUsers(1, '', '');
+        await result.current.fetchUsers(1, "", "");
       });
 
       await waitFor(() => {
@@ -47,15 +49,15 @@ describe('useUsersData Hook', () => {
     });
   });
 
-  describe('search', () => {
-    it('should update search state', () => {
+  describe("search", () => {
+    it("should update search state", () => {
       const { result } = renderHook(() => useUsersData());
 
       act(() => {
-        result.current.setSearch('admin');
+        result.current.setSearch("admin");
       });
 
-      expect(result.current.search).toBe('admin');
+      expect(result.current.search).toBe("admin");
     });
   });
 });

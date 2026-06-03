@@ -1,23 +1,23 @@
-import { useState, useEffect } from 'react';
-import axios from '../lib/axios';
-import { toast } from 'react-hot-toast';
+import { useState, useEffect } from "react";
+import axios from "../lib/axios";
+import { toast } from "react-hot-toast";
 
 export default function useOrderForm(initialOrder) {
   const [form, setForm] = useState({
-    carrier: '',
-    carrierTrackingNumber: '',
-    refundAmount: '',
-    internalNotes: '',
+    carrier: "",
+    carrierTrackingNumber: "",
+    refundAmount: "",
+    internalNotes: "",
   });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (initialOrder) {
       setForm({
-        carrier: initialOrder?.carrier || '',
-        carrierTrackingNumber: initialOrder?.carrierTrackingNumber || '',
-        refundAmount: initialOrder?.refundAmount || '',
-        internalNotes: initialOrder?.internalNotes || '',
+        carrier: initialOrder?.carrier || "",
+        carrierTrackingNumber: initialOrder?.carrierTrackingNumber || "",
+        refundAmount: initialOrder?.refundAmount || "",
+        internalNotes: initialOrder?.internalNotes || "",
       });
     }
   }, [initialOrder]);
@@ -36,10 +36,10 @@ export default function useOrderForm(initialOrder) {
         refundAmount: form.refundAmount ? Number(form.refundAmount) : undefined,
         internalNotes: form.internalNotes,
       });
-      toast.success('Đã lưu thay đổi');
+      toast.success("Đã lưu thay đổi");
       return true;
     } catch (e) {
-      toast.error(e.response?.data?.message || 'Lỗi khi lưu');
+      toast.error(e.response?.data?.message || "Lỗi khi lưu");
       return false;
     } finally {
       setSaving(false);

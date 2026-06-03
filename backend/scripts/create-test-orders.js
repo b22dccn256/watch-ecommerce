@@ -6,30 +6,36 @@
   This script creates `count` orders for productId. It uses OrderService.deductStock
   and writes Order documents in a transaction so inventory and logs are updated.
 */
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 dotenv.config();
-import mongoose from 'mongoose';
-import Order from '../models/order.model.js';
-import Product from '../models/product.model.js';
-import OrderService from '../services/order.service.js';
+import mongoose from "mongoose";
+import Order from "../models/order.model.js";
+import Product from "../models/product.model.js";
+import OrderService from "../services/order.service.js";
 
-const argv = Object.fromEntries(process.argv.slice(2).map(s => s.split('=').map(x => x.replace(/^--/, ''))));
+const argv = Object.fromEntries(
+  process.argv
+    .slice(2)
+    .map((s) => s.split("=").map((x) => x.replace(/^--/, ""))),
+);
 const productId = argv.productId;
-const count = parseInt(argv.count || '1', 10);
+const count = parseInt(argv.count || "1", 10);
 const userId = argv.userId || null;
 
 if (!productId) {
-  console.error('Missing --productId');
+  console.error("Missing --productId");
   process.exit(1);
 }
 
 async function main() {
-  await mongoose.connect(process.env.MONGO_URI, { dbName: process.env.MONGO_DB || undefined });
-  console.log('Connected to MongoDB');
+  await mongoose.connect(process.env.MONGO_URI, {
+    dbName: process.env.MONGO_DB || undefined,
+  });
+  console.log("Connected to MongoDB");
 
   const product = await Product.findById(productId).lean();
   if (!product) {
-    console.error('Product not found', productId);
+    console.error("Product not found", productId);
     process.exit(1);
   }
 
@@ -38,35 +44,66 @@ async function main() {
     session.startTransaction();
     try {
       const newOrderId = new mongoose.Types.ObjectId();
-      const products = [{ _id: product._id, quantity: 1, price: product.price, wristSize: null, selectedColor: null, selectedSize: null }];
+      const products = [
+        {
+          _id: product._id,
+          quantity: 1,
+          price: product.price,
+          wristSize: null,
+          selectedColor: null,
+          selectedSize: null,
+        },
+      ];
 
       // check & deduct stock
-      await OrderService.deductStock(products, session, newOrderId, userId, 'Test bulk order');
+      await OrderService.deductStock(
+        products,
+        session,
+        newOrderId,
+        userId,
+        "Test bulk order",
+      );
 
-      const totalAmount = await OrderService.calculateTotalAmount(products, null, session, '');
-      const { subtotal, discount, shippingFee } = await OrderService.calculateTotals(products, null, '', session);
+      const totalAmount = await OrderService.calculateTotalAmount(
+        products,
+        null,
+        session,
+        "",
+      );
+      const { subtotal, discount, shippingFee } =
+        await OrderService.calculateTotals(products, null, "", session);
 
       const order = new Order({
         _id: newOrderId,
         ...(userId && { user: userId }),
-        products: products.map(p => ({ product: p._id, quantity: p.quantity, price: p.price })),
+        products: products.map((p) => ({
+          product: p._id,
+          quantity: p.quantity,
+          price: p.price,
+        })),
         totalAmount,
         subtotal,
         discountAmount: discount,
         shippingFee,
-        couponCode: '',
+        couponCode: "",
         orderCode: OrderService.generateOrderCode(),
         trackingToken: new mongoose.Types.ObjectId().toString(),
         shippingDetails: {
-          fullName: userId ? `User ${userId}` : 'Guest Tester',
-          phoneNumber: '0123456789',
-          address: 'Test address',
-          city: 'Hà Nội'
+          fullName: userId ? `User ${userId}` : "Guest Tester",
+          phoneNumber: "0123456789",
+          address: "Test address",
+          city: "Hà Nội",
         },
-        paymentMethod: 'cod',
-        paymentStatus: 'pending',
-        status: 'pending',
-        trackingEvents: [{ status: 'pending', message: 'Test order created', timestamp: new Date() }],
+        paymentMethod: "cod",
+        paymentStatus: "pending",
+        status: "pending",
+        trackingEvents: [
+          {
+            status: "pending",
+            message: "Test order created",
+            timestamp: new Date(),
+          },
+        ],
       });
 
       await order.save({ session });
@@ -78,12 +115,15 @@ async function main() {
     } catch (err) {
       await session.abortTransaction();
       session.endSession();
-      console.error('Failed creating order:', err.message || err);
+      console.error("Failed creating order:", err.message || err);
     }
   }
 
   await mongoose.disconnect();
-  console.log('Done');
+  console.log("Done");
 }
 
-main().catch(err => { console.error(err); process.exit(1); });
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

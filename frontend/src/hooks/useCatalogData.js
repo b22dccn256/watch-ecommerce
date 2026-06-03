@@ -1,9 +1,16 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useProductStore } from '../stores/useProductStore';
+import { useEffect, useMemo, useState } from "react";
+import { useProductStore } from "../stores/useProductStore";
 
 export const useCatalogData = () => {
-  const { brands, fetchBrands, categories, fetchCategories, products, fetchAllProducts } = useProductStore();
-  const [activeSection, setActiveSection] = useState('brands');
+  const {
+    brands,
+    fetchBrands,
+    categories,
+    fetchCategories,
+    products,
+    fetchAllProducts,
+  } = useProductStore();
+  const [activeSection, setActiveSection] = useState("brands");
 
   useEffect(() => {
     fetchBrands(true, true);

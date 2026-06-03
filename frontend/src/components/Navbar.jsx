@@ -42,34 +42,42 @@ const Navbar = () => {
 
   const { user, logout } = useUserStore(
     (state) => ({ user: state.user, logout: state.logout }),
-    shallow
+    shallow,
   );
   const cartCount = useCartStore((state) =>
-    state.cart.reduce((sum, item) => sum + item.quantity, 0)
+    state.cart.reduce((sum, item) => sum + item.quantity, 0),
   );
   const wishlistCount = useWishlistStore((state) => state.wishlist.length);
   const { theme, toggleTheme } = useThemeStore(
     (state) => ({ theme: state.theme, toggleTheme: state.toggleTheme }),
-    shallow
+    shallow,
   );
   const { compareCount, setIsOpen } = useCompareStore(
     (state) => ({
       compareCount: state.compareItems.length,
       setIsOpen: state.setIsOpen,
     }),
-    shallow
+    shallow,
   );
   const { config } = useStorefrontStore();
-  const { suggestions, getSuggestions, setSearchTerm: setGlobalSearchTerm } = useProductStore(
-    (state) => ({ suggestions: state.suggestions, getSuggestions: state.getSuggestions, setSearchTerm: state.setSearchTerm }),
-    shallow
+  const {
+    suggestions,
+    getSuggestions,
+    setSearchTerm: setGlobalSearchTerm,
+  } = useProductStore(
+    (state) => ({
+      suggestions: state.suggestions,
+      getSuggestions: state.getSuggestions,
+      setSearchTerm: state.setSearchTerm,
+    }),
+    shallow,
   );
 
   const menuItems = useMemo(() => {
     if (config?.navigationItems && config.navigationItems.length > 0) {
-      return config.navigationItems.map(item => ({
+      return config.navigationItems.map((item) => ({
         to: item.link,
-        label: item.label
+        label: item.label,
       }));
     }
     return [
@@ -77,7 +85,7 @@ const Navbar = () => {
       { to: "/catalog?reset=true", label: "Bộ sưu tập" },
       { to: "/brands", label: "Thương hiệu" },
       { to: "/about", label: "Về chúng tôi" },
-      { to: "/contact", label: "Hỗ trợ" }
+      { to: "/contact", label: "Hỗ trợ" },
     ];
   }, [config]);
 
@@ -99,7 +107,10 @@ const Navbar = () => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setIsSearchFocused(false);
       }
-      if (mobileSearchRef.current && !mobileSearchRef.current.contains(event.target)) {
+      if (
+        mobileSearchRef.current &&
+        !mobileSearchRef.current.contains(event.target)
+      ) {
         setIsMobileSearchFocused(false);
       }
     };
@@ -132,15 +143,20 @@ const Navbar = () => {
   return (
     <header className="fixed inset-x-0 top-0 z-[90] border-b border-black/5 bg-[color:var(--color-surface)] dark:border-white/5">
       {config?.announcementEnabled && (
-        <div className={`w-full py-1.5 px-4 text-center text-[10px] sm:text-xs font-bold tracking-[0.05em] transition-all select-none ${
-          config.announcementBg === "dark"
-            ? "bg-black text-white"
-            : config.announcementBg === "light"
-            ? "bg-gray-100 text-black border-b border-gray-200"
-            : "bg-[color:var(--color-gold)] text-black"
-        }`}>
+        <div
+          className={`w-full py-1.5 px-4 text-center text-[10px] sm:text-xs font-bold tracking-[0.05em] transition-all select-none ${
+            config.announcementBg === "dark"
+              ? "bg-black text-white"
+              : config.announcementBg === "light"
+                ? "bg-gray-100 text-black border-b border-gray-200"
+                : "bg-[color:var(--color-gold)] text-black"
+          }`}
+        >
           {config.announcementLink ? (
-            <Link to={config.announcementLink} className="hover:underline inline-flex items-center justify-center gap-1.5">
+            <Link
+              to={config.announcementLink}
+              className="hover:underline inline-flex items-center justify-center gap-1.5"
+            >
               {config.announcementText}
             </Link>
           ) : (
@@ -155,7 +171,9 @@ const Navbar = () => {
               src={config.logoImage}
               alt={config.logoText || "Logo"}
               className="h-8 w-auto object-contain transition-transform group-hover:scale-[1.02]"
-              onError={(e) => { e.target.style.display = 'none'; }}
+              onError={(e) => {
+                e.target.style.display = "none";
+              }}
             />
           ) : (
             <>
@@ -169,7 +187,9 @@ const Navbar = () => {
                   {config?.logoText ? config.logoText.split(" ")[0] : "LUXURY"}
                 </p>
                 <p className="mt-1 text-[9px] uppercase tracking-[0.34em] text-muted">
-                  {config?.logoText ? config.logoText.split(" ").slice(1).join(" ") : "Watch Gallery"}
+                  {config?.logoText
+                    ? config.logoText.split(" ").slice(1).join(" ")
+                    : "Watch Gallery"}
                 </p>
               </div>
             </>
@@ -196,38 +216,52 @@ const Navbar = () => {
               className="input-base h-9 rounded-full pl-9 pr-10"
             />
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-            <button type="button" onClick={() => executeSearch()} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted transition hover:text-[color:var(--color-gold)]">
+            <button
+              type="button"
+              onClick={() => executeSearch()}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted transition hover:text-[color:var(--color-gold)]"
+            >
               <Search className="h-4 w-4" />
             </button>
             <AnimatePresence>
-              {isSearchFocused && searchTerm.trim().length >= 2 && suggestions.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
-                  transition={{ duration: 0.16 }}
-                  className="absolute top-full left-0 right-0 mt-2 bg-[color:var(--color-surface)] border border-black/10 dark:border-white/10 rounded-xl overflow-hidden shadow-2xl z-[100]"
-                >
-                  {suggestions.slice(0, 5).map((item) => (
-                    <div
-                      key={item._id}
-                      onClick={() => executeSearch(item.name)}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-[color:var(--color-surface-2)] cursor-pointer border-b border-black/5 dark:border-white/5 last:border-none"
-                    >
-                      <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded bg-white" />
-                      <div className="flex-1 overflow-hidden">
-                        <div className="font-semibold text-sm text-primary truncate">{item.name}</div>
-                        <div className="text-[10px] text-muted truncate uppercase tracking-widest">
-                          {typeof item.brand === 'object' ? item.brand?.name : item.brand}
+              {isSearchFocused &&
+                searchTerm.trim().length >= 2 &&
+                suggestions.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    transition={{ duration: 0.16 }}
+                    className="absolute top-full left-0 right-0 mt-2 bg-[color:var(--color-surface)] border border-black/10 dark:border-white/10 rounded-xl overflow-hidden shadow-2xl z-[100]"
+                  >
+                    {suggestions.slice(0, 5).map((item) => (
+                      <div
+                        key={item._id}
+                        onClick={() => executeSearch(item.name)}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-[color:var(--color-surface-2)] cursor-pointer border-b border-black/5 dark:border-white/5 last:border-none"
+                      >
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-10 h-10 object-cover rounded bg-white"
+                        />
+                        <div className="flex-1 overflow-hidden">
+                          <div className="font-semibold text-sm text-primary truncate">
+                            {item.name}
+                          </div>
+                          <div className="text-[10px] text-muted truncate uppercase tracking-widest">
+                            {typeof item.brand === "object"
+                              ? item.brand?.name
+                              : item.brand}
+                          </div>
+                        </div>
+                        <div className="text-[color:var(--color-gold)] font-bold text-xs">
+                          {item.price.toLocaleString("vi-VN")}đ
                         </div>
                       </div>
-                      <div className="text-[color:var(--color-gold)] font-bold text-xs">
-                        {item.price.toLocaleString("vi-VN")}đ
-                      </div>
-                    </div>
-                  ))}
-                </motion.div>
-              )}
+                    ))}
+                  </motion.div>
+                )}
             </AnimatePresence>
           </div>
         </div>
@@ -239,10 +273,18 @@ const Navbar = () => {
             title="Đổi giao diện"
             aria-label="Đổi giao diện"
           >
-            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {theme === "dark" ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
           </button>
 
-          <Link to="/wishlist" className={iconButtonClass} aria-label="Yêu thích">
+          <Link
+            to="/wishlist"
+            className={iconButtonClass}
+            aria-label="Yêu thích"
+          >
             <Heart className="h-4 w-4" />
             {wishlistCount > 0 && (
               <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--color-gold)] px-1 text-[10px] font-bold text-black">
@@ -251,7 +293,11 @@ const Navbar = () => {
             )}
           </Link>
 
-          <button onClick={() => setIsOpen(true)} className={iconButtonClass} aria-label="So sánh">
+          <button
+            onClick={() => setIsOpen(true)}
+            className={iconButtonClass}
+            aria-label="So sánh"
+          >
             <Scale className="h-4 w-4" />
             {compareCount > 0 && (
               <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--color-gold)] px-1 text-[10px] font-bold text-black">
@@ -261,7 +307,12 @@ const Navbar = () => {
           </button>
 
           {user && (
-            <button type="button" onClick={() => setIsMiniCartOpen(true)} className={iconButtonClass} aria-label="Giỏ hàng">
+            <button
+              type="button"
+              onClick={() => setIsMiniCartOpen(true)}
+              className={iconButtonClass}
+              aria-label="Giỏ hàng"
+            >
               <ShoppingBag className="h-4 w-4" />
               {cartCount > 0 && (
                 <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--color-gold)] px-1 text-[10px] font-bold text-black">
@@ -279,14 +330,20 @@ const Navbar = () => {
                 className="inline-flex h-9 items-center gap-2 rounded-full border border-black/10 bg-white/70 pl-1.5 pr-2 text-xs text-primary transition hover:border-[color:var(--color-gold)] dark:border-white/10 dark:bg-[color:var(--color-surface-2)]"
               >
                 {user.profilePicture ? (
-                  <img src={user.profilePicture} alt="Avatar" className="h-6 w-6 rounded-full object-cover" />
+                  <img
+                    src={user.profilePicture}
+                    alt="Avatar"
+                    className="h-6 w-6 rounded-full object-cover"
+                  />
                 ) : (
                   <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-[color:var(--color-gold)]/50 bg-[color:var(--color-gold)]/10 text-[color:var(--color-gold)]">
                     <UserRound className="h-3.5 w-3.5" />
                   </span>
                 )}
                 <span className="font-semibold">{userName}</span>
-                <ChevronDown className={`h-3.5 w-3.5 text-muted transition ${isProfileOpen ? "rotate-180" : ""}`} />
+                <ChevronDown
+                  className={`h-3.5 w-3.5 text-muted transition ${isProfileOpen ? "rotate-180" : ""}`}
+                />
               </button>
 
               <AnimatePresence>
@@ -298,14 +355,26 @@ const Navbar = () => {
                     transition={{ duration: 0.16 }}
                     className="absolute right-0 mt-2 w-56 rounded-xl border border-black/10 bg-[color:var(--color-surface)] p-2 shadow-[0_20px_50px_-30px_rgba(0,0,0,0.5)] dark:border-white/10"
                   >
-                    <Link to="/profile" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-secondary transition hover:bg-[color:var(--color-surface-2)] hover:text-primary">
+                    <Link
+                      to="/profile"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-secondary transition hover:bg-[color:var(--color-surface-2)] hover:text-primary"
+                    >
                       <UserRound className="h-4 w-4" /> Tài khoản
                     </Link>
-                    <Link to="/profile?tab=orders" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-secondary transition hover:bg-[color:var(--color-surface-2)] hover:text-primary">
+                    <Link
+                      to="/profile?tab=orders"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-secondary transition hover:bg-[color:var(--color-surface-2)] hover:text-primary"
+                    >
                       <ShoppingBag className="h-4 w-4" /> Đơn hàng
                     </Link>
                     {["admin", "staff"].includes(user.role) && (
-                      <Link to="/secret-dashboard" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[color:var(--color-gold)] transition hover:bg-[color:var(--color-surface-2)]">
+                      <Link
+                        to="/secret-dashboard"
+                        onClick={() => setIsProfileOpen(false)}
+                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[color:var(--color-gold)] transition hover:bg-[color:var(--color-surface-2)]"
+                      >
                         <Lock className="h-4 w-4" /> Admin
                       </Link>
                     )}
@@ -324,7 +393,10 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
           ) : (
-            <Link to="/login" className="hidden h-9 items-center rounded-full border border-black/10 px-4 text-xs font-semibold uppercase tracking-[0.14em] text-secondary transition hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)] sm:inline-flex dark:border-white/10">
+            <Link
+              to="/login"
+              className="hidden h-9 items-center rounded-full border border-black/10 px-4 text-xs font-semibold uppercase tracking-[0.14em] text-secondary transition hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)] sm:inline-flex dark:border-white/10"
+            >
               Đăng nhập
             </Link>
           )}
@@ -335,7 +407,11 @@ const Navbar = () => {
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 text-primary transition hover:text-[color:var(--color-gold)] lg:hidden dark:border-white/10"
             aria-label="Mở menu"
           >
-            {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {isMobileOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
           </button>
         </div>
       </div>
@@ -359,38 +435,52 @@ const Navbar = () => {
                 className="input-base h-10 rounded-full pl-9 pr-10"
               />
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-              <button type="button" onClick={() => executeSearch()} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted">
+              <button
+                type="button"
+                onClick={() => executeSearch()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted"
+              >
                 <Search className="h-4 w-4" />
               </button>
               <AnimatePresence>
-                {isMobileSearchFocused && searchTerm.trim().length >= 2 && suggestions.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 6 }}
-                    transition={{ duration: 0.16 }}
-                    className="absolute top-full left-0 right-0 mt-2 bg-[color:var(--color-surface)] border border-black/10 dark:border-white/10 rounded-xl overflow-hidden shadow-2xl z-[100]"
-                  >
-                    {suggestions.slice(0, 5).map((item) => (
-                      <div
-                        key={item._id}
-                        onClick={() => executeSearch(item.name)}
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-[color:var(--color-surface-2)] cursor-pointer border-b border-black/5 dark:border-white/5 last:border-none"
-                      >
-                        <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded bg-white" />
-                        <div className="flex-1 overflow-hidden">
-                          <div className="font-semibold text-sm text-primary truncate">{item.name}</div>
-                          <div className="text-[10px] text-muted truncate uppercase tracking-widest">
-                            {typeof item.brand === 'object' ? item.brand?.name : item.brand}
+                {isMobileSearchFocused &&
+                  searchTerm.trim().length >= 2 &&
+                  suggestions.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 6 }}
+                      transition={{ duration: 0.16 }}
+                      className="absolute top-full left-0 right-0 mt-2 bg-[color:var(--color-surface)] border border-black/10 dark:border-white/10 rounded-xl overflow-hidden shadow-2xl z-[100]"
+                    >
+                      {suggestions.slice(0, 5).map((item) => (
+                        <div
+                          key={item._id}
+                          onClick={() => executeSearch(item.name)}
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-[color:var(--color-surface-2)] cursor-pointer border-b border-black/5 dark:border-white/5 last:border-none"
+                        >
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-10 h-10 object-cover rounded bg-white"
+                          />
+                          <div className="flex-1 overflow-hidden">
+                            <div className="font-semibold text-sm text-primary truncate">
+                              {item.name}
+                            </div>
+                            <div className="text-[10px] text-muted truncate uppercase tracking-widest">
+                              {typeof item.brand === "object"
+                                ? item.brand?.name
+                                : item.brand}
+                            </div>
+                          </div>
+                          <div className="text-[color:var(--color-gold)] font-bold text-xs">
+                            {item.price.toLocaleString("vi-VN")}đ
                           </div>
                         </div>
-                        <div className="text-[color:var(--color-gold)] font-bold text-xs">
-                          {item.price.toLocaleString("vi-VN")}đ
-                        </div>
-                      </div>
-                    ))}
-                  </motion.div>
-                )}
+                      ))}
+                    </motion.div>
+                  )}
               </AnimatePresence>
             </div>
 
@@ -426,7 +516,10 @@ const Navbar = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      <MiniCart isOpen={isMiniCartOpen} onClose={() => setIsMiniCartOpen(false)} />
+      <MiniCart
+        isOpen={isMiniCartOpen}
+        onClose={() => setIsMiniCartOpen(false)}
+      />
     </header>
   );
 };

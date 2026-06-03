@@ -1,21 +1,27 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
-import { useInventoryStore } from '../stores/useInventoryStore';
-import { useProductStore } from '../stores/useProductStore';
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { useInventoryStore } from "../stores/useInventoryStore";
+import { useProductStore } from "../stores/useProductStore";
 
 const PAGE_SIZE = 8;
 
 export const useInventoryManagement = () => {
-  const { lowStockProducts, fetchLowStockProducts, adjustStock, fetchProductLogs, inventoryLogs, loading } =
-    useInventoryStore();
+  const {
+    lowStockProducts,
+    fetchLowStockProducts,
+    adjustStock,
+    fetchProductLogs,
+    inventoryLogs,
+    loading,
+  } = useInventoryStore();
   const { allProducts: products, fetchAllProducts } = useProductStore();
 
-  const [selectedProduct, setSelectedProduct] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState("");
   const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [showLogsModal, setShowLogsModal] = useState(false);
-  const [action, setAction] = useState('IN');
+  const [action, setAction] = useState("IN");
   const [quantity, setQuantity] = useState(1);
-  const [note, setNote] = useState('');
-  const [search, setSearch] = useState('');
+  const [note, setNote] = useState("");
+  const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -30,16 +36,20 @@ export const useInventoryManagement = () => {
         !q ||
         p.name?.toLowerCase().includes(q) ||
         p.brand?.name?.toLowerCase().includes(q) ||
-        (typeof p.brand === 'string' && p.brand.toLowerCase().includes(q))
+        (typeof p.brand === "string" && p.brand.toLowerCase().includes(q)),
     );
   }, [products, search]);
 
   const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE) || 1;
-  const paginatedProducts = filteredProducts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
 
   const warehouseValue = useMemo(
-    () => products?.reduce((sum, p) => sum + (p.stock * (p.costPrice || 0)), 0) || 0,
-    [products]
+    () =>
+      products?.reduce((sum, p) => sum + p.stock * (p.costPrice || 0), 0) || 0,
+    [products],
   );
 
   const handleSearch = useCallback((value) => {
@@ -47,15 +57,15 @@ export const useInventoryManagement = () => {
     setCurrentPage(1);
   }, []);
 
-  const openAdjust = useCallback((productId, nextAction = 'ADJUST') => {
-    setSelectedProduct(productId || '');
+  const openAdjust = useCallback((productId, nextAction = "ADJUST") => {
+    setSelectedProduct(productId || "");
     setAction(nextAction);
     setShowAdjustModal(true);
   }, []);
 
   const openBlankAdjust = useCallback(() => {
-    setSelectedProduct('');
-    setAction('ADJUST');
+    setSelectedProduct("");
+    setAction("ADJUST");
     setShowAdjustModal(true);
   }, []);
 
@@ -65,12 +75,12 @@ export const useInventoryManagement = () => {
       await fetchProductLogs(productId);
       setShowLogsModal(true);
     },
-    [fetchProductLogs]
+    [fetchProductLogs],
   );
 
   const closeAdjustModal = useCallback(() => {
     setShowAdjustModal(false);
-    setNote('');
+    setNote("");
     setQuantity(1);
   }, []);
 

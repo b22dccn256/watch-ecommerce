@@ -1,12 +1,12 @@
-import ProcessedIPN from '../models/processedIPN.model.js';
-import Order from '../models/order.model.js';
-import { logAction } from '../middleware/permission.middleware.js';
+import ProcessedIPN from "../models/processedIPN.model.js";
+import Order from "../models/order.model.js";
+import { logAction } from "../middleware/permission.middleware.js";
 
 export const listFailedIPNs = async (req, res) => {
   try {
     const page = Math.max(parseInt(req.query.page) || 1, 1);
     const limit = Math.min(parseInt(req.query.limit) || 20, 100);
-    const filter = { status: 'failed' };
+    const filter = { status: "failed" };
     const total = await ProcessedIPN.countDocuments(filter);
     const items = await ProcessedIPN.find(filter)
       .sort({ createdAt: -1 })
@@ -14,48 +14,79 @@ export const listFailedIPNs = async (req, res) => {
       .limit(limit)
       .lean();
 
-    res.json({ items, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
+    res.json({
+      items,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    });
   } catch (err) {
-    console.error('[admin.ipn] listFailedIPNs failed:', err.message);
+    console.error("[admin.ipn] listFailedIPNs failed:", err.message);
     res.status(500).json({ message: err.message });
   }
 };
 
 export const linkIPNToOrder = async (req, res) => {
   try {
-    const { transactionId, orderCode, provider = 'vnpay' } = req.body;
-    if (!transactionId || !orderCode) return res.status(400).json({ message: 'transactionId and orderCode required' });
+    const { transactionId, orderCode, provider = "vnpay" } = req.body;
+    if (!transactionId || !orderCode)
+      return res
+        .status(400)
+        .json({ message: "transactionId and orderCode required" });
 
     const existing = await ProcessedIPN.findOne({ provider, transactionId });
-    if (existing && existing.status === 'processed') {
-      return res.status(409).json({ message: 'Transaction already processed' });
+    if (existing && existing.status === "processed") {
+      return res.status(409).json({ message: "Transaction already processed" });
     }
 
     const order = await Order.findOne({ orderCode });
-    if (!order) return res.status(404).json({ message: 'Order not found' });
+    if (!order) return res.status(404).json({ message: "Order not found" });
 
-    if (order.paymentStatus !== 'paid') {
-      order.paymentStatus = 'paid';
-      order.status = 'confirmed';
+    if (order.paymentStatus !== "paid") {
+      order.paymentStatus = "paid";
+      order.status = "confirmed";
       order.transactionId = transactionId;
       order.ipnVerified = true;
       order.paidAt = new Date();
-      order.trackingEvents.push({ status: 'confirmed', message: `Reconciled IPN ${transactionId} via admin`, timestamp: new Date(), updatedBy: req.user?._id || 'system' });
+      order.trackingEvents.push({
+        status: "confirmed",
+        message: `Reconciled IPN ${transactionId} via admin`,
+        timestamp: new Date(),
+        updatedBy: req.user?._id || "system",
+      });
       await order.save();
     }
 
     // Create or update ProcessedIPN as processed
     await ProcessedIPN.findOneAndUpdate(
       { provider, transactionId },
-      { provider, transactionId, orderCode, status: 'processed', payload: { reconciledBy: req.user?._id || 'admin', reconciledAt: new Date() }, processedAt: new Date() },
-      { upsert: true, new: true }
+      {
+        provider,
+        transactionId,
+        orderCode,
+        status: "processed",
+        payload: {
+          reconciledBy: req.user?._id || "admin",
+          reconciledAt: new Date(),
+        },
+        processedAt: new Date(),
+      },
+      { upsert: true, new: true },
     );
 
-    await logAction({ req, action: 'ADMIN_RECONCILE_IPN', targetId: order._id, targetModel: 'Order', details: `Linked ${transactionId} -> ${orderCode}` });
+    await logAction({
+      req,
+      action: "ADMIN_RECONCILE_IPN",
+      targetId: order._id,
+      targetModel: "Order",
+      details: `Linked ${transactionId} -> ${orderCode}`,
+    });
 
-    res.json({ success: true, message: 'IPN linked and order marked paid', orderCode });
+    res.json({
+      success: true,
+      message: "IPN linked and order marked paid",
+      orderCode,
+    });
   } catch (err) {
-    console.error('[admin.ipn] linkIPNToOrder failed:', err.message);
+    console.error("[admin.ipn] linkIPNToOrder failed:", err.message);
     res.status(500).json({ message: err.message });
   }
 };

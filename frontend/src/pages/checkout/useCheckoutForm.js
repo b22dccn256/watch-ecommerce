@@ -46,17 +46,20 @@ export const useCheckoutForm = (user) => {
     return [];
   }, [user]);
 
-  const applyAddress = useCallback((address) => {
-    if (!address) return;
-    setFormData((prev) => ({
-      ...prev,
-      fullName: address.fullName || user?.name || prev.fullName || "",
-      phoneNumber: address.phone || user?.phone || prev.phoneNumber || "",
-      email: user?.email || prev.email || "",
-      address: address.address || prev.address || "",
-      city: address.city || prev.city || "",
-    }));
-  }, [user]);
+  const applyAddress = useCallback(
+    (address) => {
+      if (!address) return;
+      setFormData((prev) => ({
+        ...prev,
+        fullName: address.fullName || user?.name || prev.fullName || "",
+        phoneNumber: address.phone || user?.phone || prev.phoneNumber || "",
+        email: user?.email || prev.email || "",
+        address: address.address || prev.address || "",
+        city: address.city || prev.city || "",
+      }));
+    },
+    [user],
+  );
 
   useEffect(() => {
     const savedData = localStorage.getItem("checkoutFormData");
@@ -73,7 +76,8 @@ export const useCheckoutForm = (user) => {
     }
 
     if (user) {
-      const defaultAddress = savedAddresses.find((item) => item.isDefault) || savedAddresses[0];
+      const defaultAddress =
+        savedAddresses.find((item) => item.isDefault) || savedAddresses[0];
       if (defaultAddress) {
         setSelectedAddressId(defaultAddress.id);
         applyAddress(defaultAddress);
@@ -90,7 +94,10 @@ export const useCheckoutForm = (user) => {
   }, [user, savedAddresses, applyAddress]);
 
   useEffect(() => {
-    localStorage.setItem("checkoutFormData", JSON.stringify({ formData, selectedAddressId }));
+    localStorage.setItem(
+      "checkoutFormData",
+      JSON.stringify({ formData, selectedAddressId }),
+    );
   }, [formData, selectedAddressId]);
 
   const handleChange = (event) => {
@@ -102,16 +109,22 @@ export const useCheckoutForm = (user) => {
   const validateForm = () => {
     const nextErrors = {};
 
-    if (!formData.fullName.trim()) nextErrors.fullName = "Họ và tên là bắt buộc";
+    if (!formData.fullName.trim())
+      nextErrors.fullName = "Họ và tên là bắt buộc";
 
     const phoneRegex = /^(0|\+84)(3[2-9]|5[25689]|7[06-9]|8[0-9]|9[0-9])\d{7}$/;
-    if (!formData.phoneNumber.trim()) nextErrors.phoneNumber = "Số điện thoại là bắt buộc";
+    if (!formData.phoneNumber.trim())
+      nextErrors.phoneNumber = "Số điện thoại là bắt buộc";
     else if (!phoneRegex.test(formData.phoneNumber.replace(/\s/g, ""))) {
       nextErrors.phoneNumber = "Số điện thoại không hợp lệ";
     }
 
-    if (!user?.email && !formData.email.trim()) nextErrors.email = "Email là bắt buộc";
-    else if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    if (!user?.email && !formData.email.trim())
+      nextErrors.email = "Email là bắt buộc";
+    else if (
+      formData.email &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
+    ) {
       nextErrors.email = "Email không hợp lệ";
     }
 

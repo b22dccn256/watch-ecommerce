@@ -46,7 +46,11 @@ const HomePage = () => {
   const { fetchFeaturedProducts, products, loading } = useProductStore();
   const { fetchActiveCampaigns, campaigns } = useCampaignStore();
   const { config, fetchConfig } = useStorefrontStore();
-  const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
+  const [timeLeft, setTimeLeft] = useState({
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
 
   useEffect(() => {
     fetchFeaturedProducts();
@@ -55,7 +59,7 @@ const HomePage = () => {
   }, [fetchFeaturedProducts, fetchActiveCampaigns, fetchConfig]);
 
   // B-02: tinh timeLeft cho Flash Sale campaign dau tien
-  const flashCampaign = campaigns?.find(c => c.isActive && c.endDate);
+  const flashCampaign = campaigns?.find((c) => c.isActive && c.endDate);
   useEffect(() => {
     if (!flashCampaign?.endDate) return;
     const tick = () => {
@@ -77,13 +81,15 @@ const HomePage = () => {
   let desired = Math.min(rawCount, products.length);
   if (desired < gridCols) desired = Math.min(gridCols, products.length);
   if (desired % gridCols !== 0) {
-    desired = Math.floor(desired / gridCols) * gridCols || Math.min(gridCols, products.length);
+    desired =
+      Math.floor(desired / gridCols) * gridCols ||
+      Math.min(gridCols, products.length);
   }
   const featured = products.slice(0, desired);
   // B-02 + B-03: products cho Flash Sale va Best Sellers
   const flashProducts = flashCampaign?.products?.slice(0, gridCols) || [];
   const bestSellers = products
-    .filter(p => (p.salesCount || 0) > 0)
+    .filter((p) => (p.salesCount || 0) > 0)
     .sort((a, b) => b.salesCount - a.salesCount)
     .slice(0, gridCols);
 
@@ -93,7 +99,9 @@ const HomePage = () => {
         <div className="mx-auto max-w-screen-2xl space-y-8 px-4 sm:px-6 lg:px-8">
           <div className="h-[70vh] animate-pulse rounded-[1.8rem] border border-black/10 bg-surface" />
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => <SkeletonProductCard key={i} />)}
+            {Array.from({ length: 4 }).map((_, i) => (
+              <SkeletonProductCard key={i} />
+            ))}
           </div>
         </div>
       </div>
@@ -103,7 +111,7 @@ const HomePage = () => {
   // A3: render section theo thu tu homeLayout
   const renderSections = () => {
     const layout = config?.homeLayout || ["hero", "flashSale", "bestSeller"];
-    return layout.map(sectionKey => {
+    return layout.map((sectionKey) => {
       switch (sectionKey) {
         case "flashSale":
           return flashProducts.length > 0 ? (
@@ -136,7 +144,6 @@ const HomePage = () => {
   return (
     <div className="min-h-screen overflow-hidden">
       <PageShell>
-
         {/* A3: Hero - chi hien neu co trong homeLayout */}
         {(config?.homeLayout || ["hero"]).includes("hero") && (
           <div className="pt-2 sm:pt-4">
@@ -168,9 +175,15 @@ const HomePage = () => {
                   <card.icon className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted">{card.label}</p>
-                  <p className="mt-0.5 text-base font-semibold text-primary">{card.value}</p>
-                  <p className="mt-0.5 text-xs leading-snug text-secondary">{card.sub}</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted">
+                    {card.label}
+                  </p>
+                  <p className="mt-0.5 text-base font-semibold text-primary">
+                    {card.value}
+                  </p>
+                  <p className="mt-0.5 text-xs leading-snug text-secondary">
+                    {card.sub}
+                  </p>
                 </div>
               </motion.div>
             ))}
@@ -191,20 +204,31 @@ const HomePage = () => {
             className="premium-surface flex flex-col justify-between overflow-hidden rounded-2xl p-6 sm:p-8"
           >
             <div>
-              <p className="hero-kicker text-[color:var(--color-gold)]">Editorial story</p>
+              <p className="hero-kicker text-[color:var(--color-gold)]">
+                Editorial story
+              </p>
               <h2 className="heading-section mt-3 max-w-md text-[1.5rem] sm:text-[1.8rem]">
-                Nhịp điệu sống cùng<br />cơ khí chính xác
+                Nhịp điệu sống cùng
+                <br />
+                cơ khí chính xác
               </h2>
               <p className="mt-3 max-w-lg text-sm leading-relaxed text-secondary sm:text-base">
-                Bộ sưu tập được tuyển theo ngôn ngữ tinh gọn: tỷ lệ mặt số, hoàn thiện vỏ, độ mượt dây đeo
-                và cảm giác đeo trong từng ngữ cảnh đời sống.
+                Bộ sưu tập được tuyển theo ngôn ngữ tinh gọn: tỷ lệ mặt số, hoàn
+                thiện vỏ, độ mượt dây đeo và cảm giác đeo trong từng ngữ cảnh
+                đời sống.
               </p>
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/catalog" className="btn-base btn-outline h-10 px-6 text-sm flex items-center justify-center">
+              <Link
+                to="/catalog"
+                className="btn-base btn-outline h-10 px-6 text-sm flex items-center justify-center"
+              >
                 Khám phá bộ sưu tập
               </Link>
-              <Link to="/about" className="btn-base h-10 px-6 text-sm bg-[color:var(--color-gold)] text-black hover:opacity-90 transition flex items-center justify-center font-semibold rounded-lg">
+              <Link
+                to="/about"
+                className="btn-base h-10 px-6 text-sm bg-[color:var(--color-gold)] text-black hover:opacity-90 transition flex items-center justify-center font-semibold rounded-lg"
+              >
                 Đọc câu chuyện di sản
               </Link>
             </div>
@@ -215,7 +239,11 @@ const HomePage = () => {
             initial={{ opacity: 0, x: 16 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.6, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+            transition={{
+              duration: 0.6,
+              delay: 0.08,
+              ease: [0.22, 1, 0.36, 1],
+            }}
             className="group relative overflow-hidden rounded-2xl border border-black/6 bg-black"
           >
             <img
@@ -225,9 +253,13 @@ const HomePage = () => {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-7 sm:p-8">
-              <p className="text-[9px] uppercase tracking-[0.3em] text-white/60">Quiet luxury</p>
+              <p className="text-[9px] uppercase tracking-[0.3em] text-white/60">
+                Quiet luxury
+              </p>
               <p className="hero-title mt-2 text-2xl leading-tight text-white sm:text-[1.7rem]">
-                For Formal, For Daily,<br />For Legacy
+                For Formal, For Daily,
+                <br />
+                For Legacy
               </p>
             </div>
           </motion.div>
@@ -244,7 +276,8 @@ const HomePage = () => {
           >
             <div className="lux-divider mx-auto mb-10 w-16" />
             <p className="font-serif text-[clamp(1.55rem,3.2vw,2.6rem)] font-medium leading-[1.28] text-primary">
-              &quot;Một chiếc đồng hồ không chỉ đo thời gian —<br className="hidden sm:block" />
+              &quot;Một chiếc đồng hồ không chỉ đo thời gian —
+              <br className="hidden sm:block" />
               nó kể câu chuyện về người đeo nó.&quot;
             </p>
             <div className="lux-divider mx-auto mt-10 w-16" />
@@ -253,7 +286,6 @@ const HomePage = () => {
             </p>
           </motion.div>
         </section>
-
       </PageShell>
 
       {/* A3: Render sections theo thu tu homeLayout */}

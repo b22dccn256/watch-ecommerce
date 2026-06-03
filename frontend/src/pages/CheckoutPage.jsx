@@ -54,8 +54,11 @@ const CheckoutPage = () => {
   const isStripeBlocked = total > STRIPE_MAX_AMOUNT;
 
   const checkoutItems = useMemo(
-    () => cart.filter((item) => selectedItems.includes(useCartStore.getState().getUniqueId(item))),
-    [cart, selectedItems]
+    () =>
+      cart.filter((item) =>
+        selectedItems.includes(useCartStore.getState().getUniqueId(item)),
+      ),
+    [cart, selectedItems],
   );
 
   useEffect(() => {
@@ -69,7 +72,12 @@ const CheckoutPage = () => {
   }, [isStripeBlocked, selectedPayment]);
 
   useEffect(() => {
-    if (isCartLoaded && checkoutItems.length === 0 && !paymentDoneRef.current && !isSubmittingOrder.current) {
+    if (
+      isCartLoaded &&
+      checkoutItems.length === 0 &&
+      !paymentDoneRef.current &&
+      !isSubmittingOrder.current
+    ) {
       navigate("/cart");
     }
   }, [checkoutItems.length, isCartLoaded, navigate]);
@@ -78,7 +86,9 @@ const CheckoutPage = () => {
     if (!validateForm()) return;
 
     if (selectedPayment === "stripe" && isStripeBlocked) {
-      toast.error("Đơn hàng vượt giới hạn Stripe. Vui lòng chọn VNPay hoặc COD.");
+      toast.error(
+        "Đơn hàng vượt giới hạn Stripe. Vui lòng chọn VNPay hoặc COD.",
+      );
       setSelectedPayment("vnpay");
       return;
     }
@@ -115,7 +125,9 @@ const CheckoutPage = () => {
     } catch (error) {
       // Thất bại — mở lại cờ để useEffect guard hoạt động bình thường
       isSubmittingOrder.current = false;
-      toast.error(error.response?.data?.message || "Không thể xử lý thanh toán");
+      toast.error(
+        error.response?.data?.message || "Không thể xử lý thanh toán",
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -158,7 +170,11 @@ const CheckoutPage = () => {
               checkoutItems={checkoutItems}
             />
 
-            <button type="button" onClick={() => navigate("/cart")} className="btn-base btn-ghost h-10 px-1 text-sm text-secondary">
+            <button
+              type="button"
+              onClick={() => navigate("/cart")}
+              className="btn-base btn-ghost h-10 px-1 text-sm text-secondary"
+            >
               <ChevronLeft className="h-4 w-4" />
               Quay lại giỏ hàng
             </button>

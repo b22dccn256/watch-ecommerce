@@ -1,17 +1,17 @@
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import mongoose from 'mongoose';
-import { connectDB } from '../lib/db.js';
-import Product from '../models/product.model.js';
-import User from '../models/user.model.js';
-import Wishlist from '../models/wishlist.model.js';
-import Review from '../models/review.model.js';
-import Order from '../models/order.model.js';
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+import mongoose from "mongoose";
+import { connectDB } from "../lib/db.js";
+import Product from "../models/product.model.js";
+import User from "../models/user.model.js";
+import Wishlist from "../models/wishlist.model.js";
+import Review from "../models/review.model.js";
+import Order from "../models/order.model.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.join(__dirname, '..', '.env') });
+dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
 async function cleanDuplicates() {
   await connectDB();
@@ -19,11 +19,26 @@ async function cleanDuplicates() {
 
   console.log("=== Finding duplicate product names ===");
   const duplicateGroups = await Product.aggregate([
-    { $group: { _id: "$name", count: { $sum: 1 }, items: { $push: { _id: "$_id", stock: "$stock", salesCount: "$salesCount", createdAt: "$createdAt" } } } },
-    { $match: { count: { $gt: 1 } } }
+    {
+      $group: {
+        _id: "$name",
+        count: { $sum: 1 },
+        items: {
+          $push: {
+            _id: "$_id",
+            stock: "$stock",
+            salesCount: "$salesCount",
+            createdAt: "$createdAt",
+          },
+        },
+      },
+    },
+    { $match: { count: { $gt: 1 } } },
   ]);
 
-  console.log(`Found ${duplicateGroups.length} sets of duplicate product names.\n`);
+  console.log(
+    `Found ${duplicateGroups.length} sets of duplicate product names.\n`,
+  );
 
   let totalCartsUpdated = 0;
   let totalWishlistsUpdated = 0;
@@ -46,14 +61,20 @@ async function cleanDuplicates() {
 
     const primary = sortedItems[0];
     const duplicates = sortedItems.slice(1);
-    const duplicateIds = duplicates.map(d => d._id);
+    const duplicateIds = duplicates.map((d) => d._id);
 
     console.log(`Consolidating duplicate group "${name}":`);
-    console.log(`- Keep primary ID: ${primary._id} (Stock: ${primary.stock || 0}, Sales: ${primary.salesCount || 0})`);
-    console.log(`- Soft-deleting ${duplicateIds.length} duplicate IDs: ${JSON.stringify(duplicateIds)}`);
+    console.log(
+      `- Keep primary ID: ${primary._id} (Stock: ${primary.stock || 0}, Sales: ${primary.salesCount || 0})`,
+    );
+    console.log(
+      `- Soft-deleting ${duplicateIds.length} duplicate IDs: ${JSON.stringify(duplicateIds)}`,
+    );
 
     // 1. Remap Carts in User collection
-    const usersWithBadCart = await User.find({ "cartItems.product": { $in: duplicateIds } });
+    const usersWithBadCart = await User.find({
+      "cartItems.product": { $in: duplicateIds },
+    });
     for (const user of usersWithBadCart) {
       let modified = false;
       const newCartItems = [];
@@ -62,14 +83,14 @@ async function cleanDuplicates() {
       for (const item of user.cartItems) {
         if (!item.product) continue;
         let pId = item.product.toString();
-        if (duplicateIds.some(dupId => dupId.toString() === pId)) {
+        if (duplicateIds.some((dupId) => dupId.toString() === pId)) {
           pId = primary._id.toString();
           modified = true;
         }
 
-        const uniqueKey = `${pId}_${item.wristSize || 'default'}_${item.selectedColor || 'default'}_${item.selectedSize || 'default'}`;
+        const uniqueKey = `${pId}_${item.wristSize || "default"}_${item.selectedColor || "default"}_${item.selectedSize || "default"}`;
         if (cartMap.has(uniqueKey)) {
-          cartMap.get(uniqueKey).quantity += (item.quantity || 1);
+          cartMap.get(uniqueKey).quantity += item.quantity || 1;
         } else {
           const itemCopy = item.toObject ? item.toObject() : { ...item };
           itemCopy.product = new mongoose.Types.ObjectId(pId);
@@ -86,7 +107,9 @@ async function cleanDuplicates() {
     }
 
     // 2. Remap Wishlist collection
-    const wishlistsWithBadItem = await Wishlist.find({ "items.product": { $in: duplicateIds } });
+    const wishlistsWithBadItem = await Wishlist.find({
+      "items.product": { $in: duplicateIds },
+    });
     for (const wl of wishlistsWithBadItem) {
       let modified = false;
       const seenIds = new Set();
@@ -95,7 +118,7 @@ async function cleanDuplicates() {
       for (const item of wl.items) {
         if (!item.product) continue;
         let pId = item.product.toString();
-        if (duplicateIds.some(dupId => dupId.toString() === pId)) {
+        if (duplicateIds.some((dupId) => dupId.toString() === pId)) {
           pId = primary._id.toString();
           modified = true;
         }
@@ -118,10 +141,15 @@ async function cleanDuplicates() {
     }
 
     // 3. Remap Reviews
-    const reviewsToRemap = await Review.find({ product: { $in: duplicateIds } });
+    const reviewsToRemap = await Review.find({
+      product: { $in: duplicateIds },
+    });
     for (const rev of reviewsToRemap) {
       // Check if primary already has a review by this user
-      const existingPrimaryReview = await Review.findOne({ product: primary._id, user: rev.user });
+      const existingPrimaryReview = await Review.findOne({
+        product: primary._id,
+        user: rev.user,
+      });
       if (existingPrimaryReview) {
         // Delete to prevent unique composite key index violation
         await Review.deleteOne({ _id: rev._id });
@@ -133,11 +161,18 @@ async function cleanDuplicates() {
     }
 
     // 4. Remap Orders
-    const ordersToRemap = await Order.find({ "products.product": { $in: duplicateIds } });
+    const ordersToRemap = await Order.find({
+      "products.product": { $in: duplicateIds },
+    });
     for (const order of ordersToRemap) {
       let modified = false;
       for (const item of order.products) {
-        if (item.product && duplicateIds.some(dupId => dupId.toString() === item.product.toString())) {
+        if (
+          item.product &&
+          duplicateIds.some(
+            (dupId) => dupId.toString() === item.product.toString(),
+          )
+        ) {
           item.product = primary._id;
           modified = true;
         }
@@ -151,7 +186,7 @@ async function cleanDuplicates() {
     // 5. Soft-delete duplicate products
     const result = await Product.updateMany(
       { _id: { $in: duplicateIds } },
-      { $set: { isActive: false, deletedAt: new Date() } }
+      { $set: { isActive: false, deletedAt: new Date() } },
     );
     totalProductsSoftDeleted += result.modifiedCount;
 
@@ -163,14 +198,16 @@ async function cleanDuplicates() {
   console.log(`- Total user wishlists consolidated: ${totalWishlistsUpdated}`);
   console.log(`- Total reviews remapped: ${totalReviewsUpdated}`);
   console.log(`- Total order item lines updated: ${totalOrdersUpdated}`);
-  console.log(`- Total duplicate products soft-deleted: ${totalProductsSoftDeleted}`);
+  console.log(
+    `- Total duplicate products soft-deleted: ${totalProductsSoftDeleted}`,
+  );
   console.log("============================");
 
   console.log("\nDeduplication completed successfully!");
   process.exit(0);
 }
 
-cleanDuplicates().catch(err => {
+cleanDuplicates().catch((err) => {
   console.error("Deduplication failed with error:", err);
   process.exit(1);
 });

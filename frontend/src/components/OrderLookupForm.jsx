@@ -22,14 +22,20 @@ const OrderLookupForm = ({ onClose, autoFocusFirst = false }) => {
       onClose && onClose();
       navigate(`/order-tracking/${trackingToken}`);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Không tìm thấy đơn hàng khớp với thông tin cung cấp.");
+      toast.error(
+        error.response?.data?.message ||
+          "Không tìm thấy đơn hàng khớp với thông tin cung cấp.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleLookup} className="bg-white dark:bg-white/5 border border-gray-200 dark:border-luxury-border p-5 md:p-6 rounded-2xl shadow-sm space-y-5 w-full max-w-xl">
+    <form
+      onSubmit={handleLookup}
+      className="bg-white dark:bg-white/5 border border-gray-200 dark:border-luxury-border p-5 md:p-6 rounded-2xl shadow-sm space-y-5 w-full max-w-xl"
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="relative">
           <Input
@@ -55,8 +61,14 @@ const OrderLookupForm = ({ onClose, autoFocusFirst = false }) => {
         />
       </div>
 
-      <button type="submit" disabled={loading} className="btn-base btn-primary h-11 w-full">
-        {loading ? "ĐANG TÌM KIẾM..." : (
+      <button
+        type="submit"
+        disabled={loading}
+        className="btn-base btn-primary h-11 w-full"
+      >
+        {loading ? (
+          "ĐANG TÌM KIẾM..."
+        ) : (
           <>
             TRA CỨU NGAY
             <ArrowRight className="w-5 h-5" />
@@ -67,15 +79,27 @@ const OrderLookupForm = ({ onClose, autoFocusFirst = false }) => {
       <div className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-luxury-dark/60 border border-gray-200 dark:border-luxury-border rounded-xl">
         <AlertCircle className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
         <p className="text-xs text-gray-600 dark:text-luxury-text-muted leading-relaxed">
-          Mã đơn hàng đã được gửi vào email của bạn ngay sau khi đặt hàng thành công. Nếu không tìm thấy, vui lòng kiểm tra hộp thư Spam hoặc liên hệ Hotline 1900 8888.
+          Mã đơn hàng đã được gửi vào email của bạn ngay sau khi đặt hàng thành
+          công. Nếu không tìm thấy, vui lòng kiểm tra hộp thư Spam hoặc liên hệ
+          Hotline 1900 8888.
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-        <Link to="/profile" className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 dark:border-luxury-border px-4 py-3 text-sm font-medium text-gray-700 dark:text-luxury-text-muted hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+        <Link
+          to="/profile"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 dark:border-luxury-border px-4 py-3 text-sm font-medium text-gray-700 dark:text-luxury-text-muted hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+        >
           Xem lịch sử đơn
         </Link>
-        <button type="button" onClick={() => { onClose && onClose(); navigate('/support'); }} className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 dark:border-luxury-border px-4 py-3 text-sm font-medium text-gray-700 dark:text-luxury-text-muted hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+        <button
+          type="button"
+          onClick={() => {
+            onClose && onClose();
+            navigate("/support");
+          }}
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 dark:border-luxury-border px-4 py-3 text-sm font-medium text-gray-700 dark:text-luxury-text-muted hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+        >
           Trung tâm Hỗ trợ
         </button>
       </div>

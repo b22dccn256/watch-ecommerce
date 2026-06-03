@@ -1,13 +1,13 @@
-import '@testing-library/jest-dom';
-import { afterEach, vi } from 'vitest';
-import { cleanup } from '@testing-library/react';
+import "@testing-library/jest-dom";
+import { afterEach, vi } from "vitest";
+import { cleanup } from "@testing-library/react";
 
 afterEach(() => {
   cleanup();
 });
 
 // Axios — support lib/axios.js which calls axios.create()
-vi.mock('axios', () => {
+vi.mock("axios", () => {
   const instance = {
     get: vi.fn(),
     post: vi.fn(),
@@ -33,7 +33,7 @@ vi.mock('axios', () => {
 });
 
 // Zustand error store used by useErrorHandler
-vi.mock('../stores/useErrorStore', () => {
+vi.mock("../stores/useErrorStore", () => {
   const state = {
     setError: vi.fn(),
     clearError: vi.fn(),
@@ -46,7 +46,7 @@ vi.mock('../stores/useErrorStore', () => {
 });
 
 // Toast notifications
-vi.mock('react-hot-toast', () => ({
+vi.mock("react-hot-toast", () => ({
   default: {
     success: vi.fn(),
     error: vi.fn(),
@@ -61,7 +61,7 @@ globalThis.localStorage = {
   clear: vi.fn(),
 };
 
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: vi.fn().mockImplementation((query) => ({
     matches: false,

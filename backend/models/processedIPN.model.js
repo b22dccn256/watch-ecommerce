@@ -2,35 +2,35 @@ import mongoose from "mongoose";
 
 // Model để đảm bảo idempotency xử lý callback IPN và theo dõi trạng thái
 const processedIPNSchema = new mongoose.Schema(
-	{
-		provider: {
-			type: String,
-			required: true,
-			enum: ["vnpay"],
-		},
-		transactionId: {
-			type: String,
-			required: true,
-		},
-		orderCode: {
-			type: String,
-			default: null,
-		},
-		status: {
-			type: String,
-			enum: ["processed", "failed"],
-			required: true,
-		},
-		payload: {
-			type: mongoose.Schema.Types.Mixed,
-			default: {},
-		},
-		processedAt: {
-			type: Date,
-			default: Date.now,
-		},
-	},
-	{ timestamps: true }
+  {
+    provider: {
+      type: String,
+      required: true,
+      enum: ["vnpay"],
+    },
+    transactionId: {
+      type: String,
+      required: true,
+    },
+    orderCode: {
+      type: String,
+      default: null,
+    },
+    status: {
+      type: String,
+      enum: ["processed", "failed"],
+      required: true,
+    },
+    payload: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+    processedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { timestamps: true },
 );
 
 // Unique index để đảm bảo mỗi transactionId chỉ xử lý 1 lần, không mất tính idempotent

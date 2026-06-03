@@ -35,13 +35,19 @@ const PaymentMethods = ({
   return (
     <>
       {step === 1 ? (
-        <button type="button" onClick={proceedToReview} className="btn-base btn-primary h-12 px-6">
+        <button
+          type="button"
+          onClick={proceedToReview}
+          className="btn-base btn-primary h-12 px-6"
+        >
           Tiếp tục đến thanh toán
         </button>
       ) : (
         <div className="space-y-4 rounded-[1.4rem] border border-black/10 bg-surface p-5 shadow-sm dark:border-white/10 sm:p-6">
           <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-secondary">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--color-gold)]/40 text-[color:var(--color-gold)]">2</span>
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--color-gold)]/40 text-[color:var(--color-gold)]">
+              2
+            </span>
             Chọn phương thức thanh toán
           </div>
 
@@ -73,8 +79,12 @@ const PaymentMethods = ({
                     <Icon className="h-4 w-4 text-[color:var(--color-gold)]" />
                   </span>
                   <span>
-                    <span className="block text-sm font-semibold text-primary">{option.name}</span>
-                    <span className="mt-1 block text-xs text-muted">{option.desc}</span>
+                    <span className="block text-sm font-semibold text-primary">
+                      {option.name}
+                    </span>
+                    <span className="mt-1 block text-xs text-muted">
+                      {option.desc}
+                    </span>
                   </span>
                 </label>
               );
@@ -82,7 +92,11 @@ const PaymentMethods = ({
           </div>
 
           <div className="flex flex-wrap gap-3 pt-2">
-            <button type="button" onClick={() => setStep(1)} className="btn-base btn-outline h-11 px-5">
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className="btn-base btn-outline h-11 px-5"
+            >
               <ChevronLeft className="h-4 w-4" />
               Chỉnh sửa thông tin
             </button>

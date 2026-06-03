@@ -16,8 +16,11 @@ const ProductCard = ({ product }) => {
   const user = useUserStore((state) => state.user);
   const addToCart = useCartStore((state) => state.addToCart);
   const { wishlist, toggleWishlist } = useWishlistStore(
-    (state) => ({ wishlist: state.wishlist, toggleWishlist: state.toggleWishlist }),
-    shallow
+    (state) => ({
+      wishlist: state.wishlist,
+      toggleWishlist: state.toggleWishlist,
+    }),
+    shallow,
   );
   const { addToCompare, compareItems, removeFromCompare } = useCompareStore(
     (state) => ({
@@ -25,14 +28,15 @@ const ProductCard = ({ product }) => {
       compareItems: state.compareItems,
       removeFromCompare: state.removeFromCompare,
     }),
-    shallow
+    shallow,
   );
 
   const [imageReady, setImageReady] = useState(false);
   const [showQuickView, setShowQuickView] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
-  const isWishlisted = Array.isArray(wishlist) && wishlist.some((i) => i._id === product._id);
+  const isWishlisted =
+    Array.isArray(wishlist) && wishlist.some((i) => i._id === product._id);
   const isCompared = compareItems?.some((i) => i._id === product._id);
   const isOutOfStock = Number(product.stock) <= 0;
 
@@ -42,19 +46,23 @@ const ProductCard = ({ product }) => {
       : 0;
 
   // Compute isNew if backend didn't provide it: created within 7 days
-  const isNewLocal = product.isNew || (product.createdAt && (Date.now() - new Date(product.createdAt)) < 1000 * 60 * 60 * 24 * 7);
+  const isNewLocal =
+    product.isNew ||
+    (product.createdAt &&
+      Date.now() - new Date(product.createdAt) < 1000 * 60 * 60 * 24 * 7);
 
   // Compute best seller badge if salesCount high enough (top tier only)
-  const isBestSeller = product.isBestSeller || (product.salesCount && product.salesCount >= 400);
+  const isBestSeller =
+    product.isBestSeller || (product.salesCount && product.salesCount >= 400);
 
   const imageSrc =
     product.image ||
     "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?q=80&w=1200&auto=format&fit=crop";
 
   const brand = product.brand?.name || product.brand || "Collection";
-  const displayName = product.name?.startsWith(brand) 
-      ? product.name.substring(brand.length).trim() 
-      : product.name;
+  const displayName = product.name?.startsWith(brand)
+    ? product.name.substring(brand.length).trim()
+    : product.name;
 
   const openDetail = () => {
     const path = buildProductPath(product);
@@ -84,15 +92,16 @@ const ProductCard = ({ product }) => {
         whileHover={{ y: -4 }}
         transition={{ type: "spring", stiffness: 240, damping: 28 }}
         onClick={openDetail}
-        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), openDetail())}
+        onKeyDown={(e) =>
+          (e.key === "Enter" || e.key === " ") &&
+          (e.preventDefault(), openDetail())
+        }
         role="link"
         tabIndex={0}
         className="group relative cursor-pointer outline-none"
       >
         {/* ── Image Block ── */}
-        <div
-          className="relative aspect-[4/5] overflow-hidden rounded-xl bg-[color:var(--color-surface-2)]"
-        >
+        <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-[color:var(--color-surface-2)]">
           {/* Product image */}
           <img
             src={imageSrc}
@@ -104,7 +113,9 @@ const ProductCard = ({ product }) => {
               imageReady ? "opacity-100 group-hover:scale-[1.04]" : "opacity-0"
             }`}
           />
-          {!imageReady && <div className="skeleton-shimmer skeleton-shimmer-premium absolute inset-0" />}
+          {!imageReady && (
+            <div className="skeleton-shimmer skeleton-shimmer-premium absolute inset-0" />
+          )}
 
           {/* Subtle hover overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent opacity-0 transition-opacity duration-[400ms] group-hover:opacity-100" />
@@ -154,15 +165,23 @@ const ProductCard = ({ product }) => {
             <div className="flex gap-1">
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); toggleWishlist(product, !!user); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleWishlist(product, !!user);
+                }}
                 className="inline-flex h-7 w-7 items-center justify-center rounded-[3px] border border-white/20 bg-black/60 text-white backdrop-blur-sm transition hover:bg-white hover:text-black"
                 aria-label="Yêu thích"
               >
-                <Heart className={`h-3.5 w-3.5 ${isWishlisted ? "fill-current text-[color:var(--color-gold)]" : ""}`} />
+                <Heart
+                  className={`h-3.5 w-3.5 ${isWishlisted ? "fill-current text-[color:var(--color-gold)]" : ""}`}
+                />
               </button>
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); setShowQuickView(true); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowQuickView(true);
+                }}
                 className="inline-flex h-7 w-7 items-center justify-center rounded-[3px] border border-white/20 bg-black/60 text-white backdrop-blur-sm transition hover:bg-white hover:text-black"
                 aria-label="Xem nhanh"
               >
@@ -186,12 +205,12 @@ const ProductCard = ({ product }) => {
         {/* ── Info Block — Compact ── */}
         <div className="pt-3 space-y-1.5">
           {/* Brand kicker */}
-          <p className="text-[9px] font-semibold uppercase tracking-[0.28em] text-muted truncate">{brand}</p>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.28em] text-muted truncate">
+            {brand}
+          </p>
 
           {/* Product name */}
-          <h3
-            className="font-display text-[0.95rem] leading-snug text-primary line-clamp-2 transition-colors duration-200 hover:text-[color:var(--color-gold)]"
-          >
+          <h3 className="font-display text-[0.95rem] leading-snug text-primary line-clamp-2 transition-colors duration-200 hover:text-[color:var(--color-gold)]">
             {displayName}
           </h3>
 
@@ -213,12 +232,16 @@ const ProductCard = ({ product }) => {
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                isCompared ? removeFromCompare(product._id) : addToCompare(product);
+                isCompared
+                  ? removeFromCompare(product._id)
+                  : addToCompare(product);
               }}
               className="mb-0.5 hidden text-muted transition-colors duration-200 hover:text-[color:var(--color-gold)] sm:inline-block"
               aria-label="So sánh"
             >
-              <ArrowLeftRight className={`h-4 w-4 ${isCompared ? "text-[color:var(--color-gold)]" : ""}`} />
+              <ArrowLeftRight
+                className={`h-4 w-4 ${isCompared ? "text-[color:var(--color-gold)]" : ""}`}
+              />
             </button>
           </div>
         </div>
@@ -244,7 +267,11 @@ const ProductCard = ({ product }) => {
             >
               {/* Image */}
               <div className="relative min-h-[300px] bg-[color:var(--color-surface-2)]">
-                <img src={imageSrc} alt={product.name} className="h-full w-full object-cover" />
+                <img
+                  src={imageSrc}
+                  alt={product.name}
+                  className="h-full w-full object-cover"
+                />
                 <button
                   type="button"
                   onClick={() => setShowQuickView(false)}
@@ -257,8 +284,12 @@ const ProductCard = ({ product }) => {
               {/* Info */}
               <div className="flex flex-col justify-between space-y-5 p-7 sm:p-8">
                 <div className="space-y-3">
-                  <p className="text-[9px] font-semibold uppercase tracking-[0.32em] text-muted">{brand}</p>
-                  <h3 className="font-serif text-2xl leading-tight text-primary">{displayName}</h3>
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.32em] text-muted">
+                    {brand}
+                  </p>
+                  <h3 className="font-serif text-2xl leading-tight text-primary">
+                    {displayName}
+                  </h3>
                   <p className="text-sm leading-relaxed text-secondary line-clamp-4">
                     {product.description ||
                       "Mẫu đồng hồ được tuyển chọn với tiêu chí độ hoàn thiện cao, tỷ lệ cân đối và khả năng đeo thoải mái."}
@@ -274,7 +305,11 @@ const ProductCard = ({ product }) => {
                   className="btn-base btn-primary h-11 w-full"
                 >
                   <ShoppingBag className="h-4 w-4" />
-                  {isAdding ? "Đang thêm…" : isOutOfStock ? "Tạm hết hàng" : "Thêm vào giỏ hàng"}
+                  {isAdding
+                    ? "Đang thêm…"
+                    : isOutOfStock
+                      ? "Tạm hết hàng"
+                      : "Thêm vào giỏ hàng"}
                 </button>
               </div>
             </motion.div>

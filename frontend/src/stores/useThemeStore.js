@@ -2,25 +2,27 @@ import { createWithEqualityFn } from "zustand/traditional";
 import { persist } from "zustand/middleware";
 
 export const useThemeStore = createWithEqualityFn(
-	persist(
-		(set) => ({
-			theme: window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
-			toggleTheme: () =>
-				set((state) => ({
-					theme: state.theme === "dark" ? "light" : "dark",
-				})),
-			setTheme: (theme) => set({ theme }),
-		}),
-		{
-			name: "theme-storage",
-		}
-	)
+  persist(
+    (set) => ({
+      theme: window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light",
+      toggleTheme: () =>
+        set((state) => ({
+          theme: state.theme === "dark" ? "light" : "dark",
+        })),
+      setTheme: (theme) => set({ theme }),
+    }),
+    {
+      name: "theme-storage",
+    },
+  ),
 );
 
 // Sync across tabs
 window.addEventListener("storage", (event) => {
-	if (event.key === "theme-storage") {
-		const newTheme = JSON.parse(event.newValue).state.theme;
-		useThemeStore.getState().setTheme(newTheme);
-	}
+  if (event.key === "theme-storage") {
+    const newTheme = JSON.parse(event.newValue).state.theme;
+    useThemeStore.getState().setTheme(newTheme);
+  }
 });

@@ -1,14 +1,14 @@
 /**
  * useUsersData Hook
- * 
+ *
  * Handles user data fetching, pagination, search, role filtering with smart caching.
  * Implements request deduplication to prevent duplicate API calls.
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
-import axios from '../lib/axios';
-import toast from 'react-hot-toast';
-import { useErrorHandler } from './useErrorHandler';
+import { useState, useCallback, useRef, useEffect } from "react";
+import axios from "../lib/axios";
+import toast from "react-hot-toast";
+import { useErrorHandler } from "./useErrorHandler";
 
 export const useUsersData = () => {
   const [users, setUsers] = useState([]);
@@ -19,14 +19,14 @@ export const useUsersData = () => {
     totalUsers: 0,
     limit: 10,
   });
-  const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
 
   // Caching refs to prevent duplicate requests
   const searchRef = useRef(search);
   const usersFetchRef = useRef({
     promise: null,
-    lastKey: '',
+    lastKey: "",
     lastFetched: 0,
   });
 
@@ -62,7 +62,7 @@ export const useUsersData = () => {
 
       fetchState.promise = (async () => {
         try {
-          const res = await axios.get('/auth/users', {
+          const res = await axios.get("/auth/users", {
             params: {
               page,
               limit: 10,
@@ -80,9 +80,9 @@ export const useUsersData = () => {
           });
         } catch (error) {
           handleError(error, {
-            context: 'useUsersData.fetchUsers',
+            context: "useUsersData.fetchUsers",
             showToast: true,
-            toastMessage: 'Không thể tải danh sách người dùng',
+            toastMessage: "Không thể tải danh sách người dùng",
           });
           setUsers([]);
           setPagination({
@@ -100,7 +100,7 @@ export const useUsersData = () => {
 
       return fetchState.promise;
     },
-    [handleError]
+    [handleError],
   );
 
   /**
@@ -116,14 +116,14 @@ export const useUsersData = () => {
         return true;
       } catch (error) {
         handleError(error, {
-          context: 'useUsersData.deleteUser',
+          context: "useUsersData.deleteUser",
           showToast: true,
-          toastMessage: 'Lỗi khi xóa tài khoản',
+          toastMessage: "Lỗi khi xóa tài khoản",
         });
         return false;
       }
     },
-    [pagination.currentPage, roleFilter, fetchUsers, handleError]
+    [pagination.currentPage, roleFilter, fetchUsers, handleError],
   );
 
   /**
@@ -139,14 +139,14 @@ export const useUsersData = () => {
         return true;
       } catch (error) {
         handleError(error, {
-          context: 'useUsersData.updateRole',
+          context: "useUsersData.updateRole",
           showToast: true,
-          toastMessage: 'Lỗi khi đổi vai trò',
+          toastMessage: "Lỗi khi đổi vai trò",
         });
         return false;
       }
     },
-    [pagination.currentPage, roleFilter, fetchUsers, handleError]
+    [pagination.currentPage, roleFilter, fetchUsers, handleError],
   );
 
   /**
@@ -155,21 +155,21 @@ export const useUsersData = () => {
   const handleBulkDeleteUsers = useCallback(
     async (userIds) => {
       try {
-        await axios.delete('/auth/users', { data: { ids: userIds } });
+        await axios.delete("/auth/users", { data: { ids: userIds } });
         toast.success(`Đã xóa ${userIds.length} tài khoản thành công`);
         // Refetch to update list
         await fetchUsers(pagination.currentPage, roleFilter, searchRef.current);
         return true;
       } catch (error) {
         handleError(error, {
-          context: 'useUsersData.bulkDeleteUsers',
+          context: "useUsersData.bulkDeleteUsers",
           showToast: true,
-          toastMessage: 'Lỗi khi xóa hàng loạt tài khoản',
+          toastMessage: "Lỗi khi xóa hàng loạt tài khoản",
         });
         return false;
       }
     },
-    [pagination.currentPage, roleFilter, fetchUsers, handleError]
+    [pagination.currentPage, roleFilter, fetchUsers, handleError],
   );
 
   return {

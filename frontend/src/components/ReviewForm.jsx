@@ -6,12 +6,12 @@ import { toast } from "react-hot-toast";
 const Stars = ({ value, onChange }) => {
   return (
     <div className="flex items-center gap-1">
-      {[1,2,3,4,5].map((n) => (
+      {[1, 2, 3, 4, 5].map((n) => (
         <button
           key={n}
           type="button"
           onClick={() => onChange(n)}
-          className={`text-2xl ${n <= value ? 'text-yellow-400' : 'text-gray-400'}`}
+          className={`text-2xl ${n <= value ? "text-yellow-400" : "text-gray-400"}`}
           aria-label={`Rate ${n}`}
         >
           ★
@@ -30,7 +30,12 @@ const ReviewForm = ({ productId }) => {
   const [submitted, setSubmitted] = useState(false);
 
   if (!user || !productId) return null;
-  if (submitted) return <div className="text-sm text-amber-300">Đã gửi đánh giá. Đang chờ duyệt.</div>;
+  if (submitted)
+    return (
+      <div className="text-sm text-amber-300">
+        Đã gửi đánh giá. Đang chờ duyệt.
+      </div>
+    );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,7 +49,7 @@ const ReviewForm = ({ productId }) => {
         productId,
         rating,
         title: title.trim(),
-        comment: comment.trim()
+        comment: comment.trim(),
       });
       toast.success("Đã gửi đánh giá. Cảm ơn bạn!");
       setSubmitted(true);
@@ -57,8 +62,13 @@ const ReviewForm = ({ productId }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-3 p-3 border border-gray-700 rounded-lg bg-gray-800/40">
-      <label className="text-sm text-gray-300 font-medium">Đánh giá sản phẩm</label>
+    <form
+      onSubmit={handleSubmit}
+      className="mt-3 p-3 border border-gray-700 rounded-lg bg-gray-800/40"
+    >
+      <label className="text-sm text-gray-300 font-medium">
+        Đánh giá sản phẩm
+      </label>
       <div className="mt-2 flex items-center justify-between gap-3">
         <Stars value={rating} onChange={setRating} />
       </div>
@@ -78,10 +88,22 @@ const ReviewForm = ({ productId }) => {
         maxLength={1000}
       />
       <div className="mt-3 flex items-center gap-3">
-        <button type="submit" disabled={loading} className="btn-base btn-primary px-4 py-2">
-          {loading ? 'Đang gửi...' : 'Gửi đánh giá'}
+        <button
+          type="submit"
+          disabled={loading}
+          className="btn-base btn-primary px-4 py-2"
+        >
+          {loading ? "Đang gửi..." : "Gửi đánh giá"}
         </button>
-        <button type="button" onClick={() => { setRating(5); setTitle(""); setComment(""); }} className="btn-base btn-ghost px-3 py-2 text-sm">
+        <button
+          type="button"
+          onClick={() => {
+            setRating(5);
+            setTitle("");
+            setComment("");
+          }}
+          className="btn-base btn-ghost px-3 py-2 text-sm"
+        >
           Hủy
         </button>
       </div>

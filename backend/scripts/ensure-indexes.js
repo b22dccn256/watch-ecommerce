@@ -19,37 +19,37 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
 const ensureIndexes = async () => {
-	if (!process.env.MONGO_URI) {
-		console.error("[ensure-indexes] MONGO_URI is required");
-		process.exit(1);
-	}
+  if (!process.env.MONGO_URI) {
+    console.error("[ensure-indexes] MONGO_URI is required");
+    process.exit(1);
+  }
 
-	await mongoose.connect(process.env.MONGO_URI);
-	console.log("[ensure-indexes] Connected");
+  await mongoose.connect(process.env.MONGO_URI);
+  console.log("[ensure-indexes] Connected");
 
-	const results = await Promise.all([
-		User.syncIndexes(),
-		Product.syncIndexes(),
-		Order.syncIndexes(),
-		Coupon.syncIndexes(),
-		Brand.syncIndexes(),
-		Category.syncIndexes(),
-	]);
+  const results = await Promise.all([
+    User.syncIndexes(),
+    Product.syncIndexes(),
+    Order.syncIndexes(),
+    Coupon.syncIndexes(),
+    Brand.syncIndexes(),
+    Category.syncIndexes(),
+  ]);
 
-	console.log("[ensure-indexes] syncIndexes complete:", {
-		user: results[0],
-		product: results[1],
-		order: results[2],
-		coupon: results[3],
-		brand: results[4],
-		category: results[5],
-	});
+  console.log("[ensure-indexes] syncIndexes complete:", {
+    user: results[0],
+    product: results[1],
+    order: results[2],
+    coupon: results[3],
+    brand: results[4],
+    category: results[5],
+  });
 
-	await mongoose.disconnect();
-	console.log("[ensure-indexes] Done");
+  await mongoose.disconnect();
+  console.log("[ensure-indexes] Done");
 };
 
 ensureIndexes().catch((err) => {
-	console.error("[ensure-indexes] Failed:", err.message);
-	process.exit(1);
+  console.error("[ensure-indexes] Failed:", err.message);
+  process.exit(1);
 });

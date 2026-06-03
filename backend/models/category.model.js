@@ -1,40 +1,40 @@
 import mongoose from "mongoose";
 
 const categorySchema = new mongoose.Schema(
-    {
-        name: {
-            type: String,
-            required: true,
-        },
-        slug: {
-            type: String,
-            required: true,
-            unique: true,
-        },
-        parentCategory: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Category",
-            default: null,
-        },
-        image: {
-            type: String,
-            default: "",
-        },
-        isActive: {
-            type: Boolean,
-            default: true,
-        },
-        level: {
-            type: Number,
-            default: 0,
-        },
-        ancestors: {
-            type: [mongoose.Schema.Types.ObjectId],
-            ref: "Category",
-            default: [],
-        },
+  {
+    name: {
+      type: String,
+      required: true,
     },
-    { timestamps: true }
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    parentCategory: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      default: null,
+    },
+    image: {
+      type: String,
+      default: "",
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    level: {
+      type: Number,
+      default: 0,
+    },
+    ancestors: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Category",
+      default: [],
+    },
+  },
+  { timestamps: true },
 );
 
 categorySchema.index({ parentCategory: 1 });

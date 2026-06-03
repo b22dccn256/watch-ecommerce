@@ -1,11 +1,11 @@
 /**
  * useProductsBulkSelect Hook
- * 
+ *
  * Handles bulk product selection state and operations.
  * Replaces scattered bulk select logic in ProductsList.
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from "react";
 
 export const useProductsBulkSelect = (products = []) => {
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -84,7 +84,7 @@ export const useProductsBulkSelect = (products = []) => {
   // Get selected count
   const selectedCount = selectedIds.size;
   const selectedOnPageCount = currentPageIds.filter((id) =>
-    selectedIds.has(id)
+    selectedIds.has(id),
   ).length;
 
   return {

@@ -3,11 +3,11 @@ import { AlertTriangle, Trash2, X } from "lucide-react";
 
 /**
  * ConfirmModal — Production-grade confirmation dialog
- * 
+ *
  * Usage:
  *   const [confirm, setConfirm] = useState(null);
  *   <ConfirmModal config={confirm} onClose={() => setConfirm(null)} />
- * 
+ *
  *   setConfirm({
  *     title: "Xóa đơn hàng",
  *     message: "Thao tác này không thể hoàn tác.",
@@ -39,7 +39,8 @@ const ConfirmModal = ({ config, onClose }) => {
     warning: {
       icon: <AlertTriangle className="w-6 h-6" />,
       iconBg: "bg-amber-400/10 text-amber-400",
-      confirmBtn: "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20",
+      confirmBtn:
+        "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20",
       borderAccent: "border-amber-500/20",
     },
     info: {
@@ -64,7 +65,9 @@ const ConfirmModal = ({ config, onClose }) => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.92, y: 16 }}
@@ -77,7 +80,9 @@ const ConfirmModal = ({ config, onClose }) => {
           {/* Header */}
           <div className="flex items-start justify-between p-6 pb-4">
             <div className="flex items-start gap-4">
-              <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${v.iconBg}`}>
+              <div
+                className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${v.iconBg}`}
+              >
                 {v.icon}
               </div>
               <div>

@@ -1,4 +1,4 @@
-import { ShieldCheck, Award, Zap, Clock } from 'lucide-react';
+import { ShieldCheck, Award, Zap, Clock } from "lucide-react";
 
 const ProductTrustBadges = ({ product, stock }) => {
   const isLimitedStock = stock > 0 && stock <= 3;
@@ -12,7 +12,7 @@ const ProductTrustBadges = ({ product, stock }) => {
           <ShieldCheck className="h-3.5 w-3.5" />
           <span>Xác thực 100%</span>
         </div>
-        
+
         <div className="trust-badge">
           <Award className="h-3.5 w-3.5" />
           <span>Bảo hành quốc tế</span>

@@ -8,16 +8,19 @@ const HeroBanner = ({ config, slogan }) => {
 
   const slides = useMemo(() => {
     if (config?.heroSlides && config.heroSlides.length > 0) {
-      return config.heroSlides.filter(s => s.active !== false);
+      return config.heroSlides.filter((s) => s.active !== false);
     }
     return [
       {
-        image: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=1600",
+        image:
+          "https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=1600",
         mobileImage: "",
         title: "Kiệt tác Thời gian",
-        subtitle: slogan || "Tuyển chọn đồng hồ cao cấp với trải nghiệm tinh gọn, rõ ràng và sang trọng.",
-        link: "/catalog?reset=true"
-      }
+        subtitle:
+          slogan ||
+          "Tuyển chọn đồng hồ cao cấp với trải nghiệm tinh gọn, rõ ràng và sang trọng.",
+        link: "/catalog?reset=true",
+      },
     ];
   }, [config, slogan]);
 
@@ -31,7 +34,10 @@ const HeroBanner = ({ config, slogan }) => {
     return () => clearInterval(timer);
   }, [slides.length]);
 
-  const activeSlide = useMemo(() => slides[currentIndex] || {}, [slides, currentIndex]);
+  const activeSlide = useMemo(
+    () => slides[currentIndex] || {},
+    [slides, currentIndex],
+  );
 
   const next = () => {
     if (!slides.length) return;
@@ -56,10 +62,16 @@ const HeroBanner = ({ config, slogan }) => {
           className="absolute inset-0 w-full h-full"
         >
           <img
-            src={activeSlide.image || "https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=1600"}
+            src={
+              activeSlide.image ||
+              "https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=1600"
+            }
             alt={activeSlide.title || "Luxury watch campaign"}
             className="w-full h-full object-cover"
-            onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=1600"; }}
+            onError={(e) => {
+              e.target.src =
+                "https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=1600";
+            }}
           />
           {/* Rich Gradient Overlay for premium feel and text legibility */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent dark:from-black/90 dark:via-black/50 dark:to-transparent" />
@@ -87,7 +99,8 @@ const HeroBanner = ({ config, slogan }) => {
             </h1>
 
             <p className="text-xs sm:text-sm md:text-base text-white/70 max-w-lg leading-relaxed font-light drop-shadow-sm">
-              {activeSlide.subtitle || "Tuyển chọn đồng hồ cao cấp với trải nghiệm tinh gọn, rõ ràng và sang trọng."}
+              {activeSlide.subtitle ||
+                "Tuyển chọn đồng hồ cao cấp với trải nghiệm tinh gọn, rõ ràng và sang trọng."}
             </p>
 
             <div className="flex flex-wrap gap-3 pt-2 sm:pt-4">

@@ -34,8 +34,18 @@ const SearchBar = ({ placeholder = "Tìm đồng hồ, thương hiệu, mã..." 
       </div>
       {suggestions?.length > 0 && q.length >= 2 && (
         <div className="mt-2 rounded-md border bg-white">
-          {suggestions.slice(0,6).map(s => (
-            <button key={s._id} type="button" onClick={() => { setQ(s.name); onSubmit(); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">{s.name}</button>
+          {suggestions.slice(0, 6).map((s) => (
+            <button
+              key={s._id}
+              type="button"
+              onClick={() => {
+                setQ(s.name);
+                onSubmit();
+              }}
+              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+            >
+              {s.name}
+            </button>
           ))}
         </div>
       )}

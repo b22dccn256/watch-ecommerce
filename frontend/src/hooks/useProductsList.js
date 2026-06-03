@@ -1,14 +1,14 @@
 /**
  * useProductsList Hook
- * 
+ *
  * Handles all product list operations: fetching, CRUD, and state management.
  * Replaces direct API calls scattered throughout ProductsList component.
  */
 
-import { useCallback } from 'react';
-import { useProductStore } from '../stores/useProductStore';
-import { useErrorHandler } from './useErrorHandler';
-import toast from 'react-hot-toast';
+import { useCallback } from "react";
+import { useProductStore } from "../stores/useProductStore";
+import { useErrorHandler } from "./useErrorHandler";
+import toast from "react-hot-toast";
 
 export const useProductsList = () => {
   const {
@@ -29,7 +29,7 @@ export const useProductsList = () => {
    */
   const fetchProducts = useCallback(
     async (params = {}) => {
-      const { page = 1, limit = 20, search = '', sort = 'name_asc' } = params;
+      const { page = 1, limit = 20, search = "", sort = "name_asc" } = params;
 
       try {
         await fetchProductsAdminPaginated({
@@ -40,12 +40,12 @@ export const useProductsList = () => {
         });
       } catch (error) {
         handleError(error, {
-          context: 'ProductsList.fetchProducts',
+          context: "ProductsList.fetchProducts",
           showToast: true,
         });
       }
     },
-    [fetchProductsAdminPaginated, handleError]
+    [fetchProductsAdminPaginated, handleError],
   );
 
   /**
@@ -55,17 +55,17 @@ export const useProductsList = () => {
     async (productId) => {
       try {
         await deleteProduct(productId);
-        toast.success('Xóa sản phẩm thành công');
+        toast.success("Xóa sản phẩm thành công");
         return true;
       } catch (error) {
         handleError(error, {
-          context: 'ProductsList.deleteProduct',
+          context: "ProductsList.deleteProduct",
           showToast: true,
         });
         return false;
       }
     },
-    [deleteProduct, handleError]
+    [deleteProduct, handleError],
   );
 
   /**
@@ -74,7 +74,7 @@ export const useProductsList = () => {
   const handleBulkDelete = useCallback(
     async (productIds) => {
       if (!productIds || productIds.length === 0) {
-        toast.error('Chưa chọn sản phẩm để xóa');
+        toast.error("Chưa chọn sản phẩm để xóa");
         return false;
       }
 
@@ -102,13 +102,13 @@ export const useProductsList = () => {
         return successCount > 0;
       } catch (error) {
         handleError(error, {
-          context: 'ProductsList.bulkDelete',
+          context: "ProductsList.bulkDelete",
           showToast: true,
         });
         return false;
       }
     },
-    [deleteProduct, handleError]
+    [deleteProduct, handleError],
   );
 
   /**
@@ -118,18 +118,18 @@ export const useProductsList = () => {
     async (productId, currentFeatured) => {
       try {
         await toggleFeaturedProduct(productId, !currentFeatured);
-        const status = !currentFeatured ? 'featured' : 'không featured';
+        const status = !currentFeatured ? "featured" : "không featured";
         toast.success(`Cập nhật trạng thái ${status}`);
         return true;
       } catch (error) {
         handleError(error, {
-          context: 'ProductsList.toggleFeatured',
+          context: "ProductsList.toggleFeatured",
           showToast: true,
         });
         return false;
       }
     },
-    [toggleFeaturedProduct, handleError]
+    [toggleFeaturedProduct, handleError],
   );
 
   /**
@@ -138,7 +138,7 @@ export const useProductsList = () => {
   const handleBulkToggleFeatured = useCallback(
     async (productIds, shouldFeature) => {
       if (!productIds || productIds.length === 0) {
-        toast.error('Chưa chọn sản phẩm');
+        toast.error("Chưa chọn sản phẩm");
         return false;
       }
 
@@ -155,7 +155,7 @@ export const useProductsList = () => {
         }
 
         if (successCount > 0) {
-          const action = shouldFeature ? 'Nâng cấp' : 'Hạ cấp';
+          const action = shouldFeature ? "Nâng cấp" : "Hạ cấp";
           toast.success(`${action} thành công ${successCount} sản phẩm`);
           return true;
         }
@@ -163,13 +163,13 @@ export const useProductsList = () => {
         return false;
       } catch (error) {
         handleError(error, {
-          context: 'ProductsList.bulkToggleFeatured',
+          context: "ProductsList.bulkToggleFeatured",
           showToast: true,
         });
         return false;
       }
     },
-    [toggleFeaturedProduct, handleError]
+    [toggleFeaturedProduct, handleError],
   );
 
   return {

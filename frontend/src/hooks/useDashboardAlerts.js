@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import axios from '../lib/axios';
-import { useUserStore } from '../stores/useUserStore';
+import { useState, useCallback, useEffect, useRef } from "react";
+import axios from "../lib/axios";
+import { useUserStore } from "../stores/useUserStore";
 
 /**
  * Hook quản lý dashboard alerts, notifications cho AdminPage.
@@ -34,59 +34,80 @@ export function useDashboardAlerts() {
     if (now - fs.lastFetched < 15000) return;
 
     fs.promise = Promise.allSettled([
-      axios.get('/orders?status=pending&limit=5'),
-      axios.get('/products/inventory/alerts?limit=3'),
-      axios.get('/reviews?status=pending&limit=1'),
-      axios.get('/questions?answered=false&limit=1'),
-    ]).then(([ordersRes, inventoryRes, reviewsRes, questionsRes]) => {
-      setTasks({
-        pendingOrders:       ordersRes.status === 'fulfilled'   ? (ordersRes.value.data?.pagination?.totalOrders  || 0) : 0,
-        lowStock:            inventoryRes.status === 'fulfilled' ? (inventoryRes.value.data?.totalAlerts           || 0) : 0,
-        pendingReviews:      reviewsRes.status === 'fulfilled'   ? (reviewsRes.value.data?.pagination?.totalReviews || 0) : 0,
-        unansweredQuestions: questionsRes.status === 'fulfilled' ? (questionsRes.value.data?.totalQuestions        || 0) : 0,
+      axios.get("/orders?status=pending&limit=5"),
+      axios.get("/products/inventory/alerts?limit=3"),
+      axios.get("/reviews?status=pending&limit=1"),
+      axios.get("/questions?answered=false&limit=1"),
+    ])
+      .then(([ordersRes, inventoryRes, reviewsRes, questionsRes]) => {
+        setTasks({
+          pendingOrders:
+            ordersRes.status === "fulfilled"
+              ? ordersRes.value.data?.pagination?.totalOrders || 0
+              : 0,
+          lowStock:
+            inventoryRes.status === "fulfilled"
+              ? inventoryRes.value.data?.totalAlerts || 0
+              : 0,
+          pendingReviews:
+            reviewsRes.status === "fulfilled"
+              ? reviewsRes.value.data?.pagination?.totalReviews || 0
+              : 0,
+          unansweredQuestions:
+            questionsRes.status === "fulfilled"
+              ? questionsRes.value.data?.totalQuestions || 0
+              : 0,
+        });
+
+        const notifs = [];
+        const readNotifs = JSON.parse(
+          localStorage.getItem("admin_read_notifs") || "[]",
+        );
+
+        if (ordersRes.status === "fulfilled") {
+          (ordersRes.value.data?.orders || []).slice(0, 5).forEach((o) => {
+            if (!readNotifs.includes(o._id)) {
+              notifs.push({
+                id: o._id,
+                type: "order",
+                title: "Đơn hàng mới chờ xử lý",
+                desc:
+                  "#" +
+                  (o.orderCode || o._id?.slice(0, 8).toUpperCase()) +
+                  " — " +
+                  (o.shippingDetails?.fullName || ""),
+                time: o.createdAt,
+                tab: "orders",
+              });
+            }
+          });
+        }
+        if (inventoryRes.status === "fulfilled") {
+          (inventoryRes.value.data?.products || []).slice(0, 3).forEach((p) => {
+            const invId = "inv_" + p._id;
+            if (!readNotifs.includes(invId)) {
+              notifs.push({
+                id: invId,
+                type: "inventory",
+                title: "Hàng sắp hết kho",
+                desc: (p.name || "Sản phẩm") + " — còn " + p.stock + " cái",
+                time: new Date().toISOString(),
+                tab: "inventory",
+              });
+            }
+          });
+        }
+
+        setNotifications(notifs);
+        setNotifCount(notifs.length);
+      })
+      .catch(() => {
+        // Silently ignore auth errors — user may not be logged in yet
+      })
+      .finally(() => {
+        fs.lastFetched = Date.now();
+        fs.promise = null;
       });
-
-      const notifs = [];
-      const readNotifs = JSON.parse(localStorage.getItem('admin_read_notifs') || '[]');
-
-      if (ordersRes.status === 'fulfilled') {
-        (ordersRes.value.data?.orders || []).slice(0, 5).forEach(o => {
-          if (!readNotifs.includes(o._id)) {
-            notifs.push({
-              id: o._id,
-              type: 'order',
-              title: 'Đơn hàng mới chờ xử lý',
-              desc: '#' + (o.orderCode || o._id?.slice(0, 8).toUpperCase()) + ' — ' + (o.shippingDetails?.fullName || ''),
-              time: o.createdAt,
-              tab: 'orders',
-            });
-          }
-        });
-      }
-      if (inventoryRes.status === 'fulfilled') {
-        (inventoryRes.value.data?.products || []).slice(0, 3).forEach(p => {
-          const invId = 'inv_' + p._id;
-          if (!readNotifs.includes(invId)) {
-            notifs.push({
-              id: invId,
-              type: 'inventory',
-              title: 'Hàng sắp hết kho',
-              desc: (p.name || 'Sản phẩm') + ' — còn ' + p.stock + ' cái',
-              time: new Date().toISOString(),
-              tab: 'inventory',
-            });
-          }
-        });
-      }
-
-      setNotifications(notifs);
-      setNotifCount(notifs.length);
-    }).catch(() => {
-      // Silently ignore auth errors — user may not be logged in yet
-    }).finally(() => {
-      fs.lastFetched = Date.now();
-      fs.promise = null;
-    });
 
     return fs.promise;
   }, [user]);
@@ -100,10 +121,17 @@ export function useDashboardAlerts() {
   }, [fetchDashboardAlerts, user]);
 
   const markAllRead = useCallback(() => {
-    const currentIds = notifications.map(n => n.id);
-    const readNotifs = JSON.parse(localStorage.getItem('admin_read_notifs') || '[]');
-    const updatedReadNotifs = [...new Set([...readNotifs, ...currentIds])].slice(-100);
-    localStorage.setItem('admin_read_notifs', JSON.stringify(updatedReadNotifs));
+    const currentIds = notifications.map((n) => n.id);
+    const readNotifs = JSON.parse(
+      localStorage.getItem("admin_read_notifs") || "[]",
+    );
+    const updatedReadNotifs = [
+      ...new Set([...readNotifs, ...currentIds]),
+    ].slice(-100);
+    localStorage.setItem(
+      "admin_read_notifs",
+      JSON.stringify(updatedReadNotifs),
+    );
 
     setNotifications([]);
     setNotifCount(0);

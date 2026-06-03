@@ -18,6 +18,7 @@ This document summarizes required environment variables and local testing comman
   - `STRIPE_WEBHOOK_SECRET` (recommended for webhook verification in production)
 
 Notes:
+
 - The code now prefers `VNP_HASH_SECRET` (as present in `backend/.env`) and accepts `VNP_SECRET` as a fallback. Do not rename your existing secret unless you update `.env` accordingly.
 - Email/send notifications may rely on `BACKEND_URL`, `EMAIL_USER`, and `EMAIL_PASS`.
 
@@ -57,4 +58,3 @@ node backend/scripts/send_test_webhooks.js --stripe http://localhost:5000/api/pa
 - Always set `STRIPE_WEBHOOK_SECRET` in production and protect the endpoint behind the correct URL/secret.
 - Keep payment secrets out of VCS and use a secrets manager in production.
 - Ensure `VNP_HASH_SECRET` is never logged.
-

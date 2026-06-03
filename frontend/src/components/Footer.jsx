@@ -53,17 +53,36 @@ const Footer = () => {
   const { config } = useStorefrontStore();
 
   const dynamicSocials = [
-    { icon: Facebook, href: config?.footerFacebook || "https://facebook.com", label: "Facebook" },
-    { icon: Instagram, href: config?.footerInstagram || "https://instagram.com", label: "Instagram" },
-    { icon: MessageSquare, href: config?.footerZalo || "https://zalo.me", label: "Zalo" },
-    ...(config?.footerTiktok ? [{ icon: Twitter, href: config.footerTiktok, label: "TikTok" }] : []),
-    ...(config?.footerYoutube ? [{ icon: Youtube, href: config.footerYoutube, label: "Youtube" }] : []),
-    ...(config?.footerPinterest ? [{ icon: Link2, href: config.footerPinterest, label: "Pinterest" }] : []),
+    {
+      icon: Facebook,
+      href: config?.footerFacebook || "https://facebook.com",
+      label: "Facebook",
+    },
+    {
+      icon: Instagram,
+      href: config?.footerInstagram || "https://instagram.com",
+      label: "Instagram",
+    },
+    {
+      icon: MessageSquare,
+      href: config?.footerZalo || "https://zalo.me",
+      label: "Zalo",
+    },
+    ...(config?.footerTiktok
+      ? [{ icon: Twitter, href: config.footerTiktok, label: "TikTok" }]
+      : []),
+    ...(config?.footerYoutube
+      ? [{ icon: Youtube, href: config.footerYoutube, label: "Youtube" }]
+      : []),
+    ...(config?.footerPinterest
+      ? [{ icon: Link2, href: config.footerPinterest, label: "Pinterest" }]
+      : []),
   ];
 
-  const footerColumns = (config?.footerColumns && config.footerColumns.length > 0)
-    ? config.footerColumns
-    : DEFAULT_FOOTER_COLUMNS;
+  const footerColumns =
+    config?.footerColumns && config.footerColumns.length > 0
+      ? config.footerColumns
+      : DEFAULT_FOOTER_COLUMNS;
 
   const handleSubscribe = async (event) => {
     event.preventDefault();
@@ -84,7 +103,9 @@ const Footer = () => {
       toast.success(res.data.message || "Đăng ký thành công");
       setEmail("");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Không thể đăng ký nhận tin.");
+      toast.error(
+        error.response?.data?.message || "Không thể đăng ký nhận tin.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -94,8 +115,14 @@ const Footer = () => {
     <footer className="section-divider mt-10 border-t border-black/6 bg-[color:var(--color-surface)] dark:border-white/6 animate-fade-in">
       <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-center gap-3 border-b border-black/8 py-5 text-xs uppercase tracking-[0.16em] text-secondary dark:border-white/8 sm:justify-between">
-          <span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-[color:var(--color-gold)]" />Miễn phí giao hàng từ 2.000.000 đ</span>
-          <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-[color:var(--color-gold)]" />Bảo mật thanh toán 100%</span>
+          <span className="inline-flex items-center gap-2">
+            <Truck className="h-4 w-4 text-[color:var(--color-gold)]" />
+            Miễn phí giao hàng từ 2.000.000 đ
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-[color:var(--color-gold)]" />
+            Bảo mật thanh toán 100%
+          </span>
         </div>
 
         <motion.div
@@ -112,12 +139,15 @@ const Footer = () => {
               </div>
               <div>
                 <p className="hero-title text-lg tracking-[0.24em]">LUXURY</p>
-                <p className="text-[10px] uppercase tracking-[0.3em] text-muted">Watch Gallery</p>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-muted">
+                  Watch Gallery
+                </p>
               </div>
             </div>
 
             <p className="max-w-sm text-sm leading-relaxed text-secondary">
-              {config?.footerAboutText || "Tuyển chọn đồng hồ cao cấp từ những thương hiệu danh tiếng, kết hợp trải nghiệm mua sắm tinh gọn và dịch vụ hậu mãi chuyên nghiệp."}
+              {config?.footerAboutText ||
+                "Tuyển chọn đồng hồ cao cấp từ những thương hiệu danh tiếng, kết hợp trải nghiệm mua sắm tinh gọn và dịch vụ hậu mãi chuyên nghiệp."}
             </p>
 
             <div className="flex gap-2">
@@ -139,14 +169,19 @@ const Footer = () => {
 
           {footerColumns.map((column) => (
             <section key={column.title}>
-              <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-primary">{column.title}</h3>
+              <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-primary">
+                {column.title}
+              </h3>
               <ul className="space-y-3 text-sm text-secondary">
                 {column.links.map((link) => {
                   const label = link.label || link[0];
                   const to = link.link || link[1];
                   return (
                     <li key={to}>
-                      <Link to={to} className="transition hover:text-[color:var(--color-gold)]">
+                      <Link
+                        to={to}
+                        className="transition hover:text-[color:var(--color-gold)]"
+                      >
                         {label}
                       </Link>
                     </li>
@@ -157,11 +192,15 @@ const Footer = () => {
           ))}
 
           <section className="space-y-5">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-primary">Liên hệ</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-primary">
+              Liên hệ
+            </h3>
             <div className="space-y-3 text-sm text-secondary">
               <p className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 text-[color:var(--color-gold)] flex-shrink-0" />
-                <span>{config?.footerAddress || "123 Đường ABC, Quận 1, TP.HCM"}</span>
+                <span>
+                  {config?.footerAddress || "123 Đường ABC, Quận 1, TP.HCM"}
+                </span>
               </p>
               <p className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-[color:var(--color-gold)] flex-shrink-0" />
@@ -169,16 +208,26 @@ const Footer = () => {
               </p>
               <p className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-[color:var(--color-gold)] flex-shrink-0" />
-                <span className="break-all">{config?.footerEmail || "info@luxurywatch.vn"}</span>
+                <span className="break-all">
+                  {config?.footerEmail || "info@luxurywatch.vn"}
+                </span>
               </p>
               <p className="flex items-start gap-2">
                 <Clock className="mt-0.5 h-4 w-4 text-[color:var(--color-gold)] flex-shrink-0" />
-                <span>{config?.storeWorkingHours || "Thứ 2 đến Chủ nhật: 09:00 - 21:00"}</span>
+                <span>
+                  {config?.storeWorkingHours ||
+                    "Thứ 2 đến Chủ nhật: 09:00 - 21:00"}
+                </span>
               </p>
             </div>
 
-            <form onSubmit={handleSubscribe} className="space-y-2 rounded-xl border border-black/10 bg-surface-soft p-3 dark:border-white/10">
-              <p className="text-xs uppercase tracking-[0.18em] text-muted">Nhận ưu đãi mới</p>
+            <form
+              onSubmit={handleSubscribe}
+              className="space-y-2 rounded-xl border border-black/10 bg-surface-soft p-3 dark:border-white/10"
+            >
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                Nhận ưu đãi mới
+              </p>
               <div className="relative">
                 <input
                   type="email"
@@ -188,8 +237,16 @@ const Footer = () => {
                   className="input-base h-10 rounded-full pr-10"
                   disabled={isLoading}
                 />
-                <button type="submit" disabled={isLoading} className="absolute right-1 top-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[color:var(--color-gold)] text-black">
-                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="absolute right-1 top-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[color:var(--color-gold)] text-black"
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <ArrowRight className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </form>
@@ -197,19 +254,34 @@ const Footer = () => {
         </motion.div>
 
         <div className="flex flex-col items-center justify-between gap-4 border-t border-black/8 py-6 text-xs text-muted dark:border-white/8 sm:flex-row">
-          <p>{config?.footerCopyright?.replace("{year}", new Date().getFullYear()) || `© ${new Date().getFullYear()} Luxury Watch. All rights reserved.`}</p>
+          <p>
+            {config?.footerCopyright?.replace(
+              "{year}",
+              new Date().getFullYear(),
+            ) ||
+              `© ${new Date().getFullYear()} Luxury Watch. All rights reserved.`}
+          </p>
           <div className="flex items-center gap-3">
             <CreditCard className="h-4 w-4" />
             <Wallet className="h-4 w-4" />
             <ShieldCheck className="h-4 w-4" />
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/privacy-policy" className="transition hover:text-[color:var(--color-gold)]">Chính sách bảo mật</Link>
+            <Link
+              to="/privacy-policy"
+              className="transition hover:text-[color:var(--color-gold)]"
+            >
+              Chính sách bảo mật
+            </Link>
             <span>|</span>
-            <Link to="/terms" className="transition hover:text-[color:var(--color-gold)]">Điều khoản</Link>
+            <Link
+              to="/terms"
+              className="transition hover:text-[color:var(--color-gold)]"
+            >
+              Điều khoản
+            </Link>
           </div>
         </div>
-
       </div>
     </footer>
   );

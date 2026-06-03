@@ -1,12 +1,12 @@
 /**
  * useAuditLogs Hook
- * 
+ *
  * Handles audit log fetching with smart caching to prevent duplicate requests.
  */
 
-import { useState, useCallback, useRef } from 'react';
-import axios from '../lib/axios';
-import { useErrorHandler } from './useErrorHandler';
+import { useState, useCallback, useRef } from "react";
+import axios from "../lib/axios";
+import { useErrorHandler } from "./useErrorHandler";
 
 export const useAuditLogs = () => {
   const [auditLogs, setAuditLogs] = useState([]);
@@ -21,7 +21,7 @@ export const useAuditLogs = () => {
   // Caching refs to prevent duplicate requests
   const logsFetchRef = useRef({
     promise: null,
-    lastKey: '',
+    lastKey: "",
     lastFetched: 0,
   });
 
@@ -52,7 +52,7 @@ export const useAuditLogs = () => {
 
       fetchState.promise = (async () => {
         try {
-          const res = await axios.get('/auth/audit-logs', {
+          const res = await axios.get("/auth/audit-logs", {
             params: {
               page,
               limit: 10,
@@ -68,7 +68,7 @@ export const useAuditLogs = () => {
           });
         } catch (error) {
           handleError(error, {
-            context: 'useAuditLogs.fetchLogs',
+            context: "useAuditLogs.fetchLogs",
             showToast: false, // Don't show toast for audit logs
           });
           setAuditLogs([]);
@@ -87,7 +87,7 @@ export const useAuditLogs = () => {
 
       return fetchState.promise;
     },
-    [handleError]
+    [handleError],
   );
 
   return {

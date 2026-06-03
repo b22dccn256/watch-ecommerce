@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
-import axios from '../lib/axios';
+import { useEffect, useState, useRef, useCallback } from "react";
+import axios from "../lib/axios";
 
 /**
  * Hook quản lý toàn bộ data fetching cho AnalyticsTab.
@@ -7,10 +7,22 @@ import axios from '../lib/axios';
  */
 export const useAnalyticsData = () => {
   const [data, setData] = useState({
-    users: 0, products: 0, totalSales: 0, totalRevenue: 0,
-    aov: 0, totalOrdersPlaced: 0, conversionRate: 0,
-    pendingRevenue: 0, pendingCount: 0, cancellationRate: 0,
-    paymentStats: [], wristSizeStats: [], watchTypeStats: [], dialColorStats: [], categoryStats: [], recentPendingOrders: [],
+    users: 0,
+    products: 0,
+    totalSales: 0,
+    totalRevenue: 0,
+    aov: 0,
+    totalOrdersPlaced: 0,
+    conversionRate: 0,
+    pendingRevenue: 0,
+    pendingCount: 0,
+    cancellationRate: 0,
+    paymentStats: [],
+    wristSizeStats: [],
+    watchTypeStats: [],
+    dialColorStats: [],
+    categoryStats: [],
+    recentPendingOrders: [],
   });
   const [prevData, setPrevData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,7 +50,7 @@ export const useAnalyticsData = () => {
           axios.get(`/products/inventory/alerts?limit=8`),
         ]);
 
-        if (cur.status === 'fulfilled') {
+        if (cur.status === "fulfilled") {
           const d = cur.value.data;
           const ps = (d.dailySales || []).reduce((s, x) => s + x.sales, 0);
           const pr = (d.dailySales || []).reduce((s, x) => s + x.revenue, 0);
@@ -65,14 +77,18 @@ export const useAnalyticsData = () => {
           if (d.prevDailySales) {
             const pvs = d.prevDailySales.reduce((s, x) => s + x.sales, 0);
             const pvr = d.prevDailySales.reduce((s, x) => s + x.revenue, 0);
-            setPrevData({ totalRevenue: pvr, totalSales: pvs, aov: pvs > 0 ? Math.round(pvr / pvs) : 0 });
+            setPrevData({
+              totalRevenue: pvr,
+              totalSales: pvs,
+              aov: pvs > 0 ? Math.round(pvr / pvs) : 0,
+            });
           }
         }
 
-        if (topRes.status === 'fulfilled') {
+        if (topRes.status === "fulfilled") {
           setTopProducts(topRes.value.data?.products?.slice(0, 8) || []);
         }
-        if (botRes.status === 'fulfilled') {
+        if (botRes.status === "fulfilled") {
           setBottomProducts(botRes.value.data?.products?.slice(0, 8) || []);
         }
 
@@ -83,7 +99,7 @@ export const useAnalyticsData = () => {
           // P&L is non-critical, silently fail
         }
       } catch (e) {
-        console.error('[useAnalyticsData] fetch error:', e);
+        console.error("[useAnalyticsData] fetch error:", e);
       } finally {
         fs.lastFetched = Date.now();
         fs.lastDays = days;
@@ -106,24 +122,38 @@ export const useAnalyticsData = () => {
   const exportCsv = useCallback(() => {
     if (!dailySalesData.length) return;
     const csv = [
-      'Ngày,Đơn hàng,Doanh thu',
-      ...dailySalesData.map(d => `${d.name},${d.sales},${d.revenue}`),
-    ].join('\n');
-    const a = Object.assign(document.createElement('a'), {
-      href: URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv' })),
-      download: `analytics_${days}d_${new Date().toISOString().split('T')[0]}.csv`,
+      "Ngày,Đơn hàng,Doanh thu",
+      ...dailySalesData.map((d) => `${d.name},${d.sales},${d.revenue}`),
+    ].join("\n");
+    const a = Object.assign(document.createElement("a"), {
+      href: URL.createObjectURL(
+        new Blob(["\uFEFF" + csv], { type: "text/csv" }),
+      ),
+      download: `analytics_${days}d_${new Date().toISOString().split("T")[0]}.csv`,
     });
     a.click();
   }, [dailySalesData, days]);
 
-  const hasChart = dailySalesData.some(d => d.sales > 0 || d.revenue > 0);
-  const revDelta = prevData ? getDelta(data.totalRevenue, prevData.totalRevenue) : null;
-  const saleDelta = prevData ? getDelta(data.totalSales, prevData.totalSales) : null;
+  const hasChart = dailySalesData.some((d) => d.sales > 0 || d.revenue > 0);
+  const revDelta = prevData
+    ? getDelta(data.totalRevenue, prevData.totalRevenue)
+    : null;
+  const saleDelta = prevData
+    ? getDelta(data.totalSales, prevData.totalSales)
+    : null;
 
   return {
-    data, isLoading, dailySalesData, days, setDays,
-    topProducts, bottomProducts, plData,
-    hasChart, revDelta, saleDelta,
+    data,
+    isLoading,
+    dailySalesData,
+    days,
+    setDays,
+    topProducts,
+    bottomProducts,
+    plData,
+    hasChart,
+    revDelta,
+    saleDelta,
     exportCsv,
   };
 };

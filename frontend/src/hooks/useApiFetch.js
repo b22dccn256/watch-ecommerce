@@ -1,12 +1,12 @@
 /**
  * useApiFetch Hook
- * 
+ *
  * Standardized async data fetching pattern for all components.
  * Handles loading, error, and success states consistently.
- * 
+ *
  * Usage:
  * const { data, loading, error, fetch } = useApiFetch();
- * 
+ *
  * useEffect(() => {
  *   fetch(async () => {
  *     const res = await api.get('/products');
@@ -15,8 +15,8 @@
  * }, []);
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { useErrorHandler } from './useErrorHandler';
+import { useState, useCallback, useRef, useEffect } from "react";
+import { useErrorHandler } from "./useErrorHandler";
 
 /**
  * Hook for standardized API data fetching
@@ -28,11 +28,7 @@ import { useErrorHandler } from './useErrorHandler';
  * @returns {Object} - { data, loading, error, fetch, refetch, reset }
  */
 export const useApiFetch = (options = {}) => {
-  const {
-    onSuccess,
-    onError,
-    initialData = null,
-  } = options;
+  const { onSuccess, onError, initialData = null } = options;
 
   const [data, setData] = useState(initialData);
   const [loading, setLoading] = useState(false);
@@ -54,10 +50,7 @@ export const useApiFetch = (options = {}) => {
    */
   const fetch = useCallback(
     async (asyncFn, fetchOptions = {}) => {
-      const {
-        context = 'API Fetch',
-        showError = true,
-      } = fetchOptions;
+      const { context = "API Fetch", showError = true } = fetchOptions;
 
       try {
         setLoading(true);
@@ -88,7 +81,7 @@ export const useApiFetch = (options = {}) => {
         throw err;
       }
     },
-    [handleError, onSuccess, onError]
+    [handleError, onSuccess, onError],
   );
 
   /**
@@ -98,7 +91,7 @@ export const useApiFetch = (options = {}) => {
     async (asyncFn) => {
       return fetch(asyncFn);
     },
-    [fetch]
+    [fetch],
   );
 
   /**
@@ -122,9 +115,9 @@ export const useApiFetch = (options = {}) => {
 
 /**
  * usePaginatedFetch Hook
- * 
+ *
  * For fetching paginated data
- * 
+ *
  * Usage:
  * const { items, page, totalPages, loading, fetch } = usePaginatedFetch();
  */
@@ -164,7 +157,7 @@ export const usePaginatedFetch = (options = {}) => {
         if (!isMountedRef.current) return;
 
         const errorParsed = handleError(err, {
-          context: 'Paginated Fetch',
+          context: "Paginated Fetch",
           store: false,
         });
 
@@ -173,7 +166,7 @@ export const usePaginatedFetch = (options = {}) => {
         throw err;
       }
     },
-    [page, pageSize, handleError]
+    [page, pageSize, handleError],
   );
 
   const goToPage = useCallback((newPage) => {
@@ -215,12 +208,12 @@ export const usePaginatedFetch = (options = {}) => {
 
 /**
  * useMutate Hook
- * 
+ *
  * For mutations (POST, PUT, DELETE operations)
- * 
+ *
  * Usage:
  * const { execute, loading, error } = useMutate();
- * 
+ *
  * const handleSave = async () => {
  *   await execute(async () => {
  *     await api.post('/products', data);
@@ -228,10 +221,7 @@ export const usePaginatedFetch = (options = {}) => {
  * };
  */
 export const useMutate = (options = {}) => {
-  const {
-    onSuccess,
-    onError,
-  } = options;
+  const { onSuccess, onError } = options;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -246,7 +236,7 @@ export const useMutate = (options = {}) => {
 
   const execute = useCallback(
     async (asyncFn, execOptions = {}) => {
-      const { context = 'Mutation', showError = true } = execOptions;
+      const { context = "Mutation", showError = true } = execOptions;
 
       try {
         setLoading(true);
@@ -276,7 +266,7 @@ export const useMutate = (options = {}) => {
         throw err;
       }
     },
-    [handleError, onSuccess, onError]
+    [handleError, onSuccess, onError],
   );
 
   const reset = useCallback(() => {

@@ -1,23 +1,23 @@
-import { useState, useCallback } from 'react';
-import axios from '../lib/axios';
-import toast from 'react-hot-toast';
-import { confirmToast } from '../lib/confirmToast';
-import { useErrorHandler } from './useErrorHandler';
+import { useState, useCallback } from "react";
+import axios from "../lib/axios";
+import toast from "react-hot-toast";
+import { confirmToast } from "../lib/confirmToast";
+import { useErrorHandler } from "./useErrorHandler";
 
 const INITIAL_CAT_FORM = {
-  name: '',
-  parentCategory: '',
-  image: '',
-  slug: '',
+  name: "",
+  parentCategory: "",
+  image: "",
+  slug: "",
 };
 
 export const generateCategorySlug = (name) =>
   name
     .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)+/g, '');
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
 
 export const useCategoryManagement = ({ categories, onRefresh }) => {
   const [loading, setLoading] = useState(false);
@@ -27,7 +27,8 @@ export const useCategoryManagement = ({ categories, onRefresh }) => {
   const processImage = useCallback((file, setFormState) => {
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setFormState((prev) => ({ ...prev, image: reader.result }));
+    reader.onload = () =>
+      setFormState((prev) => ({ ...prev, image: reader.result }));
     reader.readAsDataURL(file);
   }, []);
 
@@ -40,23 +41,26 @@ export const useCategoryManagement = ({ categories, onRefresh }) => {
       e.preventDefault();
       setLoading(true);
       try {
-        await axios.post('/categories', {
+        await axios.post("/categories", {
           ...catForm,
           parentCategory: catForm.parentCategory || null,
           slug: catForm.slug || generateCategorySlug(catForm.name),
         });
-        toast.success('Tạo danh mục thành công!');
+        toast.success("Tạo danh mục thành công!");
         resetCatForm();
         await onRefresh?.();
         return true;
       } catch (error) {
-        handleError(error, { context: 'useCategoryManagement.submit', showToast: true });
+        handleError(error, {
+          context: "useCategoryManagement.submit",
+          showToast: true,
+        });
         return false;
       } finally {
         setLoading(false);
       }
     },
-    [catForm, handleError, onRefresh, resetCatForm]
+    [catForm, handleError, onRefresh, resetCatForm],
   );
 
   const deleteCategory = useCallback(
@@ -65,16 +69,19 @@ export const useCategoryManagement = ({ categories, onRefresh }) => {
         setLoading(true);
         try {
           await axios.delete(`/categories/${catId}`);
-          toast.success('Đã xóa danh mục');
+          toast.success("Đã xóa danh mục");
           await onRefresh?.();
         } catch (error) {
-          handleError(error, { context: 'useCategoryManagement.delete', showToast: true });
+          handleError(error, {
+            context: "useCategoryManagement.delete",
+            showToast: true,
+          });
         } finally {
           setLoading(false);
         }
       });
     },
-    [handleError, onRefresh]
+    [handleError, onRefresh],
   );
 
   const updateCategory = useCallback(
@@ -87,26 +94,29 @@ export const useCategoryManagement = ({ categories, onRefresh }) => {
           parentCategory: catForm.parentCategory || null,
           slug: catForm.slug || generateCategorySlug(catForm.name),
         });
-        toast.success('Cập nhật danh mục thành công!');
+        toast.success("Cập nhật danh mục thành công!");
         resetCatForm();
         await onRefresh?.();
         return true;
       } catch (error) {
-        handleError(error, { context: 'useCategoryManagement.update', showToast: true });
+        handleError(error, {
+          context: "useCategoryManagement.update",
+          showToast: true,
+        });
         return false;
       } finally {
         setLoading(false);
       }
     },
-    [catForm, handleError, onRefresh, resetCatForm]
+    [catForm, handleError, onRefresh, resetCatForm],
   );
 
   const startEditCategory = useCallback((cat) => {
     setCatForm({
-      name: cat.name || '',
-      parentCategory: cat.parentCategory?._id || cat.parentCategory || '',
-      image: cat.image || '',
-      slug: cat.slug || '',
+      name: cat.name || "",
+      parentCategory: cat.parentCategory?._id || cat.parentCategory || "",
+      image: cat.image || "",
+      slug: cat.slug || "",
     });
   }, []);
 

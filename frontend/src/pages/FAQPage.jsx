@@ -1,57 +1,75 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, HelpCircle, Search, Mail, MessageCircle } from "lucide-react";
+import {
+  ChevronDown,
+  HelpCircle,
+  Search,
+  Mail,
+  MessageCircle,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import PageShell from "../components/PageShell";
 
 const FAQ_ITEMS = [
   {
     question: "Làm thế nào để đặt hàng trên website?",
-    answer: "Bạn có thể duyệt danh mục sản phẩm, chọn đồng hồ yêu thích, thêm vào giỏ hàng và tiến hành thanh toán. Chúng tôi hỗ trợ thanh toán COD (trả tiền khi nhận hàng), chuyển khoản ngân hàng và thanh toán qua VNPAY.",
+    answer:
+      "Bạn có thể duyệt danh mục sản phẩm, chọn đồng hồ yêu thích, thêm vào giỏ hàng và tiến hành thanh toán. Chúng tôi hỗ trợ thanh toán COD (trả tiền khi nhận hàng), chuyển khoản ngân hàng và thanh toán qua VNPAY.",
   },
   {
     question: "Thời gian giao hàng mất bao lâu?",
-    answer: "Đối với đơn hàng nội thành Hà Nội và TP.HCM, thời gian giao hàng từ 1-2 ngày làm việc. Các tỉnh thành khác từ 2-5 ngày làm việc. Đơn hàng sẽ được gửi qua đơn vị vận chuyển uy tín như Giao Hàng Nhanh, Giao Hàng Tiết Kiệm hoặc Viettel Post.",
+    answer:
+      "Đối với đơn hàng nội thành Hà Nội và TP.HCM, thời gian giao hàng từ 1-2 ngày làm việc. Các tỉnh thành khác từ 2-5 ngày làm việc. Đơn hàng sẽ được gửi qua đơn vị vận chuyển uy tín như Giao Hàng Nhanh, Giao Hàng Tiết Kiệm hoặc Viettel Post.",
   },
   {
     question: "Chính sách đổi trả như thế nào?",
-    answer: "Bạn có thể đổi trả sản phẩm trong vòng 7 ngày kể từ khi nhận hàng nếu sản phẩm còn nguyên vẹn, chưa qua sử dụng và còn đầy đủ hộp, giấy tờ, phụ kiện. Vui lòng xem chi tiết tại trang Chính sách đổi trả.",
+    answer:
+      "Bạn có thể đổi trả sản phẩm trong vòng 7 ngày kể từ khi nhận hàng nếu sản phẩm còn nguyên vẹn, chưa qua sử dụng và còn đầy đủ hộp, giấy tờ, phụ kiện. Vui lòng xem chi tiết tại trang Chính sách đổi trả.",
   },
   {
     question: "Sản phẩm có được bảo hành không?",
-    answer: "Tất cả đồng hồ tại Luxury Watch Gallery đều được bảo hành chính hãng. Thời gian bảo hành từ 12-60 tháng tùy theo thương hiệu. Bảo hành bao gồm các lỗi kỹ thuật từ nhà sản xuất (không bao gồm hao mòn tự nhiên, trầy xước do sử dụng).",
+    answer:
+      "Tất cả đồng hồ tại Luxury Watch Gallery đều được bảo hành chính hãng. Thời gian bảo hành từ 12-60 tháng tùy theo thương hiệu. Bảo hành bao gồm các lỗi kỹ thuật từ nhà sản xuất (không bao gồm hao mòn tự nhiên, trầy xước do sử dụng).",
   },
   {
     question: "Làm sao để biết đồng hồ là hàng chính hãng?",
-    answer: "Luxury Watch Gallery cam kết 100% sản phẩm chính hãng. Mỗi đồng hồ đều có đầy đủ hộp, sổ bảo hành, thẻ chứng nhận và mã QR truy xuất nguồn gốc. Bạn có thể kiểm tra trực tiếp tại Showroom hoặc mang đến bất kỳ trung tâm kiểm định nào.",
+    answer:
+      "Luxury Watch Gallery cam kết 100% sản phẩm chính hãng. Mỗi đồng hồ đều có đầy đủ hộp, sổ bảo hành, thẻ chứng nhận và mã QR truy xuất nguồn gốc. Bạn có thể kiểm tra trực tiếp tại Showroom hoặc mang đến bất kỳ trung tâm kiểm định nào.",
   },
   {
     question: "Có được xem đồng hồ trước khi mua không?",
-    answer: "Có! Bạn có thể ghé thăm Showroom của chúng tôi tại Số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội (mở cửa 09:00 - 21:00 hàng ngày, kể cả Thứ Bảy & Chủ Nhật) để trực tiếp xem và thử đồng hồ.",
+    answer:
+      "Có! Bạn có thể ghé thăm Showroom của chúng tôi tại Số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội (mở cửa 09:00 - 21:00 hàng ngày, kể cả Thứ Bảy & Chủ Nhật) để trực tiếp xem và thử đồng hồ.",
   },
   {
     question: "Website có hỗ trợ mua trả góp không?",
-    answer: "Hiện tại chúng tôi chưa hỗ trợ mua trả góp trực tuyến. Tuy nhiên, bạn có thể liên hệ Hotline 1900 6789 để được tư vấn về các chương trình trả góp qua thẻ tín dụng hoặc các đối tác tài chính.",
+    answer:
+      "Hiện tại chúng tôi chưa hỗ trợ mua trả góp trực tuyến. Tuy nhiên, bạn có thể liên hệ Hotline 1900 6789 để được tư vấn về các chương trình trả góp qua thẻ tín dụng hoặc các đối tác tài chính.",
   },
   {
     question: "Làm sao để theo dõi đơn hàng?",
-    answer: "Bạn có thể theo dõi trạng thái đơn hàng bằng cách vào mục Tra cứu đơn hàng và nhập mã đơn hàng được gửi qua email xác nhận. Ngoài ra, bạn cũng có thể đăng nhập tài khoản để xem lịch sử đơn hàng.",
+    answer:
+      "Bạn có thể theo dõi trạng thái đơn hàng bằng cách vào mục Tra cứu đơn hàng và nhập mã đơn hàng được gửi qua email xác nhận. Ngoài ra, bạn cũng có thể đăng nhập tài khoản để xem lịch sử đơn hàng.",
   },
   {
     question: "Tôi quên mật khẩu, phải làm sao?",
-    answer: "Bạn có thể nhấn vào 'Quên mật khẩu' tại trang Đăng nhập. Hệ thống sẽ gửi email khôi phục mật khẩu về địa chỉ email đã đăng ký. Vui lòng kiểm tra cả thư mục Spam nếu không thấy email.",
+    answer:
+      "Bạn có thể nhấn vào 'Quên mật khẩu' tại trang Đăng nhập. Hệ thống sẽ gửi email khôi phục mật khẩu về địa chỉ email đã đăng ký. Vui lòng kiểm tra cả thư mục Spam nếu không thấy email.",
   },
   {
     question: "Phí vận chuyển được tính như thế nào?",
-    answer: "Miễn phí vận chuyển toàn quốc cho tất cả đơn hàng đồng hồ cao cấp từ 10 triệu đồng. Đối với đơn hàng dưới 10 triệu, phí vận chuyển sẽ được hiển thị trước khi bạn xác nhận thanh toán.",
+    answer:
+      "Miễn phí vận chuyển toàn quốc cho tất cả đơn hàng đồng hồ cao cấp từ 10 triệu đồng. Đối với đơn hàng dưới 10 triệu, phí vận chuyển sẽ được hiển thị trước khi bạn xác nhận thanh toán.",
   },
   {
     question: "Tôi có thể hủy đơn hàng không?",
-    answer: "Bạn có thể hủy đơn hàng trước khi đơn hàng được xác nhận và chuyển đi. Sau khi đơn hàng đã được gửi, vui lòng liên hệ Hotline 1900 6789 để được hỗ trợ.",
+    answer:
+      "Bạn có thể hủy đơn hàng trước khi đơn hàng được xác nhận và chuyển đi. Sau khi đơn hàng đã được gửi, vui lòng liên hệ Hotline 1900 6789 để được hỗ trợ.",
   },
   {
     question: "Các phương thức thanh toán được chấp nhận?",
-    answer: "Chúng tôi chấp nhận: Thanh toán COD (trả tiền khi nhận hàng), Chuyển khoản ngân hàng (Vietcombank, Techcombank, MB Bank), Ví điện tử VNPAY, và thanh toán trực tiếp tại Showroom.",
+    answer:
+      "Chúng tôi chấp nhận: Thanh toán COD (trả tiền khi nhận hàng), Chuyển khoản ngân hàng (Vietcombank, Techcombank, MB Bank), Ví điện tử VNPAY, và thanh toán trực tiếp tại Showroom.",
   },
 ];
 
@@ -70,8 +88,8 @@ const FAQPage = () => {
       FAQ_ITEMS.filter(
         (faq) =>
           faq.question.toLowerCase().includes(q) ||
-          faq.answer.toLowerCase().includes(q)
-      )
+          faq.answer.toLowerCase().includes(q),
+      ),
     );
   }, [searchTerm]);
 

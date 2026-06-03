@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 // scripts/clean-dev.js
 // Kill processes listening on ports 5173 and 5000 (cross-platform best-effort)
-import { execSync } from 'child_process';
-import os from 'os';
+import { execSync } from "child_process";
+import os from "os";
 
 const ports = [5173, 5000];
 
 function killPid(pid) {
   try {
-    if (os.platform().startsWith('win')) {
-      execSync(`taskkill /PID ${pid} /F`, { stdio: 'ignore' });
+    if (os.platform().startsWith("win")) {
+      execSync(`taskkill /PID ${pid} /F`, { stdio: "ignore" });
     } else {
-      process.kill(pid, 'SIGKILL');
+      process.kill(pid, "SIGKILL");
     }
     console.log(`Killed PID ${pid}`);
   } catch (e) {
@@ -21,9 +21,12 @@ function killPid(pid) {
 
 function findAndKill(port) {
   try {
-    if (os.platform().startsWith('win')) {
+    if (os.platform().startsWith("win")) {
       const out = execSync(`netstat -ano | findstr :${port}`).toString();
-      const lines = out.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const lines = out
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean);
       for (const line of lines) {
         const parts = line.split(/\s+/);
         const pid = parts[parts.length - 1];
@@ -33,7 +36,10 @@ function findAndKill(port) {
       }
     } else {
       const out = execSync(`lsof -i :${port} -t || true`).toString();
-      const pids = out.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const pids = out
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean);
       for (const pid of pids) {
         killPid(pid);
       }
@@ -48,4 +54,4 @@ for (const p of ports) {
   findAndKill(p);
 }
 
-console.log('clean-dev finished');
+console.log("clean-dev finished");

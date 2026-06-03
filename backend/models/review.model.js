@@ -1,44 +1,44 @@
 import mongoose from "mongoose";
 
 const reviewSchema = new mongoose.Schema(
-	{
-		product: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "Product",
-			required: true,
-			index: true,
-		},
-		user: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "User",
-			required: true,
-		},
-		rating: {
-			type: Number,
-			required: true,
-			min: 1,
-			max: 5,
-		},
-		comment: {
-			type: String,
-			required: true,
-		},
-		images: {
-			type: [String],
-			default: [],
-		},
-		status: {
-			type: String,
-			enum: ["pending", "approved", "hidden"],
-			default: "pending",
-			index: true,
-		},
-		verifiedPurchase: {
-			type: Boolean,
-			default: false,
-		},
-	},
-	{ timestamps: true }
+  {
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+      required: true,
+      index: true,
+    },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    rating: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5,
+    },
+    comment: {
+      type: String,
+      required: true,
+    },
+    images: {
+      type: [String],
+      default: [],
+    },
+    status: {
+      type: String,
+      enum: ["pending", "approved", "hidden"],
+      default: "pending",
+      index: true,
+    },
+    verifiedPurchase: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { timestamps: true },
 );
 
 // Allow 1 review per user per product

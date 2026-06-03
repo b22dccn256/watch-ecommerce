@@ -13,10 +13,7 @@ export default function OrdersTab() {
 
   return (
     <div>
-      <OrderList
-        key={refreshKey}
-        onOpenOrder={(o) => setSelectedOrder(o)}
-      />
+      <OrderList key={refreshKey} onOpenOrder={(o) => setSelectedOrder(o)} />
       {selectedOrder && (
         <OrderDetailModal
           order={selectedOrder}

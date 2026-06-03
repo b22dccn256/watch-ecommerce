@@ -1,6 +1,13 @@
 import express from "express";
-import { protectRoute, managementRoute } from "../middleware/auth.middleware.js";
-import { adjustStock, getLowStockProducts, getProductInventoryLogs } from "../controllers/inventory.controller.js";
+import {
+  protectRoute,
+  managementRoute,
+} from "../middleware/auth.middleware.js";
+import {
+  adjustStock,
+  getLowStockProducts,
+  getProductInventoryLogs,
+} from "../controllers/inventory.controller.js";
 
 const router = express.Router();
 

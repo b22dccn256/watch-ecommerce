@@ -1,27 +1,27 @@
 /**
  * Generic Modal Component Wrapper
- * 
+ *
  * Works with useModalStore to provide consistent modal behavior.
- * 
+ *
  * Usage:
  * <Modal name="editProduct" title="Edit Product">
  *   <ProductForm />
  * </Modal>
  */
 
-import { X } from 'lucide-react';
-import { createPortal } from 'react-dom';
-import useModalStore from '../../stores/useModalStore';
+import { X } from "lucide-react";
+import { createPortal } from "react-dom";
+import useModalStore from "../../stores/useModalStore";
 
 const Modal = ({
   name,
   title,
   children,
   onClose,
-  size = 'md',
+  size = "md",
   closeButton = true,
   backdrop = true,
-  className = '',
+  className = "",
 }) => {
   const isOpen = useModalStore((state) => state.isOpen(name));
   const closeModal = useModalStore((state) => state.closeModal);
@@ -40,13 +40,13 @@ const Modal = ({
   };
 
   const sizeClasses = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-    '2xl': 'max-w-2xl',
-    '3xl': 'max-w-3xl',
-    'full': 'max-w-full mx-4',
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-lg",
+    xl: "max-w-xl",
+    "2xl": "max-w-2xl",
+    "3xl": "max-w-3xl",
+    full: "max-w-full mx-4",
   };
 
   return createPortal(
@@ -131,7 +131,7 @@ const Modal = ({
         }
       `}</style>
     </>,
-    document.body
+    document.body,
   );
 };
 
@@ -139,7 +139,7 @@ export default Modal;
 
 /**
  * Confirmation Modal Component
- * 
+ *
  * Usage:
  * <ConfirmModal
  *   name="deleteProductConfirm"
@@ -154,8 +154,8 @@ export const ConfirmModal = ({
   message,
   onConfirm,
   onCancel,
-  confirmText = 'Xác nhận',
-  cancelText = 'Hủy',
+  confirmText = "Xác nhận",
+  cancelText = "Hủy",
   isDangerous = false,
 }) => {
   const closeModal = useModalStore((state) => state.closeModal);
@@ -187,8 +187,8 @@ export const ConfirmModal = ({
             onClick={handleConfirm}
             className={`px-4 py-2 text-white rounded-lg transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 ${
               isDangerous
-                ? 'bg-red-600 hover:bg-red-700'
-                : 'bg-blue-600 hover:bg-blue-700'
+                ? "bg-red-600 hover:bg-red-700"
+                : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
             {confirmText}
@@ -201,7 +201,7 @@ export const ConfirmModal = ({
 
 /**
  * Alert Modal Component
- * 
+ *
  * Usage:
  * <AlertModal
  *   name="alertInfo"
@@ -214,15 +214,15 @@ export const AlertModal = ({
   name,
   title,
   message,
-  type = 'info', // 'success', 'error', 'warning', 'info'
+  type = "info", // 'success', 'error', 'warning', 'info'
 }) => {
   const closeModal = useModalStore((state) => state.closeModal);
 
   const typeStyles = {
-    success: 'text-green-600 bg-green-50 dark:bg-green-900/20',
-    error: 'text-red-600 bg-red-50 dark:bg-red-900/20',
-    warning: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20',
-    info: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20',
+    success: "text-green-600 bg-green-50 dark:bg-green-900/20",
+    error: "text-red-600 bg-red-50 dark:bg-red-900/20",
+    warning: "text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20",
+    info: "text-blue-600 bg-blue-50 dark:bg-blue-900/20",
   };
 
   return (

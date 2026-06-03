@@ -31,7 +31,9 @@ const cleanup = async () => {
 
     // Generate orderCodes for missing ones
     console.log("\n[2/3] Generating missing orderCodes...");
-    const ordersWithoutCode = await Order.find({ $or: [{ orderCode: null }, { orderCode: { $exists: false } }] });
+    const ordersWithoutCode = await Order.find({
+      $or: [{ orderCode: null }, { orderCode: { $exists: false } }],
+    });
     console.log(`Found ${ordersWithoutCode.length} orders without orderCode`);
 
     let updated = 0;
@@ -40,16 +42,20 @@ const cleanup = async () => {
       order.orderCode = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       await order.save({ validateBeforeSave: false });
       updated++;
-      
+
       if (updated % 10 === 0) {
-        console.log(`  Updated ${updated}/${ordersWithoutCode.length} orders...`);
+        console.log(
+          `  Updated ${updated}/${ordersWithoutCode.length} orders...`,
+        );
       }
     }
     console.log(`✓ Updated ${updated} orders with orderCode`);
 
     // Verify no more nulls
     console.log("\n[3/3] Verification...");
-    const remaining = await Order.countDocuments({ $or: [{ orderCode: null }, { orderCode: { $exists: false } }] });
+    const remaining = await Order.countDocuments({
+      $or: [{ orderCode: null }, { orderCode: { $exists: false } }],
+    });
     console.log(`✓ Orders without orderCode: ${remaining}`);
 
     if (remaining === 0) {
