@@ -6,6 +6,7 @@ let io;
 
 export const initSocket = (server) => {
   io = new Server(server, {
+    path: "/api/socket.io/",
     cors: {
       origin: [
         process.env.CLIENT_URL,

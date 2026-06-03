@@ -33,8 +33,9 @@ const ChatManagementTab = () => {
     fetchRooms();
 
     // Initialize socket
-    const socketUrl = import.meta.env.VITE_SERVER_URL || "https://api.timematrix.io.vn";
+    const socketUrl = import.meta.env.VITE_SERVER_URL || "";
     socketRef.current = io(socketUrl, {
+      path: "/api/socket.io/",
       withCredentials: true,
     });
 

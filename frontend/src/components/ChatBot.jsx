@@ -562,8 +562,11 @@ const ChatBot = () => {
     }
     setSessionToken(token);
 
-    const socketUrl = import.meta.env.VITE_SERVER_URL || "https://api.timematrix.io.vn";
-    socketRef.current = io(socketUrl, { withCredentials: true });
+    const socketUrl = import.meta.env.VITE_SERVER_URL || "";
+    socketRef.current = io(socketUrl, {
+      path: "/api/socket.io/",
+      withCredentials: true 
+    });
 
     socketRef.current.on("connect", () => {
       socketRef.current.emit("join_room", { sessionToken: token, userId: user?._id });
