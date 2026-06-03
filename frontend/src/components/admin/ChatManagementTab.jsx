@@ -14,6 +14,11 @@ const ChatManagementTab = () => {
   const [isSuggesting, setIsSuggesting] = useState(false);
   const messagesEndRef = useRef(null);
   const socketRef = useRef(null);
+  const selectedRoomRef = useRef(selectedRoom);
+
+  useEffect(() => {
+    selectedRoomRef.current = selectedRoom;
+  }, [selectedRoom]);
 
   useEffect(() => {
     // Fetch initial rooms
@@ -50,13 +55,13 @@ const ChatManagementTab = () => {
         }
       });
       
-      if (selectedRoom?.sessionToken === updatedRoom.sessionToken) {
+      if (selectedRoomRef.current?.sessionToken === updatedRoom.sessionToken) {
         setSelectedRoom(updatedRoom);
       }
     });
 
     socketRef.current.on("admin_receive_message", ({ sessionToken, message }) => {
-      if (selectedRoom && selectedRoom.sessionToken === sessionToken) {
+      if (selectedRoomRef.current && selectedRoomRef.current.sessionToken === sessionToken) {
         setMessages((prev) => {
           if (prev.some(m => m._id === message._id)) return prev;
           return [...prev, message];
@@ -69,7 +74,7 @@ const ChatManagementTab = () => {
     return () => {
       if (socketRef.current) socketRef.current.disconnect();
     };
-  }, [selectedRoom]);
+  }, []);
 
   useEffect(() => {
     if (selectedRoom) {

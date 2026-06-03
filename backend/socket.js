@@ -26,7 +26,7 @@ export const initSocket = (server) => {
     socket.on("join_room", async ({ sessionToken, userId }) => {
       if (!sessionToken) return;
       socket.join(sessionToken);
-      
+
       let room = await ChatRoom.findOne({ sessionToken });
       if (!room) {
         room = new ChatRoom({ sessionToken, user: userId || null });
@@ -35,7 +35,7 @@ export const initSocket = (server) => {
         room.user = userId;
         await room.save();
       }
-      
+
       // Send previous messages
       const messages = await ChatMessage.find({ roomId: room._id }).sort({ createdAt: 1 });
       socket.emit("chat_history", messages);
@@ -69,7 +69,7 @@ export const initSocket = (server) => {
       // Update room last message info
       room.lastMessage = content;
       room.lastMessageAt = new Date();
-      
+
       if (sender === "user") {
         room.unreadCountAdmin += 1;
       } else {
@@ -85,7 +85,7 @@ export const initSocket = (server) => {
 
       // Emit to the specific customer room
       io.to(sessionToken).emit("receive_message", message);
-      
+
       // Emit to all admins
       io.to("admin_room").emit("admin_receive_message", { sessionToken, message });
       io.to("admin_room").emit("room_updated", room);
@@ -95,7 +95,7 @@ export const initSocket = (server) => {
     socket.on("mark_read", async ({ sessionToken, role }) => {
       let room = await ChatRoom.findOne({ sessionToken });
       if (!room) return;
-      
+
       if (role === "admin") {
         room.unreadCountAdmin = 0;
       } else if (role === "user") {
