@@ -179,7 +179,7 @@ const ContactPage = () => {
                 <p className="text-xs font-bold uppercase text-luxury-gold mb-1">
                   Hotline 24/7
                 </p>
-                <p className="text-lg font-bold">1900 8888</p>
+                <p className="text-lg font-bold">0911046801</p>
                 <p className="text-xs text-gray-400 mt-1">
                   Hỗ trợ kỹ thuật: 1900 9999
                 </p>
@@ -194,7 +194,7 @@ const ContactPage = () => {
                 <p className="text-xs font-bold uppercase text-luxury-gold mb-1">
                   Email Phản Hồi
                 </p>
-                <p className="text-lg font-bold">support@watchstore.com</p>
+                <p className="text-lg font-bold">ha8893536@gmail.com</p>
                 <p className="text-xs text-gray-400 mt-1">
                   Hợp tác: business@watchstore.com
                 </p>

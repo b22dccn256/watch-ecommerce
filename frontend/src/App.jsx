@@ -32,6 +32,8 @@ import BrandsPage from "./pages/BrandsPage";
 import FAQPage from "./pages/FAQPage";
 import ComparePage from "./pages/ComparePage";
 import NotFoundPage from "./pages/NotFoundPage";
+import StoresPage from "./pages/StoresPage";
+import CareersPage from "./pages/CareersPage";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -369,6 +371,8 @@ function App() {
                     <Route path="/warranty" element={<WarrantyPage />} />
                     <Route path="/size-guide" element={<SizeGuidePage />} />
                     <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/stores" element={<StoresPage />} />
+                    <Route path="/careers" element={<CareersPage />} />
                     <Route path="/brands" element={<BrandsPage />} />
                     <Route path="/order-lookup" element={<OrderLookupPage />} />
                     <Route

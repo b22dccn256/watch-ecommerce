@@ -366,29 +366,31 @@ const OrderTrackingPage = () => {
                 {currentOrder.products.map((item, index) => (
                   <div
                     key={`${item.product?._id || index}-${index}`}
-                    className="flex items-center gap-3 rounded-lg bg-surface-soft p-2.5 text-sm"
+                    className="flex flex-col gap-3 rounded-xl bg-surface-soft p-4 text-sm"
                   >
-                    <img
-                      src={item.product?.image || "/placeholder.png"}
-                      alt={item.product?.name}
-                      className="h-12 w-12 rounded-md object-cover"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-primary font-medium">
-                        {item.product?.name}
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={item.product?.image || "/placeholder.png"}
+                        alt={item.product?.name}
+                        className="h-12 w-12 rounded-md object-cover"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-primary font-medium">
+                          {item.product?.name}
+                        </p>
+                        <p className="text-xs text-muted">SL: {item.quantity}</p>
+                      </div>
+                      <p className="font-semibold text-[color:var(--color-gold)]">
+                        {item.product?.price?.toLocaleString("vi-VN")} đ
                       </p>
-                      <p className="text-xs text-muted">SL: {item.quantity}</p>
-                      {currentOrder.status === "delivered" && user && (
-                        <div className="mt-2">
-                          <ReviewForm
-                            productId={item.product?._id || item.product}
-                          />
-                        </div>
-                      )}
                     </div>
-                    <p className="font-semibold text-[color:var(--color-gold)]">
-                      {item.product?.price?.toLocaleString("vi-VN")} đ
-                    </p>
+                    {currentOrder.status === "delivered" && user && (
+                      <div className="mt-1 pt-3 border-t border-black/5 dark:border-white/5">
+                        <ReviewForm
+                          productId={item.product?._id || item.product}
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -397,7 +399,7 @@ const OrderTrackingPage = () => {
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() =>
-                  (window.location.href = `mailto:support@watchstore.com?subject=Inquiry for Order ${currentOrder.orderCode}`)
+                  (window.location.href = `mailto:ha8893536@gmail.com?subject=Inquiry for Order ${currentOrder.orderCode}`)
                 }
                 className="btn-base btn-primary h-11"
               >

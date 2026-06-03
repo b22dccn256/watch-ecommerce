@@ -24,7 +24,7 @@ const OrderLookupForm = ({ onClose, autoFocusFirst = false }) => {
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
-          "Không tìm thấy đơn hàng khớp với thông tin cung cấp.",
+        "Không tìm thấy đơn hàng khớp với thông tin cung cấp.",
       );
     } finally {
       setLoading(false);
@@ -45,7 +45,7 @@ const OrderLookupForm = ({ onClose, autoFocusFirst = false }) => {
             autoFocus={autoFocusFirst}
             value={orderNumber}
             onChange={(e) => setOrderNumber(e.target.value)}
-            placeholder="Ví dụ: ORD-123456"
+            placeholder="Nhập mã đơn hàng của bạn"
             className="pl-12"
           />
           <Search className="absolute left-4 top-[2.35rem] text-gray-400 w-4 h-4" />
@@ -81,7 +81,7 @@ const OrderLookupForm = ({ onClose, autoFocusFirst = false }) => {
         <p className="text-xs text-gray-600 dark:text-luxury-text-muted leading-relaxed">
           Mã đơn hàng đã được gửi vào email của bạn ngay sau khi đặt hàng thành
           công. Nếu không tìm thấy, vui lòng kiểm tra hộp thư Spam hoặc liên hệ
-          Hotline 1900 8888.
+          Hotline 0911046801.
         </p>
       </div>
 

@@ -136,14 +136,14 @@ const PolicyPageLayout = ({
                     <span className="font-medium text-gray-900 dark:text-white">
                       Hotline
                     </span>
-                    <span className="text-right">1900 6789</span>
+                    <span className="text-right">0911046801</span>
                   </div>
                   <div className="flex items-start justify-between gap-3">
                     <span className="font-medium text-gray-900 dark:text-white">
                       Email
                     </span>
                     <span className="text-right break-all">
-                      contact@luxurywatch.vn
+                      ha8893536@gmail.com
                     </span>
                   </div>
                   <div className="flex items-start justify-between gap-3">

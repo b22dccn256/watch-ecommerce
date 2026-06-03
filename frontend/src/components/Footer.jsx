@@ -117,7 +117,7 @@ const Footer = () => {
         <div className="flex flex-wrap items-center justify-center gap-3 border-b border-black/8 py-5 text-xs uppercase tracking-[0.16em] text-secondary dark:border-white/8 sm:justify-between">
           <span className="inline-flex items-center gap-2">
             <Truck className="h-4 w-4 text-[color:var(--color-gold)]" />
-            Miễn phí giao hàng từ 2.000.000 đ
+            Miễn phí giao hàng từ 10.000.000 đ
           </span>
           <span className="inline-flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-[color:var(--color-gold)]" />

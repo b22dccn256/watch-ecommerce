@@ -451,7 +451,7 @@ const INTENT_RESPONSE = {
   },
   contact: {
     content:
-      "Bạn có thể liên hệ hotline 1900 6789 hoặc email contact@luxurywatch.vn để được hỗ trợ nhanh.",
+      "Bạn có thể liên hệ hotline 0911046801 hoặc email ha8893536@gmail.com để được hỗ trợ nhanh.",
     action: buildAction("Liên hệ", "/contact", "Mở trang liên hệ"),
   },
   account: {
@@ -753,7 +753,7 @@ const ChatBot = () => {
       const errorMsg = {
         id: Date.now() + 1,
         role: "bot",
-        content: "Xin lỗi, hệ thống AI đang bảo trì. Vui lòng gọi 1900 6789.",
+        content: "Xin lỗi, hệ thống AI đang bảo trì. Vui lòng gọi 0911046801.",
       };
       setMessages((prev) => [...prev, errorMsg]);
     } finally {

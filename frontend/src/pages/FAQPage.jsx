@@ -44,7 +44,7 @@ const FAQ_ITEMS = [
   {
     question: "Website có hỗ trợ mua trả góp không?",
     answer:
-      "Hiện tại chúng tôi chưa hỗ trợ mua trả góp trực tuyến. Tuy nhiên, bạn có thể liên hệ Hotline 1900 6789 để được tư vấn về các chương trình trả góp qua thẻ tín dụng hoặc các đối tác tài chính.",
+      "Hiện tại chúng tôi chưa hỗ trợ mua trả góp trực tuyến. Tuy nhiên, bạn có thể liên hệ Hotline 0911046801 để được tư vấn về các chương trình trả góp qua thẻ tín dụng hoặc các đối tác tài chính.",
   },
   {
     question: "Làm sao để theo dõi đơn hàng?",
@@ -64,7 +64,7 @@ const FAQ_ITEMS = [
   {
     question: "Tôi có thể hủy đơn hàng không?",
     answer:
-      "Bạn có thể hủy đơn hàng trước khi đơn hàng được xác nhận và chuyển đi. Sau khi đơn hàng đã được gửi, vui lòng liên hệ Hotline 1900 6789 để được hỗ trợ.",
+      "Bạn có thể hủy đơn hàng trước khi đơn hàng được xác nhận và chuyển đi. Sau khi đơn hàng đã được gửi, vui lòng liên hệ Hotline 0911046801 để được hỗ trợ.",
   },
   {
     question: "Các phương thức thanh toán được chấp nhận?",
@@ -225,10 +225,10 @@ const FAQPage = () => {
                 Gửi câu hỏi
               </Link>
               <a
-                href="tel:19006789"
+                href="tel:0911046801"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-[color:var(--color-gold)] text-[color:var(--color-gold)] font-semibold hover:bg-[color:var(--color-gold)]/10 transition-colors"
               >
-                Hotline: 1900 6789
+                Hotline: 0911046801
               </a>
             </div>
           </div>

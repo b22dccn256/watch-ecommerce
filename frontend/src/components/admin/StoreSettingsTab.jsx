@@ -223,8 +223,8 @@ const StoreSettingsTab = () => {
           config.promoPopupImage ||
           "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600",
         promoPopupDelay: config.promoPopupDelay || 5,
-        footerHotline: config.footerHotline || "1900 6789",
-        footerEmail: config.footerEmail || "contact@luxurywatch.vn",
+        footerHotline: config.footerHotline || "0911046801",
+        footerEmail: config.footerEmail || "ha8893536@gmail.com",
         footerAddress:
           config.footerAddress || "Số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội",
         footerAboutText:

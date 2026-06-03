@@ -64,23 +64,23 @@ const ReviewForm = ({ productId }) => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-3 p-3 border border-gray-700 rounded-lg bg-gray-800/40"
+      className="mt-3 p-4 border border-black/10 dark:border-white/10 rounded-xl bg-white dark:bg-black/20"
     >
-      <label className="text-sm text-gray-300 font-medium">
+      <label className="text-sm text-[color:var(--color-primary)] font-semibold">
         Đánh giá sản phẩm
       </label>
       <div className="mt-2 flex items-center justify-between gap-3">
         <Stars value={rating} onChange={setRating} />
       </div>
       <input
-        className="mt-3 w-full p-2 rounded-md bg-gray-900 border border-gray-700 text-white text-sm"
+        className="mt-3 w-full p-3 rounded-lg bg-transparent border border-black/20 dark:border-white/20 text-[color:var(--color-primary)] text-sm focus:outline-none focus:border-[color:var(--color-gold)] transition-colors"
         placeholder="Tiêu đề đánh giá (VD: Sản phẩm tuyệt vời)"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         maxLength={100}
       />
       <textarea
-        className="mt-2 w-full p-2 rounded-md bg-gray-900 border border-gray-700 text-white text-sm"
+        className="mt-3 w-full p-3 rounded-lg bg-transparent border border-black/20 dark:border-white/20 text-[color:var(--color-primary)] text-sm focus:outline-none focus:border-[color:var(--color-gold)] transition-colors"
         rows={3}
         placeholder="Viết nhận xét của bạn về sản phẩm (tối thiểu 10 ký tự)..."
         value={comment}
