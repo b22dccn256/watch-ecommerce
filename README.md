@@ -59,14 +59,31 @@ cp backend/.env.example backend/.env
 
 #### 4. Khởi chạy Server Development
 
-Từ thư mục gốc, khởi động cả React frontend và Node backend cùng lúc:
+Bạn có thể chọn khởi chạy toàn bộ dự án từ thư mục gốc, hoặc chạy tách biệt từng phần:
 
+**A. Khởi chạy từ Thư mục gốc (Root Folder) - Khuyên dùng**
+Từ thư mục gốc của dự án, bạn có thể khởi động cả React frontend và Node backend cùng lúc bằng 1 lệnh duy nhất:
 ```bash
 npm run dev
 ```
 
-- Frontend sẽ chạy tại: `http://localhost:5173`
-- Backend sẽ chạy tại: `http://localhost:5000`
+**B. Khởi chạy độc lập Backend**
+Mở một terminal mới, di chuyển vào thư mục backend và khởi chạy:
+```bash
+cd backend
+npm install   # Nếu chưa cài đặt thư viện
+npm run dev
+```
+- Backend API sẽ lắng nghe tại: `http://localhost:5000`
+
+**C. Khởi chạy độc lập Frontend**
+Mở một terminal mới, di chuyển vào thư mục frontend và khởi chạy:
+```bash
+cd frontend
+npm install   # Nếu chưa cài đặt thư viện
+npm run dev
+```
+- Frontend UI sẽ chạy tại: `http://localhost:5173`
 
 ---
 
