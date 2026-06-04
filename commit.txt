@@ -1,1 +1,1 @@
-﻿Cập nhật: Bổ sung link Chính sách đổi trả và Hướng dẫn mua hàng vào Footer
+﻿Cập nhật: Mở rộng thanh điều hướng bên (sidebar) để email không bị xuống dòng

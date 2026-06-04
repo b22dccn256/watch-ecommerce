@@ -112,7 +112,7 @@ const PolicyPageLayout = ({
 
         <div className="flex flex-col lg:flex-row gap-10">
           {/* Sidebar Navigation */}
-          <aside className="w-full lg:w-72 shrink-0">
+          <aside className="w-full lg:w-80 shrink-0">
             <div className="sticky top-28 space-y-4 rounded-[2rem] border border-black/5 dark:border-luxury-border bg-white/90 dark:bg-luxury-darker/90 p-4 shadow-[0_24px_80px_-45px_rgba(0,0,0,0.35)] backdrop-blur-md">
               <h3 className="text-[11px] uppercase tracking-[0.24em] text-gray-500 dark:text-luxury-text-muted font-bold mb-4 px-3">
                 Hỗ trợ nhanh
