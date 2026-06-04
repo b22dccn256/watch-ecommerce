@@ -67,7 +67,10 @@ const PolicyPageLayout = ({
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f8f5f0_0%,#ffffff_18%,#ffffff_100%)] dark:bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.08)_0%,rgba(15,12,8,1)_45%,rgba(10,10,10,1)_100%)] pb-20">
-      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div
+        className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8"
+        style={{ zoom: "80%" }}
+      >
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-luxury-text-muted mb-8 pt-8">
           <NavLink to="/" className="hover:text-luxury-gold transition">

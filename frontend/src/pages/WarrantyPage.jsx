@@ -98,13 +98,6 @@ const WarrantyPage = () => {
             </div>
           </div>
         </div>
-
-        <div className="border-t border-luxury-border pt-8">
-          <p className="text-sm text-luxury-text-muted italic">
-            * Lưu ý: Chính sách này không áp dụng cho các sản phẩm trong chương
-            trình thanh lý hoặc có ghi chú riêng biệt tại thời điểm mua hàng.
-          </p>
-        </div>
       </section>
     </PolicyPageLayout>
   );
