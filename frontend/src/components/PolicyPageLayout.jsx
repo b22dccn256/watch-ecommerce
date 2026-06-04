@@ -9,6 +9,8 @@ import {
   Lock,
   FileText,
   Search,
+  RotateCcw,
+  ShoppingBag,
 } from "lucide-react";
 import { useEffect } from "react";
 
@@ -33,10 +35,22 @@ const PolicyPageLayout = ({
       path: "/delivery-policy",
     },
     {
+      id: "return",
+      label: "Chính sách đổi trả",
+      icon: RotateCcw,
+      path: "/return-policy",
+    },
+    {
       id: "warranty",
       label: "Đổi trả & Bảo hành",
       icon: ShieldCheck,
       path: "/warranty",
+    },
+    {
+      id: "guide",
+      label: "Hướng dẫn mua hàng",
+      icon: ShoppingBag,
+      path: "/shopping-guide",
     },
     {
       id: "size-guide",

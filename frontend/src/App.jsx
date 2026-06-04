@@ -20,6 +20,8 @@ import OrderTrackingPage from "./pages/OrderTrackingPage";
 import WishlistPage from "./pages/WishlistPage";
 import DeliveryPolicyPage from "./pages/DeliveryPolicyPage";
 import WarrantyPage from "./pages/WarrantyPage";
+import ReturnPolicyPage from "./pages/ReturnPolicyPage";
+import ShoppingGuidePage from "./pages/ShoppingGuidePage";
 import SizeGuidePage from "./pages/SizeGuidePage";
 import ContactPage from "./pages/ContactPage";
 import OrderLookupPage from "./pages/OrderLookupPage";
@@ -368,7 +370,9 @@ function App() {
                       path="/delivery-policy"
                       element={<DeliveryPolicyPage />}
                     />
+                    <Route path="/return-policy" element={<ReturnPolicyPage />} />
                     <Route path="/warranty" element={<WarrantyPage />} />
+                    <Route path="/shopping-guide" element={<ShoppingGuidePage />} />
                     <Route path="/size-guide" element={<SizeGuidePage />} />
                     <Route path="/contact" element={<ContactPage />} />
                     <Route path="/stores" element={<StoresPage />} />
