@@ -39,7 +39,9 @@ const DEFAULT_FOOTER_COLUMNS = [
     title: "Hỗ trợ",
     links: [
       { label: "Trung tâm trợ giúp", link: "/support" },
+      { label: "Hướng dẫn mua hàng", link: "/shopping-guide" },
       { label: "Chính sách giao hàng", link: "/delivery-policy" },
+      { label: "Chính sách đổi trả", link: "/return-policy" },
       { label: "Đổi trả và bảo hành", link: "/warranty" },
       { label: "Hướng dẫn chọn size", link: "/size-guide" },
       { label: "Liên hệ", link: "/contact" },

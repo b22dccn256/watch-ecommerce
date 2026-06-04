@@ -1,1 +1,1 @@
-﻿Cập nhật: Thêm giao diện Chính sách đổi trả và Hướng dẫn mua hàng
+﻿Cập nhật: Bổ sung link Chính sách đổi trả và Hướng dẫn mua hàng vào Footer
