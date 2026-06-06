@@ -693,7 +693,48 @@ Mặc dù đã rất cố gắng hoàn thiện, nhưng do giới hạn về mặ
 
 ## PHÂN CÔNG CÔNG VIỆC
 
-| Mã Sinh Viên | Họ và Tên | Công Việc |
+### Bảng tổng hợp đóng góp
+
+| Mã Sinh Viên | Họ và Tên | Số Commit | Vai Trò Chính |
+|---|---|---|---|
+| B22DCCN268 | Nguyễn Hồng Hải | ~56 commits | Backend Core, Security, Payments, Testing & CI/CD |
+| B22DCCN256 | Nguyễn Duy Hà | ~52 commits | Frontend, Admin UI, DevOps, Live Chat & Documentation |
+
+---
+
+### Chi tiết công việc từng thành viên
+
+#### Nguyễn Hồng Hải (B22DCCN268) — Backend & Infrastructure
+
+| Nhóm Chức Năng | Công Việc Cụ Thể | Commit tiêu biểu |
 |---|---|---|
-| B22DCCN268 | Nguyễn Hồng Hải | - Phát triển Hệ thống lõi Backend (Auth, Pagination, Security).<br>- Tích hợp Trí tuệ Nhân tạo (AI Chatbot, Spam Detection).<br>- Xử lý Thanh toán (VNPay IPN) và Tác vụ ngầm (BullMQ/Redis cho Email).<br>- Xây dựng Store Settings và Order Management nâng cao. |
-| B22DCCN256 | Nguyễn Duy Hà | - Thiết kế & Tối ưu UI/UX Admin Dashboard.<br>- Quản trị Inventory, Campaign, CRUD Sản phẩm.<br>- Xử lý dữ liệu thống kê (Analytics) và Mock data/Seeding.<br>- Triển khai DevOps (Deployment lên Render), cấu hình tên miền và bảo mật mạng (CORS, Helmet). |
+| **Hệ thống Xác thực (Auth)** | OAuth 2.0 (Google/Facebook/GitHub), JWT Token Refresh Interceptor với queue pattern, BFCache back-button auth fix, xác thực 2 bước (2FA OTP) cho Admin | `fix auth flow and oauth config`, `fix: implement robust Axios token refresh interceptor` |
+| **Thanh toán & Đối soát** | VNPay IPN Hardening, IPN Reconcile scripts & Admin UI, IPN reprocessing helpers, admin CLI, sửa race condition VNPay, align canonicalization với official helper | `Add IPN reconcile scripts and admin UI`, `fix(payment): fix VNPay return page race condition`, `fix(vnpay): align canonicalization` |
+| **Email & Hàng đợi ngầm** | Hệ thống BullMQ/Redis Email queue, sửa SMTP production (port 465), email verification, bypass email delivery cho E2E testing, Redis memory-store fallback khi Upstash hết quota | `chore: Payment IPN hardening + fix resend limiter`, `fix(mail): fix registration hang and SMTP port 465`, `fix(redis): fallback to memory store` |
+| **Quản lý Đơn hàng (Admin)** | Nâng cấp Order Management với server-side search/filter/pagination, OrderDetailModal phong phú với tracking timeline | `feat(admin): upgrade Order Management - server-side search/filter/pagination, rich OrderDetailModal` |
+| **Store Settings** | Admin Store Settings V2 – quản lý banner, popup, màu sắc giao diện, phí vận chuyển, thông tin liên hệ | `feat: Admin Store Settings V2 - toàn quyền tuỳ chỉnh giao diện` |
+| **Bảo mật & Hiệu năng** | Security hardening toàn bộ frontend, server-side pagination với URL sync cho ProductsList, isolate Admin Tab stores, giới hạn rate limit phía dev | `refactor frontend and security hardening`, `refactor: apply server-side pagination with URL sync` |
+| **Kiểm thử & CI/CD** | System audit (sửa 14 bugs, thêm 10 file test), cấu hình GitHub Actions CI/CD, sửa xung đột yml, thay `npm ci` bằng `npm install` để tránh lỗi lockfile | `fix: system audit - 14 bugs fixed + 10 test files added`, `fix(ci): replace npm ci with npm install` |
+| **AI & Chatbot** | Tối ưu chatbot (câu trả lời ngắn gọn, sửa phạm vi Apple Watch), sửa lag admin slide hero, thêm interactive banner sorting | `feat(ai-admin-fixes): optimize chatbot concise responses` |
+| **Coupon & Khuyến mãi** | Giới thiệu model `usageHistory` cho Coupon, sửa lỗi mock `usedToday`, harden bulk price adjust | `fix: resolve mock usedToday bug by introducing usageHistory to coupon model` |
+| **Import Sản phẩm** | Nhập sản phẩm hàng loạt via file Excel/Form, chuẩn hóa encoding Admin, deep-link search | `feat: fix email system and robust product import via Excel/Form` |
+| **Địa chỉ & Checkout** | Lưu địa chỉ giao hàng (saved shipping addresses), khóa email checkout, sửa lỗi product card clickable | `Add saved shipping addresses and lock checkout email` |
+
+---
+
+#### Nguyễn Duy Hà (B22DCCN256) — Frontend, Admin UI & DevOps
+
+| Nhóm Chức Năng | Công Việc Cụ Thể | Commit tiêu biểu |
+|---|---|---|
+| **Khởi tạo Dự án** | First commit, cấu trúc toàn bộ frontend/backend, Footer, Navbar, routing cơ bản, chuẩn hóa MongoDB URI | `first commit`, `feat: Initialize the watch e-commerce frontend`, `feat: introduce a new Footer component` |
+| **Catalog & Tìm kiếm** | Trang danh mục sản phẩm với bộ lọc/sắp xếp/phân trang, HeroBanner với animation, thanh tìm kiếm gợi ý sản phẩm recommend | `feat: Triển khai trang danh mục sản phẩm`, `feat: Nâng cấp triển khai thành phần HeroBanner`, `Thanh tìm kiếm hệ thống sẽ cho các sản phẩm recommend` |
+| **Giỏ hàng & Checkout** | Cart (guest/logged-in), Checkout (COD/QR/Stripe), trang Purchase Success, Cron jobs quản lý đơn hàng tự động, sửa lỗi update quantity và wishlist | `feat: Triển khai các trang giỏ hàng và thanh toán`, `feat: Fix cart update quantity and add wishlist feature` |
+| **Campaign & Flash Sale** | Flash Sale và Campaign management toàn stack (backend API + Zustand store + homepage integration) | `feat: Introduce full-stack campaign management`, `feat: Implement a comprehensive flash sale and campaign management system` |
+| **Admin Dashboard UI** | Khởi tạo Admin Dashboard với analytics, tối ưu layout (font, icon, alignment), biểu đồ doanh thu Recharts, tab Chiến dịch, giao diện Kho hàng (lọc/sắp xếp) | `feat: optimize Admin Dashboard UI and Analytics Data`, `Cập nhật: Thiết kế lại giao diện Kho hàng`, `Thêm tab Quản lý Chiến dịch` |
+| **Xác thực & Phân quyền** | Đăng ký/Đăng nhập hoàn chỉnh, xác minh email, quản lý hồ sơ người dùng, phân quyền Staff, 2FA OTP backend email service | `Triển khai hệ thống xác thực người dùng hoàn chỉnh`, `feat: Cập nhật phân quyền role cho nhân viên Staff` |
+| **Live Chat & Socket.io** | Tích hợp real-time chat (Socket.io), AI chatbot UI, tab quản lý chat admin, giới hạn guest chat, đồng bộ socket qua proxy `/api/socket.io/` | `feat: integrate real-time chat with AI and admin dashboard`, `Đồng bộ socket.io qua /api/socket.io/`, `Sửa lỗi ngắt kết nối socket` |
+| **Trang nội dung** | Trang Liên hệ, Tuyển dụng, Showroom, Chính sách đổi trả, Hướng dẫn mua hàng, thêm link Footer | `Giao diện liên hệ chúng tôi`, `Hoàn thiện giao diện Tuyển dụng, Showroom`, `Cập nhật: Thêm giao diện Chính sách đổi trả và Hướng dẫn mua hàng` |
+| **DevOps & Production** | Deploy lên Render, cấu hình tên miền `timematrix.io.vn`, sửa CORS/Helmet CSP production, serve frontend từ backend, xóa URL localhost thay domain thật | `Fix Helmet CSP and CORS for production`, `Fix final CORS block static files`, `Sửa logic Serve FE - Chuyển sang production` |
+| **Email Marketing** | Hệ thống email marketing toàn diện (routes, controllers, models, services), newsletter subscription | `feat: Implement comprehensive email marketing and contact management system` |
+| **AI Controller** | Khởi tạo AI controller cho chatbot (Gemini/Llama), fix chatbot fallback logic và model | `feat: add AI controller for AI-related functionalities`, `fix(ai): update chatbot fallback logic and model` |
+| **Tài liệu & Code Quality** | Viết README (tiếng Việt), báo cáo BTL, dọn dẹp code bằng Prettier/ESLint, hướng dẫn cài đặt chi tiết | `Cập nhật README: Dịch toàn bộ hướng dẫn sang Tiếng Việt`, `Dọn dẹp code: Chuẩn hóa định dạng bằng Prettier`, `Cập nhật báo cáo BTL PTHT TMĐT` |
