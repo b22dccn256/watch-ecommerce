@@ -18,8 +18,6 @@ const PUBLIC_PATH_PREFIXES = [
   "/api/orders/lookup",
   "/api/payments/webhook",
   "/api/payments/vnpay/ipn",
-  "/api/payments/momo/ipn",
-  "/api/payments/zalopay/ipn",
   "/api/ai/chat",
 ];
 
